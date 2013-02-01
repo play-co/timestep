@@ -1,0 +1,11 @@
+<div style="font-size: 20px">loading...</div>
+<script>
+w = window;
+ua = navigator.userAgent;
+isIOS = /(iPod|iPhone|iPad)/i.test(ua);
+isAndroid = !isIOS && /Mobile Safari/.test(ua);
+var q = w.location.search + w.location.hash;
+var l = (isAndroid ? 'android.html' : isIOS ? 'ios.html' : 'desktop.html') + q;
+w.location.replace(l);
+
+</script>
