@@ -530,7 +530,13 @@ function validateIOSManifest(manifest) {
 	}
 
 	var schema = {
-		"apsalarKey": {
+		"entryPoint": {
+			res: "Should be set to the entry point.",
+			def: "gc.native.launchClient",
+			halt: false,
+			silent: true
+		},
+/*		"apsalarKey": {
 			res: "Get this from your Apsalar account.",
 			def: "",
 			halt: false
@@ -539,12 +545,6 @@ function validateIOSManifest(manifest) {
 			res: "Get this from your Apsalar account.",
 			def: "",
 			halt: false
-		},
-		"entryPoint": {
-			res: "Should be set to the entry point.",
-			def: "gc.native.launchClient",
-			halt: false,
-			silent: true
 		},
 		"flurryKey": {
 			res: "Get this from your Flurry account.",
@@ -560,7 +560,7 @@ function validateIOSManifest(manifest) {
 			res: "Get this from your Tapjoy account.",
 			def: "",
 			halt: false
-		},
+		}, */
 		"bundleID": {
 			res: "Should be set to the Bundle ID (a name) for your app from iTunes Connect. In-app purchases may not work!",
 			def: manifest.shortName,
