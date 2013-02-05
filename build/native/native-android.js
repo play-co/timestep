@@ -271,10 +271,10 @@ function copyNotifyIcon (project, destDir, tag, name) {
 //void copyIcons(File destDir) throws Exception {
 function copyIcons (project, destDir) {
 	if (project.manifest.icons != null) {
-		copyIcon(project, destDir, "l", 36);
-		copyIcon(project, destDir, "m", 48);
-		copyIcon(project, destDir, "h", 72);
-		copyIcon(project, destDir, "xh", 96);
+		copyIcon(project, destDir, "l", "36");
+		copyIcon(project, destDir, "m", "48");
+		copyIcon(project, destDir, "h", "72");
+		copyIcon(project, destDir, "xh", "96");
 		if (project.manifest.icons.alerts != null) {
 			copyNotifyIcon(project, destDir, "l", "low");
 			copyNotifyIcon(project, destDir, "m", "med");
