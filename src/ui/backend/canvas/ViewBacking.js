@@ -37,7 +37,14 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 	this.getSuperview = function () { return this._superview; }
 	this.getSubviews = function () {
 		if (this._needsSort) { this._needsSort = false; this._subviews.sort(); }
-		return this._subviews;
+		var subviews = [];
+		var backings = this._subviews;
+		var n = backings.length;
+		for (var i = 0; i < n; ++i) {
+			subviews[i] = backings[i]._view;
+		}
+
+		return subviews;
 	}
 
 	var ADD_COUNTER = 900000;
@@ -48,12 +55,12 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		if (superview) { superview.__view.removeSubview(view); }
 
 		var n = this._subviews.length;
-		this._subviews[n] = view;
+		this._subviews[n] = backing;
 
 		backing._superview = this._view;
 		backing._setAddedAt(++ADD_COUNTER);
 
-		if (n && backing.__sortKey < this._subviews[n - 1].__view.__sortKey) {
+		if (n && backing.__sortKey < this._subviews[n - 1].__sortKey) {
 			this._needsSort = true;
 		}
 
@@ -61,7 +68,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 	}
 
 	this.removeSubview = function (targetView) {
-		var index = this._subviews.indexOf(targetView);
+		var index = this._subviews.indexOf(targetView.__view);
 		if (index != -1) {
 			this._subviews.splice(index, 1);
 			// this._view.needsRepaint();
@@ -77,7 +84,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		this._view.tick && this._view.tick(dt, app);
 
 		for (var i = 0, view; view = this._subviews[i]; ++i) {
-			view.__view.wrapTick(dt, app);
+			view.wrapTick(dt, app);
 		}
 
 		// TODO: support partial repaints?
@@ -156,7 +163,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		var view;
 		var subviews = this._subviews;
 		while (view = subviews[i++]) {
-			view.__view.wrapRender(ctx, opts);
+			view.wrapRender(ctx, opts);
 		}
 	}
 
