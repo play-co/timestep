@@ -231,7 +231,7 @@ function updatePListFile(opts, next) {
 					logger.log("Updating UIPrerenderedIcon section: Set to", (opts.renderGloss ? "true" : "false"));
 
 					// NOTE: By default, necessarily, UIPrerenderedIcon=true
-					if (!opts.renderGloss) {
+					if (opts.renderGloss) {
 						// Pull out this and next line
 						contents[i] = "";
 						contents[i+1] = "";
