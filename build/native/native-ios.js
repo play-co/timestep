@@ -333,7 +333,7 @@ function updateIOSProjectFile(opts, next) {
 						inResourcesBuildPhase = true;
 						filesCount = 0;
 					} else if (inResourcesBuildPhase && line.indexOf("files = (") >= 0) {
-						if (++filesCount == 2) {
+						if (++filesCount == 1) {
 							logger.log("Updating project file: Injecting PBXResourcesBuildPhase section members for " + fonts.length + " font(s)");
 
 							for (j = 0, jlen = fonts.length; j < jlen; ++j) {
@@ -525,7 +525,13 @@ function validateIOSManifest(manifest) {
 	}
 
 	var schema = {
-		"apsalarKey": {
+		"entryPoint": {
+			res: "Should be set to the entry point.",
+			def: "gc.native.launchClient",
+			halt: false,
+			silent: true
+		},
+/*		"apsalarKey": {
 			res: "Get this from your Apsalar account.",
 			def: "",
 			halt: false
@@ -534,12 +540,6 @@ function validateIOSManifest(manifest) {
 			res: "Get this from your Apsalar account.",
 			def: "",
 			halt: false
-		},
-		"entryPoint": {
-			res: "Should be set to the entry point.",
-			def: "gc.native.launchClient",
-			halt: false,
-			silent: true
 		},
 		"flurryKey": {
 			res: "Get this from your Flurry account.",
@@ -555,7 +555,7 @@ function validateIOSManifest(manifest) {
 			res: "Get this from your Tapjoy account.",
 			def: "",
 			halt: false
-		},
+		}, */
 		"bundleID": {
 			res: "Should be set to the Bundle ID (a name) for your app from iTunes Connect. In-app purchases may not work!",
 			def: manifest.shortName,
