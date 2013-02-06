@@ -423,7 +423,7 @@ function copySplash(loading, destPath) {
 		"portrait480": "Default.png",
 		"portrait960": "Default@2x.png",
 		"portrait1024": "Default-Portrait~ipad.png",
-		"portrait1136": "Default-568h@2x.png"
+		"portrait1136": "Default-568h@2x.png",
 		"portrait2048": "Default-Portrait@2x~ipad.png",
 		"landscape768": "Default-Landscape~ipad.png",
 		"landscape1536": "Default-Landscape@2x~ipad.png"
