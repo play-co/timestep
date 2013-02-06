@@ -241,10 +241,7 @@ function copyFonts (project, destDir) {
 
 //void copyIcon(File destDir, String tag, int size) throws Exception {
 function copyIcon (project, destDir, tag, size) {
-	var iconPath = "";
-	if (size == 28) iconPath = project.manifest.icons["28"];
-	if (size == 38) iconPath = project.manifest.icons["38"];
-	if (size == 56) iconPath = project.manifest.icons["56"];
+	var iconPath = project.manifest.icons[size];
 	var destPath = path.join(destDir, "res/drawable-" + tag + "dpi/icon.png");
 	wrench.mkdirSyncRecursive(path.dirname(destPath));
 	if (iconPath) {
@@ -274,9 +271,10 @@ function copyNotifyIcon (project, destDir, tag, name) {
 //void copyIcons(File destDir) throws Exception {
 function copyIcons (project, destDir) {
 	if (project.manifest.icons != null) {
-		copyIcon(project, destDir, "l", 28);
-		copyIcon(project, destDir, "m", 38);
-		copyIcon(project, destDir, "h", 56);
+		copyIcon(project, destDir, "l", "36");
+		copyIcon(project, destDir, "m", "48");
+		copyIcon(project, destDir, "h", "72");
+		copyIcon(project, destDir, "xh", "96");
 		if (project.manifest.icons.alerts != null) {
 			copyNotifyIcon(project, destDir, "l", "low");
 			copyNotifyIcon(project, destDir, "m", "med");
