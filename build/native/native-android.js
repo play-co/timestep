@@ -241,7 +241,7 @@ function copyFonts (project, destDir) {
 
 //void copyIcon(File destDir, String tag, int size) throws Exception {
 function copyIcon (project, destDir, tag, size) {
-	var iconPath = project.manifest.ios.icons[size];
+	var iconPath = project.manifest.android.icons[size];
 	var destPath = path.join(destDir, "res/drawable-" + tag + "dpi/icon.png");
 	wrench.mkdirSyncRecursive(path.dirname(destPath));
 	if (iconPath) {
@@ -254,10 +254,10 @@ function copyIcon (project, destDir, tag, size) {
 //void copyNotifyIcon(File destDir, String tag, String name) throws Exception {
 function copyNotifyIcon (project, destDir, tag, name) {
 	var iconPath = "";
-	if (tag == ("l")) iconPath = project.manifest.ios.icons.alerts.low;
-	if (tag == ("m")) iconPath = project.manifest.ios.icons.alerts.med;
-	if (tag == ("h")) iconPath = project.manifest.ios.icons.alerts.high;
-	if (tag == ("xh")) iconPath = project.manifest.ios.icons.alerts.xhigh;
+	if (tag == ("l")) iconPath = project.manifest.android.icons.alerts.low;
+	if (tag == ("m")) iconPath = project.manifest.android.icons.alerts.med;
+	if (tag == ("h")) iconPath = project.manifest.android.icons.alerts.high;
+	if (tag == ("xh")) iconPath = project.manifest.android.icons.alerts.xhigh;
 
 	var destPath = path.join(destDir, "res/drawable-" + tag + "dpi/notifyicon.png");
 	wrench.mkdirSyncRecursive(path.dirname(destPath));
@@ -270,12 +270,12 @@ function copyNotifyIcon (project, destDir, tag, name) {
 
 //void copyIcons(File destDir) throws Exception {
 function copyIcons (project, destDir) {
-	if (project.manifest.ios.icons != null) {
+	if (project.manifest.android.icons != null) {
 		copyIcon(project, destDir, "l", "36");
 		copyIcon(project, destDir, "m", "48");
 		copyIcon(project, destDir, "h", "72");
 		copyIcon(project, destDir, "xh", "96");
-		if (project.manifest.ios.icons.alerts != null) {
+		if (project.manifest.android.icons.alerts != null) {
 			copyNotifyIcon(project, destDir, "l", "low");
 			copyNotifyIcon(project, destDir, "m", "med");
 			copyNotifyIcon(project, destDir, "h", "high");
@@ -286,7 +286,7 @@ function copyIcons (project, destDir) {
 
 //void copySplash(File destDir) throws Exception {
 function copySplash (project, destDir) {
-	if (project.manifest.preload) {
+	if (project.manifest.splash) {
 		var imgPath = project.manifest.preload.img;
 		var destPath = path.join(destDir, "assets/resources");
 		if (imgPath != null) {
