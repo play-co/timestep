@@ -403,11 +403,11 @@ function copyIcons(icons, destPath) {
 					logger.error('WARNING: Icon', iconPath, 'does not exist.');
 				}
 			} else {
-				logger.error('WARNING: Icon size', size, 'is not specified under manifest.json:icons.');
+				logger.error('WARNING: Icon size', size, 'is not specified under manifest.json:ios:icons.');
 			}
 		});
 	} else {
-		logger.error('WARNING: No icons specified.');
+		logger.error('WARNING: No icons specified under "ios".');
 	}
 }
 
@@ -420,18 +420,13 @@ var _copyFile = function(srcPath, destPath) {
 
 function copySplash(loading, destPath) {
 	var schema = {
-		"img" : "resources/resources.bundle/loading.png",
-		"iphone": {
-			"launch" : "Default.png",
-			"launchRetina" : "Default@2x.png",
-			"launchRetina4" : "Default-568h@2x.png"
-		},
-		"ipad": {
-			"portrait" : "Default-Portrait~ipad.png",
-			"portraitRetina" : "Default-Portrait@2x~ipad.png",
-			"landscape" : "Default-Landscape~ipad.png",
-			"landscapeRetina" : "Default-Landscape@2x~ipad.png"
-		}
+		"portrait480": "Default.png",
+		"portrait960": "Default@2x.png",
+		"portrait1024": "Default-Portrait~ipad.png",
+		"portrait1136": "Default-568h@2x.png"
+		"portrait2048": "Default-Portrait@2x~ipad.png",
+		"landscape768": "Default-Landscape~ipad.png",
+		"landscape1536": "Default-Landscape@2x~ipad.png"
 	};
 
 	function copySchema(loadingParent, schemaParent, desc) {
@@ -645,7 +640,7 @@ function makeIOSProject(opts, next) {
 			plistFilePath: plistFile,
 			fonts: manifest.ttf,
 			orientations: manifest.supportedOrientations,
-			renderGloss: manifest.icons.renderGloss,
+			renderGloss: manifest.ios.icons.renderGloss,
 			version: manifest.ios.version,
 			fbappid: manifest.ios.facebookAppID,
 			title: opts.title
@@ -689,7 +684,7 @@ function makeIOSProject(opts, next) {
 
 function finishCopy(project, destPath) {
 	copySplash(project.preload, destPath);
-	copyIcons(project.icons, destPath);
+	copyIcons(project.ios.icons, destPath);
 	copyFonts(project.ttf, destPath);
 	logger.log('copy complete!');
 }
