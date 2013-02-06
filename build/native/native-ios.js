@@ -683,7 +683,7 @@ function makeIOSProject(opts, next) {
 }
 
 function finishCopy(project, destPath) {
-	copySplash(project.preload, destPath);
+	copySplash(project.splash, destPath);
 	copyIcons(project.ios.icons, destPath);
 	copyFonts(project.ttf, destPath);
 	logger.log('copy complete!');
