@@ -689,7 +689,7 @@ var View = exports = Class(Emitter, function() {
 	/**
 	 * Return a human-readable tag for this view.
 	 */
-	this.getTag = function () {
+	this.toString = this.getTag = function () {
 		var cls = "View";
 
 		if (DEBUG) {
@@ -709,10 +709,6 @@ var View = exports = Class(Emitter, function() {
 		}
 
 		return cls + this.uid + (this.tag ? ':' + this.tag : '');
-	};
-
-	this.toString = function () {
-		return this.__view.__sortKey;
 	};
 });
 
