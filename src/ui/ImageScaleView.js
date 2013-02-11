@@ -140,9 +140,13 @@ exports = Class(ui.View, function (supr) {
 	this.setImage = function(img, opts) {
 		if (this._isSlice) {
 			if (typeof img == 'string') {
-				var bounds = GCResources.getMap()[img];
-				var iw = sw = bounds.w;
-				var ih = sh = bounds.h;
+				var imgObj = GCResources.getMap()[img];
+				if (!imgObj) {
+					img = new Image({ url: img });
+					return img.doOnLoad(this, 'setImage', img, opts);
+				}
+				var iw = sw = imgObj.w;
+				var ih = sh = imgObj.h;
 			} else {
 				var bounds = img.getBounds();
 				var iw = sw = bounds.width;
