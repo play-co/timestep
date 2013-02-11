@@ -259,7 +259,9 @@ function copyIcon (project, destDir, tag, size) {
 	} else {
 		logger.error("WARNING: No icon specified in the manifest for '", size, "'.  Using the default icon for this size.  This is probably not what you want.");
 
-		_builder.common.copyFileSync(path.join(androidDir, "TeaLeaf/res", DEFAULT_ICON_PATH[size]), destPath);
+		// Do not copy a default icon to this location -- Android will fill in
+		// the blanks intelligently.
+		//_builder.common.copyFileSync(path.join(androidDir, "TeaLeaf/res", DEFAULT_ICON_PATH[size]), destPath);
 	}
 }
 
@@ -283,7 +285,9 @@ function copyNotifyIcon (project, destDir, tag, name) {
 	} else {
 		//logger.error("WARNING: No alert icon specified in the manifest for '", name, "'.  Using the default icon for this size.  This is probably not what you want.");
 
-		_builder.common.copyFileSync(path.join(androidDir, "TeaLeaf/res", DEFAULT_NOTIFY_ICON_PATH[name]), destPath);
+		// Do not copy a default icon to this location -- Android will fill in
+		// the blanks intelligently.
+		//_builder.common.copyFileSync(path.join(androidDir, "TeaLeaf/res", DEFAULT_NOTIFY_ICON_PATH[name]), destPath);
 	}
 }
 
@@ -298,16 +302,6 @@ function copyIcons (project, destDir) {
 	copyNotifyIcon(project, destDir, "h", "high");
 	copyNotifyIcon(project, destDir, "xh", "xhigh");
 }
-
-var DEFAULT_SPLASH_PATH = {
-	"portrait480": "portrait480.png",
-	"portrait960": "portrait960.png",
-	"portrait1024": "portrait1024.png",
-	"portrait1136": "portrait1136.png",
-	"portrait2048": "portrait2048.png",
-	"landscape768": "landscape768.png",
-	"landscape1536": "landscape1536.png"
-};
 
 //void copySplash(File destDir) throws Exception {
 function copySplash (project, destDir) {
@@ -332,9 +326,11 @@ function copySplash (project, destDir) {
 			if (imgPath && fs.existsSync(imgPath)) {
 				_builder.common.copyFileSync(imgPath, path.join(destPath, schema[key]));
 			} else {
-				logger.error("WARNING: No splash image provided for '", key, "'.  Using default image for this size screen.  This is probably not what you want.");
+				logger.error("WARNING: No splash image provided for '", key, "'.  Another of your provided splash images will be used in its place.  This cuts down on the install size slightly but will sacrifice image quality.";
 
-				_builder.common.copyFileSync(DEFAULT_SPLASH_PATH[key], path.join(destPath, schema[key]));
+				// Do not copy a replacement splash image.  The Android code will
+				// select a replacement at runtime.
+				//_builder.common.copyFileSync(DEFAULT_SPLASH_PATH[key], path.join(destPath, schema[key]));
 			}
 		}
 	}
