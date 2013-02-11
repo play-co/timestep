@@ -75,11 +75,8 @@ var PUNCTUATION_OR_SPACE_REGEX = /[!"#$%&'()*+,\-.\/:;<=>?@\[\\\]^_`{|}~ ]/g;
 // Verify that submodules have been populated
 function validateSubmodules(next) {
 	var submodules = [
-		"tealeaf-core/core.h",
-		"Backpack/src/com/tealeaf/backpack/Device.java",
-		"barista/src/engine.js",
-		"v8-profiler/profiler.h",
-		"v8/src"
+		"native-core/core.h",
+		"barista/src/engine.js"
 	];
 
 	var f = ff(function() {
@@ -99,7 +96,10 @@ function validateSubmodules(next) {
 		if (!allGood) {
 			f.fail("One of the submodules was not found.  Make sure you have run submodule update --init on your clone of the Android repo");
 		}
-	}).cb(next);
+	}).success(next).error(function(err) {
+		logger.error("ERROR:", err);
+		process.exit(1);
+	});
 }
 
 function getTealeafAndroidPath (next) {
