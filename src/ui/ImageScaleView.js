@@ -139,33 +139,44 @@ exports = Class(ui.View, function (supr) {
 
 	this.setImage = function(img, opts) {
 		if (this._isSlice) {
+			var sw, sh, iw, ih;
+			var bounds;
 			if (typeof img == 'string') {
-				var imgObj = GCResources.getMap()[img];
-				if (!imgObj) {
-					img = new Image({ url: img });
-					return img.doOnLoad(this, 'setImage', img, opts);
+				bounds = GCResources.getMap()[img];
+				if (bounds) {
+					iw = sw = bounds.w;
+					ih = sh = bounds.h;
 				}
-				var iw = sw = imgObj.w;
-				var ih = sh = imgObj.h;
-			} else {
-				var bounds = img.getBounds();
-				var iw = sw = bounds.width;
-				var ih = sh = bounds.height;
+			} else if (img instanceof Image && img.isLoaded()) {
+				bounds = img.getBounds();
+				iw = sw = bounds.width;
+				ih = sh = bounds.height;
 			}
 
+			if (!bounds) {
+				img = new Image({url: img});
+				return img.doOnLoad(this, 'setImage', img, opts);
+			}
+
+			// scale slices based on image width
 			var sourceSlicesHor = this._sourceSlicesHor;
 			var sourceSlicesVer = this._sourceSlicesVer;
-			var i;
-
-			sourceSlicesHor && (sw = 0);
-			sourceSlicesVer && (sh = 0);
-			for (i = 0; i < 3; i++) {
-				sw += sourceSlicesHor ? sourceSlicesHor[i] : 0;
-				sh += sourceSlicesVer ? sourceSlicesVer[i] : 0;
+			if (sourceSlicesHor) {
+				sw = sourceSlicesHor[0] + sourceSlicesHor[1] + sourceSlicesHor[2];
+				
+				var scale = iw / sw;
+				sourceSlicesHor[0] *= scale;
+				sourceSlicesHor[1] *= scale;
+				sourceSlicesHor[2] *= scale;
 			}
-			for (i = 0; i < 3; i++) {
-				sourceSlicesHor && (sourceSlicesHor[i] = (sourceSlicesHor[i] * iw / sw));
-				sourceSlicesVer && (sourceSlicesVer[i] = (sourceSlicesVer[i] * ih / sh));
+
+			if (sourceSlicesVer) {
+				sh = sourceSlicesVer[0] + sourceSlicesVer[1] + sourceSlicesVer[2];
+
+				var scale = ih / sh;
+				sourceSlicesVer[0] *= scale;
+				sourceSlicesVer[1] *= scale;
+				sourceSlicesVer[2] *= scale;
 			}
 		}
 
