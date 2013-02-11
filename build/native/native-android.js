@@ -326,7 +326,7 @@ function copySplash (project, destDir) {
 			if (imgPath && fs.existsSync(imgPath)) {
 				_builder.common.copyFileSync(imgPath, path.join(destPath, schema[key]));
 			} else {
-				logger.error("WARNING: No splash image provided for '", key, "'.  Another of your provided splash images will be used in its place.  This cuts down on the install size slightly but will sacrifice image quality.";
+				logger.error("WARNING: No splash image provided for '", key, "'.  Another of your provided splash images will be used in its place.  This cuts down on the install size slightly but will sacrifice image quality.");
 
 				// Do not copy a replacement splash image.  The Android code will
 				// select a replacement at runtime.
