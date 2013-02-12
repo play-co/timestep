@@ -134,9 +134,18 @@ var Application = exports = Class(Emitter, function(supr) {
 
 		// configure auto-layout in the browser (expand
 		// to fill the viewport)
-		if (!canvas && device.name == 'browser') {
-			var doc = device.get('doc');
-			if (doc) { doc.setEngine(this); }
+		if (device.name == 'browser') {
+			if (canvas) {
+				device.width = canvas.width;
+				device.height = canvas.height;
+				device.screen.width = canvas.width;
+				device.screen.height = canvas.height;
+			} else {
+				var doc = device.get('doc');
+				if (doc) {
+					doc.setEngine(this);
+				}
+			}
 		}
 
 		this.updateOpts(this._opts);
