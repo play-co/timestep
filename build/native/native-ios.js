@@ -458,7 +458,7 @@ function copySplash(loading, destPath) {
 	if (typeof(loading) === "object") {
 		copySchema(loading, schema, "");
 	} else {
-		logger.error('WARNING: The manifest.json preload section is missing, so the splash screen is not configured for your app!');
+		logger.error('WARNING: The manifest.json splash section is missing, so the splash screen is not configured for your app!');
 	}
 }
 
