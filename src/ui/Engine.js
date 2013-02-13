@@ -235,6 +235,10 @@ var Application = exports = Class(Emitter, function(supr) {
 		return this;
 	};
 
+	this.isRunning = function () {
+		return this._running;
+	};
+
 	this.doOnTick = function(cb) {
 		if (arguments.length > 1) { cb = bind.apply(this, arguments); }
 		this._onTick.push(cb);
