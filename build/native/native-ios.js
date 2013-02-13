@@ -333,7 +333,7 @@ function updateIOSProjectFile(opts, next) {
 						inResourcesBuildPhase = true;
 						filesCount = 0;
 					} else if (inResourcesBuildPhase && line.indexOf("files = (") >= 0) {
-						if (++filesCount == 2) {
+						if (++filesCount == 1) {
 							logger.log("Updating project file: Injecting PBXResourcesBuildPhase section members for " + fonts.length + " font(s)");
 
 							for (j = 0, jlen = fonts.length; j < jlen; ++j) {
