@@ -62,6 +62,8 @@ exports = GridView = Class(View, function (supr) {
 		var size = ((totalSize + gutterSize) / count) | 0;
 
 		var balance = 0;
+		var sizeSum = 0;
+
 		for (var i = 0; i < count; i++) {
 			var item = list[i];
 			if (!item) {
@@ -71,8 +73,10 @@ exports = GridView = Class(View, function (supr) {
 			var idealSize = size + balance;
 			var roundedSize = Math.round(globalScale * size) / globalScale;
 			balance = idealSize - roundedSize;
-			item.size = roundedSize;
+			item.size = size;
+			sizeSum += size;
 		}
+		list[count >> 1].size += (totalSize - sizeSum);
 
 		var pos = 0;
 		var start = 0;
