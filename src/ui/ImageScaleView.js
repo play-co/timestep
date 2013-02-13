@@ -154,7 +154,10 @@ exports = Class(ui.View, function (supr) {
 			}
 
 			if (!bounds) {
-				img = new Image({url: img});
+				if (typeof img == 'string') {
+					img = new Image({url: img});
+				}
+
 				return img.doOnLoad(this, 'setImage', img, opts);
 			}
 
