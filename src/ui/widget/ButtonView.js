@@ -35,7 +35,7 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 	var selected = false;
 
 	this.init = function (opts) {
-		this._state = opts.defaultState || states.UP;
+		this._state = opts.defaultState || opts.state || states.UP;
 
 		supr(this, "init", arguments);
 
