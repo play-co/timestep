@@ -44,6 +44,7 @@ var RawAudio = Class(function () {
 		GLOBAL.ACCESSIBILITY.subscribe('MuteChange', this, function () {
 			audio.muted = GLOBAL.ACCESSIBILITY.muted;
 		});
+
 		audio.muted = GLOBAL.ACCESSIBILITY.muted;
 
 		return audio;
@@ -153,6 +154,8 @@ var MultiSound = Class(function () {
 		this._currentSource = this._getRandom();
 		this._currentSource.loop = opts.loop || this.isBackgroundMusic;
 		this._currentSource.play();
+		this._currentSource.muted = !this._currentSource.muted;
+		this._currentSource.muted = !this._currentSource.muted;
 	};
 
 	this._getRandom = function () {
