@@ -751,6 +751,11 @@ exports.package = function (builder, project, opts, next) {
 			throw new Error("Build aborted: No appID or shortName in the manifest.");
 		}
 
+		// If shortName is invalid,
+		if (!/^[a-zA-Z0-9.-]+$/.test(shortName)) {
+			throw new Error("Build aborted: shortName contains invalid characters.  Should be a-Z 0-9 . - only");
+		}
+
 		// If IPA mode,
 		var developer, provision;
 		if (argv.ipa) {
