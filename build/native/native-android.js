@@ -304,7 +304,7 @@ function copyIcons (project, destDir) {
 }
 
 //void copySplash(File destDir) throws Exception {
-function copySplash (project, destDir) {
+function copySplash (project, destDir, next) {
 	var destPath = path.join(destDir, "assets/resources");
 	wrench.mkdirSyncRecursive(destPath);
 	
@@ -331,17 +331,15 @@ function copySplash (project, destDir) {
 		var f = ff(function () {	
 			var sLeft = splashes.length;
 			var nextF = f();
-			var fDone = function () {
-				sLeft--;
-				if (sLeft == 0) {
-					console.log("all done");
+			
+			var makeSplash = function(i) {
+				if (i < 0) {
 					nextF();
+					return;
 				}
-			}
-			for (var i in splashes) {
 				var splash = splashes[i];
 				var splashOut = path.join(destPath, splash.outFile);
-				console.log("ITS MY SPLASH in: " + splashFile + " out: "  + splashOut);
+				logger.log("Creating splash:  " + splashOut + " from: "  + splashFile);
 				_builder.jvmtools.exec('splasher', [
 					"-i", splashFile,
 					"-o", splashOut,
@@ -352,13 +350,16 @@ function copySplash (project, destDir) {
 					splasher.on('out', formatter.out);
 					splasher.on('err', formatter.err);
 					splasher.on('end', function (data) {
-						fDone();
+						console.log("at end");
+						makeSplash(i-1);
 					})
 				});
 			}
-		});
+			makeSplash(sLeft-1);
+		}).cb(next);
 	} else {
 		logger.error("WARNING: No splash image provided in the provided manifest");
+		next();
 	}
 }
 
@@ -698,9 +699,10 @@ exports.package = function (builder, project, opts, next) {
 		}, function () {
 			copyFonts(project, destDir);
 			copyIcons(project, destDir);
-			copySplash(project, destDir);
 			copyMusic(project, destDir);
 			
+			copySplash(project, destDir, f());
+		}, function () {
 			buildAndroidProject(destDir, debug, function (success) {
 				//if (!success) {
 				//  logger.error("BUILD FAILED");

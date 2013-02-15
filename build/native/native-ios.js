@@ -462,7 +462,7 @@ function copySplash(manifest, destPath, next) {
 		logger.error('WARNING: The manifest.json splash section is missing, so the splash screen is not configured for your app!');
 	}	
 	*/
-	console.log(JSON.stringify(manifest));
+	
 	if (manifest.splash) {
 		var universalSplash = manifest.splash["universal"];
 		
@@ -482,7 +482,9 @@ function copySplash(manifest, destPath, next) {
 			function makeSplash(i) {
 				if (i < 0) {
 					fNext();
+					return;
 				}
+				
 				var splash = splashes[i];
 				if (manifest.splash[splash.key]) {
 					var splashFile = path.resolve(manifest.splash[splash.key]);
@@ -491,10 +493,11 @@ function copySplash(manifest, destPath, next) {
 				} else {
 					logger.error("WARNING: No universal splash given and no splash provided for " + splash.key);
 					makeSplash(i-1);
+					return;
 				}
-				console.log(splash);
+				
 				var splashOut = path.join(path.resolve(destPath), 'tealeaf',splash.outFile);
-				console.log("ITS MY SPLASH in: " + splashFile + " out: "  + splashOut);
+				logger.log("Creating splash: " + splashOut + " from: "  + splashFile);
 				_builder.jvmtools.exec('splasher', [
 					"-i", splashFile,
 					"-o", splashOut,
