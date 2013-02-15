@@ -418,7 +418,8 @@ var _copyFile = function(srcPath, destPath) {
 	}
 };
 
-function copySplash(loading, destPath) {
+function copySplash(manifest, destPath, next) {
+	/*
 	var schema = {
 		"portrait480": "Default.png",
 		"portrait960": "Default@2x.png",
@@ -459,6 +460,63 @@ function copySplash(loading, destPath) {
 		copySchema(loading, schema, "");
 	} else {
 		logger.error('WARNING: The manifest.json splash section is missing, so the splash screen is not configured for your app!');
+	}	
+	*/
+	console.log(JSON.stringify(manifest));
+	if (manifest.splash) {
+		var universalSplash = manifest.splash["universal"];
+		
+		var splashes = [
+			{ key: "portrait480", outFile: "Default.png", outSize: "320x480" },
+			{ key: "portrait960", outFile: "Default@2x.png", outSize: "640x960"},
+			{ key: "portrait1024", outFile: "Default-Portrait~ipad.png", outSize: "768x1024"},
+			{ key: "portrait1136", outFile: "Default-568h@2x.png", outSize: "640x1136"},
+			{ key: "portrait2048", outFile: "Default-Portrait@2x~ipad.png", outSize: "1536x2048"},
+			{ key: "landscape768", outFile: "Default-Landscape~ipad.png", outSize: "1024x768"},
+			{ key: "landscape1536", outFile: "Default-Landscape@2x~ipad.png", outSize: "2048x1496"}
+		];
+
+		var f = ff(function () {
+			var sLeft = splashes.length;
+			var fNext = f();
+			function makeSplash(i) {
+				if (i < 0) {
+					fNext();
+				}
+				var splash = splashes[i];
+				if (manifest.splash[splash.key]) {
+					var splashFile = path.resolve(manifest.splash[splash.key]);
+				} else if(universalSplash) {
+					var splashFile = path.resolve(universalSplash);
+				} else {
+					logger.error("WARNING: No universal splash given and no splash provided for " + splash.key);
+					makeSplash(i-1);
+				}
+				console.log(splash);
+				var splashOut = path.join(path.resolve(destPath), 'tealeaf',splash.outFile);
+				console.log("ITS MY SPLASH in: " + splashFile + " out: "  + splashOut);
+				_builder.jvmtools.exec('splasher', [
+					"-i", splashFile,
+					"-o", splashOut,
+					"-resize", splash.outSize,
+					"-rotate", "auto"
+				], function (splasher) {
+					var formatter = new _builder.common.Formatter('splasher');
+					splasher.on('out', formatter.out);
+					splasher.on('err', formatter.err);
+					splasher.on('end', function (data) {
+						console.log("at end");
+						makeSplash(i-1);
+					})
+				});
+			}
+			makeSplash(splashes.length - 1);
+		}, function() {
+			console.log("nextttt");
+			next();	
+		});
+	} else {
+		logger.error("WARNING: No splash section provided in the provided manifest");
 	}
 }
 
@@ -682,11 +740,15 @@ function makeIOSProject(opts, next) {
 	}).cb(next);
 }
 
-function finishCopy(project, destPath) {
-	copySplash(project.splash, destPath);
+function finishCopy(project, destPath, cb) {
 	copyIcons(project.ios.icons, destPath);
 	copyFonts(project.ttf, destPath);
-	logger.log('copy complete!');
+	var f = ff(function () {
+		copySplash(project, destPath, f.wait());
+	}, function () {
+		logger.log('copy complete!');
+		cb();
+	});
 }
 
 function getTealeafIOSPath(next) {
@@ -713,10 +775,10 @@ function getTealeafIOSPath(next) {
 /**
  * Module interface.
  */
-
+var _builder;
 exports.package = function (builder, project, opts, next) {
 	logger = new builder.common.Formatter("build-ios");
-
+	_builder = builder;
 	// If --help is being requested,
 	if (argv.help) {
 		argParser.showHelp();
@@ -821,7 +883,7 @@ exports.package = function (builder, project, opts, next) {
 			}, f());
 			require('./native').writeNativeResources(project, opts, f());
 		}, function() {
-			finishCopy(manifest, destPath);
+			finishCopy(manifest, destPath, f());
 		}, function() {
 			// If IPA generation was requested,
 			if (argv.ipa) {
