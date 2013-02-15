@@ -182,7 +182,7 @@ function makeAndroidProject(project, namespace, activity, title, appID,
 			"--library", "../../TeaLeaf"
 		], {}, f());
 	}, function () {
-		fs.appendFile( destDir + '/project.properties', 'out.dexed.absolute.dir=../.dex/\n',f());
+		fs.appendFile( path.join(destDir, 'project.properties'), 'out.dexed.absolute.dir=../.dex/\n',f());
 	}, function () {
 		updateManifest(project, namespace, activity, title, appID, shortName, version, debug, destDir, servicesURL, metadata, studioName, f.waitPlain());
 		updateActivity(project, namespace, activity, destDir, f.waitPlain());
