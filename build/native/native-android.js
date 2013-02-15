@@ -305,34 +305,60 @@ function copyIcons (project, destDir) {
 
 //void copySplash(File destDir) throws Exception {
 function copySplash (project, destDir) {
+	var destPath = path.join(destDir, "assets/resources");
+	wrench.mkdirSyncRecursive(destPath);
+	
 	if (project.manifest.splash) {
-		var schema = {
-			"portrait480": "portrait480.png",
-			"portrait960": "portrait960.png",
-			"portrait1024": "portrait1024.png",
-			"portrait1136": "portrait1136.png",
-			"portrait2048": "portrait2048.png",
-			"landscape768": "landscape768.png",
-			"landscape1536": "landscape1536.png"
-		};
-
-		var destPath = path.join(destDir, "assets/resources");
-		wrench.mkdirSyncRecursive(destPath);
-
-		for (var key in schema) {
-			var imgPath = project.manifest.splash[key];
-
-			// If image path was specified and image exists,
-			if (imgPath && fs.existsSync(imgPath)) {
-				_builder.common.copyFileSync(imgPath, path.join(destPath, schema[key]));
-			} else {
-				logger.error("WARNING: No splash image provided for '", key, "'.  Another of your provided splash images will be used in its place.  This cuts down on the install size slightly but will sacrifice image quality.");
-
-				// Do not copy a replacement splash image.  The Android code will
-				// select a replacement at runtime.
-				//_builder.common.copyFileSync(DEFAULT_SPLASH_PATH[key], path.join(destPath, schema[key]));
+		var potentialSplashFiles = ["universal", "portrait1136", "portrait960", "portrait480"];
+		//try to find a potential splash
+		for (var i in potentialSplashFiles) {
+			if(project.manifest.splash[potentialSplashFiles[i]]) {
+				var splashFile = path.resolve(project.manifest.splash[potentialSplashFiles[i]]);
+				break;
 			}
 		}
+		
+		if (!splashFile) {
+			logger.error("WARNING: Could not find a suitable splash field for generating splash images in the project manifest. Posible options are:" + JSON.stringify(potentialSplashFiles));
+		}
+
+		var splashes = [
+			{ outFile: "splash-512x300.png", outSize: "512x300" },
+			{ outFile: "splash-1024x768.png", outSize: "1024x768"},
+			{ outFile: "splash-2068x1300.png", outSize: "2068x1300"}
+		];
+
+		var f = ff(function () {	
+			var sLeft = splashes.length;
+			var nextF = f();
+			var fDone = function () {
+				sLeft--;
+				if (sLeft == 0) {
+					console.log("all done");
+					nextF();
+				}
+			}
+			for (var i in splashes) {
+				var splash = splashes[i];
+				var splashOut = path.join(destPath, splash.outFile);
+				console.log("ITS MY SPLASH in: " + splashFile + " out: "  + splashOut);
+				_builder.jvmtools.exec('splasher', [
+					"-i", splashFile,
+					"-o", splashOut,
+					"-resize", splash.outSize,
+					"-rotate", "auto"
+				], function (splasher) {
+					var formatter = new _builder.common.Formatter('splasher');
+					splasher.on('out', formatter.out);
+					splasher.on('err', formatter.err);
+					splasher.on('end', function (data) {
+						fDone();
+					})
+				});
+			}
+		});
+	} else {
+		logger.error("WARNING: No splash image provided in the provided manifest");
 	}
 }
 
