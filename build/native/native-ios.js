@@ -508,18 +508,17 @@ function copySplash(manifest, destPath, next) {
 					splasher.on('out', formatter.out);
 					splasher.on('err', formatter.err);
 					splasher.on('end', function (data) {
-						console.log("at end");
 						makeSplash(i-1);
 					})
 				});
 			}
 			makeSplash(splashes.length - 1);
 		}, function() {
-			console.log("nextttt");
 			next();	
 		});
 	} else {
 		logger.error("WARNING: No splash section provided in the provided manifest");
+		next();
 	}
 }
 
@@ -701,7 +700,7 @@ function makeIOSProject(opts, next) {
 			plistFilePath: plistFile,
 			fonts: manifest.ttf,
 			orientations: manifest.supportedOrientations,
-			renderGloss: manifest.ios.icons.renderGloss,
+			renderGloss: manifest.ios.icons && manifest.ios.icons.renderGloss,
 			version: manifest.ios.version,
 			fbappid: manifest.ios.facebookAppID,
 			title: opts.title
