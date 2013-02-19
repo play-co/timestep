@@ -32,10 +32,7 @@ var _customFontInfo = {};
 var _fontMap = {};
 var _buffers = [];
 var _fontBuffer = false;
-
 var _origMeasureText;
-var _origFillText;
-var _origStrokeText;
 
 function loadCustomFontImage(customFont, index) {
 	var image = new Image();
@@ -257,11 +254,15 @@ function measure(ctx, fontInfo, text) {
 	var outline = (customFont.settings.outline || 0) * scale;
 	var tracking = (customFont.settings.tracking || 0) * scale;
 	var width = 0;
+	var failed = true;
 
 	if (dimensions) {
 		var i = 0;
 		var j = text.length;
-		while (i < j) {
+
+		failed = false;
+
+		while ((i < j) && !failed) {
 			character = text.charCodeAt(i);
 			switch (character) {
 				case 9: // tab...
@@ -277,19 +278,7 @@ function measure(ctx, fontInfo, text) {
 						character = dimensions[character];
 						width += (character.ow - 2) * scale;
 					} else {
-						var s = '';
-						while (i < j) {
-							s += text[i];
-							if (dimensions[text.charCodeAt(i)]) {
-								break;
-							}
-							i++;
-						}
-
-						var font = ctx.font;
-						ctx.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (ctx.defaultFontFamily || device.defaultFontFamily);
-						width += _origMeasureText ? _origMeasureText.apply(ctx, [s]).width : 0;
-						ctx.font = font;
+						failed = true;
 					}
 					break;
 			}
@@ -298,17 +287,30 @@ function measure(ctx, fontInfo, text) {
 		}
 	}
 
-	return {
-		width: width + 2 * scale
-	};
+	if (failed) {
+		var font = ctx.font;
+		ctx.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (ctx.defaultFontFamily || device.defaultFontFamily);
+		var result = {failed: true, width: _origMeasureText.apply(ctx, [text])};
+		ctx.font = font;
+
+		return result;
+	}
+
+	return {failed: false, width: width + 2 * scale};
 }
 
 function renderCustomFont(ctx, x, y, text, color, fontInfo, index) {
+	var measureInfo = measure(ctx, fontInfo, text);
+
+	if (measureInfo.failed) {
+		return false;
+	}
+
 	var customFont = fontInfo.customFont;
 	var srcBuffers = customFont.images[index];
 	var dimensions = customFont.dimensions;
 	var scale = fontInfo.scale;
-	var width = measure(ctx, fontInfo, text).width;
+	var width = measureInfo.width;
 	var outline = (customFont.settings.outline || 0) * scale;
 	var tracking = (customFont.settings.tracking || 0) * scale;
 
@@ -363,40 +365,19 @@ function renderCustomFont(ctx, x, y, text, color, fontInfo, index) {
 					break;
 
 				default:
-					if (dimensions[character]) {
-						character = dimensions[character];
-						ctx.drawImage(
-							srcBuffers[character.i],
-							character.x,
-							character.y,
-							character.w,
-							character.h, 
-							x,
-							y + (character.oh - 1) * scale,
-							(character.w - 2) * scale,
-							(character.h - 2) * scale
-						);
-						x += (character.ow - 2) * scale + tracking - outline;
-					} else {
-						var s = '';
-						while (i < j) {
-							s += text[i];
-							if (dimensions[text.charCodeAt(i)]) {
-								break;
-							}
-							i++;
-						}
-
-						var font = ctx.font;
-						ctx.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (ctx.defaultFontFamily || device.defaultFontFamily);
-						if (index === 0) {
-							_origFillText && _origFillText.apply(ctx, [s, x, y]);
-						} else {
-							_origStrokeText && _origStrokeText.apply(ctx, [s, x, y]);
-						}
-						x += _origMeasureText ? _origMeasureText.apply(ctx, [s]).width : 0;
-						ctx.font = font;
-					}
+					character = dimensions[character];
+					ctx.drawImage(
+						srcBuffers[character.i],
+						character.x,
+						character.y,
+						character.w,
+						character.h, 
+						x,
+						y + (character.oh - 1) * scale,
+						(character.w - 2) * scale,
+						(character.h - 2) * scale
+					);
+					x += (character.ow - 2) * scale + tracking - outline;
 					break;
 			}
 
@@ -417,6 +398,8 @@ function renderCustomFont(ctx, x, y, text, color, fontInfo, index) {
 			buffer.height
 		);
 	}
+
+	return true;
 };
 
 exports.findFontInfo = function(ctx) {
@@ -447,8 +430,6 @@ exports.wrapMeasureText = function(origMeasureText) {
 };
 
 exports.wrapFillText = function(origFillText) {
-	_origFillText = origFillText;
-
 	return function(text, x, y) {
 		var fontInfo = exports.findFontInfo(this);
 
@@ -458,14 +439,23 @@ exports.wrapFillText = function(origFillText) {
 		if (loadingCustomFont(fontInfo.customFont)) {
 			return;
 		}
+		if (isNaN(x)) {
+			x = 0;
+		}
+		if (isNaN(y)) {
+			y = 0;
+		}
 
-		renderCustomFont(this, x, y, text + '', this.fillStyle, fontInfo, 0);
+		if (!renderCustomFont(this, x, y, text + '', this.fillStyle, fontInfo, 0)) {
+			var font = this.font;
+			this.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (this.defaultFontFamily || device.defaultFontFamily);
+			origFillText.apply(this, arguments);
+			this.font = font;
+		}
 	}
 };
 
 exports.wrapStrokeText = function(origStrokeText) {
-	_origStrokeText = origStrokeText;
-
 	return function(text, x, y) {
 		var fontInfo = exports.findFontInfo(this);
 
@@ -475,8 +465,19 @@ exports.wrapStrokeText = function(origStrokeText) {
 		if (loadingCustomFont(fontInfo.customFont)) {
 			return;
 		}
+		if (isNaN(x)) {
+			x = 0;
+		}
+		if (isNaN(y)) {
+			y = 0;
+		}
 
-		renderCustomFont(this, x, y, text + '', this.strokeStyle, fontInfo, 1);
+		if (!renderCustomFont(this, x, y, text + '', this.strokeStyle, fontInfo, 1)) {
+			var font = this.font;
+			this.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (this.defaultFontFamily || device.defaultFontFamily);
+			origStrokeText.apply(this, arguments);
+			this.font = font;
+		}
 	}
 };
 
