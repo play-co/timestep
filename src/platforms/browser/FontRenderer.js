@@ -283,7 +283,7 @@ function measure(ctx, fontInfo, text) {
 							i++;
 						}
 						var font = ctx.font;
-						ctx.font = ctx.defaultFontFamily || device.defaultFontFamily;
+						ctx.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (ctx.defaultFontFamily || device.defaultFontFamily);
 						width += _origMeasureText ? _origMeasureText.apply(ctx, [s]).width : 0;
 						ctx.font = font;
 					}
@@ -380,7 +380,7 @@ function renderCustomFont(ctx, x, y, text, color, fontInfo, index) {
 							i++;
 						}
 						var font = ctx.font;
-						ctx.font = ctx.defaultFontFamily || device.defaultFontFamily;
+						ctx.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (ctx.defaultFontFamily || device.defaultFontFamily);
 						if (index === 0) {
 							_origFillText && _origFillText.apply(ctx, [s, x, y]);
 						} else {
