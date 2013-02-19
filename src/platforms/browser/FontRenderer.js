@@ -278,10 +278,14 @@ function measure(ctx, fontInfo, text) {
 						width += (character.ow - 2) * scale;
 					} else {
 						var s = '';
-						while ((i < j) && !dimensions[text.charCodeAt(i)]) {
+						while (i < j) {
 							s += text[i];
+							if (dimensions[text.charCodeAt(i)]) {
+								break;
+							}
 							i++;
 						}
+
 						var font = ctx.font;
 						ctx.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (ctx.defaultFontFamily || device.defaultFontFamily);
 						width += _origMeasureText ? _origMeasureText.apply(ctx, [s]).width : 0;
@@ -375,10 +379,14 @@ function renderCustomFont(ctx, x, y, text, color, fontInfo, index) {
 						x += (character.ow - 2) * scale + tracking - outline;
 					} else {
 						var s = '';
-						while ((i < j) && !dimensions[text.charCodeAt(i)]) {
+						while (i < j) {
 							s += text[i];
+							if (dimensions[text.charCodeAt(i)]) {
+								break;
+							}
 							i++;
 						}
+
 						var font = ctx.font;
 						ctx.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (ctx.defaultFontFamily || device.defaultFontFamily);
 						if (index === 0) {
@@ -386,7 +394,7 @@ function renderCustomFont(ctx, x, y, text, color, fontInfo, index) {
 						} else {
 							_origStrokeText && _origStrokeText.apply(ctx, [s, x, y]);
 						}
-						x += _origMeasureText ? _origMeasureText.apply(ctx, [s]) : 0;
+						x += _origMeasureText ? _origMeasureText.apply(ctx, [s]).width : 0;
 						ctx.font = font;
 					}
 					break;
