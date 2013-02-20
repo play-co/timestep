@@ -115,8 +115,10 @@ exports.clearOverState = function (id) {
 		if (evt) {
 			delete exports._activeInputOver[id];
 			var trace = evt.trace;
-			for (var i = 0, view; view = trace[i]; ++i) {
-				view.__input.onLeave(id);
+			if (trace) {
+				for (var i = 0, view; view = trace[i]; ++i) {
+					view.__input.onLeave(id);
+				}
 			}
 		}
 	} else {
