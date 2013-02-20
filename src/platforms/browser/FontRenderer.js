@@ -452,14 +452,9 @@ exports.wrapFillText = function(origFillText) {
 
 		if (!renderCustomFont(this, x, y, text + '', this.fillStyle, fontInfo, 0)) {
 			var font = this.font;
-			var textAlign = this.textAlign;
-			if (this.textAlign === 'start') {
-				this.textAlign = 'left';
-			}
 			this.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (this.defaultFontFamily || device.defaultFontFamily);
 			origFillText.apply(this, [text, x, y]);
 			this.font = font;
-			this.textAlign = textAlign;
 		}
 	}
 };
@@ -483,14 +478,9 @@ exports.wrapStrokeText = function(origStrokeText) {
 
 		if (!renderCustomFont(this, x, y, text + '', this.strokeStyle, fontInfo, 1)) {
 			var font = this.font;
-			var textAlign = this.textAlign;
-			if (this.textAlign === 'start') {
-				this.textAlign = 'left';
-			}
 			this.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (this.defaultFontFamily || device.defaultFontFamily);
 			origStrokeText.apply(this, [text, x, y]);
 			this.font = font;
-			this.textAlign = textAlign;
 		}
 	}
 };
