@@ -145,7 +145,9 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 			this._audioManager && this._audioManager.play(this._sounds[stateName]);
 		}
 
-		this.emit(stateName);
+		if (!dontPublish) {
+			this.emit(stateName);
+		}
 	};
 
 	this.reflow = function () {
