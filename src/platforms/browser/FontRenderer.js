@@ -424,8 +424,12 @@ exports.wrapMeasureText = function(origMeasureText) {
 		if (!fontInfo) {
 			return origMeasureText.apply(this, arguments);
 		}
+		var measureInfo = measure(this, fontInfo, text);
 
-		return measure(this, fontInfo, text);
+		if (measureInfo.failed) {
+			return origMeasureText.apply(this, arguments);
+		}
+		return measureInfo;
 	}
 };
 
@@ -448,9 +452,14 @@ exports.wrapFillText = function(origFillText) {
 
 		if (!renderCustomFont(this, x, y, text + '', this.fillStyle, fontInfo, 0)) {
 			var font = this.font;
+			var textAlign = this.textAlign;
+			if (this.textAlign === 'start') {
+				this.textAlign = 'left';
+			}
 			this.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (this.defaultFontFamily || device.defaultFontFamily);
-			origFillText.apply(this, arguments);
+			origFillText.apply(this, [text, x, y]);
 			this.font = font;
+			this.textAlign = textAlign;
 		}
 	}
 };
@@ -474,9 +483,14 @@ exports.wrapStrokeText = function(origStrokeText) {
 
 		if (!renderCustomFont(this, x, y, text + '', this.strokeStyle, fontInfo, 1)) {
 			var font = this.font;
+			var textAlign = this.textAlign;
+			if (this.textAlign === 'start') {
+				this.textAlign = 'left';
+			}
 			this.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (this.defaultFontFamily || device.defaultFontFamily);
-			origStrokeText.apply(this, arguments);
+			origStrokeText.apply(this, [text, x, y]);
 			this.font = font;
+			this.textAlign = textAlign;
 		}
 	}
 };
@@ -484,4 +498,3 @@ exports.wrapStrokeText = function(origStrokeText) {
 exports.getFontBuffer = function() {
 	return _fontBuffer;
 };
-
