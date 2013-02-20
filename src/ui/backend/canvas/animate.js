@@ -337,6 +337,10 @@ var Animator = exports.Animator = Class(Emitter, function() {
 						onTick: onTick
 					});
 
+		if (!this._queue.length) {
+			this._elapsed = 0;
+		}
+
 		this._queue.push(nextFrame);
 		this._schedule();
 		return this;
