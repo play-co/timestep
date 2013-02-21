@@ -515,10 +515,8 @@ var View = exports = Class(Emitter, function() {
 	};
 
 	// legacy implementation shim
-	this.__defineGetter__('_superview', this.getSuperview);
-	this.__defineSetter__('_superview', function () {});
-	this.__defineGetter__('_subviews', this.getSubviews);
-	this.__defineSetter__('_superview', function () {});
+	util.setProperty(this, '_superview', {get: this.getSuperview, set: function() {}});
+	util.setProperty(this, '_subviews', {get: this.getSubviews, set: function() {}});
 
 	// --- onResize callbacks ---
 
@@ -693,18 +691,22 @@ var View = exports = Class(Emitter, function() {
 		var cls = "View";
 
 		if (DEBUG) {
-			//check the cached name
-			if (this._className) {
-				cls = this._className;
+			// check the cached name
+			if (this.__tagClassName) {
+				cls = this.__tagClassName;
 			} else {
-				//generate the classname
+				// generate the classname
 				cls = this.constructor.name;
 
-				cls = cls.substr(
-					cls.lastIndexOf("_") + 1
-				);
+				if (!cls) {
+					cls = this.constructor.toString().match(/^function ([^(]+)/)[1];
+				}
 
-				this._className = cls;
+				if (cls) {
+					cls = cls.substr(cls.lastIndexOf("_") + 1);
+				}
+
+				this.__tagClassName = cls || 'unknown';
 			}
 		}
 
