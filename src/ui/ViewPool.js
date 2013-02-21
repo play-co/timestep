@@ -42,19 +42,10 @@ exports = Class(function() {
 	this.obtainView = function(opts) {
 		var view;
 
-		// re-use an existing view if we can
 		if (this.freshQueue.length) {
+			// re-use an existing view if we can
 			view = this.views[this.freshQueue.pop()];
-
-			// apply opts to view style
-			for (var prop in opts) {
-				if (prop in view.style) {
-					view.style[prop] = opts[prop];
-				}
-			}
-
-			var parent = opts.parent || opts.superview;
-			parent && parent.addSubview(view);
+			view.updateOpts(opts);
 		} else {
 			// create a new view
 			view = new this.ctor(opts);
