@@ -44,6 +44,7 @@ var RawAudio = Class(function () {
 		GLOBAL.ACCESSIBILITY.subscribe('MuteChange', this, function () {
 			audio.muted = GLOBAL.ACCESSIBILITY.muted;
 		});
+
 		audio.muted = GLOBAL.ACCESSIBILITY.muted;
 
 		return audio;
@@ -150,9 +151,17 @@ var MultiSound = Class(function () {
 			this._isPaused = false;
 		}
 
-		this._currentSource = this._getRandom();
-		this._currentSource.loop = opts.loop || this.isBackgroundMusic;
-		this._currentSource.play();
+		var src = this._getRandom();
+		src.loop = opts.loop || this.isBackgroundMusic;
+		src.play();
+		
+		if (src.muted) {
+			// Chrome bug? Audio objects with muted set before they
+			// are played won't be muted, so toggle the mute state
+			// twice after calling play.
+			src.muted = false;
+			src.muted = true;
+		}
 	};
 
 	this._getRandom = function () {
