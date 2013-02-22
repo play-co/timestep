@@ -82,6 +82,26 @@ exports = Class(ImageView, function (supr) {
 			this.onsetSubviews();
 			this.emit('InputOut', over, overCount);
 		}
+
+		if (dontPublish) {
+			return;
+		}
+
+		if (typeof this._onHandlers[stateName] === "function") {
+			this._onHandlers[stateName].call(this);
+		}
+		if (this._sounds && this._sounds[stateName]) {
+			this._audioManager && this._audioManager.play(this._sounds[stateName]);
+		}
+
+		if (!dontPublish) {
+			this.emit(stateName);
+		}
+	};
+
+	this.reflow = function () {
+		this._text.style.width = this.style.width;
+		this._text.style.height = this.style.height;
 	};
 
 	this.onInputOver = function (over, overCount, atTarget) {
