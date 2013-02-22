@@ -1,88 +1,140 @@
-/**
- * @class ui.widget.ButtonView
+/* @license
+ * This file is part of the Game Closure SDK.
  *
- * @doc http://doc.gameclosure.com/api/ui-widget-buttonview.html
- * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/widget/buttonview.md
+ * The Game Closure SDK is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * The Game Closure SDK is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import ui.View as View;
 import ui.ImageView as ImageView;
+import ui.ImageScaleView as ImageScaleView;
+import ui.TextView as TextView;
 
-exports = Class(ImageView, function (supr) {
-	var uid = 0,
-			uidInput = null;
+import AudioManager;
+import lib.Enum as Enum;
+
+var states = Enum(
+	"UP",
+	"DOWN",
+	"DISABLED",
+	"SELECTED",
+	"UNSELECT"
+);
+
+var ButtonView = exports = Class(ImageScaleView, function (supr) {
+	var selected = false;
 
 	this.init = function (opts) {
-		supr(this, 'init', [opts]);
+		this._state = opts.defaultState || opts.state || states.UP;
 
-		if (!opts.imagePressed) {
-			opts.imagePressed = opts.image;
-		}
+		supr(this, "init", arguments);
 
-		this._uid = uid++;
-		this._className = 'ButtonView';
-		
-		// sound up and down fns
-		this.soundOnStart = opts.soundOnStart || function () {};
-		this.soundOnEnd = opts.soundOnEnd || function () {};
+		var textOpts = merge(
+			opts.text,
+			{
+				superview: this,
+				text: opts.title || "",
+				x: 0,
+				y: 0
+			}
+		);
+		this._text = new TextView(textOpts);
 
-		// button action
-		this.onClick = opts.onClick || function () {};
+		var iconOpts = merge(
+			opts.icon,
+			{
+				superview: this,
+				x: 0,
+				y: 0
+			}
+		);
+		this._icon = new ImageView(iconOpts);
 
-		// only allow one click
-		this.clickOnce = opts.clickOnce || false;
-		this.hasBeenClicked = false;
+		this.updateOpts(opts);
+		this._trigger(this._state, true);
+	};
 
-		// pressed state subview offsets, i.e. text subview is lowered to look pressed
-		this.pressedOffsetX = opts.pressedOffsetX || 0;
-		this.pressedOffsetY = opts.pressedOffsetY || 0;
+	this.updateOpts = function (opts) {
+		opts = merge(opts, this._opts);
 
-		// button states
-		this.pressed = false;
+		opts = supr(this, "updateOpts", [opts]);
+
+		this._opts = opts;
+		this._images = opts.images;
+		this._onHandlers = opts.on || {};
+		this._audioManager = opts.audioManager;
+		this._sounds = opts.sounds;
+
+		("text" in opts) && this._text && this._text.updateOpts(opts.text);
 	};
 
 	this.onInputStart = function () {
-		if (!this.pressed) {
-			this.setImage(this._opts.imagePressed);
-			this.pressed = true;
-			this.soundOnStart();
-
-			this.offsetSubviews();
-
-			// save the currently depressed button at the class level
-			uidInput = this._uid;
-		}
-	};
-
-	this.onInputSelect = function (evt, srcPt) {
-		if (this.clickOnce && this.hasBeenClicked) {
+		//no action when disabled
+		if (this._state === states.DISABLED) {
 			return;
 		}
 
-		if (this.pressed && uidInput == this._uid) {
-			this.setImage(this._opts.image);
-			this.pressed = false;
-			this.hasBeenClicked = true;
-			this.soundOnEnd();
-			this.onClick(evt, srcPt);
-			this.emit('Click', evt, srcPt);
+		this._state = states.DOWN;
+		this._trigger(states.DOWN);
+	};
 
-			this.onsetSubviews();
+	this.onInputSelect = function () {
+		//no action when disabled
+		if (this._state === states.DISABLED) {
+			return;
+		}
 
-			// wipe our class level button state
-			uidInput = null;
+		if (this._state !== states.DISABLED) {
+			//call the click handler
+			this._opts.onClick && this._opts.onClick.call(this);
+			this.onClick && this.onClick();
+		}
+
+		if (this._opts.clickOnce) {
+			this._state = states.DISABLED;
+			this._trigger(states.UP);
+			this._trigger(states.DISABLED);
+			return;
+		}
+
+		if (this._opts.toggleSelected) {
+			if (!selected) {
+				this._trigger(states.SELECTED);
+				selected = true;
+			} else {
+				this._trigger(states.UNSELECT);
+				selected = false;
+			}
+		}
+
+		if (this._state !== states.UP) {
+			this._state = states.UP;
+			this._trigger(states.UP);
 		}
 	};
 
-	this.onInputOut = function (over, overCount) {
-		if (this.pressed) {
-			this.setImage(this._opts.image);
-			this.pressed = false;
-			this.soundOnEnd();
+	//no action on these events
+	this.onInputOver = this.onInputOut = function () {};
 
-			this.onsetSubviews();
-			this.emit('InputOut', over, overCount);
+	//when this function is called from the constructor the dontPublish parameter to prevent publishing events on create...
+	this._trigger = function (state, dontPublish) {
+		var stateName = states[state];
+		if (!stateName) return;
+		stateName = stateName.toLowerCase();
+
+		if (this._images && this._images[stateName]) {
+			this.setImage(this._images[stateName]);
 		}
-
 		if (dontPublish) {
 			return;
 		}
@@ -94,9 +146,7 @@ exports = Class(ImageView, function (supr) {
 			this._audioManager && this._audioManager.play(this._sounds[stateName]);
 		}
 
-		if (!dontPublish) {
-			this.emit(stateName);
-		}
+		this.emit(stateName);
 	};
 
 	this.reflow = function () {
@@ -104,36 +154,30 @@ exports = Class(ImageView, function (supr) {
 		this._text.style.height = this.style.height;
 	};
 
-	this.onInputOver = function (over, overCount, atTarget) {
-		if (!this.pressed && uidInput == this._uid) {
-			this.setImage(this._opts.imagePressed);
-			this.pressed = true;
-			this.soundOnStart();
-
-			this.offsetSubviews();
-			this.emit('InputOver', over, overCount, atTarget);
-		}
+	this.getText = function () {
+		return this._text;
 	};
 
-	this.offsetSubviews = function () {
-		var subviews = this.getSubviews();
-		for (var i in subviews) {
-			var view = subviews[i];
-			view.style.x += this.pressedOffsetX;
-			view.style.y += this.pressedOffsetY;
-		}
+	this.setTitle = function (title) {
+		this._text.setText(title);
 	};
 
-	this.onsetSubviews = function () {
-		var subviews = this.getSubviews();
-		for (var i in subviews) {
-			var view = subviews[i];
-			view.style.x -= this.pressedOffsetX;
-			view.style.y -= this.pressedOffsetY;
-		}
+	this.getIcon = function () {
+		return this._icon;
 	};
 
-	this.getTag = function () {
-		return (this._className || 'ButtonView') + this.uid + (this.tag ? ':' + this.tag : '');
+	this.setIcon = function (icon) {
+		this._icon.setImage(icon);
+	};
+
+	this.setState = function (state) {
+		var stateName = states[state];
+		if (!stateName) return;
+
+		this._state = state;
+		stateName = stateName.toLowerCase();
+		this.setImage(this._images[stateName]);
 	};
 });
+
+ButtonView.states = states;
