@@ -96,10 +96,6 @@ var BoxLayout = exports = Class(function () {
 		if (s.left != undefined) { s.x = s.left + (padding && padding.left || 0); }
 
 		s.width = w;
-
-		if (s.centerAnchor) {
-			s.anchorX = w / 2;
-		}
 	}
 
 	cls.reflowY = function (view, svHeight, padding) {
@@ -131,10 +127,6 @@ var BoxLayout = exports = Class(function () {
 		if (s.top != undefined) { s.y = s.top + (padding && padding.top || 0); }
 
 		s.height = h;
-
-		if (s.centerAnchor) {
-			s.anchorY = h / 2;
-		}
 	}
 });
 
