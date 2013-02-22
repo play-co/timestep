@@ -44,7 +44,7 @@ exports.build = function (build, project, subtarget, moreOpts, next) {
 
 		// Build process.
 		packageName: '',
-		studio: project.manifest.studio.domain || 'wee.cat',
+		studio: project.manifest.studio.domain || 'gameclosure.com',
 		version: project.manifest.version,
 		metadata: null,
 
