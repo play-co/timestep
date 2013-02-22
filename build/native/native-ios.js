@@ -333,7 +333,7 @@ function updateIOSProjectFile(opts, next) {
 						inResourcesBuildPhase = true;
 						filesCount = 0;
 					} else if (inResourcesBuildPhase && line.indexOf("files = (") >= 0) {
-						if (++filesCount == 2) {
+						if (++filesCount == 1) {
 							logger.log("Updating project file: Injecting PBXResourcesBuildPhase section members for " + fonts.length + " font(s)");
 
 							for (j = 0, jlen = fonts.length; j < jlen; ++j) {
@@ -749,6 +749,11 @@ exports.package = function (builder, project, opts, next) {
 		var shortName = manifest.shortName;
 		if (appID == null || shortName == null) {
 			throw new Error("Build aborted: No appID or shortName in the manifest.");
+		}
+
+		// If shortName is invalid,
+		if (!/^[a-zA-Z0-9.-]+$/.test(shortName)) {
+			throw new Error("Build aborted: shortName contains invalid characters.  Should be a-Z 0-9 . - only");
 		}
 
 		// If IPA mode,
