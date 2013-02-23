@@ -377,14 +377,34 @@ function compileHTML (project, opts, target, files, code, cb) {
 			}
 
 			// Various iOS mobile settings for installing as a top application.
-			var ios = project.manifest.ios || {};
-			var icons = project.manifest.icons || {};
 			html.push('<meta name="apple-mobile-web-app-capable" content="yes"/>')
-			if ('114' in icons) {
-				html.push('<link rel="apple-touch-icon" href="' + toDataURI(fs.readFileSync(path.join(project.paths.root, icons['114'])), 'image/png') + '">');
+
+			// Apple Touch icons
+			var ios_icons = project.manifest.ios && project.manifest.ios.icons;
+			if (ios_icons) {
+				var largest = 0;
+				for (var size in ios_icons) {
+					var int_size = parseInt(size);
+					if (int_size > largest) {
+						largest = int_size;
+					}
+				}
+				if (largest > 0) {
+					html.push('<link rel="apple-touch-icon" href="' + toDataURI(fs.readFileSync(path.join(project.paths.root, ios_icons[largest.toString()])), 'image/png') + '">');
+				}
 			}
-			if ("startup_image" in ios) {
-				html.push('<link rel="apple-touch-startup-image" href="' + toDataURI(fs.readFileSync(path.join(project.paths.root, icons['startup_image'])), 'image/png') + '">');
+
+			// Apple Touch startup image
+			var splash = project.manifest.splash;
+			var splash_path = splash["portrait480"];
+			if (!splash_path) splash_path = splash["portrait960"];
+			if (!splash_path) splash_path = splash["portrait1024"];
+			if (!splash_path) splash_path = splash["portrait1136"];
+			if (!splash_path) splash_path = splash["portrait2048"];
+			if (!splash_path) splash_path = splash["landscape768"];
+			if (!splash_path) splash_path = splash["landscape1536"];
+			if (splash_path) {
+				html.push('<link rel="apple-touch-startup-image" href="' + toDataURI(fs.readFileSync(path.join(project.paths.root, splash_path)), 'image/png') + '">');
 			}
 		}
 		

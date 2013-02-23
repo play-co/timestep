@@ -75,11 +75,8 @@ var PUNCTUATION_OR_SPACE_REGEX = /[!"#$%&'()*+,\-.\/:;<=>?@\[\\\]^_`{|}~ ]/g;
 // Verify that submodules have been populated
 function validateSubmodules(next) {
 	var submodules = [
-		"tealeaf-core/core.h",
-		"Backpack/src/com/tealeaf/backpack/Device.java",
-		"barista/src/engine.js",
-		"v8-profiler/profiler.h",
-		"v8/src"
+		"native-core/core.h",
+		"barista/src/engine.js"
 	];
 
 	var f = ff(function() {
@@ -99,7 +96,10 @@ function validateSubmodules(next) {
 		if (!allGood) {
 			f.fail("One of the submodules was not found.  Make sure you have run submodule update --init on your clone of the Android repo");
 		}
-	}).cb(next);
+	}).success(next).error(function(err) {
+		logger.error("ERROR:", err);
+		process.exit(1);
+	});
 }
 
 function getTealeafAndroidPath (next) {
@@ -229,7 +229,7 @@ function copyFonts (project, destDir) {
 	var ttf = project.ttf;
 
 	if (!ttf) {
-		logger.log("WARNING: No \"ttf\" section found in the manifest.json, so no custom TTF fonts will be installed.  This does not affect bitmap fonts.");
+		logger.error("WARNING: No \"ttf\" section found in the manifest.json, so no custom TTF fonts will be installed.  This does not affect bitmap fonts.");
 	} else if (ttf.length <= 0) {
 		logger.log("No \"ttf\" fonts specified in manifest.json, so no custom TTF fonts will be built in.  This does not affect bitmap fonts.");
 	} else {
@@ -241,81 +241,141 @@ function copyFonts (project, destDir) {
 	}
 }
 
+var DEFAULT_ICON_PATH = {
+	"36": "drawable-ldpi/icon.png",
+	"48": "drawable-mdpi/icon.png",
+	"72": "drawable-hdpi/icon.png",
+	"96": "drawable-xhdpi/icon.png"
+};
+
 //void copyIcon(File destDir, String tag, int size) throws Exception {
 function copyIcon (project, destDir, tag, size) {
-	var iconPath = "";
-	if (size == 28) iconPath = project.manifest.icons["28"];
-	if (size == 38) iconPath = project.manifest.icons["38"];
-	if (size == 56) iconPath = project.manifest.icons["56"];
 	var destPath = path.join(destDir, "res/drawable-" + tag + "dpi/icon.png");
 	wrench.mkdirSyncRecursive(path.dirname(destPath));
-	if (iconPath) {
+
+	var android = project.manifest.android;
+	var iconPath = android && android.icons && android.icons[size];
+
+	if (iconPath && fs.existsSync(iconPath)) {
 		_builder.common.copyFileSync(iconPath, destPath);
 	} else {
-		logger.error("Warning! No icon specified in the manifest for " + size);
+		logger.error("WARNING: No icon specified in the manifest for '", size, "'.  Using the default icon for this size.  This is probably not what you want.");
+
+		// Do not copy a default icon to this location -- Android will fill in
+		// the blanks intelligently.
+		//_builder.common.copyFileSync(path.join(androidDir, "TeaLeaf/res", DEFAULT_ICON_PATH[size]), destPath);
 	}
 }
 
+var DEFAULT_NOTIFY_ICON_PATH = {
+	"low": "drawable-ldpi/notifyicon.png",
+	"med": "drawable-mdpi/notifyicon.png",
+	"high": "drawable-hdpi/notifyicon.png",
+	"xhigh": "drawable-xhdpi/notifyicon.png"
+};
+
 //void copyNotifyIcon(File destDir, String tag, String name) throws Exception {
 function copyNotifyIcon (project, destDir, tag, name) {
-	var iconPath = "";
-	if (tag == ("l")) iconPath = project.manifest.icons.alerts.low;
-	if (tag == ("m")) iconPath = project.manifest.icons.alerts.med;
-	if (tag == ("h")) iconPath = project.manifest.icons.alerts.high;
-	if (tag == ("xh")) iconPath = project.manifest.icons.alerts.xhigh;
-
 	var destPath = path.join(destDir, "res/drawable-" + tag + "dpi/notifyicon.png");
 	wrench.mkdirSyncRecursive(path.dirname(destPath));
-	if (iconPath) {
+
+	var android = project.manifest.android;
+	var iconPath = android && android.icons && android.icons.alerts && android.icons.alerts[name];
+
+	if (iconPath && fs.existsSync(iconPath)) {
 		_builder.common.copyFileSync(iconPath, destPath);
 	} else {
-		logger.error("Warning! No alert icon specified in the manifest for " + name);
+		//logger.error("WARNING: No alert icon specified in the manifest for '", name, "'.  Using the default icon for this size.  This is probably not what you want.");
+
+		// Do not copy a default icon to this location -- Android will fill in
+		// the blanks intelligently.
+		//_builder.common.copyFileSync(path.join(androidDir, "TeaLeaf/res", DEFAULT_NOTIFY_ICON_PATH[name]), destPath);
 	}
 }
 
 //void copyIcons(File destDir) throws Exception {
 function copyIcons (project, destDir) {
-	if (project.manifest.icons != null) {
-		copyIcon(project, destDir, "l", 28);
-		copyIcon(project, destDir, "m", 38);
-		copyIcon(project, destDir, "h", 56);
-		if (project.manifest.icons.alerts != null) {
-			copyNotifyIcon(project, destDir, "l", "low");
-			copyNotifyIcon(project, destDir, "m", "med");
-			copyNotifyIcon(project, destDir, "h", "high");
-			copyNotifyIcon(project, destDir, "xh", "xhigh");
-		}
-	}
+	copyIcon(project, destDir, "l", "36");
+	copyIcon(project, destDir, "m", "48");
+	copyIcon(project, destDir, "h", "72");
+	copyIcon(project, destDir, "xh", "96");
+	copyNotifyIcon(project, destDir, "l", "low");
+	copyNotifyIcon(project, destDir, "m", "med");
+	copyNotifyIcon(project, destDir, "h", "high");
+	copyNotifyIcon(project, destDir, "xh", "xhigh");
 }
 
 //void copySplash(File destDir) throws Exception {
-function copySplash (project, destDir) {
-	if (project.manifest.preload) {
-		var imgPath = project.manifest.preload.img;
-		var destPath = path.join(destDir, "assets/resources");
-		if (imgPath != null) {
-			wrench.mkdirSyncRecursive(destPath);
-
-			//only copy when file exists
-			if (fs.existsSync(imgPath)) {
-				_builder.common.copyFileSync(imgPath, path.join(destPath, "loading.png"));
+function copySplash (project, destDir, next) {
+	var destPath = path.join(destDir, "assets/resources");
+	wrench.mkdirSyncRecursive(destPath);
+	
+	if (project.manifest.splash) {
+		var potentialSplashFiles = ["universal", "portrait1136", "portrait960", "portrait480"];
+		//try to find a potential splash
+		for (var i in potentialSplashFiles) {
+			if(project.manifest.splash[potentialSplashFiles[i]]) {
+				var splashFile = path.resolve(project.manifest.splash[potentialSplashFiles[i]]);
+				break;
 			}
-		} else {
-			logger.error("Warning! No preload image specified in the manifest.");
 		}
+		
+		if (!splashFile) {
+			logger.error("WARNING: Could not find a suitable splash field for generating splash images in the project manifest. Posible options are:" + JSON.stringify(potentialSplashFiles));
+		}
+
+		var splashes = [
+			{ outFile: "splash-512x384.png", outSize: "512x384" },
+			{ outFile: "splash-1024x768.png", outSize: "1024x768"},
+			{ outFile: "splash-2048x1536.png", outSize: "2048x1536"}
+		];
+
+		var f = ff(function () {	
+			var sLeft = splashes.length;
+			var nextF = f();
+			
+			var makeSplash = function(i) {
+				if (i < 0) {
+					nextF();
+					return;
+				}
+				var splash = splashes[i];
+				var splashOut = path.join(destPath, splash.outFile);
+				logger.log("Creating splash:  " + splashOut + " from: "  + splashFile);
+				_builder.jvmtools.exec('splasher', [
+					"-i", splashFile,
+					"-o", splashOut,
+					"-resize", splash.outSize,
+					"-rotate", "auto"
+				], function (splasher) {
+					var formatter = new _builder.common.Formatter('splasher');
+					splasher.on('out', formatter.out);
+					splasher.on('err', formatter.err);
+					splasher.on('end', function (data) {
+						console.log("at end");
+						makeSplash(i-1);
+					})
+				});
+			}
+			makeSplash(sLeft-1);
+		}).cb(next);
+	} else {
+		logger.error("WARNING: No splash image provided in the provided manifest");
+		next();
 	}
 }
 
 //void copyMusic(File destDir) throws Exception {
 function copyMusic (project, destDir) {
-	if (project.manifest.preload) {
-		var musicPath = project.manifest.preload.song;
+	if (project.manifest.splash) {
 		var destPath = path.join(destDir, "res/raw");
-		if (musicPath != null) {
-			wrench.mkdirSyncRecursive(destPath);
+		wrench.mkdirSyncRecursive(destPath);
+
+		var musicPath = project.manifest.splash.song;
+		if (musicPath && fs.existsSync(musicPath)) {
 			_builder.common.copyFileSync(musicPath, path.join(destPath, "loadingsound.mp3"));
 		} else {
-			logger.error("Warning! No preload music specified in the manifest.");
+			logger.error("WARNING: No splash music specified in the manifest.");
 		}
 	}
 }
@@ -641,9 +701,10 @@ exports.package = function (builder, project, opts, next) {
 		}, function () {
 			copyFonts(project, destDir);
 			copyIcons(project, destDir);
-			copySplash(project, destDir);
 			copyMusic(project, destDir);
 			
+			copySplash(project, destDir, f());
+		}, function () {
 			buildAndroidProject(destDir, debug, function (success) {
 				//if (!success) {
 				//  logger.error("BUILD FAILED");
