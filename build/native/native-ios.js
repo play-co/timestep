@@ -473,7 +473,7 @@ function copySplash(manifest, destPath, next) {
 			{ key: "portrait1136", outFile: "Default-568h@2x.png", outSize: "640x1136"},
 			{ key: "portrait2048", outFile: "Default-Portrait@2x~ipad.png", outSize: "1536x2048"},
 			{ key: "landscape768", outFile: "Default-Landscape~ipad.png", outSize: "1024x768"},
-			{ key: "landscape1536", outFile: "Default-Landscape@2x~ipad.png", outSize: "2048x1496"}
+			{ key: "landscape1536", outFile: "Default-Landscape@2x~ipad.png", outSize: "2048x1536"}
 		];
 
 		var f = ff(function () {
