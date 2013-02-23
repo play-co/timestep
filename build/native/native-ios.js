@@ -231,7 +231,7 @@ function updatePListFile(opts, next) {
 					logger.log("Updating UIPrerenderedIcon section: Set to", (opts.renderGloss ? "true" : "false"));
 
 					// NOTE: By default, necessarily, UIPrerenderedIcon=true
-					if (!opts.renderGloss) {
+					if (opts.renderGloss) {
 						// Pull out this and next line
 						contents[i] = "";
 						contents[i+1] = "";
@@ -403,11 +403,11 @@ function copyIcons(icons, destPath) {
 					logger.error('WARNING: Icon', iconPath, 'does not exist.');
 				}
 			} else {
-				logger.error('WARNING: Icon size', size, 'is not specified under manifest.json:icons.');
+				logger.error('WARNING: Icon size', size, 'is not specified under manifest.json:ios:icons.');
 			}
 		});
 	} else {
-		logger.error('WARNING: No icons specified.');
+		logger.error('WARNING: No icons specified under "ios".');
 	}
 }
 
@@ -418,20 +418,16 @@ var _copyFile = function(srcPath, destPath) {
 	}
 };
 
-function copySplash(loading, destPath) {
+function copySplash(manifest, destPath, next) {
+	/*
 	var schema = {
-		"img" : "resources/resources.bundle/loading.png",
-		"iphone": {
-			"launch" : "Default.png",
-			"launchRetina" : "Default@2x.png",
-			"launchRetina4" : "Default-568h@2x.png"
-		},
-		"ipad": {
-			"portrait" : "Default-Portrait~ipad.png",
-			"portraitRetina" : "Default-Portrait@2x~ipad.png",
-			"landscape" : "Default-Landscape~ipad.png",
-			"landscapeRetina" : "Default-Landscape@2x~ipad.png"
-		}
+		"portrait480": "Default.png",
+		"portrait960": "Default@2x.png",
+		"portrait1024": "Default-Portrait~ipad.png",
+		"portrait1136": "Default-568h@2x.png",
+		"portrait2048": "Default-Portrait@2x~ipad.png",
+		"landscape768": "Default-Landscape~ipad.png",
+		"landscape1536": "Default-Landscape@2x~ipad.png"
 	};
 
 	function copySchema(loadingParent, schemaParent, desc) {
@@ -463,7 +459,66 @@ function copySplash(loading, destPath) {
 	if (typeof(loading) === "object") {
 		copySchema(loading, schema, "");
 	} else {
-		logger.error('WARNING: The manifest.json preload section is missing, so the splash screen is not configured for your app!');
+		logger.error('WARNING: The manifest.json splash section is missing, so the splash screen is not configured for your app!');
+	}	
+	*/
+	
+	if (manifest.splash) {
+		var universalSplash = manifest.splash["universal"];
+		
+		var splashes = [
+			{ key: "portrait480", outFile: "Default.png", outSize: "320x480" },
+			{ key: "portrait960", outFile: "Default@2x.png", outSize: "640x960"},
+			{ key: "portrait1024", outFile: "Default-Portrait~ipad.png", outSize: "768x1024"},
+			{ key: "portrait1136", outFile: "Default-568h@2x.png", outSize: "640x1136"},
+			{ key: "portrait2048", outFile: "Default-Portrait@2x~ipad.png", outSize: "1536x2048"},
+			{ key: "landscape768", outFile: "Default-Landscape~ipad.png", outSize: "1024x768"},
+			{ key: "landscape1536", outFile: "Default-Landscape@2x~ipad.png", outSize: "2048x1496"}
+		];
+
+		var f = ff(function () {
+			var sLeft = splashes.length;
+			var fNext = f();
+			function makeSplash(i) {
+				if (i < 0) {
+					fNext();
+					return;
+				}
+				
+				var splash = splashes[i];
+				if (manifest.splash[splash.key]) {
+					var splashFile = path.resolve(manifest.splash[splash.key]);
+				} else if(universalSplash) {
+					var splashFile = path.resolve(universalSplash);
+				} else {
+					logger.error("WARNING: No universal splash given and no splash provided for " + splash.key);
+					makeSplash(i-1);
+					return;
+				}
+				
+				var splashOut = path.join(path.resolve(destPath), 'tealeaf',splash.outFile);
+				logger.log("Creating splash: " + splashOut + " from: "  + splashFile);
+				_builder.jvmtools.exec('splasher', [
+					"-i", splashFile,
+					"-o", splashOut,
+					"-resize", splash.outSize,
+					"-rotate", "auto"
+				], function (splasher) {
+					var formatter = new _builder.common.Formatter('splasher');
+					splasher.on('out', formatter.out);
+					splasher.on('err', formatter.err);
+					splasher.on('end', function (data) {
+						makeSplash(i-1);
+					})
+				});
+			}
+			makeSplash(splashes.length - 1);
+		}, function() {
+			next();	
+		});
+	} else {
+		logger.error("WARNING: No splash section provided in the provided manifest");
+		next();
 	}
 }
 
@@ -530,7 +585,13 @@ function validateIOSManifest(manifest) {
 	}
 
 	var schema = {
-		"apsalarKey": {
+		"entryPoint": {
+			res: "Should be set to the entry point.",
+			def: "gc.native.launchClient",
+			halt: false,
+			silent: true
+		},
+/*		"apsalarKey": {
 			res: "Get this from your Apsalar account.",
 			def: "",
 			halt: false
@@ -539,12 +600,6 @@ function validateIOSManifest(manifest) {
 			res: "Get this from your Apsalar account.",
 			def: "",
 			halt: false
-		},
-		"entryPoint": {
-			res: "Should be set to the entry point.",
-			def: "gc.native.launchClient",
-			halt: false,
-			silent: true
 		},
 		"flurryKey": {
 			res: "Get this from your Flurry account.",
@@ -560,7 +615,7 @@ function validateIOSManifest(manifest) {
 			res: "Get this from your Tapjoy account.",
 			def: "",
 			halt: false
-		},
+		}, */
 		"bundleID": {
 			res: "Should be set to the Bundle ID (a name) for your app from iTunes Connect. In-app purchases may not work!",
 			def: manifest.shortName,
@@ -645,7 +700,7 @@ function makeIOSProject(opts, next) {
 			plistFilePath: plistFile,
 			fonts: manifest.ttf,
 			orientations: manifest.supportedOrientations,
-			renderGloss: manifest.icons.renderGloss,
+			renderGloss: manifest.ios.icons && manifest.ios.icons.renderGloss,
 			version: manifest.ios.version,
 			fbappid: manifest.ios.facebookAppID,
 			title: opts.title
@@ -687,11 +742,15 @@ function makeIOSProject(opts, next) {
 	}).cb(next);
 }
 
-function finishCopy(project, destPath) {
-	copySplash(project.preload, destPath);
-	copyIcons(project.icons, destPath);
+function finishCopy(project, destPath, cb) {
+	copyIcons(project.ios.icons, destPath);
 	copyFonts(project.ttf, destPath);
-	logger.log('copy complete!');
+	var f = ff(function () {
+		copySplash(project, destPath, f.wait());
+	}, function () {
+		logger.log('copy complete!');
+		cb();
+	});
 }
 
 function getTealeafIOSPath(next) {
@@ -718,10 +777,10 @@ function getTealeafIOSPath(next) {
 /**
  * Module interface.
  */
-
+var _builder;
 exports.package = function (builder, project, opts, next) {
 	logger = new builder.common.Formatter("build-ios");
-
+	_builder = builder;
 	// If --help is being requested,
 	if (argv.help) {
 		argParser.showHelp();
@@ -831,7 +890,7 @@ exports.package = function (builder, project, opts, next) {
 			}, f());
 			require('./native').writeNativeResources(project, opts, f());
 		}, function() {
-			finishCopy(manifest, destPath);
+			finishCopy(manifest, destPath, f());
 		}, function() {
 			// If IPA generation was requested,
 			if (argv.ipa) {
