@@ -239,6 +239,7 @@ var TextView = exports = Class(View, function(supr) {
 	this._updateCtx = function (ctx) {
 		var opts = this._opts;
 
+		ctx.textAlign = "left";
 		ctx.textBaseline = "top";
 		ctx.fillStyle = opts.color;
 		ctx.font = opts.fontWeight + " " + opts.size + "px " + opts.fontFamily;
