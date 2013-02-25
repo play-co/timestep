@@ -228,8 +228,12 @@ exports.wrapMeasureText = function(origMeasureText) {
 		if (loadingCustomFont(fontInfo.customFont)) {
 			return origMeasureText.apply(this, arguments);
 		}
+		var measureInfo = this._ctx.measureTextBitmap(text + '', fontInfo);
+		if (measureInfo.failed) {
+			return origMeasureText.apply(this, arguments);
+		}
 
-		return this._ctx.measureTextBitmap(text + '', fontInfo);
+		return measureInfo;
 	}
 };
 
@@ -258,7 +262,9 @@ exports.wrapFillText = function(origFillText) {
 			this.setFilters(this.__compositeFilter);
 		}
 
-		this._ctx.fillTextBitmap(this, x, y, text + '', this.fillStyle, fontInfo, 0);
+		if (!this._ctx.fillTextBitmap(this, x, y, text + '', this.fillStyle, fontInfo, 0)) {
+			return origFillText.apply(this, arguments);
+		}
 
 		if (resetFilters) {
 			this.clearFilters();
@@ -294,7 +300,9 @@ exports.wrapStrokeText = function(origStrokeText) {
 			this.setFilters(this.__compositeStrokeFilter);
 		}
 
-		this._ctx.fillTextBitmap(this, x, y, text + '', this.strokeStyle, fontInfo, 1);
+		if (!this._ctx.fillTextBitmap(this, x, y, text + '', this.strokeStyle, fontInfo, 1)) {
+			return origStrokeText.apply(this, arguments);
+		}
 
 		if (resetFilters) {
 			this.clearFilters();
