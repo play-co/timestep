@@ -7,9 +7,9 @@ exports = Class(function() {
 
 	/**
 	 * ctor (function) constructor function for the class you want to pool,
-	 	must inherit from View
+		must inherit from View
 	 * initCount (integer) pre-initialize this many views,
-	 	for optimal performance, avoid view instantiation during gameplay
+		for optimal performance, avoid view instantiation during gameplay
 	 * initOpts (object) opts object used to pre-initialize your views
 	 */
 	this.init = function(opts) {
@@ -24,7 +24,13 @@ exports = Class(function() {
 			initOpts = opts.initOpts;
 		if (initCount) {
 			for (var i = 0; i < initCount; i++) {
-				var view = new this.ctor(initOpts);
+				// each view should have its own opts object
+				var viewOpts = {};
+				for (var o in initOpts) {
+					viewOpts[o] = initOpts[o];
+				}
+
+				var view = new this.ctor(viewOpts);
 				view.style.visible = false;
 				view.poolIndex = this.views.length;
 				this.views.push(view);
