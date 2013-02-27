@@ -138,55 +138,78 @@ exports = Class(ui.View, function (supr) {
 	};
 
 	this.setImage = function(img, opts) {
-		if (this._isSlice) {
-			var sw, sh, iw, ih;
-			var bounds;
+		var autoSized = false;
+		var sw, sh, iw, ih, bounds;
+		opts = merge(opts, this._opts);
+
+		if (opts.autoSize) {
 			if (typeof img == 'string') {
 				bounds = GCResources.getMap()[img];
 				if (bounds) {
-					iw = sw = bounds.w;
-					ih = sh = bounds.h;
+					iw = bounds.w;
+					ih = bounds.h;
 				}
 			} else if (img instanceof Image && img.isLoaded()) {
 				bounds = img.getBounds();
-				iw = sw = bounds.width;
-				ih = sh = bounds.height;
+				iw = bounds.width;
+				ih = bounds.height;
 			}
 
 			if (!bounds) {
 				if (typeof img == 'string') {
 					img = new Image({url: img});
 				}
-
 				return img.doOnLoad(this, 'setImage', img, opts);
 			}
 
-			// scale slices based on image width
-			var sourceSlicesHor = this._sourceSlicesHor;
-			var sourceSlicesVer = this._sourceSlicesVer;
-			if (sourceSlicesHor) {
-				sw = sourceSlicesHor[0] + sourceSlicesHor[1] + sourceSlicesHor[2];
-				
-				var scale = iw / sw;
-				sourceSlicesHor[0] *= scale;
-				sourceSlicesHor[1] *= scale;
-				sourceSlicesHor[2] *= scale;
-			}
-
-			if (sourceSlicesVer) {
-				sh = sourceSlicesVer[0] + sourceSlicesVer[1] + sourceSlicesVer[2];
-
-				var scale = ih / sh;
-				sourceSlicesVer[0] *= scale;
-				sourceSlicesVer[1] *= scale;
-				sourceSlicesVer[2] *= scale;
+			if (this._scaleMethod == "stretch" && !((opts.width || opts.layoutWidth) && (opts.height || opts.layoutHeight))) {
+				autoSized = true;
+				if (this.style.fixedAspectRatio) {
+					this.style.updateAspectRatio(iw, ih);
+					var parent = this.getSuperview();
+					if (opts.width) {
+						iw = opts.width;
+						ih = opts.width / this.style.aspectRatio;
+					}
+					else if (opts.height) {
+						ih = opts.height;
+						iw = opts.height * this.style.aspectRatio;
+					}
+					else if (opts.layoutWidth && parent.style.width) {
+						iw = parent.style.width * parseFloat(opts.layoutWidth) / 100;
+						ih = iw / this.style.aspectRatio;
+					}
+					else if (opts.layoutHeight && parent.style.height) {
+						ih = parent.style.height * parseFloat(opts.layoutHeight) / 100;
+						iw = ih * this.style.aspectRatio;
+					}
+				}
+				this.style.width = iw;
+				this.style.height = ih;
+			} else if (this._isSlice) {
+				var sourceSlicesHor = this._sourceSlicesHor;
+				var sourceSlicesVer = this._sourceSlicesVer;
+				if (sourceSlicesHor) {
+					sw = sourceSlicesHor[0] + sourceSlicesHor[1] + sourceSlicesHor[2];
+					var scale = iw / sw;
+					sourceSlicesHor[0] *= scale;
+					sourceSlicesHor[1] *= scale;
+					sourceSlicesHor[2] *= scale;
+				}
+				if (sourceSlicesVer) {
+					sh = sourceSlicesVer[0] + sourceSlicesVer[1] + sourceSlicesVer[2];
+					var scale = ih / sh;
+					sourceSlicesVer[0] *= scale;
+					sourceSlicesVer[1] *= scale;
+					sourceSlicesVer[2] *= scale;
+				}
 			}
 		}
 
 		this._img = (typeof img == 'string') ? new Image({url: img}) : img;
 
 		if (this._img) {
-			if (opts && opts.autoSize) {
+			if (opts && opts.autoSize && !autoSized) {
 				this._img.doOnLoad(this, 'autoSize');
 			}
 
