@@ -78,7 +78,7 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 		("text" in opts) && this._text && this._text.updateOpts(opts.text);
 	};
 
-	this.onInputStart = function () {
+	this.onInputStart = this.onInputOver = function () {
 		//no action when disabled
 		if (this._state === states.DISABLED) {
 			return;
@@ -107,6 +107,10 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 			return;
 		}
 
+		this.onInputOut();
+	};
+
+	this.onInputOut = function () {
 		if (this._opts.toggleSelected) {
 			if (!selected) {
 				this._trigger(states.SELECTED);
@@ -122,9 +126,6 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 			this._trigger(states.UP);
 		}
 	};
-
-	//no action on these events
-	this.onInputOver = this.onInputOut = function () {};
 
 	//when this function is called from the constructor the dontPublish parameter to prevent publishing events on create...
 	this._trigger = function (state, dontPublish) {
