@@ -17,7 +17,7 @@ var logger;
  */
 
 var argv = require('optimist')
-	.alias('clean', 'c').describe('clean', 'Clean build before compilation').boolean('clean').default('clean', true)
+	.alias('clean', 'c').describe('clean', 'Clean build before compilation').boolean('clean').default('clean', false)
 	.argv;
 
 /**
@@ -695,8 +695,10 @@ exports.package = function (builder, project, opts, next) {
 			makeAndroidProject(project, packageName, activity, title, appID,
 					shortName, opts.version, debug, destDir, servicesURL, metadata,
 					studioName, f.waitPlain());
-
-			buildSupportProjects(project, destDir, debug, clean, f.waitPlain());
+			
+			var cleanProj = (common.config.get("lastBuildWasDebug") != debug) || clean;
+			common.config.set("lastBuildWasDebug", debug);
+			buildSupportProjects(project, destDir, debug, cleanProj, f.waitPlain());
 
 		}, function () {
 			copyFonts(project, destDir);
