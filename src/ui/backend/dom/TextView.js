@@ -87,7 +87,7 @@ exports = Class(View, function (supr) {
 		}
 
 		if (opts.color)           { s.color = opts.color; }
-		if (opts.size)            { s.fontSize = opts.fontSize + "px"; }
+		if (opts.size)            { s.fontSize = opts.size + "px"; }
 		if (opts.fontFamily)      { s.fontFamily = opts.fontFamily; }
 		if (opts.horizontalAlign) { s.textAlign = opts.horizontalAlign; }
 		if (opts.fontWeight)      { s.fontWeight = opts.fontWeight; }
