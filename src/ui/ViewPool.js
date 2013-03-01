@@ -17,7 +17,6 @@ exports = Class(function() {
 		this.ctor = opts.ctor;
 
 		this.views = [];
-		this.freshQueue = [];
 
 		// early initialization to avoid dropping frames
 		var initCount = opts.initCount,
@@ -32,11 +31,12 @@ exports = Class(function() {
 
 				var view = new this.ctor(viewOpts);
 				view.style.visible = false;
-				view.poolIndex = this.views.length;
+				view._poolIndex = this.views.length;
 				this.views.push(view);
-				this.freshQueue.push(view.poolIndex);
 			}
 		}
+
+		this._freshViewIndex = 0;
 	};
 
 
@@ -48,17 +48,19 @@ exports = Class(function() {
 	this.obtainView = function(opts) {
 		var view;
 
-		if (this.freshQueue.length) {
+		if (this._freshViewIndex < this.views.length) {
 			// re-use an existing view if we can
-			view = this.views[this.freshQueue.pop()];
+			view = this.views[this._freshViewIndex];
 			view.updateOpts(opts);
 		} else {
 			// create a new view
 			view = new this.ctor(opts);
-			view.poolIndex = this.views.length;
+			view._poolIndex = this.views.length;
 			this.views.push(view);
 		}
 
+		this._freshViewIndex++;
+		view._obtainedFromPool = true;
 		view.style.visible = true;
 		return view;
 	};
@@ -69,21 +71,34 @@ exports = Class(function() {
 	 * view (instance of this.ctor) to be recycled
 	 */
 	this.releaseView = function(view) {
-		view.style.visible = false;
-		this.freshQueue.push(view.poolIndex);
+		// only allow a view to be released once per obtain
+		if (view._obtainedFromPool) {
+			var temp = this.views[this._freshViewIndex - 1];
+			this.views[this._freshViewIndex - 1] = view;
+			this.views[view._poolIndex] = temp;
+
+			var tempIndex = temp._poolIndex;
+			temp._poolIndex = view._poolIndex;
+			view._poolIndex = tempIndex;
+
+			view._obtainedFromPool = false;
+			view.style.visible = false;
+			this._freshViewIndex--;
+		}
 	};
 
 
 
 	/**
-	 * release all views, ensuring none of them are already released
+	 * release all views
 	 */
 	this.releaseAllViews = function() {
 		for (var i = 0; i < this.views.length; i++) {
 			var view = this.views[i];
-			if (this.freshQueue.indexOf(view.poolIndex) < 0) {
-				this.releaseView(view);
-			}
+			view._obtainedFromPool = false;
+			view.style.visible = false;
 		}
+
+		this._freshViewIndex = 0;
 	};
 });
