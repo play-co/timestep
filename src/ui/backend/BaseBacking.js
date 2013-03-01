@@ -37,6 +37,7 @@ var BaseBacking = exports = Class(function () {
 		'offsetYPercent': {value: undefined, cb: '_onOffsetY'},
 		'anchorX': {value: 0}, //rotation and scale
 		'anchorY': {value: 0},
+		'centerAnchor': {value: false},
 		'width': {cb: '_onResize'},
 		'height': {cb: '_onResize'},
 		'r': {value: 0},
