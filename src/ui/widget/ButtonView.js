@@ -28,7 +28,7 @@ var states = Enum(
 	"DOWN",
 	"DISABLED",
 	"SELECTED",
-	"UNSELECT"
+	"UNSELECTED"
 );
 
 var ButtonView = exports = Class(ImageScaleView, function (supr) {
@@ -116,7 +116,7 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 				this._trigger(states.SELECTED);
 				selected = true;
 			} else {
-				this._trigger(states.UNSELECT);
+				this._trigger(states.UNSELECTED);
 				selected = false;
 			}
 		}
