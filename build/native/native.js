@@ -48,6 +48,8 @@ exports.build = function (build, project, subtarget, moreOpts, next) {
 		version: project.manifest.version,
 		metadata: null,
 
+		template: moreOpts.template,
+
 		target: target,
 		subtarget: subtarget,
 	});
