@@ -802,7 +802,7 @@ exports.package = function (builder, project, opts, next) {
 	// -- MixPanel Analytics: Improve DevKit by sharing anonymous statistics
 	var MixPanel = require('mixpanel');
 	var myMixPanel = MixPanel && MixPanel.init("08144f9200265117af1ba86e226c352a");
-	myMixPanel && myMixPanel.track("BasilBuildNativeIOS", {"clean":clean, "debug":debug, "compress":argv.compress});
+	myMixPanel && myMixPanel.track("BasilBuildNativeIOS", {"clean":clean, "debug":debug, "compress":opts.compress});
 	// -- End of Analytics
 
 	getTealeafIOSPath(function(dir) {
