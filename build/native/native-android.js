@@ -13,14 +13,6 @@ var common = require('../../../../src/common');
 var logger;
 
 /**
- * Arguments.
- */
-
-var argv = require('optimist')
-	.alias('clean', 'c').describe('clean', 'Clean build before compilation').boolean('clean').default('clean', false)
-	.argv;
-
-/**
  * Utilities
  */
 
@@ -616,13 +608,32 @@ exports.package = function (builder, project, opts, next) {
 	_builder = builder;
 	logger = new _builder.common.Formatter('android');
 
+	/**
+	 * Arguments.
+	 */
+
+	var argParser = require('optimist')
+		.alias('help', 'h').describe('help', 'Display this help menu')
+		.alias('debug', 'd').describe('debug', 'Create debug build').boolean('debug').default('debug', opts.template !== "release")
+		.alias('clean', 'c').describe('clean', 'Clean build before compilation').boolean('clean').default('clean', opts.template !== "debug");
+	var argv = argParser.argv;
+
+	// If --help is being requested,
+	if (argv.help) {
+		argParser.showHelp();
+		return;
+	}
+
 	// Command line options.
-	debug = opts.debug;
+	debug = argv.debug;
 	clean = argv.clean;
+
 	// Extracted values from options.
 	var packageName = opts.packageName;
 	var studio = opts.studio;
 	var metadata = opts.metadata;
+
+	common.track("BasilBuildNativeAndroid", {"clean":clean, "debug":debug, "compress":opts.compress});
 
 	getTealeafAndroidPath(function (dir) {
 		androidDir = dir;
