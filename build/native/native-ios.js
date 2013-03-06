@@ -799,11 +799,7 @@ exports.package = function (builder, project, opts, next) {
 	var metadata = opts.metadata;
 	var servicesURL = opts.servicesURL;
 
-	// -- MixPanel Analytics: Improve DevKit by sharing anonymous statistics
-	var MixPanel = require('mixpanel');
-	var myMixPanel = MixPanel && MixPanel.init("08144f9200265117af1ba86e226c352a");
-	myMixPanel && myMixPanel.track("BasilBuildNativeIOS", {"version":common.sdkVersion.src, "clean":clean, "debug":debug, "compress":opts.compress});
-	// -- End of Analytics
+	common.track("BasilBuildNativeIOS", {"clean":clean, "debug":debug, "compress":opts.compress});
 
 	getTealeafIOSPath(function(dir) {
 		iOSPath = dir;
