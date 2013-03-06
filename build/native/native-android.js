@@ -636,7 +636,7 @@ exports.package = function (builder, project, opts, next) {
 	// -- MixPanel Analytics: Improve DevKit by sharing anonymous statistics
 	var MixPanel = require('mixpanel');
 	var myMixPanel = MixPanel && MixPanel.init("08144f9200265117af1ba86e226c352a");
-	myMixPanel && myMixPanel.track("BasilBuildNativeAndroid", {"clean":clean, "debug":debug, "compress":opts.compress});
+	myMixPanel && myMixPanel.track("BasilBuildNativeAndroid", {"version":common.sdkVersion.src, "clean":clean, "debug":debug, "compress":opts.compress});
 	// -- End of Analytics
 
 	getTealeafAndroidPath(function (dir) {
