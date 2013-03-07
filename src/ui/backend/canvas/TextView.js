@@ -160,7 +160,7 @@ var TextView = exports = Class(View, function(supr) {
 		var optsKey;
 		var i = clearCacheKeys.length;
 
-		this._cacheUpdate = !Object.keys(this._opts).length;
+		this._cacheUpdate = this._cacheUpdate || !Object.keys(this._opts).length;
 		while (i) {
 			optsKey = clearCacheKeys[--i];
 			if ((optsKey in opts) && clearCache[optsKey] && (optsLast[optsKey] !== opts[optsKey])) {
