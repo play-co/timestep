@@ -120,6 +120,7 @@ var MultiSound = Class(function () {
 			sources.push(audio);
 		}
 
+		this.loop = loop;
 		this.isBackgroundMusic = opts.background;
 	};
 
@@ -152,7 +153,7 @@ var MultiSound = Class(function () {
 		}
 
 		var src = this._getRandom();
-		src.loop = opts.loop || this.isBackgroundMusic;
+		src.loop = opts.loop || this.loop;
 		src.play();
 		
 		if (src.muted) {
