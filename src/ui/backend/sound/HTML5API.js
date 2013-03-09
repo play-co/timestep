@@ -101,19 +101,12 @@ var MultiSound = Class(function () {
 			}
 
 			var audio = new RawAudio();
-			if (device.isMobileNative) {
-				//if this isn't none on native, native will preload things like music, which is Not Good.
-				//however this also prevents music from being played in Chrome (as of 23.0.1271.91)
-				//so if we're actually on native, preload should be none, otherwise auto.
-				audio.preload = 'none';
-			}
 			audio.loop = loop;
 			audio.volume = volume;
 			audio.isBackgroundMusic = opts.background;
 			audio.src = fullPath;
 
-			// TODO: what's this option for??
-			if (opts.isLoaded && typeof audio.load == 'function') {
+			if (soundManager._preload && !opts.background) {
 				audio.load();
 			}
 
@@ -184,6 +177,7 @@ exports = Class(Emitter, function(supr) {
 
 		//opts.map is deprecated in favor of opts.files
 		this._map = opts.files || opts.map;
+		this._preload = opts.preload;
 		this._sounds = {};
 		this._isMusicMuted = false;
 		this._areEffectsMuted = false;
