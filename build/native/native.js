@@ -93,7 +93,7 @@ function wrapNativeJS (project, opts, target, resources, code) {
 			} catch (e) {
 				var exStr = 'Invalid JSON resource: ' + info.relative;
 				logger.error(exStr);
-				throw exStr;
+				throw new Error(exStr);
 			}
 		}
 	});
