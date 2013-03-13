@@ -39,8 +39,7 @@ var TextView = exports = Class(View, function(supr) {
 		textAlign: { replacement: 'horizontalAlign' },
 		lineWidth: { replacement: 'strokeWidth' },
 		strokeStyle: { replacement: 'strokeColor' },
-		outlineColor: { replacement: 'strokeColor' },
-		shadowColor: { replacement: 'strokeColor' }
+		outlineColor: { replacement: 'strokeColor' }
 	};
 
 	var defaults = {
@@ -251,6 +250,7 @@ var TextView = exports = Class(View, function(supr) {
 		var word;
 		var color = opts.color;
 		var strokeColor = opts.strokeColor;
+		var shadowColor = opts.shadowColor;
 		var lineOffset = opts.strokeWidth / 2;
 		var x, y;
 		var i = cache.length;
@@ -273,6 +273,10 @@ var TextView = exports = Class(View, function(supr) {
 
 			if (strokeColor) {
 				ctx.strokeText(word, x, y, maxWidth);
+			}
+			if (shadowColor) {
+				ctx.fillStyle = shadowColor;
+				ctx.fillText(word, x + lineOffset, y + lineOffset, maxWidth);
 			}
 
 			ctx.fillStyle = color;
