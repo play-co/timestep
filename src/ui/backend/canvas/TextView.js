@@ -57,6 +57,7 @@ var TextView = exports = Class(View, function(supr) {
 		size: 12,
 		strokeWidth: 2,
 		strokeColor: null,
+		shadowColor: null,
 
 		// alignment properties...
 		verticalAlign: "middle",
@@ -85,6 +86,7 @@ var TextView = exports = Class(View, function(supr) {
 		size: true,
 		strokeWidth: true,
 		strokeColor: false,
+		shadowColor: false,
 
 		// alignment properties...
 		verticalAlign: true,
