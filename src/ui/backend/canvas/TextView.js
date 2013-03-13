@@ -29,14 +29,19 @@ import .TextFlow;
 
 import ...legacySettings as legacySettings;
 
-var messageMultiline = true;
-var messageTextAlign = true;
-var messageFont = true;
-
 /**
  * @extends ui.View
  */
 var TextView = exports = Class(View, function(supr) {
+
+	var DEPRECATED = {
+		multiline: { replacement: 'wrap' },
+		textAlign: { replacement: 'horizontalAlign' },
+		lineWidth: { replacement: 'strokeWidth' },
+		strokeStyle: { replacement: 'strokeColor' },
+		outlineColor: { replacement: 'strokeColor' },
+		shadowColor: { replacement: 'strokeColor' }
+	};
 
 	var defaults = {
 		// layout properties...
@@ -51,9 +56,8 @@ var TextView = exports = Class(View, function(supr) {
 		fontFamily: device.defaultFontFamily,
 		fontWeight: "",
 		size: 12,
-		lineWidth: 2,
-		outlineColor: null,
-		shadowColor: null,
+		strokeWidth: 2,
+		strokeColor: null,
 
 		// alignment properties...
 		verticalAlign: "middle",
@@ -80,9 +84,8 @@ var TextView = exports = Class(View, function(supr) {
 		fontFamily: true,
 		fontWeight: true,
 		size: true,
-		lineWidth: false,
-		outlineColor: false,
-		shadowColor: false,
+		strokeWidth: true,
+		strokeColor: false,
 
 		// alignment properties...
 		verticalAlign: true,
@@ -178,20 +181,15 @@ var TextView = exports = Class(View, function(supr) {
 
 	this._checkDeprecatedOpts = function (opts) {
 		opts.allowVerticalSizing = !legacySettings.disableVerticalAutoSize;
-
-		if ("multiline" in opts) {
-			if (DEBUG && messageMultiline) {
-				console.warn("TextView opts.multiline is deprecated, please use wrap...");
-				messageMultiline = false;
+		for (var k in DEPRECATED) {
+			if (k in opts) {
+				var dep = DEPRECATED[k];
+				if (DEBUG && !dep.hasWarned) {
+					console.warn("TextView opts." + k + " is deprecated, please use " + dep.replacement + "...");
+					dep.hasWarned = true;
+				}
+				opts[dep.replacement] = opts[k];
 			}
-			opts.wrap = opts.multiline;
-		}
-		if ("textAlign" in opts) {
-			if (DEBUG && messageTextAlign) {
-				console.warn("TextView opts.multiline is deprecated, please use wrap...");
-				messageTextAlign = false;
-			}
-			opts.horizontalAlign = opts.textAlign;
 		}
 		var font = opts.font;
 		if (font) {
@@ -242,7 +240,7 @@ var TextView = exports = Class(View, function(supr) {
 		ctx.textBaseline = "top";
 		ctx.fillStyle = opts.color;
 		ctx.font = opts.fontWeight + " " + opts.size + "px " + opts.fontFamily;
-		ctx.lineWidth = opts.lineWidth;
+		ctx.lineWidth = opts.strokeWidth;
 	};
 
 	this._renderToCtx = function (ctx, offsetX, offsetY) {
@@ -252,10 +250,8 @@ var TextView = exports = Class(View, function(supr) {
 		var item;
 		var word;
 		var color = opts.color;
-		var strokeColor = opts.strokeStyle;
-		var outlineColor = opts.outlineColor;
-		var shadowColor = opts.shadowColor;
-		var lineOffset = opts.lineWidth / 2;
+		var strokeColor = opts.strokeColor;
+		var lineOffset = opts.strokeWidth / 2;
 		var x, y;
 		var i = cache.length;
 
@@ -277,17 +273,6 @@ var TextView = exports = Class(View, function(supr) {
 
 			if (strokeColor) {
 				ctx.strokeText(word, x, y, maxWidth);
-			}
-			if (outlineColor) {
-				ctx.fillStyle = outlineColor;
-				ctx.fillText(word, x - lineOffset, y, maxWidth);
-				ctx.fillText(word, x + lineOffset, y, maxWidth);
-				ctx.fillText(word, x, y - lineOffset, maxWidth);
-				ctx.fillText(word, x, y + lineOffset, maxWidth);
-			}
-			if (shadowColor) {
-				ctx.fillStyle = shadowColor;
-				ctx.fillText(word, x + lineOffset, y + lineOffset, maxWidth);
 			}
 
 			ctx.fillStyle = color;
