@@ -372,6 +372,22 @@ function copyMusic (project, destDir) {
 	}
 }
 
+//if a res directory is provided by the project copy those files
+//into the res directory of the android project
+function copyResDir (project, destDir) {
+	if (project.manifest.android &&
+			project.manifest.android.resDir) {
+		var destPath = path.join(destDir, "res");
+		var sourcePath = path.resolve(
+				project.manifest.android.resDir);
+		try {
+			wrench.copyDirSyncRecursive(sourcePath, destPath, {preserve: true});
+		} catch (e) {
+			logger.error("WARNING: Could not copy your android resource dir [" + e.toString() + "]");
+		}
+	}
+}
+
 function getAndroidHash (next) {
 	_builder.git.currentTag(androidDir, function (hash) {
 		next(hash || 'unknown');
@@ -718,7 +734,8 @@ exports.package = function (builder, project, opts, next) {
 			copyFonts(project, destDir);
 			copyIcons(project, destDir);
 			copyMusic(project, destDir);
-			
+			copyResDir(project, destDir);
+
 			copySplash(project, destDir, f());
 		}, function () {
 			var onDoneBuilding = f();
