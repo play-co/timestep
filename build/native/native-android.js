@@ -615,6 +615,7 @@ exports.package = function (builder, project, opts, next) {
 	var argParser = require('optimist')
 		.alias('help', 'h').describe('help', 'Display this help menu')
 		.alias('install', 'i').describe('install', 'Launch `adb install` after build completes').boolean('install').default('install', false)
+		.alias('open', 'o').describe('open', 'Launch the app on the phone after build completes (implicitly installs)').boolean('open').default('open', false)
 		.alias('debug', 'd').describe('debug', 'Create debug build').boolean('debug').default('debug', opts.template !== "release")
 		.alias('clean', 'c').describe('clean', 'Clean build before compilation').boolean('clean').default('clean', opts.template !== "debug");
 	var argv = argParser.argv;
@@ -756,16 +757,23 @@ exports.package = function (builder, project, opts, next) {
 				});
 			});
 		}, function () {
-			if (argv.install) {
+			if (argv.install || argv.open) {
 				var cmd = 'adb uninstall "' + packageName + '"';
 				logger.log('Install: Running ' + cmd + '...');
 				_builder.common.child('adb', ['uninstall', packageName], {}, f.waitPlain()); //this is waitPlain because it can fail and not break.
 			}
 		}, function () {
-			if (argv.install) {
+			if (argv.install || argv.open) {
 				var cmd = 'adb install -r "' + apkPath + '"';
 				logger.log('Install: Running ' + cmd + '...');
 				_builder.common.child('adb', ['install', '-r', apkPath], {}, f.waitPlain()); //this is waitPlain because it can fail and not break.
+			}
+		}, function () {
+			if (argv.open) {
+				var startCmd = packageName + '/' + packageName + '.' + shortName + 'Activity';
+				var cmd = 'adb shell am start -n ' + startCmd;
+				logger.log('Install: Running ' + cmd + '...');
+				_builder.common.child('adb', ['shell', 'am', 'start', '-n', startCmd], {}, f.waitPlain()); //this is waitPlain because it can fail and not break.
 			}
 		}, function () {
 			next(0);
