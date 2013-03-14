@@ -388,7 +388,11 @@ function copyResDir (project, destDir) {
 		var destPath = path.join(destDir, "res");
 		var sourcePath = path.resolve(
 				project.manifest.android.resDir);
-		wrench.copyDirSyncRecursive(sourcePath, destPath, {preserve: true});
+		try {
+			wrench.copyDirSyncRecursive(sourcePath, destPath, {preserve: true});
+		} catch (e) {
+			logger.error("WARNING: Could not copy your android resource dir [" + e.toString() + "]");
+		}
 	}
 }
 
