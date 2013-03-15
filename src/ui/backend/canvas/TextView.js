@@ -29,6 +29,8 @@ import .TextFlow;
 
 import ...legacySettings as legacySettings;
 
+var messageFont = true; // Report first font error message
+
 /**
  * @extends ui.View
  */
