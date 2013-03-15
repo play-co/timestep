@@ -317,9 +317,9 @@ function copySplash (project, destDir, next) {
 		}
 
 		var splashes = [
-			{ outFile: "splash-512x384.png", outSize: "512x384" },
-			{ outFile: "splash-1024x768.png", outSize: "1024x768"},
-			{ outFile: "splash-2048x1536.png", outSize: "2048x1536"}
+			{ outFile: "splash-512.png", outSize: "512" },
+			{ outFile: "splash-1024.png", outSize: "1024"},
+			{ outFile: "splash-2048.png", outSize: "2048"}
 		];
 
 		var f = ff(function () {	
