@@ -105,11 +105,7 @@ var MultiSound = Class(function () {
 			audio.volume = volume;
 			audio.isBackgroundMusic = opts.background;
 			audio.src = fullPath;
-
-			if (soundManager._preload && !opts.background) {
-				audio.load();
-			}
-
+			audio.preload = (soundManager._preload && !opts.background) ? "auto" : "none";
 			sources.push(audio);
 		}
 
