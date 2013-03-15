@@ -372,6 +372,22 @@ function copyMusic (project, destDir) {
 	}
 }
 
+//if a res directory is provided by the project copy those files
+//into the res directory of the android project
+function copyResDir (project, destDir) {
+	if (project.manifest.android &&
+			project.manifest.android.resDir) {
+		var destPath = path.join(destDir, "res");
+		var sourcePath = path.resolve(
+				project.manifest.android.resDir);
+		try {
+			wrench.copyDirSyncRecursive(sourcePath, destPath, {preserve: true});
+		} catch (e) {
+			logger.error("WARNING: Could not copy your android resource dir [" + e.toString() + "]");
+		}
+	}
+}
+
 function getAndroidHash (next) {
 	_builder.git.currentTag(androidDir, function (hash) {
 		next(hash || 'unknown');
@@ -614,6 +630,8 @@ exports.package = function (builder, project, opts, next) {
 
 	var argParser = require('optimist')
 		.alias('help', 'h').describe('help', 'Display this help menu')
+		.alias('install', 'i').describe('install', 'Launch `adb install` after build completes').boolean('install').default('install', false)
+		.alias('open', 'o').describe('open', 'Launch the app on the phone after build completes (implicitly installs)').boolean('open').default('open', false)
 		.alias('debug', 'd').describe('debug', 'Create debug build').boolean('debug').default('debug', opts.template !== "release")
 		.alias('clean', 'c').describe('clean', 'Clean build before compilation').boolean('clean').default('clean', opts.template !== "debug");
 	var argv = argParser.argv;
@@ -699,10 +717,11 @@ exports.package = function (builder, project, opts, next) {
 		opts.output = path.join(destDir, "assets/resources");
 
 		// Parallelize android project setup and sprite building.
+		var apkPath;
 		var f = ff(function () {
 			_builder.common.child("node", [path.join(androidDir, "plugins/installPlugins.js")], {}, f.wait());
 			require('./native').writeNativeResources(project, opts, f.waitPlain());
-			
+		
 			makeAndroidProject(project, packageName, activity, title, appID,
 					shortName, opts.version, debug, destDir, servicesURL, metadata,
 					studioName, f.waitPlain());
@@ -715,9 +734,12 @@ exports.package = function (builder, project, opts, next) {
 			copyFonts(project, destDir);
 			copyIcons(project, destDir);
 			copyMusic(project, destDir);
-			
+			copyResDir(project, destDir);
+
 			copySplash(project, destDir, f());
 		}, function () {
+			var onDoneBuilding = f();
+
 			buildAndroidProject(destDir, debug, function (success) {
 				//if (!success) {
 				//  logger.error("BUILD FAILED");
@@ -732,7 +754,7 @@ exports.package = function (builder, project, opts, next) {
 				}
 
 				(!debug ? signAPK : nextStep)(shortName, destDir, function () {
-					var apkPath = path.join(apkDir, shortName + ".apk");
+					apkPath = path.join(apkDir, shortName + ".apk");
 					if (fs.existsSync(apkPath)) {
 						fs.unlinkSync(apkPath);
 					}
@@ -743,7 +765,7 @@ exports.package = function (builder, project, opts, next) {
 						_builder.common.copyFileSync(destApkPath, apkPath);
 						logger.log("built", clc.yellow.bright(packageName));
 						logger.log("saved to " + clc.blue.bright(apkPath));
-						next(0);
+						onDoneBuilding();
 					} else {
 						logger.error(clc.red.bright("NO FILE AT " + destApkPath));
 						next(2);
@@ -751,6 +773,27 @@ exports.package = function (builder, project, opts, next) {
 					
 				});
 			});
+		}, function () {
+			if (argv.install || argv.open) {
+				var cmd = 'adb uninstall "' + packageName + '"';
+				logger.log('Install: Running ' + cmd + '...');
+				_builder.common.child('adb', ['uninstall', packageName], {}, f.waitPlain()); //this is waitPlain because it can fail and not break.
+			}
+		}, function () {
+			if (argv.install || argv.open) {
+				var cmd = 'adb install -r "' + apkPath + '"';
+				logger.log('Install: Running ' + cmd + '...');
+				_builder.common.child('adb', ['install', '-r', apkPath], {}, f.waitPlain()); //this is waitPlain because it can fail and not break.
+			}
+		}, function () {
+			if (argv.open) {
+				var startCmd = packageName + '/' + packageName + '.' + shortName + 'Activity';
+				var cmd = 'adb shell am start -n ' + startCmd;
+				logger.log('Install: Running ' + cmd + '...');
+				_builder.common.child('adb', ['shell', 'am', 'start', '-n', startCmd], {}, f.waitPlain()); //this is waitPlain because it can fail and not break.
+			}
+		}, function () {
+			next(0);
 		}).error(function (err) {
 			console.error("unexpected error:");
 			console.error(err);
