@@ -215,33 +215,33 @@ exports = Class(BufferedCanvas, function(supr) {
 		if (typeof this.fillStyle == 'object') {
 			var img = this.fillStyle.img,
 				w = img.width, h = img.height,
-				wMax, hMax, xx = x, yy = y,
+				wMax, hMax, xx, yy,
 				op = this.getCompositeOperationID();
 			switch (this.fillStyle.repeatPattern) {
 				case 'repeat':
-					for (xx = x; xx < width; xx += w) {
+					for (xx = 0; xx < width; xx += w) {
 						wMax = Math.min(w, width - xx);
 						for (yy = y; yy < height; yy += h) {
 							hMax = Math.min(h, height - yy);
-							this._ctx.drawImage(img.__gl_name, img._src, 0, 0, w, h, xx, yy, wMax, hMax, op);
+							this._ctx.drawImage(img.__gl_name, img._src, 0, 0, w, h, x + xx, y + yy, wMax, hMax, op);
 						}
 					}
 					break;
 				case 'repeat-x':
-					for (xx = x; xx < width; xx += w) {
+					for (xx = 0; xx < width; xx += w) {
 						wMax = Math.min(w, width - xx);
-						this._ctx.drawImage(img.__gl_name, img._src, 0, 0, w, h, xx, yy, wMax, hMax, op);
+						this._ctx.drawImage(img.__gl_name, img._src, 0, 0, w, h, x + xx, y, wMax, hMax, op);
 					}
 					break;
 				case 'repeat-y':
-					for (yy = y; yy < height; yy += h) {
+					for (yy = 0; yy < height; yy += h) {
 						hMax = Math.min(h, height - yy);
-						this._ctx.drawImage(img.__gl_name, img._src, 0, 0, w, h, xx, yy, wMax, hMax, op);
+						this._ctx.drawImage(img.__gl_name, img._src, 0, 0, w, h, x, y + yy, wMax, hMax, op);
 					}
 					break;
 				case 'no-repeat':
 				default:
-					this._ctx.drawImage(img.__gl_name, img._src, 0, 0, w, h, xx, yy, width, height, op);
+					this._ctx.drawImage(img.__gl_name, img._src, 0, 0, w, h, x, y, width, height, op);
 					break;
 			}
 		} else {
