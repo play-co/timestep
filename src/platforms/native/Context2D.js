@@ -241,7 +241,9 @@ exports = Class(BufferedCanvas, function(supr) {
 					break;
 				case 'no-repeat':
 				default:
-					this._ctx.drawImage(img.__gl_name, img._src, 0, 0, w, h, x, y, width, height, op);
+					wMax = Math.min(w, width);
+					hMax = Math.min(h, height);
+					this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x, y, wMax, hMax, op);
 					break;
 			}
 		} else {
