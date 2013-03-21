@@ -223,20 +223,20 @@ exports = Class(BufferedCanvas, function(supr) {
 						wMax = Math.min(w, width - xx);
 						for (yy = y; yy < height; yy += h) {
 							hMax = Math.min(h, height - yy);
-							this._ctx.drawImage(img.__gl_name, img._src, 0, 0, w, h, x + xx, y + yy, wMax, hMax, op);
+							this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x + xx, y + yy, wMax, hMax, op);
 						}
 					}
 					break;
 				case 'repeat-x':
 					for (xx = 0; xx < width; xx += w) {
 						wMax = Math.min(w, width - xx);
-						this._ctx.drawImage(img.__gl_name, img._src, 0, 0, w, h, x + xx, y, wMax, hMax, op);
+						this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x + xx, y, wMax, hMax, op);
 					}
 					break;
 				case 'repeat-y':
 					for (yy = 0; yy < height; yy += h) {
 						hMax = Math.min(h, height - yy);
-						this._ctx.drawImage(img.__gl_name, img._src, 0, 0, w, h, x, y + yy, wMax, hMax, op);
+						this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x, y + yy, wMax, hMax, op);
 					}
 					break;
 				case 'no-repeat':
