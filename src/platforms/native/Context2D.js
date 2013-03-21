@@ -212,11 +212,31 @@ exports = Class(BufferedCanvas, function(supr) {
 	};
 
 	this.fillRect = function(x, y, width, height) {
-		this._ctx.fillRect(x, y, width, height, this.fillStyle, this.getCompositeOperationID());
+		if (typeof this.fillStyle == 'object') {
+			var img = this.fillStyle.img, w = img.width, h = img.height,
+				wMax = Math.min(w, width), hMax = Math.min(h, height),
+				xx, yy, op = this.getCompositeOperationID();
+			for (xx = 0; xx < width; xx += w) {
+				for (yy = 0; yy < height; yy += h) {
+					this._ctx.drawImage(img.__gl_name, img._src, 0, 0, w, h, xx, yy, wMax, hMax, op);
+					hMax = Math.min(h, height - yy);
+				}
+				wMax = Math.min(w, width - xx);
+			}
+		} else {
+			this._ctx.fillRect(x, y, width, height, this.fillStyle, this.getCompositeOperationID());
+		}
 	};
 
 	this.strokeRect = function(x, y, width, height) {
 		this._ctx.strokeRect(x, y, width, height, this.strokeStyle, this.lineWidth || 1, this.getCompositeOperationID());
+	};
+
+	this.createPattern = function(img, repeatPattern) {
+		return {
+			img: img,
+			repeatPattern: repeatPattern
+		};
 	};
 
 	this._checkPath = function() {
