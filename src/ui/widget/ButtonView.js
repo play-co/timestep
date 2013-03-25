@@ -133,7 +133,7 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 	};
 
 	this.onInputOut = function () {
-		if (this._state !== states.UP) {
+		if (this._state !== states.DISABLED && this._state !== states.UP) {
 			this._state = states.UP;
 			this._trigger(states.UP, true);
 		}
