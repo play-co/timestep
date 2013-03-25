@@ -30,7 +30,7 @@ var states = Enum(
 	"SELECTED",
 	"UNSELECTED"
 );
-
+var lastClicked = null;
 var ButtonView = exports = Class(ImageScaleView, function (supr) {
 	var selected = false;
 
@@ -45,7 +45,8 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 				superview: this,
 				text: opts.title || "",
 				x: 0,
-				y: 0
+				y: 0,
+				canHandleEvents: false
 			}
 		);
 		this._text = new TextView(textOpts);
@@ -55,7 +56,8 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 			{
 				superview: this,
 				x: 0,
-				y: 0
+				y: 0,
+				canHandleEvents: false
 			}
 		);
 		this._icon = new ImageView(iconOpts);
@@ -84,8 +86,20 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 			return;
 		}
 
+		lastClicked = this.uid;
+
 		this._state = states.DOWN;
 		this._trigger(states.DOWN);
+	};
+
+	this.onInputOver = function () {
+		//no action when disabled
+		if (this._state === states.DISABLED || lastClicked != this.uid) {
+			return;
+		}
+
+		this._state = states.DOWN;
+		this._trigger(states.DOWN, true);
 	};
 
 	this.onInputSelect = function () {
