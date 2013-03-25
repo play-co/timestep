@@ -78,7 +78,7 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 		("text" in opts) && this._text && this._text.updateOpts(opts.text);
 	};
 
-	this.onInputStart = this.onInputOver = function () {
+	this.onInputStart = function () {
 		//no action when disabled
 		if (this._state === states.DISABLED) {
 			return;
@@ -107,10 +107,6 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 			return;
 		}
 
-		this.onInputOut();
-	};
-
-	this.onInputOut = function () {
 		if (this._opts.toggleSelected) {
 			if (!selected) {
 				this._trigger(states.SELECTED);
@@ -121,9 +117,13 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 			}
 		}
 
+		this._trigger(states.UP);
+	};
+
+	this.onInputOut = function () {
 		if (this._state !== states.UP) {
 			this._state = states.UP;
-			this._trigger(states.UP);
+			this._trigger(states.UP, true);
 		}
 	};
 
