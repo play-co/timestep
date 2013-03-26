@@ -127,9 +127,9 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 				this._trigger(states.UNSELECTED);
 				selected = false;
 			}
+		} else {
+			this._trigger(states.UP);
 		}
-
-		this._trigger(states.UP);
 	};
 
 	this.onInputOut = function () {
