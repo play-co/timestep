@@ -125,9 +125,7 @@ function buildSupportProjects (project, destDir, debug, clean, next) {
 		androidDir = dir;
 		tealeafDir = path.join(androidDir, "TeaLeaf");
 		if (clean) {
-			_builder.common.child('make', ['clean'], {cwd: androidDir}, f.waitPlain()); //this is waitPlain because it can fail and not break.
-		} else {
-			f.waitPlain()();
+			_builder.common.child('make', ['clean'], {cwd: androidDir}, f.slot());
 		}
 	}, function () {
 		_builder.common.child('ndk-build', ["-j", "8", (debug ? "DEBUG=1" : "RELEASE=1")], { cwd: tealeafDir }, f.wait()); 
