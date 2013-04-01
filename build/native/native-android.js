@@ -500,12 +500,13 @@ function updateManifest (project, namespace, activity, title, appID, shortName, 
 			f(params);
 			pluginsConfig = JSON.parse(pluginsConfig);
 			f(pluginsConfig);
-			_builder.common.child("node", [path.join(androidDir, "plugins/injectPluginXML.js"), path.join(androidDir, "plugins"), path.join(destDir, "AndroidManifest.xml")], {}, f.wait());
+			_builder.common.child("node", [path.join(androidDir, "plugins/injectPluginXMl.js"), path.join(androidDir, "plugins"), path.join(destDir, "AndroidManifest.xml")], {}, f.wait());
 		},  function(params, pluginsConfig) {
 			f(params);
 			//do xsl for all plugins first
 			var  relativePluginPaths = [];
 			f(relativePluginPaths);
+            f(pluginsConfig);
 			var group = f.group();
 			for (var i in pluginsConfig) {
 				var relativePluginPath = pluginsConfig[i];
@@ -513,7 +514,7 @@ function updateManifest (project, namespace, activity, title, appID, shortName, 
 				var pluginConfigFile = path.join(androidDir, "plugins", relativePluginPath, "config.json");
 				fs.readFile(pluginConfigFile, "utf-8", group());
 			}
-		}, function(params, paths, arr) {
+		}, function(params, paths, pluginsConfig, arr) {
 			f(params);
 			var hasPluginXsl = false;
 			if (arr && arr.length > 0) {
@@ -537,17 +538,25 @@ function updateManifest (project, namespace, activity, title, appID, shortName, 
 							);
 				}
 			}
+            f(pluginsConfig);
 			f(hasPluginXsl);
-
-		}, function(params, hasPluginXsl) {
+		}, function(params, hasPluginXsl, pluginsConfig) {
+            f(pluginsConfig);
 			//and now the final xsl
 			var xmlPath = hasPluginXsl ? path.join(destDir,".AndroidManifest.xml") : path.join(androidDir, "TeaLeaf/AndroidManifest.xml");
 			transformXSL(xmlPath,
 					path.join(destDir, "AndroidManifest.xml"),
 					path.join(androidDir, "AndroidManifest.xsl"),
 					params,
-					f());
-		}).error(function(code) {
+                    f());
+        },function(pluginsConfig, a) {
+			for (var i in pluginsConfig) {
+				var relativePluginPath = pluginsConfig[i];
+				var transformFile = path.join(androidDir, "plugins", relativePluginPath, "transformXmls.js");
+                _builder.common.child("node", [transformFile, path.join(destDir, "AndroidManifest.xml")], {}, f());
+			}
+
+        }).error(function(code) {
 			logger.error(code);
 			logger.error("Build failed: error transforming XSL for AndroidManifest.xml");
 			process.exit(2);
