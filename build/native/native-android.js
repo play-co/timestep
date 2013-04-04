@@ -500,7 +500,7 @@ function updateManifest (project, namespace, activity, title, appID, shortName, 
 			f(params);
 			pluginsConfig = JSON.parse(pluginsConfig);
 			f(pluginsConfig);
-			_builder.common.child("node", [path.join(androidDir, "plugins/injectPluginXMl.js"), path.join(androidDir, "plugins"), path.join(destDir, "AndroidManifest.xml")], {}, f.wait());
+			_builder.common.child("node", [path.join(androidDir, "plugins/injectPluginXML.js"), path.join(androidDir, "plugins"), path.join(destDir, "AndroidManifest.xml")], {}, f.wait());
 		},  function(params, pluginsConfig) {
 			f(params);
 			//do xsl for all plugins first
@@ -519,27 +519,28 @@ function updateManifest (project, namespace, activity, title, appID, shortName, 
 			var hasPluginXsl = false;
 			if (arr && arr.length > 0) {
 				var pluginConfigArr = [];
-				var group = f.group();
 				for (var a in arr) {
 					var pluginConfig = JSON.parse(arr[a]);
 					//if no android plugin exists, continue...
 
-					var xslPath = path.join(androidDir, "plugins", paths[a], pluginConfig.injectionXSL.name);
-					if (!fs.existsSync(xslPath)) {
-						continue;
-					}
+					if (pluginConfig.injectionXSL) {
+						var xslPath = path.join(androidDir, "plugins", paths[a], pluginConfig.injectionXSL.name);
+						if (!fs.existsSync(xslPath)) {
+							continue;
+						}
 
-					hasPluginXsl = true;
-					transformXSL(path.join(destDir, "AndroidManifest.xml"),
-							path.join(destDir, ".AndroidManifest.xml"),
-							xslPath,
-							params,
-							group()
-							);
+						hasPluginXsl = true;
+						transformXSL(path.join(destDir, "AndroidManifest.xml"),
+								path.join(destDir, ".AndroidManifest.xml"),
+								xslPath,
+								params,
+								f.wait()
+								);
+					}
 				}
 			}
-            f(pluginsConfig);
 			f(hasPluginXsl);
+			f(pluginsConfig);
 		}, function(params, hasPluginXsl, pluginsConfig) {
             f(pluginsConfig);
 			//and now the final xsl
@@ -553,7 +554,9 @@ function updateManifest (project, namespace, activity, title, appID, shortName, 
 			for (var i in pluginsConfig) {
 				var relativePluginPath = pluginsConfig[i];
 				var transformFile = path.join(androidDir, "plugins", relativePluginPath, "transformXmls.js");
-                _builder.common.child("node", [transformFile, path.join(destDir, "AndroidManifest.xml")], {}, f());
+				if (fs.existsSync(transformFile)) {
+					_builder.common.child("node", [transformFile, path.join(destDir, "AndroidManifest.xml")], {}, f());
+				}
 			}
 
         }).error(function(code) {
