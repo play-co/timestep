@@ -357,7 +357,7 @@ var TextView = exports = Class(View, function(supr) {
 	};
 
 	this.getTag = function() {
-		return "TextView" + this.uid + ":" + (this._lines && this._lines.join(" ").substring(0, 20));
+		return "TextView" + this.uid + ":" + this.tag;
 	};
 
 	this.reflow = function () {
