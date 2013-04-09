@@ -44,12 +44,6 @@ var Filter = exports.Filter = Class(function() {
 		a: 0
 	};
 
-	var FILTER_TYPES = {
-		"None": 0,
-		"LinearAdd": 1, 
-		"Multiply": 2
-	};
-
 	this.init = function(opts) {
 		this._opts = merge(opts, defaults);
 		this._view = null;
@@ -72,7 +66,7 @@ var Filter = exports.Filter = Class(function() {
 		}
 		if (this._view) {
 			this._view.__view.filterColor = this.getColorString();
-			this._view.__view.filterType = FILTER_TYPES[this.getType()] || 0;
+			this._view.__view.filterType = Filter.TYPES[this.getType()] || 0;
 		}
 	};
 
@@ -85,6 +79,12 @@ var Filter = exports.Filter = Class(function() {
 		return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + c.a + ')';
 	};
 });
+
+Filter.TYPES = {
+	"None": 0,
+	"LinearAdd": 1, 
+	"Multiply": 2
+};
 
 /**
  * Linear add (lighten) filter.
