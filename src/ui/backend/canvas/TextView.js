@@ -45,8 +45,6 @@ var TextView = exports = Class(View, function(supr) {
 	};
 
 	var defaults = {
-		buffer: true,
-
 		// layout properties...
 		wrap: false,
 		autoSize: false,
@@ -68,6 +66,7 @@ var TextView = exports = Class(View, function(supr) {
 		horizontalAlign: "center",
 
 		// misc properties...
+		buffer: true,
 		backgroundColor: null
 	};
 
@@ -272,8 +271,6 @@ var TextView = exports = Class(View, function(supr) {
 			ctx.strokeStyle = strokeColor;
 		}
 
-		ctx.clearRect(offsetX, offsetY, opts.width, opts.height);
-
 		while (i) {
 			item = cache[--i];
 			word = item.word;
@@ -295,7 +292,7 @@ var TextView = exports = Class(View, function(supr) {
 
 	this._renderBuffer = function (ctx) {
 		var opts = this._opts;
-		var fonctBufferCtx = fontBuffer.getContext();
+		var fontBufferCtx = fontBuffer.getContext();
 		var offsetRect = this._textFlow.getOffsetRect();
 		var width = offsetRect.width;
 		var height = offsetRect.height;
@@ -305,7 +302,12 @@ var TextView = exports = Class(View, function(supr) {
 		opts.lineCount = cache[cache.length - 1].line;
 		desc = fontBuffer.getPositionForText(opts);
 		if (desc != null) {
-			this._cacheUpdate && this._renderToCtx(fonctBufferCtx, desc.x - offsetRect.x, desc.y - offsetRect.y);
+			if (this._cacheUpdate) {
+				var offsetX = desc.x - offsetRect.x;
+				var offsetY = desc.y - offsetRect.y;
+				fontBufferCtx.clearRect(offsetX, offsetY, opts.width, opts.height);
+				this._renderToCtx(fontBufferCtx, offsetX, offsetY);
+			}
 			ctx.drawImage(fontBuffer.getCanvas(), desc.x, desc.y, width, height, offsetRect.x, offsetRect.y, width, height);
 		} else {
 			this._opts.buffered = false;
