@@ -45,6 +45,8 @@ var TextView = exports = Class(View, function(supr) {
 	};
 
 	var defaults = {
+		buffer: true,
+
 		// layout properties...
 		wrap: false,
 		autoSize: false,
@@ -269,6 +271,8 @@ var TextView = exports = Class(View, function(supr) {
 		if (strokeColor) {
 			ctx.strokeStyle = strokeColor;
 		}
+
+		ctx.clearRect(offsetX, offsetY, opts.width, opts.height);
 
 		while (i) {
 			item = cache[--i];
