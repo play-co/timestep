@@ -1,3 +1,20 @@
+/* @license
+ * This file is part of the Game Closure SDK.
+ *
+ * The Game Closure SDK is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * The Game Closure SDK is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /**
  * @class ui.ParticleEngine;
  */
@@ -5,113 +22,6 @@
 import ui.View as View;
 import ui.resource.Image as Image;
 import ui.ImageView as ImageView;
-
-
-
-/* ~~~ BEGIN README ~~~
-
-BASICS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    The goal of this class is to facilitate high performance
-    view animation with minimal garbage collection.
-
-    There are two ways to define particle data objects:
-        * Cartesian Physics
-        * Polar Physics
-
-    All deltas are in units per second.
-
-
-
-CARTESIAN PHYSICS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-POSITION
-    x           starting x position
-    y           starting y position
-    r           rotation
-    anchorX     x anchor
-    anchorY     y anchor
-VELOCITY
-    dx          delta x
-    dy          delta y
-    dr          delta r
-    danchorX    delta anchor x
-    danchorY    delta anchor y
-ACCELERATION
-    ddx         delta delta x
-    ddy         delta delta y
-    ddr         delta delta r
-    ddanchorX   delta delta anchor x
-    ddanchorY   delta delta anchor y
-
-
-
-POLAR PHYSICS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-POLAR
-    polar       (boolean) set true to use polar coordinates
-    ox          x origin
-    oy          y origin
-    theta       starting angle
-    radius      starting radius
-    dtheta      delta theta
-    dradius     delta radius
-    ddtheta     delta delta theta
-    ddradius    delta delta radius
-
-    NOTE: when using polar particles,
-          dx, dy, ddx, and ddy translate the polar origin point
-
-
-
-GENERAL
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-SIZE
-    width       width
-    dwidth      delta width
-    ddwidth     delta delta width
-    height      height
-    dheight     delta height
-    ddheight    delta delta height
-    scale       scale
-    dscale      delta scale
-    ddscale     delta delta scale
-
-OPACITY
-    opacity     opacity
-    dopacity    delta opacity
-    ddopacity   delta delta opacity
-
-LIFESPAN
-    ttl         time to live in milliseconds
-    delay       time in ms before particle goes active
-
-OTHER
-    image       (string) the image URL used for this particle
-    transition  (string) transition function ID, defaults to "linear"
-    onStart     (function) called when a particle becomes active
-    onDeath     (function) called when a particle finishes
-
-TRIGGERS
-    property    (string) check this property's value for trigger
-    value       (number) value at which to trigger an action
-    smaller     (boolean) if true, check if a property is < value, otherwise >
-    action      (function) called when trigger occurs, passes particle
-    count       (number) removes trigger after it has occurred count times (optional)
-
-INTERNAL USE
-    visible     (boolean) style.visible handled by the engine
-    elapsed     milliseconds passed since going active
-    external    (boolean) if true, we don't own this particle, so don't recycle it
-
-
-~~~ END README ~~~ */
-
-
 
 /**
  * @extends ui.View
