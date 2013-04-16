@@ -46,15 +46,8 @@ exports = Class(function() {
 			ctx.save();
 			ctx.globalAlpha = 0.2;
 			ctx.strokeStyle = 'black';
-			if (this._target._circle) {
-				ctx.beginPath();
-				ctx.arc(0, 0, s.radius, 0, 360, false);
-				ctx.stroke();
-				ctx.closePath();
-			} else {
-				ctx.lineWidth = 1.0;
-				ctx.strokeRect(0, 0, s.width, s.height);
-			}
+			ctx.lineWidth = 1.0;
+			ctx.strokeRect(0, 0, s.width, s.height);
 			ctx.restore();
 		}
 	}
@@ -99,11 +92,7 @@ exports = Class(function() {
 				this._nextFlash = now + 300;
 			}
 			
-			if (t._circle) {
-				
-			} else {
-				ctx.fillRect(0, 0, t.style.width, t.style.height);
-			}
+			ctx.fillRect(0, 0, t.style.width, t.style.height);
 		}
 	}
 });
