@@ -28,9 +28,9 @@ var states = Enum(
 	"DOWN",
 	"DISABLED",
 	"SELECTED",
-	"UNSELECT"
+	"UNSELECTED"
 );
-
+var lastClicked = null;
 var ButtonView = exports = Class(ImageScaleView, function (supr) {
 	var selected = false;
 
@@ -45,7 +45,8 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 				superview: this,
 				text: opts.title || "",
 				x: 0,
-				y: 0
+				y: 0,
+				canHandleEvents: false
 			}
 		);
 		this._text = new TextView(textOpts);
@@ -55,7 +56,8 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 			{
 				superview: this,
 				x: 0,
-				y: 0
+				y: 0,
+				canHandleEvents: false
 			}
 		);
 		this._icon = new ImageView(iconOpts);
@@ -84,8 +86,20 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 			return;
 		}
 
+		lastClicked = this.uid;
+
 		this._state = states.DOWN;
 		this._trigger(states.DOWN);
+	};
+
+	this.onInputOver = function () {
+		//no action when disabled
+		if (this._state === states.DISABLED || lastClicked != this.uid) {
+			return;
+		}
+
+		this._state = states.DOWN;
+		this._trigger(states.DOWN, true);
 	};
 
 	this.onInputSelect = function () {
@@ -94,11 +108,9 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 			return;
 		}
 
-		if (this._state !== states.DISABLED) {
-			//call the click handler
-			this._opts.onClick && this._opts.onClick.call(this);
-			this.onClick && this.onClick();
-		}
+		//call the click handler
+		this._opts.onClick && this._opts.onClick.call(this);
+		this.onClick && this.onClick();
 
 		if (this._opts.clickOnce) {
 			this._state = states.DISABLED;
@@ -112,19 +124,20 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 				this._trigger(states.SELECTED);
 				selected = true;
 			} else {
-				this._trigger(states.UNSELECT);
+				this._trigger(states.UNSELECTED);
 				selected = false;
 			}
-		}
-
-		if (this._state !== states.UP) {
-			this._state = states.UP;
+		} else {
 			this._trigger(states.UP);
 		}
 	};
 
-	//no action on these events
-	this.onInputOver = this.onInputOut = function () {};
+	this.onInputOut = function () {
+		if (this._state !== states.DISABLED && this._state !== states.UP) {
+			this._state = states.UP;
+			this._trigger(states.UP, true);
+		}
+	};
 
 	//when this function is called from the constructor the dontPublish parameter to prevent publishing events on create...
 	this._trigger = function (state, dontPublish) {

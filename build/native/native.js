@@ -48,6 +48,8 @@ exports.build = function (build, project, subtarget, moreOpts, next) {
 		version: project.manifest.version,
 		metadata: null,
 
+		template: moreOpts.template,
+
 		target: target,
 		subtarget: subtarget,
 	});
@@ -89,8 +91,9 @@ function wrapNativeJS (project, opts, target, resources, code) {
 			try {
 				inlineCache[info.relative] = JSON.stringify(JSON.parse(jsonData));
 			} catch (e) {
-				logger.error('Invalid JSON resource:', info.relative);
-				throw new Exception('Invalid JSON resource: ' + info.relative);
+				var exStr = 'Invalid JSON resource: ' + info.relative;
+				logger.error(exStr);
+				throw new Error(exStr);
 			}
 		}
 	});
