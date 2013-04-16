@@ -29,14 +29,20 @@ import .TextFlow;
 
 import ...legacySettings as legacySettings;
 
-var messageMultiline = true;
-var messageTextAlign = true;
-var messageFont = true;
+var messageFont = true; // Report first font error message
 
 /**
  * @extends ui.View
  */
 var TextView = exports = Class(View, function(supr) {
+
+	var DEPRECATED = {
+		multiline: { replacement: 'wrap' },
+		textAlign: { replacement: 'horizontalAlign' },
+		lineWidth: { replacement: 'strokeWidth' },
+		strokeStyle: { replacement: 'strokeColor' },
+		outlineColor: { replacement: 'strokeColor' }
+	};
 
 	var defaults = {
 		// layout properties...
@@ -51,8 +57,8 @@ var TextView = exports = Class(View, function(supr) {
 		fontFamily: device.defaultFontFamily,
 		fontWeight: "",
 		size: 12,
-		lineWidth: 2,
-		outlineColor: null,
+		strokeWidth: 2,
+		strokeColor: null,
 		shadowColor: null,
 
 		// alignment properties...
@@ -60,6 +66,7 @@ var TextView = exports = Class(View, function(supr) {
 		horizontalAlign: "center",
 
 		// misc properties...
+		buffer: true,
 		backgroundColor: null
 	};
 
@@ -80,8 +87,8 @@ var TextView = exports = Class(View, function(supr) {
 		fontFamily: true,
 		fontWeight: true,
 		size: true,
-		lineWidth: false,
-		outlineColor: false,
+		strokeWidth: true,
+		strokeColor: false,
 		shadowColor: false,
 
 		// alignment properties...
@@ -160,7 +167,7 @@ var TextView = exports = Class(View, function(supr) {
 		var optsKey;
 		var i = clearCacheKeys.length;
 
-		this._cacheUpdate = !Object.keys(this._opts).length;
+		this._cacheUpdate = this._cacheUpdate || !Object.keys(this._opts).length;
 		while (i) {
 			optsKey = clearCacheKeys[--i];
 			if ((optsKey in opts) && clearCache[optsKey] && (optsLast[optsKey] !== opts[optsKey])) {
@@ -178,20 +185,15 @@ var TextView = exports = Class(View, function(supr) {
 
 	this._checkDeprecatedOpts = function (opts) {
 		opts.allowVerticalSizing = !legacySettings.disableVerticalAutoSize;
-
-		if ("multiline" in opts) {
-			if (DEBUG && messageMultiline) {
-				console.warn("TextView opts.multiline is deprecated, please use wrap...");
-				messageMultiline = false;
+		for (var k in DEPRECATED) {
+			if (k in opts) {
+				var dep = DEPRECATED[k];
+				if (DEBUG && !dep.hasWarned) {
+					console.warn("TextView opts." + k + " is deprecated, please use " + dep.replacement + "...");
+					dep.hasWarned = true;
+				}
+				opts[dep.replacement] = opts[k];
 			}
-			opts.wrap = opts.multiline;
-		}
-		if ("textAlign" in opts) {
-			if (DEBUG && messageTextAlign) {
-				console.warn("TextView opts.multiline is deprecated, please use wrap...");
-				messageTextAlign = false;
-			}
-			opts.horizontalAlign = opts.textAlign;
 		}
 		var font = opts.font;
 		if (font) {
@@ -243,7 +245,7 @@ var TextView = exports = Class(View, function(supr) {
 		ctx.textBaseline = "top";
 		ctx.fillStyle = opts.color;
 		ctx.font = opts.fontWeight + " " + opts.size + "px " + opts.fontFamily;
-		ctx.lineWidth = opts.lineWidth;
+		ctx.lineWidth = opts.strokeWidth;
 	};
 
 	this._renderToCtx = function (ctx, offsetX, offsetY) {
@@ -253,10 +255,9 @@ var TextView = exports = Class(View, function(supr) {
 		var item;
 		var word;
 		var color = opts.color;
-		var strokeColor = opts.strokeStyle;
-		var outlineColor = opts.outlineColor;
+		var strokeColor = opts.strokeColor;
 		var shadowColor = opts.shadowColor;
-		var lineOffset = opts.lineWidth / 2;
+		var lineOffset = opts.strokeWidth / 2;
 		var x, y;
 		var i = cache.length;
 
@@ -279,13 +280,6 @@ var TextView = exports = Class(View, function(supr) {
 			if (strokeColor) {
 				ctx.strokeText(word, x, y, maxWidth);
 			}
-			if (outlineColor) {
-				ctx.fillStyle = outlineColor;
-				ctx.fillText(word, x - lineOffset, y, maxWidth);
-				ctx.fillText(word, x + lineOffset, y, maxWidth);
-				ctx.fillText(word, x, y - lineOffset, maxWidth);
-				ctx.fillText(word, x, y + lineOffset, maxWidth);
-			}
 			if (shadowColor) {
 				ctx.fillStyle = shadowColor;
 				ctx.fillText(word, x + lineOffset, y + lineOffset, maxWidth);
@@ -298,7 +292,7 @@ var TextView = exports = Class(View, function(supr) {
 
 	this._renderBuffer = function (ctx) {
 		var opts = this._opts;
-		var fonctBufferCtx = fontBuffer.getContext();
+		var fontBufferCtx = fontBuffer.getContext();
 		var offsetRect = this._textFlow.getOffsetRect();
 		var width = offsetRect.width;
 		var height = offsetRect.height;
@@ -308,7 +302,12 @@ var TextView = exports = Class(View, function(supr) {
 		opts.lineCount = cache[cache.length - 1].line;
 		desc = fontBuffer.getPositionForText(opts);
 		if (desc != null) {
-			this._cacheUpdate && this._renderToCtx(fonctBufferCtx, desc.x - offsetRect.x, desc.y - offsetRect.y);
+			if (this._cacheUpdate) {
+				var offsetX = desc.x - offsetRect.x;
+				var offsetY = desc.y - offsetRect.y;
+				fontBufferCtx.clearRect(offsetX, offsetY, opts.width, opts.height);
+				this._renderToCtx(fontBufferCtx, offsetX, offsetY);
+			}
 			ctx.drawImage(fontBuffer.getCanvas(), desc.x, desc.y, width, height, offsetRect.x, offsetRect.y, width, height);
 		} else {
 			this._opts.buffered = false;
@@ -364,7 +363,7 @@ var TextView = exports = Class(View, function(supr) {
 	};
 
 	this.getTag = function() {
-		return "TextView" + this.uid + ":" + (this._lines && this._lines.join(" ").substring(0, 20));
+		return "TextView" + this.uid + ":" + (this.tag || this._opts.text.substring(0, 20));
 	};
 
 	this.reflow = function () {

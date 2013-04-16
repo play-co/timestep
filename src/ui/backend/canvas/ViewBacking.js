@@ -102,7 +102,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		
 		var width = this._width;
 		var height = this._height;
-		if (!width || !height || width < 0 || height < 0) { return; }
+		if (width < 0 || height < 0) { return; }
 
 		ctx.save();
 		

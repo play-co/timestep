@@ -109,8 +109,8 @@ View.addExtension({
 			}
 		}
 
-		proto.updateAspectRatio = function () {
-			this.aspectRatio = this.width / this.height;
+		proto.updateAspectRatio = function (w, h) {
+			this.aspectRatio = (w || this.width) / (h || this.height);
 		}
 
 		proto._onSetLayout = function (key, which) {

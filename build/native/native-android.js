@@ -13,14 +13,6 @@ var common = require('../../../../src/common');
 var logger;
 
 /**
- * Arguments.
- */
-
-var argv = require('optimist')
-	.alias('clean', 'c').describe('clean', 'Clean build before compilation').boolean('clean').default('clean', true)
-	.argv;
-
-/**
  * Utilities
  */
 
@@ -133,9 +125,7 @@ function buildSupportProjects (project, destDir, debug, clean, next) {
 		androidDir = dir;
 		tealeafDir = path.join(androidDir, "TeaLeaf");
 		if (clean) {
-			_builder.common.child('make', ['clean'], {cwd: androidDir}, f.waitPlain()); //this is waitPlain because it can fail and not break.
-		} else {
-			f.waitPlain()();
+			_builder.common.child('make', ['clean'], {cwd: androidDir}, f.slot());
 		}
 	}, function () {
 		_builder.common.child('ndk-build', ["-j", "8", (debug ? "DEBUG=1" : "RELEASE=1")], { cwd: tealeafDir }, f.wait()); 
@@ -325,9 +315,9 @@ function copySplash (project, destDir, next) {
 		}
 
 		var splashes = [
-			{ outFile: "splash-512x384.png", outSize: "512x384" },
-			{ outFile: "splash-1024x768.png", outSize: "1024x768"},
-			{ outFile: "splash-2048x1536.png", outSize: "2048x1536"}
+			{ outFile: "splash-512.png", outSize: "512" },
+			{ outFile: "splash-1024.png", outSize: "1024"},
+			{ outFile: "splash-2048.png", outSize: "2048"}
 		];
 
 		var f = ff(function () {	
@@ -376,6 +366,22 @@ function copyMusic (project, destDir) {
 			_builder.common.copyFileSync(musicPath, path.join(destPath, "loadingsound.mp3"));
 		} else {
 			logger.error("WARNING: No splash music specified in the manifest.");
+		}
+	}
+}
+
+//if a res directory is provided by the project copy those files
+//into the res directory of the android project
+function copyResDir (project, destDir) {
+	if (project.manifest.android &&
+			project.manifest.android.resDir) {
+		var destPath = path.join(destDir, "res");
+		var sourcePath = path.resolve(
+				project.manifest.android.resDir);
+		try {
+			wrench.copyDirSyncRecursive(sourcePath, destPath, {preserve: true});
+		} catch (e) {
+			logger.error("WARNING: Could not copy your android resource dir [" + e.toString() + "]");
 		}
 	}
 }
@@ -500,6 +506,7 @@ function updateManifest (project, namespace, activity, title, appID, shortName, 
 			//do xsl for all plugins first
 			var  relativePluginPaths = [];
 			f(relativePluginPaths);
+            f(pluginsConfig);
 			var group = f.group();
 			for (var i in pluginsConfig) {
 				var relativePluginPath = pluginsConfig[i];
@@ -507,41 +514,52 @@ function updateManifest (project, namespace, activity, title, appID, shortName, 
 				var pluginConfigFile = path.join(androidDir, "plugins", relativePluginPath, "config.json");
 				fs.readFile(pluginConfigFile, "utf-8", group());
 			}
-		}, function(params, paths, arr) {
+		}, function(params, paths, pluginsConfig, arr) {
 			f(params);
 			var hasPluginXsl = false;
 			if (arr && arr.length > 0) {
 				var pluginConfigArr = [];
-				var group = f.group();
 				for (var a in arr) {
 					var pluginConfig = JSON.parse(arr[a]);
 					//if no android plugin exists, continue...
 
-					var xslPath = path.join(androidDir, "plugins", paths[a], pluginConfig.injectionXSL.name);
-					if (!fs.existsSync(xslPath)) {
-						continue;
-					}
+					if (pluginConfig.injectionXSL) {
+						var xslPath = path.join(androidDir, "plugins", paths[a], pluginConfig.injectionXSL.name);
+						if (!fs.existsSync(xslPath)) {
+							continue;
+						}
 
-					hasPluginXsl = true;
-					transformXSL(path.join(destDir, "AndroidManifest.xml"),
-							path.join(destDir, ".AndroidManifest.xml"),
-							xslPath,
-							params,
-							group()
-							);
+						hasPluginXsl = true;
+						transformXSL(path.join(destDir, "AndroidManifest.xml"),
+								path.join(destDir, ".AndroidManifest.xml"),
+								xslPath,
+								params,
+								f.wait()
+								);
+					}
 				}
 			}
 			f(hasPluginXsl);
-
-		}, function(params, hasPluginXsl) {
+			f(pluginsConfig);
+		}, function(params, hasPluginXsl, pluginsConfig) {
+            f(pluginsConfig);
 			//and now the final xsl
 			var xmlPath = hasPluginXsl ? path.join(destDir,".AndroidManifest.xml") : path.join(androidDir, "TeaLeaf/AndroidManifest.xml");
 			transformXSL(xmlPath,
 					path.join(destDir, "AndroidManifest.xml"),
 					path.join(androidDir, "AndroidManifest.xsl"),
 					params,
-					f());
-		}).error(function(code) {
+                    f());
+        },function(pluginsConfig, a) {
+			for (var i in pluginsConfig) {
+				var relativePluginPath = pluginsConfig[i];
+				var transformFile = path.join(androidDir, "plugins", relativePluginPath, "transformXmls.js");
+				if (fs.existsSync(transformFile)) {
+					_builder.common.child("node", [transformFile, path.join(destDir, "AndroidManifest.xml")], {}, f());
+				}
+			}
+
+        }).error(function(code) {
 			logger.error(code);
 			logger.error("Build failed: error transforming XSL for AndroidManifest.xml");
 			process.exit(2);
@@ -616,13 +634,34 @@ exports.package = function (builder, project, opts, next) {
 	_builder = builder;
 	logger = new _builder.common.Formatter('android');
 
+	/**
+	 * Arguments.
+	 */
+
+	var argParser = require('optimist')
+		.alias('help', 'h').describe('help', 'Display this help menu')
+		.alias('install', 'i').describe('install', 'Launch `adb install` after build completes').boolean('install').default('install', false)
+		.alias('open', 'o').describe('open', 'Launch the app on the phone after build completes (implicitly installs)').boolean('open').default('open', false)
+		.alias('debug', 'd').describe('debug', 'Create debug build').boolean('debug').default('debug', opts.template !== "release")
+		.alias('clean', 'c').describe('clean', 'Clean build before compilation').boolean('clean').default('clean', opts.template !== "debug");
+	var argv = argParser.argv;
+
+	// If --help is being requested,
+	if (argv.help) {
+		argParser.showHelp();
+		return;
+	}
+
 	// Command line options.
-	debug = opts.debug;
+	debug = argv.debug;
 	clean = argv.clean;
+
 	// Extracted values from options.
 	var packageName = opts.packageName;
 	var studio = opts.studio;
 	var metadata = opts.metadata;
+
+	common.track("BasilBuildNativeAndroid", {"clean":clean, "debug":debug, "compress":opts.compress});
 
 	getTealeafAndroidPath(function (dir) {
 		androidDir = dir;
@@ -688,23 +727,29 @@ exports.package = function (builder, project, opts, next) {
 		opts.output = path.join(destDir, "assets/resources");
 
 		// Parallelize android project setup and sprite building.
+		var apkPath;
 		var f = ff(function () {
 			_builder.common.child("node", [path.join(androidDir, "plugins/installPlugins.js")], {}, f.wait());
 			require('./native').writeNativeResources(project, opts, f.waitPlain());
-			
+		
 			makeAndroidProject(project, packageName, activity, title, appID,
 					shortName, opts.version, debug, destDir, servicesURL, metadata,
 					studioName, f.waitPlain());
-
-			buildSupportProjects(project, destDir, debug, clean, f.waitPlain());
+			
+			var cleanProj = (common.config.get("lastBuildWasDebug") != debug) || clean;
+			common.config.set("lastBuildWasDebug", debug);
+			buildSupportProjects(project, destDir, debug, cleanProj, f.waitPlain());
 
 		}, function () {
 			copyFonts(project, destDir);
 			copyIcons(project, destDir);
 			copyMusic(project, destDir);
-			
+			copyResDir(project, destDir);
+
 			copySplash(project, destDir, f());
 		}, function () {
+			var onDoneBuilding = f();
+
 			buildAndroidProject(destDir, debug, function (success) {
 				//if (!success) {
 				//  logger.error("BUILD FAILED");
@@ -719,7 +764,7 @@ exports.package = function (builder, project, opts, next) {
 				}
 
 				(!debug ? signAPK : nextStep)(shortName, destDir, function () {
-					var apkPath = path.join(apkDir, shortName + ".apk");
+					apkPath = path.join(apkDir, shortName + ".apk");
 					if (fs.existsSync(apkPath)) {
 						fs.unlinkSync(apkPath);
 					}
@@ -730,7 +775,7 @@ exports.package = function (builder, project, opts, next) {
 						_builder.common.copyFileSync(destApkPath, apkPath);
 						logger.log("built", clc.yellow.bright(packageName));
 						logger.log("saved to " + clc.blue.bright(apkPath));
-						next(0);
+						onDoneBuilding();
 					} else {
 						logger.error(clc.red.bright("NO FILE AT " + destApkPath));
 						next(2);
@@ -738,6 +783,27 @@ exports.package = function (builder, project, opts, next) {
 					
 				});
 			});
+		}, function () {
+			if (argv.install || argv.open) {
+				var cmd = 'adb uninstall "' + packageName + '"';
+				logger.log('Install: Running ' + cmd + '...');
+				_builder.common.child('adb', ['uninstall', packageName], {}, f.waitPlain()); //this is waitPlain because it can fail and not break.
+			}
+		}, function () {
+			if (argv.install || argv.open) {
+				var cmd = 'adb install -r "' + apkPath + '"';
+				logger.log('Install: Running ' + cmd + '...');
+				_builder.common.child('adb', ['install', '-r', apkPath], {}, f.waitPlain()); //this is waitPlain because it can fail and not break.
+			}
+		}, function () {
+			if (argv.open) {
+				var startCmd = packageName + '/' + packageName + '.' + shortName + 'Activity';
+				var cmd = 'adb shell am start -n ' + startCmd;
+				logger.log('Install: Running ' + cmd + '...');
+				_builder.common.child('adb', ['shell', 'am', 'start', '-n', startCmd], {}, f.waitPlain()); //this is waitPlain because it can fail and not break.
+			}
+		}, function () {
+			next(0);
 		}).error(function (err) {
 			console.error("unexpected error:");
 			console.error(err);

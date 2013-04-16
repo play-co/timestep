@@ -71,13 +71,21 @@ exports = Class(View, function (supr) {
 		}
 	}
 
+	this._imgCache = {};
+
 	this.getImage = function() { return this._img; }
 	this.setImage = function(img, opts) {
 		if (typeof img == 'string') {
-			this._img = new Image({url: img});
-		} else {
-			this._img = img;
+			// Cache image requests to avoid heavy performance penalties at the
+			// expense of a small amount of additional JS memory usage.
+			var name = img;
+			img = this._imgCache[name];
+			if (!img) {
+				this._imgCache[img] = img = new Image({url: name});
+			}
 		}
+
+		this._img = img;
 
 		if (this._img) {
 			if (opts && opts.autoSize) {
