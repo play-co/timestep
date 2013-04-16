@@ -28,7 +28,6 @@ import event.Emitter as Emitter;
 
 import math.geom.Point as Point;
 import math.geom.Rect as Rect;
-import math.geom.Circle as Circle;
 
 import .backend.canvas.ViewBacking;
 
@@ -123,7 +122,6 @@ var _BackingCtor = null;
  */
 var View = exports = Class(Emitter, function() {
 	/**
-	 * circle: boolean, default false - if true, use circular bounds for the view rather than rectangular and center the view at the origin
 	 * infinite: boolean, default false - if true, no bounding shape at all (e.g. infinite scroll plane)
 	 * clip: boolean, default false - if true, always clip to the region
 	 * canHandleEvents: boolean, default true - if false, this view is ignored for event handling
@@ -158,9 +156,6 @@ var View = exports = Class(Emitter, function() {
 		if (opts.tag) { this.tag = opts.tag; }
 		if (opts.filters) { this._filters = opts.filters; }
 
-		if (opts.circle) {
-			this._circle = opts.circle;
-		}
 		if (opts.infinite) {
 			this._infinite = opts.infinite;
 		}
@@ -562,23 +557,18 @@ var View = exports = Class(Emitter, function() {
 	this.containsLocalPoint = function(pt) {
 		if (this._infinite) { return true; }  // infinite plane
 
-		if (this._circle) { // bounding circle
-			var radius = this.style.radius;
-			return pt.x * pt.x + pt.y * pt.y < radius * radius;
-		} else { // bounding box
-			var s = this.style,
-				w = s.width,
-				h = s.height;
+		var s = this.style,
+			w = s.width,
+			h = s.height;
 
-			if (w > 0 && h > 0) {
-				return pt.x <= w && pt.y <= h && pt.x >= 0 && pt.y >= 0;
-			} else if (w > 0) {
-				return pt.x <= w && pt.y >= h && pt.x >= 0 && pt.y <= 0;
-			} else if (h > 0) {
-				return pt.x >= w && pt.y <= h && pt.x <= 0 && pt.y >= 0;
-			} else {
-				return pt.x >= w && pt.y >= h && pt.x <= 0 && pt.y <= 0;
-			}
+		if (w > 0 && h > 0) {
+			return pt.x <= w && pt.y <= h && pt.x >= 0 && pt.y >= 0;
+		} else if (w > 0) {
+			return pt.x <= w && pt.y >= h && pt.x >= 0 && pt.y <= 0;
+		} else if (h > 0) {
+			return pt.x >= w && pt.y <= h && pt.x <= 0 && pt.y >= 0;
+		} else {
+			return pt.x >= w && pt.y >= h && pt.x <= 0 && pt.y <= 0;
 		}
 	};
 
@@ -590,8 +580,6 @@ var View = exports = Class(Emitter, function() {
 		var s = this.style;
 		if (this._infinite) {
 			return true;
-		} else if (this._circle) {
-			return new Circle(s.x, s.y, s.radius * s.scale);
 		} else {
 			return new Rect(s.x, s.y, s.width * s.scale, s.height * s.scale);
 		}
