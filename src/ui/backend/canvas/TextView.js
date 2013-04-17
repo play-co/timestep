@@ -308,7 +308,7 @@ var TextView = exports = Class(View, function(supr) {
 			}
 			ctx.drawImage(fontBuffer.getCanvas(), desc.x, desc.y, width, height, offsetRect.x, offsetRect.y, width, height);
 		} else {
-			this._opts.buffered = false;
+			this._opts.buffer = false;
 		}
 	};
 
