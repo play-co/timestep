@@ -252,13 +252,7 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 	};
 
 	this._updateOrigin = function () {
-		var s = this._node.style;
-		if (this._circle) {
-			s.webkitTransformOrigin = '50% 50%';
-		} else {
-			s.webkitTransformOrigin = (this._computed.anchorX || 0) + 'px ' + (this._computed.anchorY || 0) + 'px';
-		}
-
+		this._node.style.webkitTransformOrigin = (this._computed.anchorX || 0) + 'px ' + (this._computed.anchorY || 0) + 'px';
 	}
 
 	// {
@@ -291,11 +285,6 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 				value = this._computed[key] + value;
 			}
 			switch (key) {
-				case "circle":
-					this._circle = value;
-					this._setCenter();
-					this._updateOrigin();
-					break;
 				case "anchorX":
 				case "anchorY":
 					this._computed[key] = value;
@@ -429,8 +418,8 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 	this._setCenter = function() {
 		var s = this._node.style;
 		var origin = {
-			x: (!this._circle ? 0 : -(this.width / 2 | 0)),
-			y: (!this._circle ? 0 : -(this.height / 2 | 0))
+			x: 0,
+			y: 0
 		};
 		if (AVOID_CSS_ANIM) {
 			origin.x += this._computed.x;

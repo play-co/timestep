@@ -61,7 +61,7 @@ exports.dispatchEvent = function(root, evt) {
 		var view = evt.trace[i],
 			pt = evt.pt[view.uid];
 		view.publish(signal + 'Capture', evt, pt, i == 0);
-		if (evt.cancelled) { return; }
+		if (evt.cancelled || view.__input.blockEvents) { return; }
 	}
 	
 	var cbName = 'on' + signal;
