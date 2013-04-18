@@ -359,6 +359,10 @@ var Animator = exports.Animator = Class(Emitter, function() {
 	};
 
 	this.onTick = function(dt) {
+		if (!this._isScheduled) {
+			return;
+		}
+
 		this._elapsed += dt;
 		this.next();
 
