@@ -66,7 +66,7 @@ var TextView = exports = Class(View, function(supr) {
 		horizontalAlign: "center",
 
 		// misc properties...
-		buffer: true,
+		buffer: false,
 		backgroundColor: null
 	};
 
