@@ -43,11 +43,12 @@ exports = Class(function() {
 		this._title = opts.title != undefined ? opts.title : '';
 		this._message = opts.prompt != undefined ? opts.prompt : '';
 		this._autoShowKeyboard = opts.autoShowKeyboard !== undefined ? opts.autoShowKeyboard : false;
+		this._isPassword = opts.isPassword !== undefined ? opts.isPassword : false;
 		this._id = -1;
 	};
 
 	this.show = function () {
-		this._id = NATIVE.inputPrompt.show(this._title, this._message, this._value, this._autoShowKeyboard);
+		this._id = NATIVE.inputPrompt.show(this._title, this._message, this._value, this._autoShowKeyboard, this._isPassword);
 		activeInputs[this._id] = this;
 	};
 
