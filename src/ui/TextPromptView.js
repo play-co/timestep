@@ -32,7 +32,8 @@ exports = Class(TextView, function (supr) {
 
 	var defaults = {
 		prompt: '',
-		autoShowKeyboard: false
+		autoShowKeyboard: false,
+		isPassword: false
 	};
 
 	this.init = function (opts) {
@@ -43,6 +44,7 @@ exports = Class(TextView, function (supr) {
 		this._prompt = new InputPrompt({
 			prompt: this._opts.prompt,
 			autoShowKeyboard: this._opts.autoShowKeyboard,
+			isPassword: this._opts.isPassword,
 			onChange: bind(this, 'onChange')
 		});
 	};
