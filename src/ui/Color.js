@@ -27,7 +27,7 @@ var RGBA = exports = Class(function() {
 			this.r = arguments[0];
 			this.g = arguments[1];
 			this.b = arguments[2];
-			this.a = arguments[3] || 1;
+			this.a = (arguments[3] == undefined) ? 1 : arguments[3];
 		} else if (typeof rgba == 'string') {
 			this.parse(rgba);
 		} else if (rgba) {
