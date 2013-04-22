@@ -133,6 +133,16 @@ var MultiSound = Class(function () {
 		}
 	};
 
+	this.getTime = function() {
+		return this._lastSrc ? this._lastSrc.currentTime : 0;
+	};
+
+	this.setTime = function(t) {
+		if (t != undefined && this._lastSrc) {
+			this._lastSrc.currentTime = t;
+		}
+	};
+
 	this.play = function (opts) {
 		opts = opts || {};
 		if (!this._isPaused) {
@@ -152,6 +162,8 @@ var MultiSound = Class(function () {
 			src.muted = false;
 			src.muted = true;
 		}
+		this._lastSrc = src;
+		setTimeout(bind(this, 'setTime', opts.time), 50);
 	};
 
 	this._getRandom = function () {
@@ -304,6 +316,26 @@ exports = Class(Emitter, function(supr) {
 		} else {
 			return null;
 		}
+	};
+
+	this.setTime = function(name, t) {
+		var sound = this._sounds[name];
+		if (!sound) {
+			logger.log("warning: no sound of that name");
+			return false;
+		}
+
+		sound.setTime(t);
+	};
+
+	this.getTime = function(name) {
+		var sound = this._sounds[name];
+		if (!sound) {
+			logger.log("warning: no sound of that name");
+			return false;
+		}
+
+		return sound.getTime();
 	};
 
 	this.play = function (name, opts) {
