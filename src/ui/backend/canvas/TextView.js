@@ -66,7 +66,7 @@ var TextView = exports = Class(View, function(supr) {
 		horizontalAlign: "center",
 
 		// misc properties...
-		buffer: false,
+		buffer: true,
 		backgroundColor: null
 	};
 
@@ -303,14 +303,12 @@ var TextView = exports = Class(View, function(supr) {
 		desc = fontBuffer.getPositionForText(opts);
 		if (desc != null) {
 			if (this._cacheUpdate) {
-				var offsetX = desc.x - offsetRect.x;
-				var offsetY = desc.y - offsetRect.y;
-				fontBufferCtx.clearRect(offsetX, offsetY, opts.width, opts.height);
-				this._renderToCtx(fontBufferCtx, offsetX, offsetY);
+				fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
+				this._renderToCtx(fontBufferCtx, desc.x - offsetRect.x, desc.y - offsetRect.y);
 			}
 			ctx.drawImage(fontBuffer.getCanvas(), desc.x, desc.y, width, height, offsetRect.x, offsetRect.y, width, height);
 		} else {
-			this._opts.buffered = false;
+			this._opts.buffer = false;
 		}
 	};
 
