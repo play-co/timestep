@@ -291,7 +291,6 @@ var TextView = exports = Class(View, function(supr) {
 	};
 
 	this._renderBuffer = function (ctx) {
-		var opts = this._opts;
 		var fontBufferCtx = fontBuffer.getContext();
 		var offsetRect = this._textFlow.getOffsetRect();
 		var width = offsetRect.width;
@@ -299,8 +298,8 @@ var TextView = exports = Class(View, function(supr) {
 		var cache = this._textFlow.getCache();
 		var desc;
 
-		opts.lineCount = cache[cache.length - 1].line;
-		desc = fontBuffer.getPositionForText(opts);
+		this._opts.lineCount = cache[cache.length - 1].line;
+		desc = fontBuffer.getPositionForText(this);
 		if (desc != null) {
 			if (this._cacheUpdate) {
 				fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
@@ -324,7 +323,7 @@ var TextView = exports = Class(View, function(supr) {
 			return;
 		}
 
-		if (this._opts.buffer && (fontBuffer !== null)) {
+		if (this._opts.buffer) {
 			this._renderBuffer(ctx);
 		} else {
 			this._renderToCtx(ctx, 0, 0);
@@ -334,15 +333,7 @@ var TextView = exports = Class(View, function(supr) {
 	};
 
 	this.clearBuffers = function() {
-		var ctx;
-
-		if (fontBuffer !== null) {
-			ctx = fontBuffer.getContext();
-			ctx.clear();
-			ctx.globalCompositeOperation = "source-over";
-
-			fontBuffer.clearBuffer();
-		}
+		fontBuffer.clearBuffer();
 	};
 
 	this.getFontBuffer = function() {
