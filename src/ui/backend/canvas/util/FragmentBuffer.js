@@ -23,6 +23,9 @@ var FragmentBuffer = exports = Class(function () {
 	var debug = false;
 	this.init = function (opts) {
 		this.opts = merge(opts, {});
+		this._cache = {};
+		this._textViews = [];
+		window.addEventListener('pageshow', bind(this, 'clearBuffer'), false);
 	};
 
 	var sort = function (a, b) {
@@ -37,7 +40,6 @@ var FragmentBuffer = exports = Class(function () {
 		this._ctx.textAlign = 'left';
 		this._ctx.textBaseline = 'middle';
 		this._ctx.globalCompositeOperation = 'source-over';
-		this._cache = {};
 		this._binList = new SortedList(sort);
 		var head = new FragmentBin({
 			x: 0,
@@ -138,14 +140,16 @@ var FragmentBuffer = exports = Class(function () {
 		}
 	};
 
-	this.getPositionForText = function (desc) {
+	this.getPositionForText = function (tv) {
+		var desc = tv._opts;
 		var hash = this.onGetHash(desc);
 
 		if (!this._cache[hash] && desc.width > 0) {
 			this._cache[hash] = this._insertText(desc);
+			this._textViews.push(tv);
 		}
 		if (debug && false) {
-			debugCheck(desc, this._binHead);
+			debugCheck(desc, this._binList);
 		}
 		return this._cache[hash];
 	};
@@ -159,5 +163,8 @@ var FragmentBuffer = exports = Class(function () {
 			width: 1024,
 			height: 1024
 		}));
+		while (this._textViews.length) {
+			this._textViews.pop()._cacheUpdate = true;
+		}
 	};
 });
