@@ -121,7 +121,11 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 
 		if (this.clip) { ctx.clipRect(0, 0, width, height); }
 		
-		var filters = this._view.getFilters();
+		var filters = {};
+		var filter = this._view.getFilter();
+		if (filter) {
+			filters[filter._opts.type] = filter;
+		}
 		ctx.setFilters(filters);
 
 		if (this.flipX || this.flipY) {
