@@ -139,7 +139,11 @@ var MultiSound = Class(function () {
 
 	this.setTime = function(t) {
 		if (t != undefined && this._lastSrc) {
-			this._lastSrc.currentTime = t;
+			if (this._lastSrc.duration) {
+				this._lastSrc.currentTime = t;
+			} else {
+				setTimeout(bind(this, 'setTime', t + 0.01), 10);
+			}
 		}
 	};
 
@@ -163,7 +167,7 @@ var MultiSound = Class(function () {
 			src.muted = true;
 		}
 		this._lastSrc = src;
-		setTimeout(bind(this, 'setTime', opts.time), 50);
+		this.setTime(opts.time);
 	};
 
 	this._getRandom = function () {
