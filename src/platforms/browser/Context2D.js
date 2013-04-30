@@ -135,8 +135,9 @@ exports = function (opts) {
 
 	ctx.filters = {}
 	ctx.setFilters = function(filters) {
+		this.clearFilters();
 		for (var name in filters) {
-			this.filters[name]  = filters[name];
+			this.filters[name] = filters[name];
 		}
 	}
 
