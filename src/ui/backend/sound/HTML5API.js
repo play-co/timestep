@@ -140,10 +140,8 @@ var MultiSound = Class(function () {
 	this.setTime = function(t) {
 		if (t != undefined && this._lastSrc) {
 			if (this._lastSrc.duration || this._lastSrc._startTime) {
-				logger.log('MAR HTML5API setTime setting:', t);
 				this._lastSrc.currentTime = t;
 			} else {
-				logger.log('MAR HTML5API setTime trying:', t);
 				setTimeout(bind(this, 'setTime', t + 0.01), 10);
 			}
 		}
