@@ -1,3 +1,20 @@
+/** @license
+ * This file is part of the Game Closure SDK.
+ *
+ * The Game Closure SDK is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * The Game Closure SDK is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 var path = require('path');
 var fs = require('fs');
 var ff = require('ff');
@@ -62,14 +79,14 @@ exports.runBuild = function (builder, project, opts, next) {
 
 exports.compileResources = function (project, opts, target, cb) {
 	_builder.packager.compileResources
-}
+};
 
 /**
  * Utilities
  */
  
 function toDataURI (data, mime) {
-	return "data:" + mime + ";base64," + new Buffer(data).toString('base64');
+	return 'data:' + mime + ';base64,' + new Buffer(data).toString('base64');
 }
 
 /**
@@ -77,17 +94,15 @@ function toDataURI (data, mime) {
  */
 
 // Convert a font file into a data URI.
-
 function getFontDataURI(loc) {
 	try {
 		return toDataURI(fs.readFileSync(loc), mime.lookup(loc, 'text/unknown'));
 	} catch (e) {
-		return "";
+		return '';
 	}
 }
 
 // Normalize a font type into a set of known types.
-
 function normalizeFontType (type) {
 	switch (type) {
 		case 'bolditalic': case 'italicbold': case 'obliquebold': case 'boldoblique':
@@ -102,30 +117,29 @@ function normalizeFontType (type) {
 }
 
 function buildFontString(name, css, formats) {
-	var str = util.format("\n@font-face{font-family:\"%s\";", name);
+	var str = util.format('\n@font-face{font-family:"%s";', name);
 
-	if (css) str += css + ";";
+	if (css) str += css + ';';
 
 	var format;
 	for (var i = 0; i < formats.length; ++i) {
 		format = formats[i];
 		if (format && format.src) {
-			str += util.format("src:url(\"%s\") ", format.src);
+			str += util.format('src:url("%s") ', format.src);
 
 			if (format.type) {
-				str += util.format("format(\"%s\")", format.type);
+				str += util.format('format("%s")', format.type);
 			}
 
-			str += "; ";
+			str += '; ';
 		}
 	}
 
-	str += "}";
+	str += '}';
 	return str;
 }
 
 // Model a CSS font that we can convert into a CSS file.
-
 var CSSFont = Class(function () {
 	this.init = function (file) {
 		this.file = file;
@@ -139,52 +153,52 @@ var CSSFont = Class(function () {
 
 			var suffix = normalizeFontType(split[1].toLowerCase());
 			
-			if (suffix == "bold") {
-				this.weight = "bold";
+			if (suffix == 'bold') {
+				this.weight = 'bold';
 				this.sortOrder = 1;
-			} else if (suffix == "italic") {
-				this.style = "italic";
+			} else if (suffix == 'italic') {
+				this.style = 'italic';
 				this.sortOrder = 2;
-			} else if (suffix == "bolditalic") {
-				this.weight = "bold";
-				this.style = "italic";
+			} else if (suffix == 'bolditalic') {
+				this.weight = 'bold';
+				this.style = 'italic';
 				this.sortOrder = 3;
 			}
 		}
 	}
 
 	this.getCSS = function (target) {
-		var svg = getFontDataURI(path.join(path.dirname(this.file), this.fileBase + ".svg")); // IOS < 4.2
-		var eot = getFontDataURI(path.join(path.dirname(this.file), this.fileBase + ".eot")); // IE
-		var ttf = getFontDataURI(path.join(path.dirname(this.file), this.fileBase + ".ttf")); // Everything else?
-		var woff = getFontDataURI(path.join(path.dirname(this.file), this.fileBase + ".woff"));
+		var svg = getFontDataURI(path.join(path.dirname(this.file), this.fileBase + '.svg')); // IOS < 4.2
+		var eot = getFontDataURI(path.join(path.dirname(this.file), this.fileBase + '.eot')); // IE
+		var ttf = getFontDataURI(path.join(path.dirname(this.file), this.fileBase + '.ttf')); // Everything else?
+		var woff = getFontDataURI(path.join(path.dirname(this.file), this.fileBase + '.woff'));
 
-		var css = "";
+		var css = '';
 		if (this.weight != null) {
-				css += "font-weight:" + this.weight + ";";
+				css += 'font-weight:' + this.weight + ';';
 		}
 		if (this.style != null) {
-			css += "font-style:" + this.style + ";";
+			css += 'font-style:' + this.style + ';';
 		}
 		
-		if (target == 'browser-desktop' || target.startsWith("native")) {
-			logger.log(util.format("embedding eot and woff font %s -- %s", this.name, this.fileBase));
+		if (target == 'browser-desktop' || target.startsWith('native')) {
+			logger.log(util.format('embedding eot and woff font %s -- %s', this.name, this.fileBase));
 			return buildFontString(this.name, css, [
-				{src: ttf, type: "truetype"}, 
+				{src: ttf, type: 'truetype'}, 
 				{src: eot}, 
-				{src: woff, type: "woff"}
+				{src: woff, type: 'woff'}
 			]);
 
-			return util.format("\n@font-face{font-family:\"%s\";%ssrc:url(\"%s\") format(\"truetype\");src:url(\"%s\");src:url(\"%s\") format(\"woff\");}", 
+			return util.format('\n@font-face{font-family:"%s";%ssrc:url("%s") format("truetype");src:url("%s");src:url("%s") format("woff");}', 
 				this.name, css, ttf, eot, woff);
 		}
 		
 		if (target == 'browser-mobile') {
-			logger.log(util.format("embedding ttf and svg font %s -- %s", this.name, this.fileBase));
+			logger.log(util.format('embedding ttf and svg font %s -- %s', this.name, this.fileBase));
 			
 			return buildFontString(this.name, css, [
-				{src: ttf, type: "truetype"}, 
-				{svg: svg, type: "svg"}
+				{src: ttf, type: 'truetype'},
+				{svg: svg, type: 'svg'}
 			]);
 		}
 		
@@ -199,22 +213,119 @@ var CSSFont = Class(function () {
 // Manifest file.
 // (not our manifest.json, it's a html5 manifest for caching)
 function generateOfflineManifest (man, appID, version) {
-	return util.format("CACHE MANIFEST\n" +
-		"\n" +
-		"#%s version %s\n" +
-		"\n" +
-		"CACHE:\n" +
-		"%s\n" +
-		"\n" +
-		"FALLBACK:\n" +
-		"\n" +
-		"NETWORK:\n" +
-		"*\n", appID, version, Object.keys(man).join("\n"));
+	return util.format('CACHE MANIFEST\n' +
+		'\n' +
+		'#%s version %s\n' +
+		'\n' +
+		'CACHE:\n' +
+		'%s\n' +
+		'\n' +
+		'FALLBACK:\n' +
+		'\n' +
+		'NETWORK:\n' +
+		'*\n', appID, version, Object.keys(man).join('\n'));
+}
+
+function generateGameHTML (opts, project, target, imgCache, js, css) {
+	// Create HTML document.
+	var html = [];
+	
+	// Check if there is a manifest.
+	html.push(
+		'<!DOCTYPE html>',
+		'<html>',
+		'<head>',
+		'<title>' + project.manifest.title + '</title>'
+	);
+
+	// Targeting mobile browsers requires viewport settings.
+	if (target == 'browser-mobile') {
+		if (!project.manifest.scaleDPR) {
+			html.push('<meta name="viewport" content="user-scalable=no,target-densitydpi=low" />');
+		} else {
+			html.push('<meta name="viewport" content="user-scalable=no,target-densitydpi=device-dpi" />');
+		}
+
+		// Various iOS mobile settings for installing as a top application.
+		html.push('<meta name="apple-mobile-web-app-capable" content="yes"/>')
+
+		// Apple Touch icons
+		var iosIcons = project.manifest.ios && project.manifest.ios.icons;
+		if (iosIcons) {
+			var largest = 0;
+			for (var size in iosIcons) {
+				var intSize = parseInt(size);
+				if (intSize > largest) {
+					largest = intSize;
+				}
+			}
+			if (largest > 0) {
+				html.push('<link rel="apple-touch-icon" href="' + toDataURI(fs.readFileSync(path.join(project.paths.root, iosIcons[largest.toString()])), 'image/png') + '">');
+			}
+		}
+
+		// Apple Touch startup image
+		var splash = project.manifest.splash;
+		var splashPaths = ['landscape1536', 'landscape768', 'portrait2048', 'portrait1136', 'portrait1024', 'portrait960', 'portrait480'];
+		var i = splashSizes.length;
+		var splashPath = splash[splashPaths[--i]];
+
+		while (i && !splashPath) {
+			splashPath = splash[splashPaths[--i]];
+		}
+		if (splashPath) {
+			html.push('<link rel="apple-touch-startup-image" href="' + toDataURI(fs.readFileSync(path.join(project.paths.root, splashPath)), 'image/png') + '">');
+		}
+	}
+
+	try {
+		var spriteMap = fs.readFileSync(path.join(opts.output, 'spritesheets/map.json'), 'utf8');
+		imgCache['spritesheets/map.json'] = spriteMap.toString('utf8');
+	} catch (e) {
+		// No spritemap found...
+	}
+
+	// Finish writing HTML file.
+	html.push(
+		'<style>' + css + '</style>',
+		'</head>',
+		'<body>',
+		'</body>',
+		'<script>IMG_CACHE=' + JSON.stringify(imgCache) + ';' + js + '</script>',
+		'</html>'
+	);
+
+	return html.join('');
+}
+
+function generateIndexHTML(opts, project) {
+	var html = [];
+
+	html.push(
+		'<!DOCTYPE html>',
+		'<html>',
+		'<head>',
+		'<title>' + project.manifest.title + '</title>'
+	);
+
+	var size = (project.manifest && project.manifest.supportedOrientations && 
+					(project.manifest.supportedOrientations[0] === 'portrait')) ?
+					{width: 320, height: 480} : {width: 480, height: 320};
+
+	html.push(
+		'</head>',
+		'<body>',
+		'<iframe width="' + size.width + '" height="' + size.height + '" src="game.html" style="display:block;border:0;margin:0 auto;"></iframe>',
+		'</body>',
+		'</html>'
+	);
+
+	return html.join('\n');
 }
 
 // Compile HTML resources.
 function compileHTML (project, opts, target, files, code, cb) {
-	logger.log("Compiling html for " + target);
+	logger.log('Compiling html for ' + target);
 
 	// filenames starting with build/debug are already in the build directory
 	// otherwise they need to be inline-cached into the HTML or copied into the build directory
@@ -265,10 +376,10 @@ function compileHTML (project, opts, target, files, code, cb) {
 				fs.exists(info.fullPath, f2.slotPlain());
 			}, function (exists) {
 				if (!exists) {
-					logger.warn(info.fullPath, "does not exist");
+					logger.warn(info.fullPath, 'does not exist');
 					f2.succeed();
 				} else if (info.ext == '.ttf') {
-					logger.log("adding font", info.relative);
+					logger.log('adding font', info.relative);
 					fontList.push(new CSSFont(info.fullPath));
 					f2.succeed();
 				} else if (info.ext == '.css') {
@@ -288,7 +399,7 @@ function compileHTML (project, opts, target, files, code, cb) {
 			}).cb(f());
 		});
 	}, function (preloadJS, bootstrapCSS, bootstrapJS, cache, fontList) {
-		logger.log("built cache.");
+		logger.log('built cache.');
 
 		// HTML resources we will generate as a result of this function.
 		var resources = {};
@@ -317,7 +428,7 @@ function compileHTML (project, opts, target, files, code, cb) {
 		var preloader = [
 			_builder.packager.getJSConfig(project, opts, target),
 			bootstrapJS,
-			util.format("bootstrap('%s', '%s')", INITIAL_IMPORT, target)
+			util.format('bootstrap("%s", "%s")', INITIAL_IMPORT, target)
 		];
 	
 		// Font CSS has to be sorted in proper order: bold and italic
@@ -339,8 +450,8 @@ function compileHTML (project, opts, target, files, code, cb) {
 		}
 		
 		// Condense resources.
-		var cssSrc = css.join("\n");
-		var preloadSrc = preloader.join(";");
+		var cssSrc = css.join('\n');
+		var preloadSrc = preloader.join(';');
 
 		if (opts.compress) {
 			_builder.packager.compressCSS(cssSrc, f());
@@ -359,78 +470,23 @@ function compileHTML (project, opts, target, files, code, cb) {
 		}
 	}, function (cache, resources, css, js) {
 
-		// Create HTML document.
-		var html = [];
-		
-		// Check if there is a manifest.
-		html.push("<!DOCTYPE html>");
-		html.push("<html>");
-		html.push("<head>");
-		html.push("<title>" + project.manifest.title + "</title>");
-		
-		// Targeting mobile browsers requires viewport settings.
-		if (target == 'browser-mobile') {
-			if (!project.manifest.scaleDPR) {
-				html.push("<meta name='viewport' content='user-scalable=no,target-densitydpi=low' />");
-			} else {
-				html.push("<meta name='viewport' content='user-scalable=no,target-densitydpi=device-dpi' />");
-			}
-
-			// Various iOS mobile settings for installing as a top application.
-			html.push('<meta name="apple-mobile-web-app-capable" content="yes"/>')
-
-			// Apple Touch icons
-			var ios_icons = project.manifest.ios && project.manifest.ios.icons;
-			if (ios_icons) {
-				var largest = 0;
-				for (var size in ios_icons) {
-					var int_size = parseInt(size);
-					if (int_size > largest) {
-						largest = int_size;
-					}
-				}
-				if (largest > 0) {
-					html.push('<link rel="apple-touch-icon" href="' + toDataURI(fs.readFileSync(path.join(project.paths.root, ios_icons[largest.toString()])), 'image/png') + '">');
-				}
-			}
-
-			// Apple Touch startup image
-			var splash = project.manifest.splash;
-			var splash_path = splash["portrait480"];
-			if (!splash_path) splash_path = splash["portrait960"];
-			if (!splash_path) splash_path = splash["portrait1024"];
-			if (!splash_path) splash_path = splash["portrait1136"];
-			if (!splash_path) splash_path = splash["portrait2048"];
-			if (!splash_path) splash_path = splash["landscape768"];
-			if (!splash_path) splash_path = splash["landscape1536"];
-			if (splash_path) {
-				html.push('<link rel="apple-touch-startup-image" href="' + toDataURI(fs.readFileSync(path.join(project.paths.root, splash_path)), 'image/png') + '">');
-			}
-		}
-		
-		// Finish writing HTML file.
-		html.push(
-			"<style>" + css + "</style>",
-			"</head>",
-			"<body>",
-			"</body>",
-			"<script>" + 'IMG_CACHE=' + JSON.stringify(imgCache) + ";" + js + "</script>",
-			"</html>");
-
 		// Filenames.
 		var indexName = 'index.html';
-		var manifestName = target + ".manifest";
-		var jsName = target + ".js";
-		
+		var gameName = 'game.html';
+		var manifestName = target + '.manifest';
+		var jsName = target + '.js';
+
 		// Final package is three files.
-		resources[indexName] = {contents: html.join('')};
-		resources[jsName] = {contents: "CACHE=" + JSON.stringify(cache) + ";\n" + code + "; jsio('import " + INITIAL_IMPORT + "');"};
+		resources[gameName] = {contents: generateGameHTML(opts, project, target, imgCache, js, css)};
+		resources[indexName] = {contents: generateIndexHTML(opts, project)};
+
+		resources[jsName] = {contents: 'CACHE=' + JSON.stringify(cache) + ';\n' + code + '; jsio("import ' + INITIAL_IMPORT + '");'};
 		resources[manifestName] = {contents: generateOfflineManifest(resources, project.manifest.appID, opts.version)};
 		
 		// Pass compiled resources to callback.
 		f.succeed(resources);
 	}).error(function (err) {
-		logger.error("unexpected error:");
+		logger.error('unexpected error:');
 		console.error(err.stack);
 	}).cb(cb);
 };
@@ -444,7 +500,7 @@ exports.writeResources = function (opts, resources, cb) {
 
 		function writeNext() {
 			if (key) {
-				logger.log("wrote", key);
+				logger.log('wrote', key);
 			}
 
 			key = keys[i++];
@@ -458,7 +514,6 @@ exports.writeResources = function (opts, resources, cb) {
 			wrench.mkdirSyncRecursive(path.dirname(outFile));
 
 			if (resources[key] == true) {
-				// logger.warn("No resource provided for", key);
 				writeNext();
 			} else if ('contents' in resources[key]) {
 				fs.writeFile(outFile, resources[key].contents, writeNext);
@@ -474,6 +529,5 @@ exports.writeResources = function (opts, resources, cb) {
 		writeNext();
 	}).cb(cb);
 }
-
 
 exports.compileHTML = compileHTML;
