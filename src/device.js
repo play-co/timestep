@@ -177,6 +177,17 @@ exports.init = function() {
 }
 
 /**
+ * Event handlers
+ */
+exports.setBackButtonHandler = function(handler) {
+	NATIVE.onBackButton = handler;
+}
+
+exports.setRotationHandler = function(handler) {
+	NATIVE.onRotation = handler;
+}
+
+/**
  * Global device accessibility controls. Muting, click, color, font changing, etc.
  */
 
