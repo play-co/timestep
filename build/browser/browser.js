@@ -476,9 +476,12 @@ function compileHTML (project, opts, target, files, code, cb) {
 		var manifestName = target + '.manifest';
 		var jsName = target + '.js';
 
-		// Final package is three files.
-		resources[gameName] = {contents: generateGameHTML(opts, project, target, imgCache, js, css)};
-		resources[indexName] = {contents: generateIndexHTML(opts, project)};
+		if (target === 'browser-desktop') {
+			resources[gameName] = {contents: generateGameHTML(opts, project, target, imgCache, js, css)};
+			resources[indexName] = {contents: generateIndexHTML(opts, project)};
+		} else {
+			resources[indexName] = {contents: generateGameHTML(opts, project, target, imgCache, js, css)};
+		}
 
 		resources[jsName] = {contents: 'CACHE=' + JSON.stringify(cache) + ';\n' + code + '; jsio("import ' + INITIAL_IMPORT + '");'};
 		resources[manifestName] = {contents: generateOfflineManifest(resources, project.manifest.appID, opts.version)};
