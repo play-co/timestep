@@ -195,9 +195,17 @@ var View = exports = Class(Emitter, function() {
 	this.getFilter = function() { return this._filter; };
 
 	/**
+	 * Sets the filter on this view -- DEPRECATED
+	 */
+	this.addFilter = function(filter) {
+		logger.warn("View.addFilter() is deprecated! Use View.setFilter() instead.");
+		this.setFilter(filter);
+	};
+
+	/**
 	 * Sets the filter on this view. Only one filter can exist on a view.
 	 */
-	this.addFilter = function(filter) { this._filter = filter; };
+	this.setFilter = function(filter) { this._filter = filter; };
 
 	/**
 	 * Remove the filter from this view.
