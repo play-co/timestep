@@ -46,7 +46,7 @@ var Filter = exports.Filter = Class(function() {
 
 	this.init = function(opts) {
 		this._opts = merge(opts, defaults);
-		this._view = null;
+		this._views = [];
 	};
 
 	this.get = function() {
@@ -64,14 +64,24 @@ var Filter = exports.Filter = Class(function() {
 				this._opts[prop] = opts[prop];
 			}
 		}
-		if (this._view) {
-			this._view.__view.filterColor = this.getColorString();
-			this._view.__view.filterType = Filter.TYPES[this.getType()] || 0;
+		for (var i = 0; i < this._views.length; i++) {
+			var view = this._views[i];
+			view.__view.filterColor = this.getColorString();
+			view.__view.filterType = Filter.TYPES[this.getType()] || 0;
 		}
 	};
 
 	this.setView = function(view) {
-		this._view = view;
+		if (this._views.indexOf(view) == -1) {
+			this._views.push(view);
+		}
+	};
+
+	this.removeView = function(view) {
+		var i = this._views.indexOf(view);
+		if (i != -1) {
+			this._views.splice(i, 1);
+		}
 	};
 
 	this.getColorString = function() {

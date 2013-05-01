@@ -365,9 +365,9 @@ exports = Class(function() {
 					var data = imgData.data;
 					
 					for (var i = 0; i < data.length; i+=4) {
-						data[i] *= ((f.r / 255) * f.a); 
-						data[i + 1] *= ((f.g / 255) * f.a); 
-						data[i + 2] *= ((f.b / 255) * f.a); 
+						data[i] *= (f.r / 255);
+						data[i + 1] *= (f.g / 255); 
+						data[i + 2] *= (f.b / 255); 
 					}
 
 					_filterCanvas.width = imgData.width;
