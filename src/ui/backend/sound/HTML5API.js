@@ -133,6 +133,21 @@ var MultiSound = Class(function () {
 		}
 	};
 
+	this.isPaused = function() {
+		return this._isPaused;
+	};
+
+	this.isPlaying = function() {
+		var isPlaying = false;
+		if (this._lastSrc) {
+			var cur = this._lastSrc.currentTime;
+			if (cur != 0 && cur != this._lastSrc.duration) {
+				isPlaying = !this.isPaused();
+			}
+		}
+		return isPlaying;
+	};
+
 	this.getTime = function() {
 		return this._lastSrc ? this._lastSrc.currentTime : 0;
 	};
@@ -168,6 +183,11 @@ var MultiSound = Class(function () {
 		}
 		this._lastSrc = src;
 		this.setTime(opts.time);
+		if (opts.duration) {
+			setTimeout(bind(this, function() {
+				this.pause();
+			}), opts.duration * 1000);
+		}
 	};
 
 	this._getRandom = function () {
@@ -399,6 +419,26 @@ exports = Class(Emitter, function(supr) {
 		sound.stop();
 
 		return true;
+	};
+
+	this.isPaused = function(name) {
+		var sound = this._sounds[name];
+		if (!sound) {
+			logger.log("warning: no sound of that name");
+			return false;
+		}
+
+		return sound.isPaused();
+	};
+
+	this.isPlaying = function(name) {
+		var sound = this._sounds[name];
+		if (!sound) {
+			logger.log("warning: no sound of that name");
+			return false;
+		}
+
+		return sound.isPlaying();
 	};
 
 	// @deprecated
