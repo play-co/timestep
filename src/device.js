@@ -1,4 +1,4 @@
-/* @license
+/** @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -137,8 +137,8 @@ if (exports.isMobile) {
 		};
 	} else {
 		// All other browsers
-		exports.height = 600;
-		exports.width = 800;
+		exports.width = window.innerWidth;
+		exports.height = window.innerHeight;
 
 		exports.name = 'browser';
 		exports.canResize = false;
