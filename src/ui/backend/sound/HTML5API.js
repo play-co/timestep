@@ -87,7 +87,7 @@ var MultiSound = Class(function () {
 		var ext = soundManager.getExt();
 		var extTestExp = new RegExp(ext + '$', 'i');
 
-		var loop = opts.loop || opts.background;
+		var loop = opts.loop !== undefined ? opts.loop : opts.background;
 		var volume = opts.volume !== undefined ? opts.volume : 1.0;
 
 		for (var i = 0, src; src = srcList[i]; ++i) {
