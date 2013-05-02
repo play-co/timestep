@@ -107,6 +107,9 @@ var MultiSound = Class(function () {
 			audio.src = fullPath;
 			audio.preload = (soundManager._preload && !opts.background) ? "auto" : "none";
 			sources.push(audio);
+			if (audio.isBackgroundMusic) {
+				NATIVE.sound.registerMusic(fullPath, audio);
+			}
 		}
 
 		this.loop = loop;
@@ -141,7 +144,7 @@ var MultiSound = Class(function () {
 		var isPlaying = false;
 		if (this._lastSrc) {
 			var cur = this._lastSrc.currentTime;
-			if (cur != 0 && cur != this._lastSrc.duration) {
+			if (cur != 0 && cur < this._lastSrc.duration) {
 				isPlaying = !this.isPaused();
 			}
 		}
@@ -153,8 +156,8 @@ var MultiSound = Class(function () {
 	};
 
 	this.setTime = function(t) {
-		if (t != undefined && this._lastSrc) {
-			if (this._lastSrc.duration || this._lastSrc._startTime) {
+		if (this._lastSrc && this.isBackgroundMusic && t != undefined) {
+			if (this._lastSrc.duration) {
 				this._lastSrc.currentTime = t;
 			} else {
 				setTimeout(bind(this, 'setTime', t + 0.01), 10);
