@@ -144,11 +144,20 @@ var MultiSound = Class(function () {
 		var isPlaying = false;
 		if (this._lastSrc) {
 			var cur = this._lastSrc.currentTime;
-			if (cur != 0 && cur < this._lastSrc.duration) {
+			var dur = this._lastSrc.duration;
+			// NaN duration means the duration isn't loaded yet,
+			// meaning the sound was started very recently. Since
+			// this._lastSrc is defined, we know that the sound has
+			// been played, so it's playing unless it's paused :)
+			if (isNaN(dur) || cur < dur) {
 				isPlaying = !this.isPaused();
 			}
 		}
 		return isPlaying;
+	};
+
+	this.getDuration = function() {
+		return this._lastSrc && this._lastSrc.duration || 0;
 	};
 
 	this.getTime = function() {
@@ -363,6 +372,16 @@ exports = Class(Emitter, function(supr) {
 		}
 
 		return sound.getTime();
+	};
+
+	this.getDuration = function(name) {
+		var sound = this._sounds[name];
+		if (!sound) {
+			logger.log("warning: no sound of that name");
+			return false;
+		}
+
+		return sound.getDuration();
 	};
 
 	this.play = function (name, opts) {
