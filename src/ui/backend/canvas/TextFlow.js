@@ -434,9 +434,9 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 			return;
 		}
 
-		var lineSize = this._getLineSize(this._lines.length);
-		this._offsetRect.x = 0;
-		this._offsetRect.y = 0;
+		var lineSize = Math.ceil(opts.size * opts.lineHeight + opts.strokeWidth);
+		this._offsetRect.x = this.getPaddingLeft();
+		this._offsetRect.y = this.getPaddingTop();
 		this._offsetRect.width = this.getActualWidth();
 		this._offsetRect.height = lastCacheItem.line * lineSize;
 
