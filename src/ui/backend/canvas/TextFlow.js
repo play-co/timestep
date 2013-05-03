@@ -64,6 +64,28 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 		this._lineWidth = 0;
 		this._maxWordWidth = 0;
 
+		if ((opts.hardWrap || exports.hardWrap) && (words.length === 1) && (ctx.measureText(text).width > this.getActualWidth())) {
+			words = [];
+
+			var actualWidth = this.getActualWidth();
+			var s = "";
+			var i = 0;
+
+			while (i < text.length) {
+				var c = text[i++];
+				if (ctx.measureText(s + c).width >= actualWidth) {
+					words.push(s);
+					s = c;
+				} else {
+					s += c;
+				}
+			}
+			if (s !== "") {
+				words.push(s);
+			}
+			wordCount = words.length;
+		}
+
 		while (currentWord < wordCount) {
 			word = {word: words[currentWord], width: ctx.measureText(words[currentWord]).width, line: 1};
 			this._line.push(word);
