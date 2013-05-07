@@ -87,7 +87,7 @@ var MultiSound = Class(function () {
 		var ext = soundManager.getExt();
 		var extTestExp = new RegExp(ext + '$', 'i');
 
-		var loop = opts.loop || opts.background;
+		var loop = opts.loop !== undefined ? opts.loop : opts.background;
 		var volume = opts.volume !== undefined ? opts.volume : 1.0;
 
 		for (var i = 0, src; src = srcList[i]; ++i) {
@@ -107,6 +107,9 @@ var MultiSound = Class(function () {
 			audio.src = fullPath;
 			audio.preload = (soundManager._preload && !opts.background) ? "auto" : "none";
 			sources.push(audio);
+			if (audio.isBackgroundMusic && window.NATIVE) {
+				NATIVE.sound.registerMusic(fullPath, audio);
+			}
 		}
 
 		this.loop = loop;
@@ -133,6 +136,44 @@ var MultiSound = Class(function () {
 		}
 	};
 
+	this.isPaused = function() {
+		return this._isPaused;
+	};
+
+	this.isPlaying = function() {
+		var isPlaying = false;
+		if (this._lastSrc) {
+			var cur = this._lastSrc.currentTime;
+			var dur = this._lastSrc.duration;
+			// NaN duration means the duration isn't loaded yet,
+			// meaning the sound was started very recently. Since
+			// this._lastSrc is defined, we know that the sound has
+			// been played, so it's playing unless it's paused :)
+			if (isNaN(dur) || cur < dur) {
+				isPlaying = !this.isPaused();
+			}
+		}
+		return isPlaying;
+	};
+
+	this.getDuration = function() {
+		return this._lastSrc && this._lastSrc.duration || 0;
+	};
+
+	this.getTime = function() {
+		return this._lastSrc ? this._lastSrc.currentTime : 0;
+	};
+
+	this.setTime = function(t) {
+		if (this._lastSrc && this.isBackgroundMusic && t != undefined) {
+			if (this._lastSrc.duration) {
+				this._lastSrc.currentTime = t;
+			} else {
+				setTimeout(bind(this, 'setTime', t + 0.01), 10);
+			}
+		}
+	};
+
 	this.play = function (opts) {
 		opts = opts || {};
 		if (!this._isPaused) {
@@ -151,6 +192,13 @@ var MultiSound = Class(function () {
 			// twice after calling play.
 			src.muted = false;
 			src.muted = true;
+		}
+		this._lastSrc = src;
+		this.setTime(opts.time);
+		if (opts.duration) {
+			setTimeout(bind(this, function() {
+				this.pause();
+			}), opts.duration * 1000);
 		}
 	};
 
@@ -306,6 +354,36 @@ exports = Class(Emitter, function(supr) {
 		}
 	};
 
+	this.setTime = function(name, t) {
+		var sound = this._sounds[name];
+		if (!sound) {
+			logger.log("warning: no sound of that name");
+			return false;
+		}
+
+		sound.setTime(t);
+	};
+
+	this.getTime = function(name) {
+		var sound = this._sounds[name];
+		if (!sound) {
+			logger.log("warning: no sound of that name");
+			return false;
+		}
+
+		return sound.getTime();
+	};
+
+	this.getDuration = function(name) {
+		var sound = this._sounds[name];
+		if (!sound) {
+			logger.log("warning: no sound of that name");
+			return false;
+		}
+
+		return sound.getDuration();
+	};
+
 	this.play = function (name, opts) {
 		var sound = this._sounds[name];
 		opts = opts || {};
@@ -363,6 +441,26 @@ exports = Class(Emitter, function(supr) {
 		sound.stop();
 
 		return true;
+	};
+
+	this.isPaused = function(name) {
+		var sound = this._sounds[name];
+		if (!sound) {
+			logger.log("warning: no sound of that name");
+			return false;
+		}
+
+		return sound.isPaused();
+	};
+
+	this.isPlaying = function(name) {
+		var sound = this._sounds[name];
+		if (!sound) {
+			logger.log("warning: no sound of that name");
+			return false;
+		}
+
+		return sound.isPlaying();
 	};
 
 	// @deprecated

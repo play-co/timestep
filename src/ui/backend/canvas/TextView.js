@@ -298,16 +298,18 @@ var TextView = exports = Class(View, function(supr) {
 		var cache = this._textFlow.getCache();
 		var desc;
 
-		this._opts.lineCount = cache[cache.length - 1].line;
-		desc = fontBuffer.getPositionForText(this);
-		if (desc != null) {
-			if (this._cacheUpdate) {
-				fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
-				this._renderToCtx(fontBufferCtx, desc.x - offsetRect.x, desc.y - offsetRect.y);
+		if (width && height) {
+			this._opts.lineCount = cache[cache.length - 1].line;
+			desc = fontBuffer.getPositionForText(this);
+			if (desc != null) {
+				if (this._cacheUpdate) {
+					fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
+					this._renderToCtx(fontBufferCtx, desc.x - offsetRect.x, desc.y - offsetRect.y);
+				}
+				ctx.drawImage(fontBuffer.getCanvas(), desc.x, desc.y, width, height, offsetRect.x, offsetRect.y, width, height);
+			} else {
+				this._opts.buffer = false;
 			}
-			ctx.drawImage(fontBuffer.getCanvas(), desc.x, desc.y, width, height, offsetRect.x, offsetRect.y, width, height);
-		} else {
-			this._opts.buffer = false;
 		}
 	};
 
