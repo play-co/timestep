@@ -107,7 +107,7 @@ var MultiSound = Class(function () {
 			audio.src = fullPath;
 			audio.preload = (soundManager._preload && !opts.background) ? "auto" : "none";
 			sources.push(audio);
-			if (audio.isBackgroundMusic) {
+			if (audio.isBackgroundMusic && window.NATIVE) {
 				NATIVE.sound.registerMusic(fullPath, audio);
 			}
 		}
