@@ -141,13 +141,12 @@ var FragmentBuffer = exports = Class(function () {
 		}
 	};
 
-	this.getPositionForText = function (tv) {
-		var desc = tv._opts;
+	this.getPositionForText = function (desc) {
 		var hash = this.onGetHash(desc);
 
 		if (!this._cache[hash] && desc.width > 0) {
 			this._cache[hash] = this._insertText(desc);
-			this._textViews.push(tv);
+			this._textViews.push(desc);
 		}
 		if (debug && false) {
 			debugCheck(desc, this._binList);
@@ -165,7 +164,7 @@ var FragmentBuffer = exports = Class(function () {
 			height: 1024
 		}));
 		while (this._textViews.length) {
-			this._textViews.pop()._cacheUpdate = true;
+			this._textViews.pop().textView.updateCache();
 		}
 	};
 });

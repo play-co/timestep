@@ -212,6 +212,10 @@ var TextView = exports = Class(View, function(supr) {
 		}
 	};
 
+	this.updateCache = function () {
+		this._cacheUpdate = true;
+	};
+
 	this.updateOpts = function (opts, dontCheck) {
 		this._checkDeprecatedOpts(opts);
 
@@ -300,7 +304,9 @@ var TextView = exports = Class(View, function(supr) {
 
 		if (width && height) {
 			this._opts.lineCount = cache[cache.length - 1].line;
-			desc = fontBuffer.getPositionForText(this);
+			offsetRect.text = this._opts.text;
+			offsetRect.textView = this;
+			desc = fontBuffer.getPositionForText(offsetRect);
 			if (desc != null) {
 				if (this._cacheUpdate) {
 					fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
