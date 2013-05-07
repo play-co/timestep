@@ -48,6 +48,7 @@ var FragmentBuffer = exports = Class(function () {
 			height: 1024
 		});
 		this._binList.insert(head);
+		debug && window.open().document.body.appendChild(this._canvas);
 	};
 
 	this.getCanvas = function () {

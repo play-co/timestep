@@ -136,7 +136,7 @@ var View = exports = Class(Emitter, function() {
 		// set with View.setDefaultViewBacking();
 		this.__view = this.style = new (opts.Backing || _BackingCtor)(this, opts);
 
-		this._filters = {};
+		this._filter = null;
 
 		this.__view._view = this;
 
@@ -154,7 +154,7 @@ var View = exports = Class(Emitter, function() {
 		}
 
 		if (opts.tag) { this.tag = opts.tag; }
-		if (opts.filters) { this._filters = opts.filters; }
+		if (opts.filter) { this._filter = opts.filter; }
 
 		if (opts.infinite) {
 			this._infinite = opts.infinite;
@@ -174,21 +174,43 @@ var View = exports = Class(Emitter, function() {
 	};
 
 	// --- filters ---
+	// each filter can have multiple views
+	// but no view can have more than one filter
 
 	/**
-	 * Returns an array of filters attached to this view.
+	 * Returns the filters attached to this view -- DEPRECATED
 	 */
-	this.getFilters = function() { return this._filters; };
+	this.getFilters = function() {
+		logger.warn("View.getFilters() is deprecated! Use View.getFilter() instead.");
+		var filters = {};
+		if (this._filter) {
+			filters[this._filter._opts.type] = this._filter;
+		}
+		return filters;
+	};
 
 	/**
-	 * Adds a filter to this view. Only one filter of each type can exist on a view.
+	 * Returns the filter attached to this view.
 	 */
-	this.addFilter = function(filter) { this._filters[filter.getType()] = filter; };
+	this.getFilter = function() { return this._filter; };
 
 	/**
-	 * Remove a named filter from this view.
+	 * Sets the filter on this view -- DEPRECATED
 	 */
-	this.removeFilter = function(type) { delete this._filters[type]; };
+	this.addFilter = function(filter) {
+		logger.warn("View.addFilter() is deprecated! Use View.setFilter() instead.");
+		this.setFilter(filter);
+	};
+
+	/**
+	 * Sets the filter on this view. Only one filter can exist on a view.
+	 */
+	this.setFilter = function(filter) { this._filter = filter; };
+
+	/**
+	 * Remove the filter from this view.
+	 */
+	this.removeFilter = function() { this._filter = null; };
 
 	// --- render/tick setters ---
 
