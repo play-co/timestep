@@ -66,7 +66,7 @@ var FragmentBuffer = exports = Class(function () {
 	};
 
 	this.onGetHash = function (desc) {
-		throw Error("onGetHash should be implemented.");
+		throw Error('onGetHash should be implemented.');
 	};
 
 	var randomColor = function () {
@@ -78,7 +78,7 @@ var FragmentBuffer = exports = Class(function () {
 		return color;
 	};
 
-	this._insertText = function (desc) {
+	this._insertText = function (desc, clearedBuffer) {
 		var width = desc.width;
 		var height = desc.height;
 		var iter = this._binList.iterator();
@@ -99,16 +99,17 @@ var FragmentBuffer = exports = Class(function () {
 				this._binList.insert(newBins[i]);
 			}
 			if (debug) {
-				/*
-				* If we're debugging, fill each bin with a different color
-				* so we can see where they are.
-				*/
+				// If we're debugging, fill each bin with a different color so we can see where they are.
 				this._ctx.fillStyle = randomColor();
 				this._ctx.fillRect(bin.x, bin.y, bin.width, bin.height);
 			}
-		} else {
+		} else if (clearedBuffer) {
 			logger.log('buffer full, further TextViews will not be cached');
+		} else {
+			this.clearBuffer();
+			bin = this._insertText(desc, true);
 		}
+
 		return bin;
 	};
 
@@ -145,13 +146,20 @@ var FragmentBuffer = exports = Class(function () {
 		var hash = this.onGetHash(desc);
 
 		if (!this._cache[hash] && desc.width > 0) {
-			this._cache[hash] = this._insertText(desc);
+			this._cache[hash] = this._insertText(desc, false);
 			this._textViews.push(desc);
 		}
 		if (debug && false) {
 			debugCheck(desc, this._binList);
 		}
 		return this._cache[hash];
+	};
+
+	this.releaseBin = function (hash) {
+		if (this._cache[hash]) {
+			this._cache[hash].filled = false;
+			delete this._cache[hash];
+		}
 	};
 
 	this.clearBuffer = function () {

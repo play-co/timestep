@@ -31,17 +31,19 @@ import ...legacySettings as legacySettings;
 
 var messageFont = true; // Report first font error message
 
+var textViewID = 1;
+
 /**
  * @extends ui.View
  */
 var TextView = exports = Class(View, function(supr) {
 
 	var DEPRECATED = {
-		multiline: { replacement: 'wrap' },
-		textAlign: { replacement: 'horizontalAlign' },
-		lineWidth: { replacement: 'strokeWidth' },
-		strokeStyle: { replacement: 'strokeColor' },
-		outlineColor: { replacement: 'strokeColor' }
+		multiline: { replacement: "wrap" },
+		textAlign: { replacement: "horizontalAlign" },
+		lineWidth: { replacement: "strokeWidth" },
+		strokeStyle: { replacement: "strokeColor" },
+		outlineColor: { replacement: "strokeColor" }
 	};
 
 	var defaults = {
@@ -101,20 +103,6 @@ var TextView = exports = Class(View, function(supr) {
 	};
 	var clearCacheKeys = Object.keys(clearCache);
 
-	var hashItems = {
-		// font properties...
-		color: false,
-		fontFamily: true,
-		fontWeight: true,
-		size: true,
-		strokeWidth: true,
-		strokeColor: false,
-		shadowColor: false,
-		backgroundColor: false,
-		text: true
-	};
-	var hashItemsKeys = Object.keys(hashItems);
-
 	var savedOpts = [
 		"width",
 		"height",
@@ -124,14 +112,8 @@ var TextView = exports = Class(View, function(supr) {
 	var fontBuffer = new FragmentBuffer();
 
 	fontBuffer.onGetHash = function (desc) {
-		if (!desc.hash) {
-			desc.hash = "";
-
-			var i = hashItemsKeys.length;
-			var opts = desc.textView.getOpts();
-			while (i) {
-				desc.hash += opts[hashItemsKeys[--i]] || "";
-			}
+		if (!desc.hash || desc.textView.updateHash) {
+			desc.hash = desc.textView.getHash();
 		}
 		return desc.hash;
 	};
@@ -139,7 +121,7 @@ var TextView = exports = Class(View, function(supr) {
 	this.init = function (opts) {
 		this._opts = {};
 		this._optsLast = {};
-		this._cacheUpdate = true;
+		this.updateCache();
 
 		this._textFlow = new TextFlow({target: this});
 		this._textFlow.subscribe("ChangeWidth", this, "onChangeWidth");
@@ -147,6 +129,8 @@ var TextView = exports = Class(View, function(supr) {
 		this._textFlow.subscribe("ChangeSize", this, "onChangeSize");
 
 		supr(this, 'init', [merge(opts, defaults)]);
+
+		this._id = textViewID++;
 	};
 
 	this.onChangeWidth = function (width) {
@@ -184,6 +168,9 @@ var TextView = exports = Class(View, function(supr) {
 		var i = clearCacheKeys.length;
 
 		this._cacheUpdate = this._cacheUpdate || !Object.keys(this._opts).length;
+		if (this._cacheUpdate) {
+			this.updateHash = true;
+		}
 		while (i) {
 			optsKey = clearCacheKeys[--i];
 			if ((optsKey in opts) && clearCache[optsKey] && (optsLast[optsKey] !== opts[optsKey])) {
@@ -217,12 +204,12 @@ var TextView = exports = Class(View, function(supr) {
 				console.warn("TextView opts.font is deprecated, please use fontFamily and size...");
 				messageFont = false;
 			}
-			while (font.length && (font[0] === ' ')) {
+			while (font.length && (font[0] === " ")) {
 				font = font.substr(1 - font.length);
 			}
 			var i = font.indexOf(' ');
 			if (i !== -1) {
-				opts.size = parseInt(font.substr(0, i).replace(/[pxtem\s]/gi, ''), 10);
+				opts.size = parseInt(font.substr(0, i).replace(/[pxtem\s]/gi, ""), 10);
 				opts.fontFamily = font.substr(i + 1 - font.length);
 			}
 		}
@@ -230,9 +217,14 @@ var TextView = exports = Class(View, function(supr) {
 
 	this.updateCache = function () {
 		this._cacheUpdate = true;
+		this.updateHash = true;
 	};
 
 	this.updateOpts = function (opts, dontCheck) {
+		if (this._opts.buffer) {
+			fontBuffer.releaseBin(this.getHash());
+		}
+
 		this._checkDeprecatedOpts(opts);
 
 		if ("padding" in opts) {
@@ -245,12 +237,12 @@ var TextView = exports = Class(View, function(supr) {
 			if (this._cacheUpdate) {
 				opts.hash = false;
 			} else {
-				supr(this, 'updateOpts', arguments);
+				supr(this, "updateOpts", arguments);
 				return;
 			}
 		}
 
-		opts = supr(this, 'updateOpts', arguments);
+		opts = supr(this, "updateOpts", arguments);
 
 		("text" in opts) && this.setText(opts.text);
 		!dontCheck && this._textFlow.setOpts(this._opts);
@@ -322,6 +314,8 @@ var TextView = exports = Class(View, function(supr) {
 			this._opts.lineCount = cache[cache.length - 1].line;
 			offsetRect.text = this._opts.text;
 			offsetRect.textView = this;
+			offsetRect.width = Math.ceil(offsetRect.width);
+			offsetRect.height = Math.ceil(offsetRect.height);
 			desc = fontBuffer.getPositionForText(offsetRect);
 			if (desc != null) {
 				if (this._cacheUpdate) {
@@ -365,9 +359,13 @@ var TextView = exports = Class(View, function(supr) {
 	};
 
 	this.setText = function (text) {
+		if (this._opts.buffer) {
+			fontBuffer.releaseBin(this.getHash());
+		}
+
 		this._restoreOpts();
-		this._opts.text = (text != undefined) ? text.toString() : '';
-		this._cacheUpdate = true;
+		this._opts.text = (text != undefined) ? text.toString() : "";
+		this.updateCache();
 		this.needsRepaint();
 	};
 
@@ -381,6 +379,11 @@ var TextView = exports = Class(View, function(supr) {
 
 	this.getOpts = function () {
 		return this._opts;
+	};
+
+	this.getHash = function () {
+		this.updateHash = false;
+		return 't' + this._id;
 	};
 
 	this.reflow = function () {
