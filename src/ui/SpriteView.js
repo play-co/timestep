@@ -105,6 +105,22 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 		opts.autoStart && this.startAnimation(this._opts.defaultAnimation, opts);
 	};
 
+	this.loadFromSheet = function(animName, sheetUrl, width, height, offsetX, offsetY, offsets) {
+		var frameImages = [];
+		for (var i = 0; i < offsets.length; i++) {
+			frameImages.push(new Image({
+				url: sheetUrl,
+				sourceW: width,
+				sourceH: height,
+				sourceX: offsets[i][0] * offsetX,
+				sourceY: offsets[i][1] * offsetY
+			}));
+		}
+		this._animations[animName] = {
+			frames: frameImages
+		};
+	};
+
 	this.addAnimation = function(animName, frameData) {
 		if ( ! isArray(frameData) ) {
 			frameData = SpriteView.allAnimations[frameData][animName];
