@@ -101,6 +101,20 @@ var TextView = exports = Class(View, function(supr) {
 	};
 	var clearCacheKeys = Object.keys(clearCache);
 
+	var hashItems = {
+		// font properties...
+		color: false,
+		fontFamily: true,
+		fontWeight: true,
+		size: true,
+		strokeWidth: true,
+		strokeColor: false,
+		shadowColor: false,
+		backgroundColor: false,
+		text: true
+	};
+	var hashItemsKeys = Object.keys(hashItems);
+
 	var savedOpts = [
 		"width",
 		"height",
@@ -111,10 +125,12 @@ var TextView = exports = Class(View, function(supr) {
 
 	fontBuffer.onGetHash = function (desc) {
 		if (!desc.hash) {
-			var i = clearCacheKeys.length;
 			desc.hash = "";
+
+			var i = hashItemsKeys.length;
+			var opts = desc.textView.getOpts();
 			while (i) {
-				desc.hash += desc[clearCacheKeys[--i]] || "";
+				desc.hash += opts[hashItemsKeys[--i]] || "";
 			}
 		}
 		return desc.hash;
@@ -361,6 +377,10 @@ var TextView = exports = Class(View, function(supr) {
 
 	this.getTag = function() {
 		return "TextView" + this.uid + ":" + (this.tag || this._opts.text.substring(0, 20));
+	};
+
+	this.getOpts = function () {
+		return this._opts;
 	};
 
 	this.reflow = function () {
