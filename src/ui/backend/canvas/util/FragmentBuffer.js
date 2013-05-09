@@ -154,7 +154,7 @@ var FragmentBuffer = exports = Class(function () {
 		if (this._cache[hash]) {
 			// When we support clearin buffers then this should be enabled again...
 			// this._cache[hash].filled = false;
-			delete this._cache[hash];
+			// delete this._cache[hash];
 		}
 	};
 

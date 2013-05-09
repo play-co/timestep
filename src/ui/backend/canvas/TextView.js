@@ -336,7 +336,15 @@ var TextView = exports = Class(View, function(supr) {
 			if (desc != null) {
 				if (this._cacheUpdate) {
 					fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
+					//fontBufferCtx.strokeStyle = '#FF0000';
+					//fontBufferCtx.strokeRect(desc.x, desc.y, desc.width, desc.height);
 					this._renderToCtx(fontBufferCtx, desc.x - offsetRect.x, desc.y - offsetRect.y);
+
+					fontBufferCtx.fillStyle = '#FF0000';
+					fontBufferCtx.fillRect(desc.x, desc.y, desc.width, 1);
+					fontBufferCtx.fillRect(desc.x, desc.y, 1, desc.height);
+					fontBufferCtx.fillRect(desc.x + desc.width - 1, desc.y, 1, desc.height);
+					fontBufferCtx.fillRect(desc.x, desc.y + desc.height - 1, desc.width, 1);
 				}
 				ctx.drawImage(fontBuffer.getCanvas(), desc.x, desc.y, width, height, offsetRect.x, offsetRect.y, width, height);
 			} else {
