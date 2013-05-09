@@ -314,9 +314,8 @@ var TextView = exports = Class(View, function(supr) {
 			this._opts.lineCount = cache[cache.length - 1].line;
 			offsetRect.text = this._opts.text;
 			offsetRect.textView = this;
-			offsetRect.width = Math.ceil(offsetRect.width);
-			offsetRect.height = Math.ceil(offsetRect.height);
-			desc = fontBuffer.getPositionForText(offsetRect);
+			// Call this function twice!!!!! If the first call clears the buffer then the second can return a valid value!!!
+			desc = fontBuffer.getPositionForText(offsetRect) || fontBuffer.getPositionForText(offsetRect);
 			if (desc != null) {
 				if (this._cacheUpdate) {
 					fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
