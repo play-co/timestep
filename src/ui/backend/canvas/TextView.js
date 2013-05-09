@@ -103,6 +103,22 @@ var TextView = exports = Class(View, function(supr) {
 	};
 	var clearCacheKeys = Object.keys(clearCache);
 
+	var hashItems = {
+		// font properties...
+		color: false,
+		fontFamily: true,
+		fontWeight: true,
+		size: true,
+		strokeWidth: true,
+		strokeColor: false,
+		shadowColor: false,
+
+		// misc properties...
+		backgroundColor: false,
+		text: true
+	};
+	var hashItemsKeys = Object.keys(hashItems);
+
 	var savedOpts = [
 		"width",
 		"height",
@@ -314,8 +330,9 @@ var TextView = exports = Class(View, function(supr) {
 			this._opts.lineCount = cache[cache.length - 1].line;
 			offsetRect.text = this._opts.text;
 			offsetRect.textView = this;
-			// Call this function twice!!!!! If the first call clears the buffer then the second can return a valid value!!!
-			desc = fontBuffer.getPositionForText(offsetRect) || fontBuffer.getPositionForText(offsetRect);
+			// When we support clearing offscreen buffers then this line can be activated instead of the next one...
+			// desc = fontBuffer.getPositionForText(offsetRect) || fontBuffer.getPositionForText(offsetRect);
+			desc = fontBuffer.getPositionForText(offsetRect);
 			if (desc != null) {
 				if (this._cacheUpdate) {
 					fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
@@ -381,8 +398,17 @@ var TextView = exports = Class(View, function(supr) {
 	};
 
 	this.getHash = function () {
-		this.updateHash = false;
-		return 't' + this._id;
+		var opts = this._opts;
+		var hash = "";
+		var i = hashItemsKeys.length;
+		while (i) {
+			hash += opts[hashItemsKeys[--i]];
+		}
+		return hash;
+
+		// When we support clearing offscreen buffers we can use this instead of the code above...
+		// this.updateHash = false;
+		// return 't' + this._id;
 	};
 
 	this.reflow = function () {

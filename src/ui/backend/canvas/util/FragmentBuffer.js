@@ -78,7 +78,7 @@ var FragmentBuffer = exports = Class(function () {
 		return color;
 	};
 
-	this._insertText = function (description, clearedBuffer) {
+	this._insertText = function (description) {
 		var width = Math.ceil(description.width) + 1;
 		var height = Math.ceil(description.height) + 1;
 		var iter = this._binList.iterator();
@@ -98,10 +98,10 @@ var FragmentBuffer = exports = Class(function () {
 			for (var i = 0; i < newBins.length; i++) {
 				this._binList.insert(newBins[i]);
 			}
-		} else if (clearedBuffer) {
-			logger.log('buffer full, further TextViews will not be cached');
 		} else {
-			this.clearBuffer();
+			logger.log('buffer full, further TextViews will not be cached');
+			// When we support clearing buffers then this should be enabled again...
+			// this.clearBuffer();
 		}
 
 		return bin;
@@ -152,7 +152,8 @@ var FragmentBuffer = exports = Class(function () {
 
 	this.releaseBin = function (hash) {
 		if (this._cache[hash]) {
-			this._cache[hash].filled = false;
+			// When we support clearin buffers then this should be enabled again...
+			// this._cache[hash].filled = false;
 			delete this._cache[hash];
 		}
 	};
