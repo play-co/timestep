@@ -128,10 +128,7 @@ var TextView = exports = Class(View, function(supr) {
 	var fontBuffer = new FragmentBuffer();
 
 	fontBuffer.onGetHash = function (desc) {
-		if (!desc.hash || desc.textView.updateHash) {
-			desc.hash = desc.textView.getHash();
-		}
-		return desc.hash;
+		return desc.textView.getHash();
 	};
 
 	this.init = function (opts) {
@@ -185,7 +182,7 @@ var TextView = exports = Class(View, function(supr) {
 
 		this._cacheUpdate = this._cacheUpdate || !Object.keys(this._opts).length;
 		if (this._cacheUpdate) {
-			this.updateHash = true;
+			this._hash = false;
 		}
 		while (i) {
 			optsKey = clearCacheKeys[--i];
@@ -233,7 +230,7 @@ var TextView = exports = Class(View, function(supr) {
 
 	this.updateCache = function () {
 		this._cacheUpdate = true;
-		this.updateHash = true;
+		this._hash = false;
 	};
 
 	this.updateOpts = function (opts, dontCheck) {
@@ -335,16 +332,8 @@ var TextView = exports = Class(View, function(supr) {
 			desc = fontBuffer.getPositionForText(offsetRect);
 			if (desc != null) {
 				if (this._cacheUpdate) {
-					fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
-					//fontBufferCtx.strokeStyle = '#FF0000';
-					//fontBufferCtx.strokeRect(desc.x, desc.y, desc.width, desc.height);
+					//fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
 					this._renderToCtx(fontBufferCtx, desc.x - offsetRect.x, desc.y - offsetRect.y);
-
-					fontBufferCtx.fillStyle = '#FF0000';
-					fontBufferCtx.fillRect(desc.x, desc.y, desc.width, 1);
-					fontBufferCtx.fillRect(desc.x, desc.y, 1, desc.height);
-					fontBufferCtx.fillRect(desc.x + desc.width - 1, desc.y, 1, desc.height);
-					fontBufferCtx.fillRect(desc.x, desc.y + desc.height - 1, desc.width, 1);
 				}
 				ctx.drawImage(fontBuffer.getCanvas(), desc.x, desc.y, width, height, offsetRect.x, offsetRect.y, width, height);
 			} else {
@@ -406,16 +395,18 @@ var TextView = exports = Class(View, function(supr) {
 	};
 
 	this.getHash = function () {
-		var opts = this._opts;
-		var hash = "";
-		var i = hashItemsKeys.length;
-		while (i) {
-			hash += opts[hashItemsKeys[--i]];
+		if (!this._hash) {
+			this._hash = "";
+
+			var opts = this._opts;
+			var i = hashItemsKeys.length;
+			while (i) {
+				this._hash += opts[hashItemsKeys[--i]];
+			}
 		}
-		return hash;
+		return this._hash;
 
 		// When we support clearing offscreen buffers we can use this instead of the code above...
-		// this.updateHash = false;
 		// return 't' + this._id;
 	};
 
