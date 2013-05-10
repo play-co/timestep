@@ -24,7 +24,7 @@ var FragmentBuffer = exports = Class(function () {
 	this.init = function (opts) {
 		this.opts = merge(opts, {});
 		this._cache = {};
-		this._textViews = [];
+		this._decriptions = [];
 		window.addEventListener('pageshow', bind(this, 'clearBuffer'), false);
 	};
 
@@ -65,8 +65,8 @@ var FragmentBuffer = exports = Class(function () {
 		return this._ctx;
 	};
 
-	this.onGetHash = function (desc) {
-		throw Error("onGetHash should be implemented.");
+	this.onGetHash = function (description) {
+		throw Error('onGetHash should be implemented.');
 	};
 
 	var randomColor = function () {
@@ -74,13 +74,13 @@ var FragmentBuffer = exports = Class(function () {
 					(Math.random()*255).toFixed() + ',' +
 					(Math.random()*255).toFixed() + ',' +
 					(Math.random()*255).toFixed() + ',' +
-					'0.3)';
+					'1)';
 		return color;
 	};
 
-	this._insertText = function (desc) {
-		var width = desc.width;
-		var height = desc.height;
+	this._insertText = function (description) {
+		var width = Math.ceil(description.width) + 1;
+		var height = Math.ceil(description.height) + 1;
 		var iter = this._binList.iterator();
 		var bin = null;
 		var found = false;
@@ -98,17 +98,12 @@ var FragmentBuffer = exports = Class(function () {
 			for (var i = 0; i < newBins.length; i++) {
 				this._binList.insert(newBins[i]);
 			}
-			if (debug) {
-				/*
-				* If we're debugging, fill each bin with a different color
-				* so we can see where they are.
-				*/
-				this._ctx.fillStyle = randomColor();
-				this._ctx.fillRect(bin.x, bin.y, bin.width, bin.height);
-			}
 		} else {
 			logger.log('buffer full, further TextViews will not be cached');
+			// When we support clearing buffers then this should be enabled again...
+			// this.clearBuffer();
 		}
+
 		return bin;
 	};
 
@@ -141,18 +136,26 @@ var FragmentBuffer = exports = Class(function () {
 		}
 	};
 
-	this.getPositionForText = function (tv) {
-		var desc = tv._opts;
-		var hash = this.onGetHash(desc);
+	this.getPositionForText = function (description) {
+		var hash = this.onGetHash(description);
+		var width = Math.ceil(description.width) + 1;
 
-		if (!this._cache[hash] && desc.width > 0) {
-			this._cache[hash] = this._insertText(desc);
-			this._textViews.push(tv);
+		if (!this._cache[hash] && width > 0) {
+			this._cache[hash] = this._insertText(description, false);
+			this._decriptions.push(description);
 		}
 		if (debug && false) {
-			debugCheck(desc, this._binList);
+			debugCheck(description, this._binList);
 		}
 		return this._cache[hash];
+	};
+
+	this.releaseBin = function (hash) {
+		if (this._cache[hash]) {
+			// When we support clearin buffers then this should be enabled again...
+			// this._cache[hash].filled = false;
+			// delete this._cache[hash];
+		}
 	};
 
 	this.clearBuffer = function () {
@@ -164,8 +167,9 @@ var FragmentBuffer = exports = Class(function () {
 			width: 1024,
 			height: 1024
 		}));
-		while (this._textViews.length) {
-			this._textViews.pop()._cacheUpdate = true;
+		this._ctx.clearRect(0, 0, 1024, 1024);
+		while (this._decriptions.length) {
+			this._decriptions.pop().textView.updateCache();
 		}
 	};
 });
