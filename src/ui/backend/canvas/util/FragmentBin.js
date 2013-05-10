@@ -42,7 +42,7 @@ var FragmentBin = exports = Class('TextBin', function(logger, supr) {
 				});
 				newBins.push(bin1);
 			}
-			if (this.width -x > 10) {
+			if (this.width - x > 10) {
 				var bin2 = new FragmentBin({
 					x: this.x + x,
 					y: this.y,

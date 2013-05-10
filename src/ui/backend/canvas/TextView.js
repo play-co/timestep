@@ -31,17 +31,19 @@ import ...legacySettings as legacySettings;
 
 var messageFont = true; // Report first font error message
 
+var textViewID = 1;
+
 /**
  * @extends ui.View
  */
 var TextView = exports = Class(View, function(supr) {
 
 	var DEPRECATED = {
-		multiline: { replacement: 'wrap' },
-		textAlign: { replacement: 'horizontalAlign' },
-		lineWidth: { replacement: 'strokeWidth' },
-		strokeStyle: { replacement: 'strokeColor' },
-		outlineColor: { replacement: 'strokeColor' }
+		multiline: { replacement: "wrap" },
+		textAlign: { replacement: "horizontalAlign" },
+		lineWidth: { replacement: "strokeWidth" },
+		strokeStyle: { replacement: "strokeColor" },
+		outlineColor: { replacement: "strokeColor" }
 	};
 
 	var defaults = {
@@ -66,7 +68,7 @@ var TextView = exports = Class(View, function(supr) {
 		horizontalAlign: "center",
 
 		// misc properties...
-		buffer: true,
+		buffer: GLOBAL.NATIVE && !device.simulatingMobileNative,
 		backgroundColor: null
 	};
 
@@ -101,6 +103,22 @@ var TextView = exports = Class(View, function(supr) {
 	};
 	var clearCacheKeys = Object.keys(clearCache);
 
+	var hashItems = {
+		// font properties...
+		color: false,
+		fontFamily: true,
+		fontWeight: true,
+		size: true,
+		strokeWidth: true,
+		strokeColor: false,
+		shadowColor: false,
+
+		// misc properties...
+		backgroundColor: false,
+		text: true
+	};
+	var hashItemsKeys = Object.keys(hashItems);
+
 	var savedOpts = [
 		"width",
 		"height",
@@ -110,20 +128,13 @@ var TextView = exports = Class(View, function(supr) {
 	var fontBuffer = new FragmentBuffer();
 
 	fontBuffer.onGetHash = function (desc) {
-		if (!desc.hash) {
-			var i = clearCacheKeys.length;
-			desc.hash = "";
-			while (i) {
-				desc.hash += desc[clearCacheKeys[--i]] || "";
-			}
-		}
-		return desc.hash;
+		return desc.textView.getHash();
 	};
 
 	this.init = function (opts) {
 		this._opts = {};
 		this._optsLast = {};
-		this._cacheUpdate = true;
+		this.updateCache();
 
 		this._textFlow = new TextFlow({target: this});
 		this._textFlow.subscribe("ChangeWidth", this, "onChangeWidth");
@@ -131,6 +142,8 @@ var TextView = exports = Class(View, function(supr) {
 		this._textFlow.subscribe("ChangeSize", this, "onChangeSize");
 
 		supr(this, 'init', [merge(opts, defaults)]);
+
+		this._id = textViewID++;
 	};
 
 	this.onChangeWidth = function (width) {
@@ -168,6 +181,9 @@ var TextView = exports = Class(View, function(supr) {
 		var i = clearCacheKeys.length;
 
 		this._cacheUpdate = this._cacheUpdate || !Object.keys(this._opts).length;
+		if (this._cacheUpdate) {
+			this._hash = false;
+		}
 		while (i) {
 			optsKey = clearCacheKeys[--i];
 			if ((optsKey in opts) && clearCache[optsKey] && (optsLast[optsKey] !== opts[optsKey])) {
@@ -201,18 +217,27 @@ var TextView = exports = Class(View, function(supr) {
 				console.warn("TextView opts.font is deprecated, please use fontFamily and size...");
 				messageFont = false;
 			}
-			while (font.length && (font[0] === ' ')) {
+			while (font.length && (font[0] === " ")) {
 				font = font.substr(1 - font.length);
 			}
 			var i = font.indexOf(' ');
 			if (i !== -1) {
-				opts.size = parseInt(font.substr(0, i).replace(/[pxtem\s]/gi, ''), 10);
+				opts.size = parseInt(font.substr(0, i).replace(/[pxtem\s]/gi, ""), 10);
 				opts.fontFamily = font.substr(i + 1 - font.length);
 			}
 		}
 	};
 
+	this.updateCache = function () {
+		this._cacheUpdate = true;
+		this._hash = false;
+	};
+
 	this.updateOpts = function (opts, dontCheck) {
+		if (this._opts.buffer) {
+			fontBuffer.releaseBin(this.getHash());
+		}
+
 		this._checkDeprecatedOpts(opts);
 
 		if ("padding" in opts) {
@@ -225,12 +250,12 @@ var TextView = exports = Class(View, function(supr) {
 			if (this._cacheUpdate) {
 				opts.hash = false;
 			} else {
-				supr(this, 'updateOpts', arguments);
+				supr(this, "updateOpts", arguments);
 				return;
 			}
 		}
 
-		opts = supr(this, 'updateOpts', arguments);
+		opts = supr(this, "updateOpts", arguments);
 
 		("text" in opts) && this.setText(opts.text);
 		!dontCheck && this._textFlow.setOpts(this._opts);
@@ -300,10 +325,14 @@ var TextView = exports = Class(View, function(supr) {
 
 		if (width && height) {
 			this._opts.lineCount = cache[cache.length - 1].line;
-			desc = fontBuffer.getPositionForText(this);
+			offsetRect.text = this._opts.text;
+			offsetRect.textView = this;
+			// When we support clearing offscreen buffers then this line can be activated instead of the next one...
+			// desc = fontBuffer.getPositionForText(offsetRect) || fontBuffer.getPositionForText(offsetRect);
+			desc = fontBuffer.getPositionForText(offsetRect);
 			if (desc != null) {
 				if (this._cacheUpdate) {
-					fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
+					//fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
 					this._renderToCtx(fontBufferCtx, desc.x - offsetRect.x, desc.y - offsetRect.y);
 				}
 				ctx.drawImage(fontBuffer.getCanvas(), desc.x, desc.y, width, height, offsetRect.x, offsetRect.y, width, height);
@@ -343,9 +372,13 @@ var TextView = exports = Class(View, function(supr) {
 	};
 
 	this.setText = function (text) {
+		if (this._opts.buffer) {
+			fontBuffer.releaseBin(this.getHash());
+		}
+
 		this._restoreOpts();
-		this._opts.text = (text != undefined) ? text.toString() : '';
-		this._cacheUpdate = true;
+		this._opts.text = (text != undefined) ? text.toString() : "";
+		this.updateCache();
 		this.needsRepaint();
 	};
 
@@ -355,6 +388,26 @@ var TextView = exports = Class(View, function(supr) {
 
 	this.getTag = function() {
 		return "TextView" + this.uid + ":" + (this.tag || this._opts.text.substring(0, 20));
+	};
+
+	this.getOpts = function () {
+		return this._opts;
+	};
+
+	this.getHash = function () {
+		if (!this._hash) {
+			this._hash = "";
+
+			var opts = this._opts;
+			var i = hashItemsKeys.length;
+			while (i) {
+				this._hash += opts[hashItemsKeys[--i]];
+			}
+		}
+		return this._hash;
+
+		// When we support clearing offscreen buffers we can use this instead of the code above...
+		// return 't' + this._id;
 	};
 
 	this.reflow = function () {
