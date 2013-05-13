@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -35,7 +36,7 @@
  * "input:drag" -> "function onDrag(dragEvt, moveEvt, delta)"
  *
  * Other code can hook into a view's events by calling:
- *   myView.subscribe('input:start', function() { alert('Mouse Down'); });
+ *   myView.subscribe('input:start', function () { alert('Mouse Down'); });
  *   myView.subscribe('input:end', this, 'onChildViewClick');
  *
  * Propogation of events can be cancelled by calling evt.cancel().
@@ -52,7 +53,7 @@
 import math.geom.Point as Point;
 import timer;
 
-var InputEvent = exports = Class(function() {
+var InputEvent = exports = Class(function () {
 	this.cancelled = false; // If true, this event will not propogate
 	this.depth = 0; // Number of levels of the tree from root to target (inclusive)
 	
@@ -61,7 +62,7 @@ var InputEvent = exports = Class(function() {
 	//   this.root = this.trace[this.trace.length - 1]
 	//   this.target = this.trace[0]
 	
-	this.init = function(id, evtType, x, y, root, target) {
+	this.init = function (id, evtType, x, y, root, target) {
 		// unique ID for a particular input - the ID should be constant for a given input
 		// for example, the mouse should always have the same ID.  Each finger (touch)
 		// should have the same ID throughout the touch start/move/end process
@@ -90,11 +91,11 @@ var InputEvent = exports = Class(function() {
 		this.target = target || null;
 	}
 	
-	this.cancel = function() {
+	this.cancel = function () {
 		this.cancelled = true;
 	}
 
-	this.clone = function() {
+	this.clone = function () {
 		return new InputEvent(this.id, this.type, this.srcPt.x, this.srcPt.y, this.root, this.target);
 	}
 });

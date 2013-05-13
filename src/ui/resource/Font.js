@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -102,7 +103,7 @@ function parseFont(fontStr) {
 	return res;
 };
 
-var Font = exports = Class(function(){
+var Font = exports = Class(function () {
 	
 	var defaults = {
 		name: device.defaultFontFamily,
@@ -112,7 +113,7 @@ var Font = exports = Class(function(){
 		weight: ''
 	};
 
-	this.init = function(opts) {
+	this.init = function (opts) {
 		if (typeof opts === 'string') {
 			_cache[opts] = this;
 			this._string = opts;
@@ -135,13 +136,13 @@ var Font = exports = Class(function(){
 		this._isBold = /bold/i.test(this._weight);
 	};
 	
-	this.getSize = function() { return this.sizePx; }
+	this.getSize = function () { return this.sizePx; }
 
 	this.getName = function () { return this._name; }
 	this.getWeight = function () { return this._weight; }
 });
 
-exports.parse = function(str) {
+exports.parse = function (str) {
 	if (str in _cache) {
 		return _cache[str];
 	} else {

@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -25,13 +26,13 @@ import device;
 import .FontRenderer;
 
 function setter(name) {
-	return (function(val) {
+	return (function (val) {
 		return (this[name] = val);
 	});
 }
 
 function getter(name) {
-	return (function(val) {
+	return (function (val) {
 		return this[name];
 	});
 }
@@ -49,25 +50,25 @@ exports = function (opts) {
 	
 	var ctx = el.getContext('2d');
 	ctx.font = '11px ' + device.defaultFontFamily;
-	ctx.getElement = function() { return el; }
+	ctx.getElement = function () { return el; }
 	
-	ctx.reset = function() {}
+	ctx.reset = function () {}
 	
-	ctx.clear = function() {
+	ctx.clear = function () {
 		//el.width = el.width;
 		this.clearRect(0, 0, el.width, el.height);
 	};
 	
-	ctx.clipRect = function(x, y, w, h) {
+	ctx.clipRect = function (x, y, w, h) {
 		ctx.beginPath();
 		ctx.rect(x, y, w, h);
 		ctx.clip();
 	}
 	
-	ctx.swap = function() {};
-	ctx.execSwap = function() {};
+	ctx.swap = function () {};
+	ctx.execSwap = function () {};
 	
-	ctx.circle = function(x, y, radius) {
+	ctx.circle = function (x, y, radius) {
 		this.beginPath();
 		this.arc(x, y, radius, 0, 2 * Math.PI, true);
 	}
@@ -78,7 +79,7 @@ exports = function (opts) {
 		canvas: null
 	};
 
-	ctx.drawPointSprites = function(x1, y1, x2, y2) {
+	ctx.drawPointSprites = function (x1, y1, x2, y2) {
 		var sprite = this.pointSprite;
 		if (!sprite || !sprite.complete) { return; }
 
@@ -112,7 +113,7 @@ exports = function (opts) {
 		}
 	}
 	
-	ctx.roundRect = function(x, y, width, height, radius) {
+	ctx.roundRect = function (x, y, width, height, radius) {
 		this.beginPath();
 		this.moveTo(x,y+radius);
 		this.lineTo(x,y+height-radius);
@@ -125,7 +126,7 @@ exports = function (opts) {
 		this.quadraticCurveTo(x,y,x,y+radius);
 	}
 
-	ctx.loadIdentity = function() {
+	ctx.loadIdentity = function () {
 		this.setTransform(1, 0, 0, 1, 0, 0);
 	}
 	
@@ -134,14 +135,14 @@ exports = function (opts) {
 	ctx.strokeText = FontRenderer.wrapStrokeText(ctx.strokeText);
 
 	ctx.filters = {}
-	ctx.setFilters = function(filters) {
+	ctx.setFilters = function (filters) {
 		this.clearFilters();
 		for (var name in filters) {
 			this.filters[name] = filters[name];
 		}
 	}
 
-	ctx.clearFilters = function() {
+	ctx.clearFilters = function () {
 		for (var name in this.filters) {
 			delete this.filters[name];
 		}

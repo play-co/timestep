@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -83,7 +84,7 @@ View.addExtension({
 		var proto = ViewBacking.prototype;
 
 		proto._sortOrder = strPad.initialValue;
-		proto._onOrder = function(_, order) {
+		proto._onOrder = function (_, order) {
 			this._sortOrder = strPad.pad(order);
 			this._onLayoutChange();
 		};
