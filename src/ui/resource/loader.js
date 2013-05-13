@@ -36,7 +36,7 @@ var MIME = {
 	'.wav': 'audio'
 };
 
-var Loader = Class(function() {
+var Loader = Class(function () {
 	this._map = {};
 
 	this.getMap = function () { return this._map; }
@@ -82,7 +82,7 @@ var Loader = Class(function() {
 		// process an array of items, where cb is run at completion of the final one
 		if (isArray(pathPrefix)) {
 			var chainCb = new lib.Callback();
-			pathPrefix.forEach(function(prefix) {
+			pathPrefix.forEach(function (prefix) {
 				if (prefix) {
 					this.preload(prefix, opts, chainCb.chain());
 				}
@@ -111,7 +111,7 @@ var Loader = Class(function() {
 	};
 	
 	var soundLoader = null;
-	this.getSound = function(src) {
+	this.getSound = function (src) {
 		if (!soundLoader) {
 			import AudioManager;
 			soundLoader = new AudioManager();
@@ -126,7 +126,7 @@ var Loader = Class(function() {
 		}
 	}
 
-	this.getImage = function(src, noWarn) {
+	this.getImage = function (src, noWarn) {
 		// create the image
 		var img = new Image();
 		
@@ -210,7 +210,7 @@ var Loader = Class(function() {
 		return map;
 	}
 
-	this._getRaw = function(type, src, copy, noWarn) {
+	this._getRaw = function (type, src, copy, noWarn) {
 		// always return the cached copy unless specifically requested not to
 		if (!copy && _cache[src]) { return _cache[src]; }
 		var res = null;
@@ -264,7 +264,7 @@ var Loader = Class(function() {
 		var parallel = opts.parallel || 5; // how many should we try to download at a time?
 		var numLoaded = 0;
 
-		var loadResource = bind(this, function() {
+		var loadResource = bind(this, function () {
 		    var currentIndex = nextIndexToLoad++;
 			var src = loadableResources[currentIndex];
 			var res;
@@ -275,7 +275,7 @@ var Loader = Class(function() {
 				return;
 			}
 
-			var next = function(failed) {
+			var next = function (failed) {
 				// If already complete, stub this out
 				if (numLoaded >= numResources) { return; }
 
@@ -283,7 +283,7 @@ var Loader = Class(function() {
 				// elsewhere can blindly call these without causing problems.
 				// An alternative would be to set these to null but not every
 				// piece of code that uses this does the right checks.
-				res.onreload = res.onload = res.onerror = function(){};
+				res.onreload = res.onload = res.onerror = function (){};
 
 				// The number of loads (success or failure) has increased.
 				++numLoaded;
@@ -353,7 +353,7 @@ var Loader = Class(function() {
 				// When the resource completes loading, either with success
 				// or failure:
 
-				res.onload = function() {
+				res.onload = function () {
 					// If previous callback exists, run it first in a chain
 					prevOnLoad && prevOnLoad();
 
@@ -364,7 +364,7 @@ var Loader = Class(function() {
 					next(false);
 				};
 
-				res.onerror = function() {
+				res.onerror = function () {
 					// If previous callback exists, run it first in a chain
 					prevOnError && prevOnError();
 
@@ -378,13 +378,13 @@ var Loader = Class(function() {
 		});
 
 		var _timeout = null;
-		setTimeout(function() {
+		setTimeout(function () {
 			// spin up n simultaneous loaders!
 			for (var i = 0; i < parallel; ++i) { loadResource(); }
 			
 			// register timeout call
 			if (timeout) {
-				_timeout = setTimeout(function() {
+				_timeout = setTimeout(function () {
 					callback.fire();
 					numLoaded = numResources;
 				}, timeout)

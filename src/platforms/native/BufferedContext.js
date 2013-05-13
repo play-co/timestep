@@ -17,29 +17,29 @@
 
 
 function getter(name) {
-	return (function() {
+	return (function () {
 		return this._ctxShim[name];
 	});
 }
 
 function setter(name) {
-	return (function(val) {
+	return (function (val) {
 		this._ctxShim[name] = val;
 	});
 }
 
 function wrap(name) {
-	return function() {};
+	return function () {};
 }
 
-exports = Class(function() {
+exports = Class(function () {
 	
 	
-	this.init = function() {
+	this.init = function () {
 		this._ctxShim = {};
 	}
 	
-	this.getViewport = function(targetView) {
+	this.getViewport = function (targetView) {
 		if (this._viewport) {
 			var viewport = new math2D.Rect(this._viewport),
 				src = this._viewport.src,
@@ -62,19 +62,19 @@ exports = Class(function() {
 		}
 	}
 	
-	this.swap = function() {}
+	this.swap = function () {}
 	
-	this.reset = function() {
+	this.reset = function () {
 		this._buffer = [];
 	}
 	
-	this.show = this.hide = function() { throw 'abstract'; }
+	this.show = this.hide = function () { throw 'abstract'; }
 
 	this.drawImage = wrap('drawImage');
 	this.putImageData = wrap('putImageData');
 	
 	this.fillRect = wrap('fillRect');
-	this.fillCircle = function(x, y, radius, fillStyle) {
+	this.fillCircle = function (x, y, radius, fillStyle) {
 		this._buffer.push(['beginPath']);
 		this._buffer.push(['arc', [x, y, radius, 0, 2 * Math.PI, true]]);
 		this._buffer.push(['fill']);

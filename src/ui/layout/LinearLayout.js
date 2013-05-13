@@ -36,7 +36,7 @@ exports = Class(BoxLayout, function (supr) {
 	// set to true to tell other layouts not to try to control the child layout
 	this.reflowsChildren = true;
 
-	this.init = function(opts) {
+	this.init = function (opts) {
 		this._view = opts.view;
 		this._view.subscribe('SubviewAdded', this, '_onSubviewAdded');
 		this._view.subscribe('SubviewRemoved', this, '_onSubviewRemoved');
@@ -101,7 +101,7 @@ exports = Class(BoxLayout, function (supr) {
 	 */
 	this._events = ['ViewWillAppear', 'ViewDidAppear', 'ViewWillDisappear', 'ViewDidDisappear'];
 
-	this._forwardEvents = function() {
+	this._forwardEvents = function () {
 		for (var i = 0, a; a = this._events[i]; ++i) {
 			this._view.subscribe(a, this, '_forwardSignal', a);
 		}
@@ -123,7 +123,7 @@ exports = Class(BoxLayout, function (supr) {
 	 * Initialize a subview controlled by this layout.
 	 */
 
-	this._initLayoutView = function(view) {
+	this._initLayoutView = function (view) {
 		view.style.inLayout = true;
 
 		this._debug && logger.log(this._view.uid, 'adding view', view.uid, this._propDim, view.style[this._propDim]);

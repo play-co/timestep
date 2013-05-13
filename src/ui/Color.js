@@ -21,8 +21,8 @@
  * @doc http://doc.gameclosure.com/api/color.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/color.md
  */
-var RGBA = exports = Class(function() {
-	this.init = function(rgba) {
+var RGBA = exports = Class(function () {
+	this.init = function (rgba) {
 		if (arguments.length > 2) {
 			this.r = arguments[0];
 			this.g = arguments[1];
@@ -35,14 +35,14 @@ var RGBA = exports = Class(function() {
 		}
 	};
 
-	this.set = function(rgba) {
+	this.set = function (rgba) {
 		this.r = rgba.r || 0;
 		this.g = rgba.g || 0;
 		this.b = rgba.b || 0;
 		this.a = 'a' in rgba ? rgba.a : 1;
 	};
 
-	this.get = function() {
+	this.get = function () {
 		return {
 			r: this.r,
 			g: this.g,
@@ -51,7 +51,7 @@ var RGBA = exports = Class(function() {
 		};
 	};
 
-	this.toHex = function() {
+	this.toHex = function () {
 		// https://gist.github.com/983535
 		return "#" + ((256 + this.r << 8 | this.g) << 8 | this.b).toString(16).slice(1)
 	};
@@ -63,7 +63,7 @@ var RGBA = exports = Class(function() {
 		return [a >> 16, a >> 8 & 255, a & 255];
 	};
 
-	this.parse = function(str) {
+	this.parse = function (str) {
 		var match = str.match(rgbParser);
 		if (match) {
 			this.r = parseInt(match[1]) || 0;
@@ -93,12 +93,12 @@ var RGBA = exports = Class(function() {
 		}
 	};
 
-	this.toString = function() {
+	this.toString = function () {
 		return 'rgba(' + this.r + ',' + this.g + ',' + this.b + ',' + this.a + ')';
 	};
 });
 
-exports.parse = function(str) {
+exports.parse = function (str) {
 	return cache[str] || (cache[str] = new RGBA(str));
 };
 

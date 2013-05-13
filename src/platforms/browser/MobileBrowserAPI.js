@@ -22,14 +22,14 @@ from util.underscore import _;
 /**
  * @extends lib.PubSub
  */
-var AudioAPI = exports = Class(lib.PubSub, function(supr) {
+var AudioAPI = exports = Class(lib.PubSub, function (supr) {
 
 	var defaults = {
 		oneChannelOnly: device.isMobileBrowser,
 		compiledFilename: 'compiled'
 	};
 
-	this.init = function(opts) {
+	this.init = function (opts) {
 		opts = merge(opts, defaults);
 		supr(this, 'init', [opts]);
 		this._opts = opts;
@@ -40,7 +40,7 @@ var AudioAPI = exports = Class(lib.PubSub, function(supr) {
 		setInterval(bind(this, '_ontimeupdate'), 200);
 		
 		if (!this.oneChannelOnly) {
-			_.each(opts.background, function(name) {
+			_.each(opts.background, function (name) {
 				opts.map[name] = {'name': name}
 			}, this);
 		}
@@ -57,7 +57,7 @@ var AudioAPI = exports = Class(lib.PubSub, function(supr) {
 		window.addEventListener('pagehide', bind(this, 'pause'), false);
 	}
 
-	this._createChannel = function(name, src) {
+	this._createChannel = function (name, src) {
 		var audio = new Audio(src);
 		this._audios[name] = audio;
 
@@ -67,28 +67,28 @@ var AudioAPI = exports = Class(lib.PubSub, function(supr) {
 		audio.load();
 	}
 
-	this.setMuted = function(muted) {
+	this.setMuted = function (muted) {
 		this.muted = muted;
 		if (muted) {
 			this.setVolume(0);
 		}
 	}
 	
-	this.setVolume = function(volume) {
-		_.each(this._audios, function(audio, key) {
+	this.setVolume = function (volume) {
+		_.each(this._audios, function (audio, key) {
 			audio.volume = volume;
 		});
 	}
 
-	this.unload = function() {
+	this.unload = function () {
 		this.pause();
-		_.each(this._audios, function(audio, key) {
+		_.each(this._audios, function (audio, key) {
 			audio.src = '';
 		}, this);
 		// TODO remove event listeners
 	}
 
-	this._load = function() {
+	this._load = function () {
 	
 		this._audios = {};
 		var path = this._opts.path.replace(/\/$/, '');
@@ -109,15 +109,15 @@ var AudioAPI = exports = Class(lib.PubSub, function(supr) {
 		}
 	}
 
-	this._playFirst = function() {
+	this._playFirst = function () {
 		document.body.removeEventListener(device.events.start, 
 										  this._boundLoadHandler, true);
 		
 		this._audios['AUDIO'].play();
 	}
 
-	this._ontimeupdate = function(evt) {
-		_.each(this._audios, function(audio, key) {
+	this._ontimeupdate = function (evt) {
+		_.each(this._audios, function (audio, key) {
 			if (audio.paused && !audio._pausedOnce) {
 				audio.pause();
 				audio._pausedOnce = true;
@@ -133,7 +133,7 @@ var AudioAPI = exports = Class(lib.PubSub, function(supr) {
 
 	}
 	
-	this._onerror = function(event) {
+	this._onerror = function (event) {
 		var s = '';
 		for (var key in event) {
 			s += event[key] + ' ';
@@ -144,7 +144,7 @@ var AudioAPI = exports = Class(lib.PubSub, function(supr) {
 		// this._status = 'error';
 	}
 
-	this.canPlay = function(name) {
+	this.canPlay = function (name) {
 		if (!this._map[name]) { return false; }
 
 		var requiredEnd = null;
@@ -173,7 +173,7 @@ var AudioAPI = exports = Class(lib.PubSub, function(supr) {
 		}
 	}
 
-	this.play = function(name, volume, loop) {		
+	this.play = function (name, volume, loop) {		
 		if (this.muted) { return; }
 
 		if (volume === undefined) {
@@ -205,13 +205,13 @@ var AudioAPI = exports = Class(lib.PubSub, function(supr) {
 		}
 	}
 	
-	this.pause = function() {
-		_.each(this._audios, function(audio, key) {
+	this.pause = function () {
+		_.each(this._audios, function (audio, key) {
 			audio.pause();
 		}, this);
 	}
 
-	this.playBackgroundMusic = function(name, volume) {
+	this.playBackgroundMusic = function (name, volume) {
 		if (this.muted) { return; }
 
 		if (this.oneChannelOnly) {
@@ -222,7 +222,7 @@ var AudioAPI = exports = Class(lib.PubSub, function(supr) {
 		this.play(name, volume);
 	}
 
-	this.pauseBackgroundMusic = function() {
+	this.pauseBackgroundMusic = function () {
 		if (!this._backgroundSoundPlaying) { return; }
 		this._audios[this._backgroundSoundPlaying].pause();
 	}

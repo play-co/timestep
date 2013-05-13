@@ -23,17 +23,17 @@
 
 import device;
 
-var randomColorElement = function() {
+var randomColorElement = function () {
 	var e = Math.floor(Math.random() * 255).toString(16);
 	return ((e.length === 1) ? '0' : '') + e;
 };
 
-var randomColor = function() {
+var randomColor = function () {
 	return '#' + randomColorElement() + randomColorElement() + randomColorElement();
 };
 
-var FontBuffer = exports = Class(function() {
-	this.init = function(opts) {
+var FontBuffer = exports = Class(function () {
+	this.init = function (opts) {
 		// 8 * 24
 		// 10 * 32
 		// 8 * 64
@@ -85,7 +85,7 @@ var FontBuffer = exports = Class(function() {
 		jsio('import ui.Engine').get().subscribe('Tick', this, this._onTick);
 	};
 
-	this._onTick = function(dt) {
+	this._onTick = function (dt) {
 		this._currentFrame++;
 
 		var remove,
@@ -119,7 +119,7 @@ var FontBuffer = exports = Class(function() {
 		}
 	};
 
-	this.alloc = function(opts) {
+	this.alloc = function (opts) {
 		var requestHeight = opts.height,
 			requestWidth = opts.width + 3, // Add some extra pixels to allow color bleeding...
 
@@ -182,7 +182,7 @@ var FontBuffer = exports = Class(function() {
 		return false;
 	};
 
-	this.getCanvas = function() {
+	this.getCanvas = function () {
 		return this._canvas;
 	};
 });

@@ -55,7 +55,7 @@ if (DEBUG) {
 /**
  * @extends ui.View
  */
-exports = Class(View, function(supr) {
+exports = Class(View, function (supr) {
 
 	this.tag = "ScrollView";
 
@@ -256,7 +256,7 @@ exports = Class(View, function(supr) {
 	var BOUNCE_MAX_DIST = 50;
 	var PI_2 = Math.PI / 2;
 
-	this.getStyleBounds = function() {
+	this.getStyleBounds = function () {
 		var bounds = bounds = this._scrollBounds;
 		var minY = -bounds.maxY;
 		var maxY = -bounds.minY < minY ? minY : -bounds.minY;
@@ -270,11 +270,11 @@ exports = Class(View, function(supr) {
 		};
 	};
 
-	this.getOffset = function() { return new Point(this._contentView.style); };
+	this.getOffset = function () { return new Point(this._contentView.style); };
 	this.getOffsetX = function () { return this._contentView.style.x; };
 	this.getOffsetY = function () { return this._contentView.style.y; };
 
-	this.setOffset = function(x, y) {
+	this.setOffset = function (x, y) {
 		var style = this._contentView.style,
 			delta = {
 				x: 0,
@@ -334,13 +334,13 @@ exports = Class(View, function(supr) {
 		this.publish('Scrolled', delta);
 	};
 
-	this.isScrolling = function() { return this.isDragging() || this._anim && this._anim.hasFrames(); };
+	this.isScrolling = function () { return this.isDragging() || this._anim && this._anim.hasFrames(); };
 
-	this.stopScrolling = function() {
+	this.stopScrolling = function () {
 		this._anim && this._anim.now({}, 1);
 	};
 
-	this.onInputStart = function(evt, pt) {
+	this.onInputStart = function (evt, pt) {
 		if (this._opts.drag) {
 			this.startDrag({radius: this._opts.dragRadius * this._snapPixels});
 
@@ -351,7 +351,7 @@ exports = Class(View, function(supr) {
 		}
 	};
 
-	this.onDragStart = function(dragEvt) {
+	this.onDragStart = function (dragEvt) {
 		input.clearOverState(dragEvt.id);
 
 		this._contentView.getInput().blockEvents = true;
@@ -360,7 +360,7 @@ exports = Class(View, function(supr) {
 		this._anim = animate(this._animState).clear();
 	};
 
-	this.onDrag = function(dragEvt, moveEvt, delta) {
+	this.onDrag = function (dragEvt, moveEvt, delta) {
 		var state = this._animState;
 		state.dt = delta.t;
 		state.lastDelta = delta;
@@ -372,7 +372,7 @@ exports = Class(View, function(supr) {
 		moveEvt.cancel();
 	};
 
-	this.onDragStop = function(dragEvt, selectEvt) {
+	this.onDragStop = function (dragEvt, selectEvt) {
 		this._contentView.getInput().blockEvents = false;
 
 		if (this._opts.inertia){
@@ -402,11 +402,11 @@ exports = Class(View, function(supr) {
 			}
 
 			if (distance) {
-				this._anim.now(bind(this, function(tt, t) {
+				this._anim.now(bind(this, function (tt, t) {
 					this.setOffset(
 						offset.x + delta.x * tt,
 						offset.y + delta.y * tt);
-				}), 100 * Math.log((distance + 1) * 100), animate.easeOut).then(bind(this, function() {
+				}), 100 * Math.log((distance + 1) * 100), animate.easeOut).then(bind(this, function () {
 					this._endBounce(offset);
 				}));
 			} else {
@@ -416,14 +416,14 @@ exports = Class(View, function(supr) {
 	};
 
 	
-	this._startBounce = function() {
+	this._startBounce = function () {
 		this._isBouncing = false;
 		if (this._opts.inertia && this._opts.bounce) {
 			this._canBounce = true;
 		}
 	};
 
-	this._endBounce = function() {
+	this._endBounce = function () {
 		var offset = this.getOffset();
 		var bounds = this.getStyleBounds();
 
@@ -449,32 +449,32 @@ exports = Class(View, function(supr) {
 		if (dy === 0 && dx === 0) { return; }
 
 		this._isBouncing = true;
-		this._anim.now(bind(this, function(tt, t) {
+		this._anim.now(bind(this, function (tt, t) {
 			this.setOffset(
 				offset.x + dx * tt,
 				offset.y + dy * tt);
-		}), 500, animate.easeInOut).then(bind(this, function() {
+		}), 500, animate.easeInOut).then(bind(this, function () {
 			this._canBounce = false;
 			this._isBouncing = false;
 		}));
 	};
 
-	this.setScrollBounds = function(bounds) { this._scrollBounds = bounds; }
-	this.getScrollBounds = function() { return this._scrollBounds; }
+	this.setScrollBounds = function (bounds) { this._scrollBounds = bounds; }
+	this.getScrollBounds = function () { return this._scrollBounds; }
 
-	this.addOffset = function(x, y) {
+	this.addOffset = function (x, y) {
 		this.setOffset(
 				x != undefined && x != null && (this._contentView.style.x + x),
 				y != undefined && y != null && (this._contentView.style.y + y)
 			);
 	}
 	
-	this.getContentView = function() { return this._contentView; }
+	this.getContentView = function () { return this._contentView; }
 
 	/* @deprecated */
-	this.getFullWidth = function() { return this._contentView.style.width; }
+	this.getFullWidth = function () { return this._contentView.style.width; }
 	/* @deprecated */
-	this.getFullHeight= function() { return this._contentView.style.height; }
+	this.getFullHeight= function () { return this._contentView.style.height; }
 	
 	function getBoundingRectangle(pos) {
 		if (!pos.r) { return; }
@@ -553,7 +553,7 @@ exports = Class(View, function(supr) {
 		return viewport.x != x || viewport.y != y || viewport.width != width || viewport.height != height;
 	};
 
-	this.onInputScroll = function(evt) {
+	this.onInputScroll = function (evt) {
 		if (this._opts.scrollY && evt.scrollAxis == input.VERTICAL_AXIS) {
 			this.addOffset(undefined, evt.scrollDelta * 40);
 		} else if (this._opts.scrollX) {
@@ -561,7 +561,7 @@ exports = Class(View, function(supr) {
 		}
 	};
 
-	this.scrollTo = function(x, y, duration, cb) {
+	this.scrollTo = function (x, y, duration, cb) {
 		duration = (duration == null ? 500 : duration);
 		var bounds = this.getStyleBounds();
 

@@ -35,7 +35,7 @@ exports.getDeviceImports = function (device) {
 }
 
 
-exports.getBackendImports = function(backend) {
+exports.getBackendImports = function (backend) {
 	if (backend == 'dom') {
 		return [
 			'.backend.dom.animate',
@@ -59,9 +59,9 @@ exports.getBackendImports = function(backend) {
 	return [];
 }
 
-exports.resolve = function(env, opts) {
+exports.resolve = function (env, opts) {
 	var imports = [];
-	var add = function(list) { imports = imports.concat(list); };
+	var add = function (list) { imports = imports.concat(list); };
 
 	add(exports.getDeviceImports(env));
 

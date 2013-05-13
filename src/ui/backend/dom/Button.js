@@ -37,7 +37,7 @@ exports = Class(TextView, function (supr) {
 		this.setText(opts.text);
 	};
 
-	this.onInputSelect = function() {
+	this.onInputSelect = function () {
 		this.publish('Select');
 	}
 });

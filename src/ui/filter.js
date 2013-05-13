@@ -33,7 +33,7 @@
 
 import ui.resource.Image as Image;
 
-var Filter = exports.Filter = Class(function() {
+var Filter = exports.Filter = Class(function () {
 
 	var defaults = {
 		priority: 0,
@@ -44,20 +44,20 @@ var Filter = exports.Filter = Class(function() {
 		a: 0
 	};
 
-	this.init = function(opts) {
+	this.init = function (opts) {
 		this._opts = merge(opts, defaults);
 		this._views = [];
 	};
 
-	this.get = function() {
+	this.get = function () {
 		return this._opts;
 	};
 
-	this.getType = function() {
+	this.getType = function () {
 		return this._opts.type;
 	};
 
-	this.update = function(opts) {
+	this.update = function (opts) {
 		opts = opts || {};
 		for (var prop in opts) {
 			if (typeof this._opts[prop] != 'undefined') {
@@ -71,20 +71,20 @@ var Filter = exports.Filter = Class(function() {
 		}
 	};
 
-	this.setView = function(view) {
+	this.setView = function (view) {
 		if (this._views.indexOf(view) == -1) {
 			this._views.push(view);
 		}
 	};
 
-	this.removeView = function(view) {
+	this.removeView = function (view) {
 		var i = this._views.indexOf(view);
 		if (i != -1) {
 			this._views.splice(i, 1);
 		}
 	};
 
-	this.getColorString = function() {
+	this.getColorString = function () {
 		var c = this._opts;
 		return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + c.a + ')';
 	};
@@ -100,13 +100,13 @@ Filter.TYPES = {
  * Linear add (lighten) filter.
  */
 
-exports.LinearAddFilter = Class(Filter, function(supr) {
-	this.init = function(opts) {
+exports.LinearAddFilter = Class(Filter, function (supr) {
+	this.init = function (opts) {
 		supr(this,'init',arguments);
 		this._opts.type = 'LinearAdd';
 	};
 
-	this.get = function() {
+	this.get = function () {
 		return this._opts;
 	};
 });
@@ -115,13 +115,13 @@ exports.LinearAddFilter = Class(Filter, function(supr) {
  * Tint (averaging) filter.
  */
 
-exports.TintFilter = Class(Filter, function(supr) {
-	this.init = function(opts) {
+exports.TintFilter = Class(Filter, function (supr) {
+	this.init = function (opts) {
 		supr(this, 'init', arguments);
 		this._opts.type = 'Tint';
 	};
 
-	this.get = function() {
+	this.get = function () {
 		return this._opts;
 	};
 });
@@ -130,13 +130,13 @@ exports.TintFilter = Class(Filter, function(supr) {
  * Multiply filter.
  */
 
-exports.MultiplyFilter = Class(Filter, function(supr) {
-	this.init = function(opts) {
+exports.MultiplyFilter = Class(Filter, function (supr) {
+	this.init = function (opts) {
 		supr(this, 'init', arguments);
 		this._opts.type = 'Multiply';
 	};
 
-	this.get = function() {
+	this.get = function () {
 		return this._opts;
 	};
 });
@@ -145,8 +145,8 @@ exports.MultiplyFilter = Class(Filter, function(supr) {
  * Positive masking.
  */
 
-exports.PositiveMaskFilter = Class(Filter, function(supr) {
-	this.init = function(opts) {
+exports.PositiveMaskFilter = Class(Filter, function (supr) {
+	this.init = function (opts) {
 		supr(this, 'init', arguments);
 		this._opts.type = 'PositiveMask';
 		if (this._opts.image) {
@@ -154,7 +154,7 @@ exports.PositiveMaskFilter = Class(Filter, function(supr) {
 		}
 	};
 
-	this.get = function() {
+	this.get = function () {
 		return this._opts;
 	};
 });
@@ -163,8 +163,8 @@ exports.PositiveMaskFilter = Class(Filter, function(supr) {
  * Negative masking.
  */
 
-exports.NegativeMaskFilter = Class(Filter, function(supr) {
-	this.init = function(opts) {
+exports.NegativeMaskFilter = Class(Filter, function (supr) {
+	this.init = function (opts) {
 		supr(this, 'init', arguments);
 		this._opts.type = 'NegativeMask';
 		if (this._opts.image) {
@@ -172,7 +172,7 @@ exports.NegativeMaskFilter = Class(Filter, function(supr) {
 		}
 	};
 
-	this.get = function() {
+	this.get = function () {
 		return this._opts;
 	}
 });

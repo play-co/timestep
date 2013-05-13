@@ -70,8 +70,8 @@ var scheduler = new EventScheduler();
  *
  * This doesn't correspond to native and isn't being used.
  */
-var FocusMgr = new (Class(function() {
-	this.init = function(opts) {
+var FocusMgr = new (Class(function () {
+	this.init = function (opts) {
 		this._keyListener = KeyListener && (new KeyListener());
 		this._target = null;
 		this._canChange = true;
@@ -93,7 +93,7 @@ var FocusMgr = new (Class(function() {
 		}
 	};
 
-	this.blur = function(target) {
+	this.blur = function (target) {
 		target.onBlur && target.onBlur(this);
 		this._target = false;
 	};
@@ -101,11 +101,11 @@ var FocusMgr = new (Class(function() {
 	/**
 	 * Return the keylistener used by the focus manager.
 	 */
-	this.getKeyListener = function() {
+	this.getKeyListener = function () {
 		return this._keyListener;
 	};
 
-	this.get = function() {
+	this.get = function () {
 		return this;
 	};
 }));
@@ -120,7 +120,7 @@ var _BackingCtor = null;
 /**
  * @extends event.Emitter
  */
-var View = exports = Class(Emitter, function() {
+var View = exports = Class(Emitter, function () {
 	/**
 	 * infinite: boolean, default false - if true, no bounding shape at all (e.g. infinite scroll plane)
 	 * clip: boolean, default false - if true, always clip to the region
@@ -143,7 +143,7 @@ var View = exports = Class(Emitter, function() {
 		this.updateOpts(opts);
 	};
 
-	this.updateOpts = function(opts) {
+	this.updateOpts = function (opts) {
 		opts = opts || {};
 		if (this._opts) {
 			for (var key in opts) {
@@ -180,7 +180,7 @@ var View = exports = Class(Emitter, function() {
 	/**
 	 * Returns the filters attached to this view -- DEPRECATED
 	 */
-	this.getFilters = function() {
+	this.getFilters = function () {
 		logger.warn("View.getFilters() is deprecated! Use View.getFilter() instead.");
 		var filters = {};
 		if (this._filter) {
@@ -192,12 +192,12 @@ var View = exports = Class(Emitter, function() {
 	/**
 	 * Returns the filter attached to this view.
 	 */
-	this.getFilter = function() { return this._filter; };
+	this.getFilter = function () { return this._filter; };
 
 	/**
 	 * Sets the filter on this view -- DEPRECATED
 	 */
-	this.addFilter = function(filter) {
+	this.addFilter = function (filter) {
 		logger.warn("View.addFilter() is deprecated! Use View.setFilter() instead.");
 		this.setFilter(filter);
 	};
@@ -205,12 +205,12 @@ var View = exports = Class(Emitter, function() {
 	/**
 	 * Sets the filter on this view. Only one filter can exist on a view.
 	 */
-	this.setFilter = function(filter) { this._filter = filter; };
+	this.setFilter = function (filter) { this._filter = filter; };
 
 	/**
 	 * Remove the filter from this view.
 	 */
-	this.removeFilter = function() { this._filter = null; };
+	this.removeFilter = function () { this._filter = null; };
 
 	// --- render/tick setters ---
 
@@ -219,7 +219,7 @@ var View = exports = Class(Emitter, function() {
 	 */
 	util.setProperty(this, 'render', {
 			value: undefined,
-			cb: function() { this.__view && (this.__view.hasJSRender = true); }
+			cb: function () { this.__view && (this.__view.hasJSRender = true); }
 		});
 
 	/**
@@ -227,7 +227,7 @@ var View = exports = Class(Emitter, function() {
 	 */
 	util.setProperty(this, 'tick', {
 			value: undefined,
-			cb: function() { this.__view && (this.__view.hasJSTick = true); }
+			cb: function () { this.__view && (this.__view.hasJSTick = true); }
 		});
 
 	// --- animation component ---
@@ -235,7 +235,7 @@ var View = exports = Class(Emitter, function() {
 	/**
 	 * Get an animation group from this view.
 	 */
-	this.getAnimation = function(groupID) {
+	this.getAnimation = function (groupID) {
 		return animate(this, groupID);
 	};
 
@@ -243,56 +243,56 @@ var View = exports = Class(Emitter, function() {
 	 * @deprecated
 	 * Return an animation object for this view.
 	 */
-	this.animate = function(style, duration, easing) { return this.getAnimation().then(style, duration, easing); };
+	this.animate = function (style, duration, easing) { return this.getAnimation().then(style, duration, easing); };
 
 	// --- ui focus/blur component ---
 
 	/**
 	 * Indicate to the focus manager singleton this element is focused.
 	 */
-	this.focus = function() { FocusMgr.get().focus(this); return this; };
+	this.focus = function () { FocusMgr.get().focus(this); return this; };
 
 	/**
 	 * Indicate to the focus manager singleton this element is blurred.
 	 */
-	this.blur = function() { FocusMgr.get().blur(this); return this; };
+	this.blur = function () { FocusMgr.get().blur(this); return this; };
 
 	/**
 	 * Triggered when focus is given to this view.
 	 */
-	this.onFocus = function() { this._isFocused = true; };
+	this.onFocus = function () { this._isFocused = true; };
 
 	/**
 	 * Indicate to the focus manager singleton this element is blurred.
 	 */
-	this.onBlur = function() { this._isFocused = false; };
+	this.onBlur = function () { this._isFocused = false; };
 
 	// --- input component ---
 
 	/**
 	 * Returns a boolean indicating we are currently dragging this view.
 	 */
-	this.isDragging = function() { return this.__input.isDragging(); };
+	this.isDragging = function () { return this.__input.isDragging(); };
 
 	/**
 	 * Start responding to touch input by dragging this view.
 	 */
-	this.startDrag = function(opts) { this.__input.startDrag(opts); };
+	this.startDrag = function (opts) { this.__input.startDrag(opts); };
 
 	/**
 	 * Return the InputHandler for this view.
 	 */
-	this.getInput = function() { return this.__input; };
+	this.getInput = function () { return this.__input; };
 
 	/**
 	 * Returns a boolean indicating if a touch is on this view.
 	 */
-	this.isInputOver = function() { return !!this.__input.overCount; };
+	this.isInputOver = function () { return !!this.__input.overCount; };
 
 	/**
 	 * Returns a number indicating how many touches are on this view.
 	 */
-	this.getInputOverCount = function() { return this._inputOverCount; };
+	this.getInputOverCount = function () { return this._inputOverCount; };
 
 	/**
 	 * Renamed to setHandleEvents, canHandleEvents is deprecated.
@@ -311,8 +311,8 @@ var View = exports = Class(Emitter, function() {
 	this.setIsHandlingEvents = function (canHandleEvents) { this.__input.canHandleEvents = canHandleEvents; };
 	this.isHandlingEvents = function () { return this.__input.canHandleEvents; };
 
-	this.needsRepaint = function() { this._needsRepaint = true; }
-	this.needsReflow = function(force) {
+	this.needsRepaint = function () { this._needsRepaint = true; }
+	this.needsReflow = function (force) {
 		if (this.style.__firstRender || force) {
 			_reflowMgr.add(this);
 			this._needsRepaint = true;
@@ -323,7 +323,7 @@ var View = exports = Class(Emitter, function() {
 	 * Consumes an event targeting this view.
 	 * NOTE: Does no actual propagation.
 	 */
-	this._onEventPropagate = function(evt, pt, atTarget) {
+	this._onEventPropagate = function (evt, pt, atTarget) {
 		if (atTarget) {
 			var id = evt.id;
 			var lastEvt;
@@ -492,7 +492,7 @@ var View = exports = Class(Emitter, function() {
 	/**
 	 * Removes a subview.
 	 */
-	this.removeSubview = function(view) {
+	this.removeSubview = function (view) {
 		if (this.__view.removeSubview(view)) {
 			this.publish('SubviewRemoved', view);
 			if (view.__root) {
@@ -513,7 +513,7 @@ var View = exports = Class(Emitter, function() {
 	/**
 	 * Removes this view from its parent.
 	 */
-	this.removeFromSuperview = function() {
+	this.removeFromSuperview = function () {
 		var superview = this.__view.getSuperview();
 		if (superview) {
 			superview.removeSubview(this);
@@ -523,7 +523,7 @@ var View = exports = Class(Emitter, function() {
 	/**
 	 * Removes all subviews from this view.
 	 */
-	this.removeAllSubviews = function() {
+	this.removeAllSubviews = function () {
 		var subviews = this.getSubviews();
 		var i = subviews.length;
 		while (i--) {
@@ -532,8 +532,8 @@ var View = exports = Class(Emitter, function() {
 	};
 
 	// legacy implementation shim
-	util.setProperty(this, '_superview', {get: this.getSuperview, set: function() {}});
-	util.setProperty(this, '_subviews', {get: this.getSubviews, set: function() {}});
+	util.setProperty(this, '_superview', {get: this.getSuperview, set: function () {}});
+	util.setProperty(this, '_subviews', {get: this.getSubviews, set: function () {}});
 
 	// --- onResize callbacks ---
 
@@ -545,7 +545,7 @@ var View = exports = Class(Emitter, function() {
 	/**
 	 * Get the root application for this view.
 	 */
-	this.getApp = function() {
+	this.getApp = function () {
 		var top = this;
 		var next;
 		do {
@@ -557,7 +557,7 @@ var View = exports = Class(Emitter, function() {
 	/**
 	 * Returns an array of all ancestors of the current view.
 	 */
-	this.getParents = function() {
+	this.getParents = function () {
 		var list = [this];
 		var next;
 		do {
@@ -571,12 +571,12 @@ var View = exports = Class(Emitter, function() {
 	/**
 	 * @interface
 	 */
-	this.buildView = function() {};
+	this.buildView = function () {};
 
 	/**
 	 * Determine if this view contains a point.
 	 */
-	this.containsLocalPoint = function(pt) {
+	this.containsLocalPoint = function (pt) {
 		if (this._infinite) { return true; }  // infinite plane
 
 		var s = this.style,
@@ -598,7 +598,7 @@ var View = exports = Class(Emitter, function() {
 	 * Return the bounding shape for this view. The shape is defined in the
 	 * options object when this view was constructed.
 	 */
-	this.getBoundingShape = function() {
+	this.getBoundingShape = function () {
 		var s = this.style;
 		if (this._infinite) {
 			return true;
@@ -613,7 +613,7 @@ var View = exports = Class(Emitter, function() {
 	 * WARNING: only works with non-rotated rectangles.
 	 * TODO Make it work with rotated rectangles!
 	 */
-	this.getRelativeRegion = function(region, parent) {
+	this.getRelativeRegion = function (region, parent) {
 		var offset = this.getPosition(parent || region.src);
 		return new Rect((region.x - offset.x) / offset.scale,
 						(region.y - offset.y)  / offset.scale,
@@ -624,7 +624,7 @@ var View = exports = Class(Emitter, function() {
 	/**
 	 * Return a fully defined position, rotation, size, and scale for this view.
 	 */
-	this.getPosition = function(/* optional */ relativeTo) {
+	this.getPosition = function (/* optional */ relativeTo) {
 		var abs = new Point(),
 			view = this,
 			r = 0,

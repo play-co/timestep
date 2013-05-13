@@ -15,7 +15,7 @@
  * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-exports.resolve = function(env, opts) {
+exports.resolve = function (env, opts) {
 	return [
 		'.Canvas',
 		'.Context2D',
