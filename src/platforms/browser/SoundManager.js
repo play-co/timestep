@@ -220,17 +220,17 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
    * public soundManager API
   */
 
-  this.ok = function() {
+  this.ok = function () {
     return (_needsFlash?(_didInit && !_disabled):(_s.useHTML5Audio && _s.hasHTML5));
   };
 
   this.supported = this.ok; // legacy
 
-  this.getMovie = function(smID) {
+  this.getMovie = function (smID) {
     return _isIE?_win[smID]:(_isSafari?_id(smID) || _doc[smID]:_id(smID));
   };
 
-  this.createSound = function(oOptions) {
+  this.createSound = function (oOptions) {
     var _cs = _sm+'.createSound(): ',
     thisOptions = null, oSound = null, _tO = null;
     if (!_didInit || !_s.ok()) {
@@ -311,7 +311,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return oSound;
   };
 
-  this.destroySound = function(sID, _bFromSound) {
+  this.destroySound = function (sID, _bFromSound) {
     // explicitly destroy a sound before normal page unload, etc.
     if (!_idCheck(sID)) {
       return false;
@@ -335,21 +335,21 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return true;
   };
 
-  this.load = function(sID, oOptions) {
+  this.load = function (sID, oOptions) {
     if (!_idCheck(sID)) {
       return false;
     }
     return _s.sounds[sID].load(oOptions);
   };
 
-  this.unload = function(sID) {
+  this.unload = function (sID) {
     if (!_idCheck(sID)) {
       return false;
     }
     return _s.sounds[sID].unload();
   };
 
-  this.play = function(sID, oOptions) {
+  this.play = function (sID, oOptions) {
     var fN = _sm+'.play(): ';
     if (!_didInit || !_s.ok()) {
       _complain(fN + _str(!_didInit?'notReady':'notOK'));
@@ -375,14 +375,14 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
 
   this.start = this.play; // just for convenience
 
-  this.setPosition = function(sID, nMsecOffset) {
+  this.setPosition = function (sID, nMsecOffset) {
     if (!_idCheck(sID)) {
       return false;
     }
     return _s.sounds[sID].setPosition(nMsecOffset);
   };
 
-  this.stop = function(sID) {
+  this.stop = function (sID) {
     if (!_idCheck(sID)) {
       return false;
     }
@@ -390,7 +390,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return _s.sounds[sID].stop();
   };
 
-  this.stopAll = function() {
+  this.stopAll = function () {
     var oSound;
     _s._wD(_sm+'.stopAll()', 1);
     for (oSound in _s.sounds) {
@@ -400,56 +400,56 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     }
   };
 
-  this.pause = function(sID) {
+  this.pause = function (sID) {
     if (!_idCheck(sID)) {
       return false;
     }
     return _s.sounds[sID].pause();
   };
 
-  this.pauseAll = function() {
+  this.pauseAll = function () {
     var i;
     for (i = _s.soundIDs.length; i--;) {
       _s.sounds[_s.soundIDs[i]].pause();
     }
   };
 
-  this.resume = function(sID) {
+  this.resume = function (sID) {
     if (!_idCheck(sID)) {
       return false;
     }
     return _s.sounds[sID].resume();
   };
 
-  this.resumeAll = function() {
+  this.resumeAll = function () {
     var i;
     for (i = _s.soundIDs.length; i--;) {
       _s.sounds[_s.soundIDs[i]].resume();
     }
   };
 
-  this.togglePause = function(sID) {
+  this.togglePause = function (sID) {
     if (!_idCheck(sID)) {
       return false;
     }
     return _s.sounds[sID].togglePause();
   };
 
-  this.setPan = function(sID, nPan) {
+  this.setPan = function (sID, nPan) {
     if (!_idCheck(sID)) {
       return false;
     }
     return _s.sounds[sID].setPan(nPan);
   };
 
-  this.setVolume = function(sID, nVol) {
+  this.setVolume = function (sID, nVol) {
     if (!_idCheck(sID)) {
       return false;
     }
     return _s.sounds[sID].setVolume(nVol);
   };
 
-  this.mute = function(sID) {
+  this.mute = function (sID) {
     var fN = _sm+'.mute(): ',
     i = 0;
     if (typeof sID !== 'string') {
@@ -471,11 +471,11 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return true;
   };
 
-  this.muteAll = function() {
+  this.muteAll = function () {
     _s.mute();
   };
 
-  this.unmute = function(sID) {
+  this.unmute = function (sID) {
     var fN = _sm+'.unmute(): ', i;
     if (typeof sID !== 'string') {
       sID = null;
@@ -496,18 +496,18 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return true;
   };
 
-  this.unmuteAll = function() {
+  this.unmuteAll = function () {
     _s.unmute();
   };
 
-  this.toggleMute = function(sID) {
+  this.toggleMute = function (sID) {
     if (!_idCheck(sID)) {
       return false;
     }
     return _s.sounds[sID].toggleMute();
   };
 
-  this.getMemoryUse = function() {
+  this.getMemoryUse = function () {
     // flash-only
     var ram = 0;
     if (_s.o && _fV !== 8) {
@@ -516,7 +516,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return ram;
   };
 
-  this.disable = function(bNoDisable) {
+  this.disable = function (bNoDisable) {
     // destroy all functions
     var i;
     if (typeof bNoDisable === 'undefined') {
@@ -535,7 +535,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return true;
   };
 
-  this.canPlayMIME = function(sMIME) {
+  this.canPlayMIME = function (sMIME) {
     var result;
     if (_s.hasHTML5) {
       result = _html5CanPlay({type:sMIME});
@@ -548,7 +548,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     }
   };
 
-  this.canPlayURL = function(sURL) {
+  this.canPlayURL = function (sURL) {
     var result;
     if (_s.hasHTML5) {
       result = _html5CanPlay({url: sURL});
@@ -561,7 +561,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     }
   };
 
-  this.canPlayLink = function(oLink) {
+  this.canPlayLink = function (oLink) {
     if (typeof oLink.type !== 'undefined' && oLink.type) {
       if (_s.canPlayMIME(oLink.type)) {
         return true;
@@ -570,7 +570,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return _s.canPlayURL(oLink.href);
   };
 
-  this.getSoundById = function(sID, suppressDebug) {
+  this.getSoundById = function (sID, suppressDebug) {
     if (!sID) {
       throw new Error(_sm+'.getSoundById(): sID is null/undefined');
     }
@@ -581,7 +581,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return result;
   };
 
-  this.onready = function(oMethod, oScope) {
+  this.onready = function (oMethod, oScope) {
     var sType = 'onready';
     if (oMethod && oMethod instanceof Function) {
       if (_didInit) {
@@ -598,7 +598,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     }
   };
 
-  this.ontimeout = function(oMethod, oScope) {
+  this.ontimeout = function (oMethod, oScope) {
     var sType = 'ontimeout';
     if (oMethod && oMethod instanceof Function) {
       if (_didInit) {
@@ -615,7 +615,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     }
   };
 
-  this._writeDebug = function(sText, sType, bTimestamp) {
+  this._writeDebug = function (sText, sType, bTimestamp) {
     // pseudo-private console.log()-style output
     // <d>
     var sDID = 'soundmanager-debug', o, oItem, sMethod;
@@ -670,7 +670,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
   };
   this._wD = this._writeDebug; // alias
 
-  this._debug = function() {
+  this._debug = function () {
     // <d>
     var i, j;
     _wDS('currentObj', 1);
@@ -680,7 +680,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     // </d>
   };
 
-  this.reboot = function() {
+  this.reboot = function () {
     // attempt to reset and init SM2
     _s._wD(_sm+'.reboot()');
     if (_s.soundIDs.length) {
@@ -717,14 +717,14 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     _win.setTimeout(_s.beginDelayedInit, 20);
   };
 
-  this.getMoviePercent = function() {
+  this.getMoviePercent = function () {
     return (_s.o && typeof _s.o.PercentLoaded !== 'undefined' ? _s.o.PercentLoaded() : null);
   };
 
-  this.beginDelayedInit = function() {
+  this.beginDelayedInit = function () {
     _windowLoaded = true;
     _dcLoaded();
-    setTimeout(function() {
+    setTimeout(function () {
       if (_initPending) {
         return false;
       }
@@ -736,7 +736,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     _delayWaitForEI();
   };
 
-  this.destruct = function() {
+  this.destruct = function () {
     _s._wD(_sm+'.destruct()');
     _s.disable(true);
   };
@@ -747,7 +747,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
 
   function _html5_event(oFn) {
     // wrap html5 event handlers so we don't call them on destroyed sounds
-    return function(e) {
+    return function (e) {
       if (!this._t || !this._t._a) {
         if (this._t && this._t.sID) {
           _s._wD(_h5+'ignoring '+e.type+': '+this._t.sID);
@@ -764,12 +764,12 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
   _html5_events = {
 
     // HTML5 event-name-to-handler map
-    abort: _html5_event(function(e) {
+    abort: _html5_event(function (e) {
       _s._wD(_h5+'abort: '+this._t.sID);
     }),
 
     // enough has loaded to play
-    canplay: _html5_event(function(e) {
+    canplay: _html5_event(function (e) {
       if (this._t._html5_canplay) {
         // this event has already fired. ignore.
         return true;
@@ -789,7 +789,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       }
     }),
 
-    load: _html5_event(function(e) {
+    load: _html5_event(function (e) {
       if (!this._t.loaded) {
         this._t._onbufferchange(0);
         // should be 1, and the same
@@ -798,22 +798,22 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       }
     }),
 
-    emptied: _html5_event(function(e) {
+    emptied: _html5_event(function (e) {
       _s._wD(_h5+'emptied: '+this._t.sID);
     }),
 
-    ended: _html5_event(function(e) {
+    ended: _html5_event(function (e) {
       _s._wD(_h5+'ended: '+this._t.sID);
       this._t._onfinish();
     }),
 
-    error: _html5_event(function(e) {
+    error: _html5_event(function (e) {
       _s._wD(_h5+'error: '+this.error.code);
       // call load with error state?
       this._t._onload(false);
     }),
 
-    loadeddata: _html5_event(function(e) {
+    loadeddata: _html5_event(function (e) {
       var t = this._t,
           bytesTotal = t.bytesTotal || 1; // at least 1 byte, so math works
       _s._wD(_h5+'loadeddata: '+this._t.sID);
@@ -825,30 +825,30 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       }
     }),
 
-    loadedmetadata: _html5_event(function(e) {
+    loadedmetadata: _html5_event(function (e) {
       _s._wD(_h5+'loadedmetadata: '+this._t.sID);
     }),
 
-    loadstart: _html5_event(function(e) {
+    loadstart: _html5_event(function (e) {
       _s._wD(_h5+'loadstart: '+this._t.sID);
       // assume buffering at first
       this._t._onbufferchange(1);
     }),
 
-    play: _html5_event(function(e) {
+    play: _html5_event(function (e) {
       _s._wD(_h5+'play: '+this._t.sID+', '+this._t.url);
       // once play starts, no buffering
       this._t._onbufferchange(0);
     }),
 
     // TODO: verify if this is actually implemented anywhere yet.
-    playing: _html5_event(function(e) {
+    playing: _html5_event(function (e) {
       _s._wD(_h5+'playing: '+this._t.sID+', '+this._t.url);
       // once play starts, no buffering
       this._t._onbufferchange(0);
     }),
 
-    progress: _html5_event(function(e) {
+    progress: _html5_event(function (e) {
 
       if (this._t.loaded) {
         return false;
@@ -902,25 +902,25 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
 
     }),
 
-    ratechange: _html5_event(function(e) {
+    ratechange: _html5_event(function (e) {
       _s._wD(_h5+'ratechange: '+this._t.sID);
     }),
 
-    suspend: _html5_event(function(e) {
+    suspend: _html5_event(function (e) {
       // download paused/stopped, may have finished (eg. onload)
       _s._wD(_h5+'suspend: '+this._t.sID);
       _html5_events.progress.call(this, e);
     }),
 
-    stalled: _html5_event(function(e) {
+    stalled: _html5_event(function (e) {
       _s._wD(_h5+'stalled: '+this._t.sID);
     }),
 
-    timeupdate: _html5_event(function(e) {
+    timeupdate: _html5_event(function (e) {
       this._t._onTimer();
     }),
 
-    waiting: _html5_event(function(e) { // see also: seeking
+    waiting: _html5_event(function (e) { // see also: seeking
       _s._wD(_h5+'waiting: '+this._t.sID);
       // playback faster than download rate, etc.
       this._t._onbufferchange(1);
@@ -932,7 +932,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
    * SMSound() (sound object) instance
   */
 
-  SMSound = function(oOptions) {
+  SMSound = function (oOptions) {
 
     var _t = this, _resetProperties, _stop_html5_timer, _start_html5_timer;
     this.sID = oOptions.id;
@@ -951,7 +951,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
 
     this.id3 = {};
 
-    this._debug = function() {
+    this._debug = function () {
       // <d>
       // pseudo-private console.log()-style output
       if (_s.debugMode) {
@@ -978,7 +978,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     this._debug();
     // </d>
 
-    this.load = function(oOptions) {
+    this.load = function (oOptions) {
       var oS = null;
       if (typeof oOptions !== 'undefined') {
         _t._iO = _mixin(oOptions, _t.options);
@@ -1036,7 +1036,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       return _t;
     };
 
-    this.unload = function() {
+    this.unload = function () {
       // Flash 8/AS2 can't "close" a stream - fake it by loading an empty MP3
       // Flash 9/AS3: Close stream, preventing further load
       if (_t.readyState !== 0) {
@@ -1061,7 +1061,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       return _t;
     };
 
-    this.destruct = function(_bFromSM) {
+    this.destruct = function (_bFromSM) {
       _s._wD('SMSound.destruct(): "' + _t.sID + '"');
       if (!_t.isHTML5) {
         // kill sound within Flash
@@ -1086,7 +1086,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       }
     };
 
-    this.play = function(oOptions, _updatePlayState) {
+    this.play = function (oOptions, _updatePlayState) {
       var fN = 'SMSound.play(): ', allowMulti, a;
       _updatePlayState = _updatePlayState === undefined ? true : _updatePlayState; // default to true
       if (!oOptions) {
@@ -1178,7 +1178,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
 
     this.start = this.play; // just for convenience
 
-    this.stop = function(bAll) {
+    this.stop = function (bAll) {
       if (_t.playState === 1) {
         _t._onbufferchange(0);
         _t.resetOnPosition(0);
@@ -1211,7 +1211,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       return _t;
     };
 
-    this.setAutoPlay = function(autoPlay) {
+    this.setAutoPlay = function (autoPlay) {
       _s._wD('sound '+_t.sID+' turned autoplay ' + (autoPlay ? 'on' : 'off'));
       _t._iO.autoPlay = autoPlay;
       if (!_t.isHTML5) {
@@ -1226,11 +1226,11 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       }
     };
 
-    this.getAutoPlay = function() {
+    this.getAutoPlay = function () {
       return _t._iO.autoPlay;
     };
 
-    this.setPosition = function(nMsecOffset) {
+    this.setPosition = function (nMsecOffset) {
       if (nMsecOffset === undefined) {
         nMsecOffset = 0;
       }
@@ -1279,7 +1279,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       return _t;
     };
 
-    this.pause = function(bCallFlash) {
+    this.pause = function (bCallFlash) {
       if (_t.paused || (_t.playState === 0 && _t.readyState !== 1)) {
         return _t;
       }
@@ -1306,7 +1306,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
      * hasn't been called already. In this case since the sound is being played for the
      * first time, I think it's more appropriate to call onplay() rather than onresume().
     */
-    this.resume = function() {
+    this.resume = function () {
       if (!_t.paused) {
         return _t;
       }
@@ -1332,7 +1332,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       return _t;
     };
 
-    this.togglePause = function() {
+    this.togglePause = function () {
       _s._wD('SMSound.togglePause()');
       if (_t.playState === 0) {
         _t.play({
@@ -1348,7 +1348,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       return _t;
     };
 
-    this.setPan = function(nPan, bInstanceOnly) {
+    this.setPan = function (nPan, bInstanceOnly) {
       if (typeof nPan === 'undefined') {
         nPan = 0;
       }
@@ -1366,7 +1366,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       return _t;
     };
 
-    this.setVolume = function(nVol, bInstanceOnly) {
+    this.setVolume = function (nVol, bInstanceOnly) {
       if (typeof nVol === 'undefined') {
         nVol = 100;
       }
@@ -1386,7 +1386,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       return _t;
     };
 
-    this.mute = function() {
+    this.mute = function () {
       _t.muted = true;
       if (!_t.isHTML5) {
         _s.o._setVolume(_t.sID, 0);
@@ -1396,7 +1396,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       return _t;
     };
 
-    this.unmute = function() {
+    this.unmute = function () {
       _t.muted = false;
       var hasIO = typeof _t._iO.volume !== 'undefined';
       if (!_t.isHTML5) {
@@ -1407,11 +1407,11 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       return _t;
     };
 
-    this.toggleMute = function() {
+    this.toggleMute = function () {
       return (_t.muted?_t.unmute():_t.mute());
     };
 
-    this.onposition = function(nPosition, oMethod, oScope) {
+    this.onposition = function (nPosition, oMethod, oScope) {
       // TODO: allow for ranges, too? eg. (nPosition instanceof Array)
       _t._onPositionItems.push({
         position: nPosition,
@@ -1422,7 +1422,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       return _t;
     };
 
-    this.processOnPosition = function() {
+    this.processOnPosition = function () {
       var i, item, j = _t._onPositionItems.length;
       if (!j || !_t.playState || _t._onPositionFired >= j) {
         return false;
@@ -1438,7 +1438,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       return true;
     };
 
-    this.resetOnPosition = function(nPosition) {
+    this.resetOnPosition = function (nPosition) {
       // reset "fired" for items interested in this position
       var i, item, j = _t._onPositionItems.length;
       if (!j) {
@@ -1458,19 +1458,19 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
      * private internals
     */
 
-    _start_html5_timer = function() {
+    _start_html5_timer = function () {
       if (_t.isHTML5) {
         _startTimer(_t);
       }
     };
 
-    _stop_html5_timer = function() {
+    _stop_html5_timer = function () {
       if (_t.isHTML5) {
         _stopTimer(_t);
       }
     };
 
-    _resetProperties = function() {
+    _resetProperties = function () {
       _t._onPositionItems = [];
       _t._onPositionFired = 0;
       _t._hasTimer = null;
@@ -1512,7 +1512,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
      * pseudo-private SMSound internals
     */
 
-    this._onTimer = function(bForce) {
+    this._onTimer = function (bForce) {
       // HTML5-only _whileplaying() etc.
       var time, x = {};
       if (_t._hasTimer || bForce) {
@@ -1529,13 +1529,13 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       }
     };
 
-    this._get_html5_duration = function() {
+    this._get_html5_duration = function () {
       var d = (_t._a ? _t._a.duration*1000 : (_t._iO ? _t._iO.duration : undefined)),
           result = (d && !isNaN(d) && d !== Infinity ? d : (_t._iO ? _t._iO.duration : null));
       return result;
     };
 
-    this._setup_html5 = function(oOptions) {
+    this._setup_html5 = function (oOptions) {
       var _iO = _mixin(_t._iO, oOptions), d = decodeURI,
           _a = _useGlobalHTML5Audio ? _s._global_a : _t._a,
           _dURL = d(_iO.url),
@@ -1584,7 +1584,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       return _a;
     };
 
-    this._add_html5_events = function() {
+    this._add_html5_events = function () {
 
       if (_t._a._added_events) {
         return false;
@@ -1609,7 +1609,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
 
     };
 
-    this._remove_html5_events = function() {
+    this._remove_html5_events = function () {
 
       // Remove event listeners
 
@@ -1634,7 +1634,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
      * pseudo-private event internals
     */
 
-    this._onload = function(nSuccess) {
+    this._onload = function (nSuccess) {
       var fN = 'SMSound._onload(): ', loadOK = (nSuccess?true:false);
       _s._wD(fN + '"' + _t.sID + '"' + (loadOK?' loaded.':' failed to load? - ' + _t.url), (loadOK?1:2));
       // <d>
@@ -1656,7 +1656,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       return true;
     };
 
-    this._onbufferchange = function(nIsBuffering) {
+    this._onbufferchange = function (nIsBuffering) {
       var fN = 'SMSound._onbufferchange()';
       if (_t.playState === 0) {
         // ignore if not playing
@@ -1677,7 +1677,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
      * flash-only method, should fire only once at most
      * at this point we just recreate failed sounds rather than trying to reconnect
     */
-    this._onfailure = function(msg, level, code) {
+    this._onfailure = function (msg, level, code) {
       _t.failures++;
       _s._wD('SMSound._onfailure(): "'+_t.sID+'" count '+_t.failures);
       if (_t._iO.onfailure && _t.failures === 1) {
@@ -1687,7 +1687,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       }
     };
 
-    this._onbeforefinish = function() {
+    this._onbeforefinish = function () {
       if (!_t.didBeforeFinish) {
         _t.didBeforeFinish = true;
         if (_t._iO.onbeforefinish) {
@@ -1697,7 +1697,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       }
     };
 
-    this._onjustbeforefinish = function(msOffset) {
+    this._onjustbeforefinish = function (msOffset) {
       if (!_t.didJustBeforeFinish) {
         _t.didJustBeforeFinish = true;
         if (_t._iO.onjustbeforefinish) {
@@ -1707,7 +1707,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       }
     };
 
-    this._onfinish = function() {
+    this._onfinish = function () {
       var _io_onfinish = _t._iO.onfinish; // store local copy before it gets trashed..
       _t._onbufferchange(0);
       _t.resetOnPosition(0);
@@ -1738,7 +1738,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       }
     };
 
-    this._whileloading = function(nBytesLoaded, nBytesTotal, nDuration, nBufferLength) {
+    this._whileloading = function (nBytesLoaded, nBytesTotal, nDuration, nBufferLength) {
       _t.bytesLoaded = nBytesLoaded;
       _t.bytesTotal = nBytesTotal;
       _t.duration = Math.floor(nDuration);
@@ -1764,7 +1764,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       }
     };
 
-    this._whileplaying = function(nPosition, oPeakData, oWaveformDataLeft, oWaveformDataRight, oEQData) {
+    this._whileplaying = function (nPosition, oPeakData, oWaveformDataLeft, oWaveformDataRight, oEQData) {
       if (isNaN(nPosition) || nPosition === null) {
         return false; // flash safety net
       }
@@ -1809,7 +1809,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       return true;
     };
 
-    this._onid3 = function(oID3PropNames, oID3Data) {
+    this._onid3 = function (oID3PropNames, oID3Data) {
       // oID3PropNames: string array (names)
       // ID3Data: string array (data)
       _s._wD('SMSound._onid3(): "' + this.sID + '" ID3 data received.');
@@ -1824,7 +1824,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     };
 
     // flash + RTMP
-    this._onconnect = function(bSuccess) {
+    this._onconnect = function (bSuccess) {
       var fN = 'SMSound._onconnect(): ';
       bSuccess = (bSuccess === 1);
       _s._wD(fN+'"'+_t.sID+'"'+(bSuccess?' connected.':' failed to connect? - '+_t.url), (bSuccess?1:2));
@@ -1844,7 +1844,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       }
     };
 
-    this._ondataerror = function(sError) {
+    this._ondataerror = function (sError) {
       // flash 9 wave/eq data handler
       if (_t.playState > 0) { // hack: called at start, and end from flash at/after onfinish()
         _s._wD('SMSound._ondataerror(): ' + sError);
@@ -1860,15 +1860,15 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
    * private soundManager internals
   */
 
-  _getDocument = function() {
+  _getDocument = function () {
     return (_doc.body || _doc._docElement || _doc.getElementsByTagName('div')[0]);
   };
 
-  _id = function(sID) {
+  _id = function (sID) {
     return _doc.getElementById(sID);
   };
 
-  _mixin = function(oMain, oAdd) {
+  _mixin = function (oMain, oAdd) {
     // non-destructive merge
     var o1 = {}, i, o2, o;
     for (i in oMain) { // clone c1
@@ -1885,7 +1885,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return o1;
   };
 
-  _event = (function() {
+  _event = (function () {
 
     var old = (_win.attachEvent),
     evt = {
@@ -1931,11 +1931,11 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
 
   }());
 
-  _html5OK = function(iO) {
+  _html5OK = function (iO) {
     return (!iO.serverURL && (iO.type?_html5CanPlay({type:iO.type}):_html5CanPlay({url:iO.url})||_s.html5Only)); // Use type, if specified. If HTML5-only mode, no other options, so just give 'er
   };
 
-  _html5CanPlay = function(o) {
+  _html5CanPlay = function (o) {
 
     /*
      * try to find MIME, test and return truthiness
@@ -2007,7 +2007,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
 
   };
 
-  _testHTML5 = function() {
+  _testHTML5 = function () {
 
     if (!_s.useHTML5Audio || typeof Audio === 'undefined') {
       return false;
@@ -2116,7 +2116,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     // </d>
   };
 
-  _str = function() { // o [,items to replace]
+  _str = function () { // o [,items to replace]
     // <d>
     var args = _slice.call(arguments), // real array, please
     o = args.shift(), // first arg
@@ -2130,7 +2130,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     // </d>
   };
 
-  _loopFix = function(sOpt) {
+  _loopFix = function (sOpt) {
     // flash 8 requires stream = false for looping to work
     if (_fV === 8 && sOpt.loops > 1 && sOpt.stream) {
       _wDS('as2loop');
@@ -2139,7 +2139,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return sOpt;
   };
 
-  _policyFix = function(sOpt, sPre) {
+  _policyFix = function (sOpt, sPre) {
     if (sOpt && !sOpt.usePolicyFile && (sOpt.onid3 || sOpt.usePeakData || sOpt.useWaveformData || sOpt.useEQData)) {
       _s._wD((sPre || '') + _str('policy'));
       sOpt.usePolicyFile = true;
@@ -2147,7 +2147,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return sOpt;
   };
 
-  _complain = function(sMsg) {
+  _complain = function (sMsg) {
     if (typeof console !== 'undefined' && typeof console.warn !== 'undefined') {
       console.warn(sMsg);
     } else {
@@ -2155,11 +2155,11 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     }
   };
 
-  _doNothing = function() {
+  _doNothing = function () {
     return false;
   };
 
-  _disableObject = function(o) {
+  _disableObject = function (o) {
     var oProp;
     for (oProp in o) {
       if (o.hasOwnProperty(oProp) && typeof o[oProp] === 'function') {
@@ -2169,7 +2169,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     oProp = null;
   };
 
-  _failSafely = function(bNoDisable) {
+  _failSafely = function (bNoDisable) {
     // general failure exception handler
     if (typeof bNoDisable === 'undefined') {
       bNoDisable = false;
@@ -2180,7 +2180,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     }
   };
 
-  _normalizeMovieURL = function(smURL) {
+  _normalizeMovieURL = function (smURL) {
     var urlParams = null;
     if (smURL) {
       if (smURL.match(/\.swf(\?.*)?$/i)) {
@@ -2195,7 +2195,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return (smURL && smURL.lastIndexOf('/') !== - 1?smURL.substr(0, smURL.lastIndexOf('/') + 1):'./') + _s.movieURL;
   };
 
-  _setVersionInfo = function() {
+  _setVersionInfo = function () {
 
     if (_fV !== 8 && _fV !== 9) {
       _s._wD(_str('badFV', _fV, _defaultFlashVersion));
@@ -2228,14 +2228,14 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     _s.features.peakData = _s.features.waveformData = _s.features.eqData = (_fV > 8);
   };
 
-  _setPolling = function(bPolling, bHighPerformance) {
+  _setPolling = function (bPolling, bHighPerformance) {
     if (!_s.o || !_s.allowPolling) {
       return false;
     }
     _s.o._setPolling(bPolling, bHighPerformance);
   };
 
-  _initDebug = function() {
+  _initDebug = function () {
     if (_s.debugURLParam.test(_wl)) {
       _s.debugMode = true; // allow force of debug mode via URL
     }
@@ -2294,7 +2294,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
   _idCheck = this.getSoundById;
 
   // <d>
-  _wDS = function(o, errorLevel) {
+  _wDS = function (o, errorLevel) {
     if (!o) {
       return '';
     } else {
@@ -2304,10 +2304,10 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
 
   // last-resort debugging option
   if (_wl.indexOf('sm2-debug=alert') + 1 && _s.debugMode) {
-    _s._wD = function(sText) {window.alert(sText);};
+    _s._wD = function (sText) {window.alert(sText);};
   }
 
-  _toggleDebug = function() {
+  _toggleDebug = function () {
     var o = _id(_s.debugID),
     oT = _id(_s.debugID + '-toggle');
     if (!o) {
@@ -2324,7 +2324,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     _debugOpen = !_debugOpen;
   };
 
-  _debugTS = function(sEventType, bSuccess, sMessage) {
+  _debugTS = function (sEventType, bSuccess, sMessage) {
     // troubleshooter debug hooks
     if (typeof sm2Debugger !== 'undefined') {
       try {
@@ -2337,7 +2337,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
   };
   // </d>
 
-  _getSWFCSS = function() {
+  _getSWFCSS = function () {
     var css = [];
     if (_s.debugMode) {
       css.push(_s.swfCSS.sm2Debug);
@@ -2351,7 +2351,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return css.join(' ');
   };
 
-  _flashBlockHandler = function() {
+  _flashBlockHandler = function () {
     // *possible* flash block situation.
     var name = _str('fbHandler'),
         p = _s.getMoviePercent(),
@@ -2380,7 +2380,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     }
   };
 
-  _addOnEvent = function(sType, oMethod, oScope) {
+  _addOnEvent = function (sType, oMethod, oScope) {
     if (typeof _on_queue[sType] === 'undefined') {
       _on_queue[sType] = [];
     }
@@ -2391,7 +2391,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     });
   };
 
-  _processOnEvents = function(oOptions) {
+  _processOnEvents = function (oOptions) {
     if (!oOptions) { // assume onready, if unspecified
       oOptions = {
         type: 'onready'
@@ -2436,8 +2436,8 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return true;
   };
 
-  _initUserOnload = function() {
-    _win.setTimeout(function() {
+  _initUserOnload = function () {
+    _win.setTimeout(function () {
       if (_s.useFlashBlock) {
         _flashBlockHandler();
       }
@@ -2454,7 +2454,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     },1);
   };
 
-  _detectFlash = function() {
+  _detectFlash = function () {
 
     // hat tip: Flash Detect library (BSD, (C) 2007) by Carl "DocYes" S. Yestrau - http://featureblend.com/javascript-flash-detection-library.html / http://featureblend.com/license.txt
 
@@ -2490,7 +2490,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
 
   };
 
-  _featureCheck = function() {
+  _featureCheck = function () {
 
     var needsFlash, item,
         isSpecial = (_ua.match(/iphone os (1|2|3_0|3_1)/i)?true:false); // iPhone <= 3.1 has broken HTML5 audio(), but firmware 3.2 (iPad) + iOS4 works.
@@ -2543,19 +2543,19 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
 
   };
 
-  _startTimer = function(oSound) {
+  _startTimer = function (oSound) {
     if (!oSound._hasTimer) {
       oSound._hasTimer = true;
     }
   };
 
-  _stopTimer = function(oSound) {
+  _stopTimer = function (oSound) {
     if (oSound._hasTimer) {
       oSound._hasTimer = false;
     }
   };
 
-  _catchError = function(options) {
+  _catchError = function (options) {
     options = (typeof options !== 'undefined' ? options : {});
     if (_s.onerror instanceof Function) {
       _s.onerror.apply(_win, [{type:(typeof options.type !== 'undefined' ? options.type : null)}]);
@@ -2565,7 +2565,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     }
   };
 
-  _badSafariFix = function() {
+  _badSafariFix = function () {
     // special case: "bad" Safari (OS X 10.3 - 10.7) must fall back to flash for MP3/MP4
     if (!_isBadSafari || !_detectFlash()) {
       return false; // doesn't apply
@@ -2591,7 +2591,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
    * pseudo-private flash/ExternalInterface methods
   */
 
-  this._setSandboxType = function(sandboxType) {
+  this._setSandboxType = function (sandboxType) {
     // <d>
     var sb = _s.sandbox;
     sb.type = sandboxType;
@@ -2611,7 +2611,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     // </d>
   };
 
-  this._externalInterfaceOK = function(flashDate) {
+  this._externalInterfaceOK = function (flashDate) {
     // flash callback confirming flash loaded, EI working etc.
     // flashDate = approx. timing/delay info for JS/flash bridge
     if (_s.swfLoaded) {
@@ -2638,7 +2638,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
    * private initialization helpers
   */
 
-  _createMovie = function(smID, smURL) {
+  _createMovie = function (smID, smURL) {
 
     if (_didAppend && _appendSuccess) {
       return false; // ignore if already succeeded
@@ -2836,7 +2836,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
 
   };
 
-  _initMovie = function() {
+  _initMovie = function () {
 
     if (_s.html5Only) {
       _createMovie();
@@ -2879,11 +2879,11 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
 
   };
 
-  _delayWaitForEI = function() {
+  _delayWaitForEI = function () {
     setTimeout(_waitForEI, 1000);
   };
 
-  _waitForEI = function() {
+  _waitForEI = function () {
 
     if (_waitingForEI) {
       return false;
@@ -2904,7 +2904,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
       _s._wD(_str('waitImpatient', (p === 100?' (SWF loaded)':(p > 0?' (SWF ' + p + '% loaded)':''))));
     }
 
-    setTimeout(function() {
+    setTimeout(function () {
 
       p = _s.getMoviePercent();
 
@@ -2951,7 +2951,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
 
   };
 
-  _handleFocus = function() {
+  _handleFocus = function () {
     function cleanup() {
       _event.remove(_win, 'focus', _handleFocus);
       _event.remove(_win, 'load', _handleFocus);
@@ -2972,7 +2972,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return true;
   };
 
-  _initComplete = function(bNoDisable) {
+  _initComplete = function (bNoDisable) {
     if (_didInit) {
       return false;
     }
@@ -3018,7 +3018,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return true;
   };
 
-  _showSupport = function() {
+  _showSupport = function () {
 
     var item, tests = [];
     if (_s.useHTML5Audio && _s.hasHTML5) {
@@ -3032,7 +3032,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
 
   };
 
-  _init = function() {
+  _init = function () {
 
     _wDS('init');
 
@@ -3088,7 +3088,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
 
   };
 
-  _dcLoaded = function() {
+  _dcLoaded = function () {
     if (_didDCLoaded) {
       return false;
     }
@@ -3100,7 +3100,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
      * Ditto for sm2-preferFlash, too.
     */
     // <d>
-    (function(){
+    (function (){
       var a = 'sm2-usehtml5audio=', l = _wl.toLowerCase(), b = null,
       a2 = 'sm2-preferflash=', b2 = null, hasCon = (typeof console !== 'undefined' && typeof console.log !== 'undefined');
       if (l.indexOf(a) !== -1) {
@@ -3147,7 +3147,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
     return true;
   };
 
-  _dcIE = function() {
+  _dcIE = function () {
     if (_doc.readyState === 'complete') {
       _dcLoaded();
       _doc.detachEvent('onreadystatechange', _dcIE);

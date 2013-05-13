@@ -59,8 +59,8 @@ function imageOnLoad(success, evt, failCount) {
 var ImageMap = !GLOBAL.CONFIG.disableNativeViews && GLOBAL.NATIVE && GLOBAL.NATIVE.timestep && GLOBAL.NATIVE.timestep.ImageMap;
 
 if (!ImageMap) {
-	ImageMap = Class(function() {
-		this.init = function(parentImage, x, y, width, height, marginTop, marginRight, marginBottom, marginLeft, url) {
+	ImageMap = Class(function () {
+		this.init = function (parentImage, x, y, width, height, marginTop, marginRight, marginBottom, marginLeft, url) {
 			this.url = url;
 			this.x = x;
 			this.y = y;
@@ -74,8 +74,8 @@ if (!ImageMap) {
 	});
 }
 
-exports = Class(function() {
-	this.init = function(opts) {
+exports = Class(function () {
+	this.init = function (opts) {
 		if (!opts) { opts = {}; }
 
 		this._cb = new Callback();
@@ -92,7 +92,7 @@ exports = Class(function() {
 		this._setSrcImg(opts.srcImage, this._map.url);
 	};
 
-	this._setSrcImg = function(img, url) {
+	this._setSrcImg = function (img, url) {
 		this._cb.reset();
 
 		// if we haven't found an image, look in the image cache
@@ -136,15 +136,15 @@ exports = Class(function() {
 		}
 	};
 
-	this.setSource = this.setSrcImg = function(srcImg) {
+	this.setSource = this.setSrcImg = function (srcImg) {
 		this._setSrcImg(srcImg);
 	};
 
-	this.__reload__ = function(cb) {
+	this.__reload__ = function (cb) {
 		if (this._srcImg) {
 			var chainedCb = cb.chain();
 
-			var onReload = bind(this, function() {
+			var onReload = bind(this, function () {
 				this._srcImg.removeEventListener('reload', onReload, false);
 				chainedCb();
 			});
@@ -153,41 +153,41 @@ exports = Class(function() {
 		}
 	};
 
-	this.setURL = function(url) {
+	this.setURL = function (url) {
 		resourceLoader._updateImageMap(this._map, url);
 		this._setSrcImg(null, this._map.url);
 	};
 
-	this.getURL = function() { return this._map.url; };
+	this.getURL = function () { return this._map.url; };
 	this.getOriginalURL = function () { return this._originalURL; }
 
-	this.getSourceWidth = this.getOrigWidth = this.getOrigW = function() { return this._srcImg.width; };
-	this.getSourceHeight = this.getOrigHeight = this.getOrigH = function() { return this._srcImg.height; };
+	this.getSourceWidth = this.getOrigWidth = this.getOrigW = function () { return this._srcImg.width; };
+	this.getSourceHeight = this.getOrigHeight = this.getOrigH = function () { return this._srcImg.height; };
 
-	this.setSourceWidth = this.setSourceW = function(w) { this._map.width = w; };
-	this.setSourceHeight = this.setSourceH = function(h) { this._map.height = h; };
-	this.setSourceY = this.setSourceY = function(y) { this._map.y = y; };
-	this.setSourceX = this.setSourceX = function(x) { this._map.x = x; };
+	this.setSourceWidth = this.setSourceW = function (w) { this._map.width = w; };
+	this.setSourceHeight = this.setSourceH = function (h) { this._map.height = h; };
+	this.setSourceY = this.setSourceY = function (y) { this._map.y = y; };
+	this.setSourceX = this.setSourceX = function (x) { this._map.x = x; };
 
 	this.setMarginTop = function (n) { this._map.marginTop = n; };
 	this.setMarginRight = function (n) { this._map.marginRight = n; };
 	this.setMarginBottom = function (n) { this._map.marginBottom = n; };
 	this.setMarginLeft = function (n) { this._map.marginLeft = n; };
 
-	this.getURL = function() { return this._map.url; }
+	this.getURL = function () { return this._map.url; }
 
 	/* @deprecated */
-	this.getSourceWidth = this.getOrigWidth = this.getOrigW = function() { return this._srcImg.width; }
+	this.getSourceWidth = this.getOrigWidth = this.getOrigW = function () { return this._srcImg.width; }
 	/* @deprecated */
-	this.getSourceHeight = this.getOrigHeight = this.getOrigH = function() { return this._srcImg.height; }
+	this.getSourceHeight = this.getOrigHeight = this.getOrigH = function () { return this._srcImg.height; }
 	/* @deprecated */
-	this.setSourceWidth = this.setSourceW = function(w) { this._map.width = w; }
+	this.setSourceWidth = this.setSourceW = function (w) { this._map.width = w; }
 	/* @deprecated */
-	this.setSourceHeight = this.setSourceH = function(h) { this._map.height = h; }
+	this.setSourceHeight = this.setSourceH = function (h) { this._map.height = h; }
 	/* @deprecated */
-	this.setSourceY = this.setSourceY = function(y) { this._map.y = y; }
+	this.setSourceY = this.setSourceY = function (y) { this._map.y = y; }
 	/* @deprecated */
-	this.setSourceX = this.setSourceX = function(x) { this._map.x = x; }
+	this.setSourceX = this.setSourceX = function (x) { this._map.x = x; }
 	/* @deprecated */
 	this.setMarginTop = function (n) { this._map.marginTop = n; }
 	/* @deprecated */
@@ -197,24 +197,24 @@ exports = Class(function() {
 	/* @deprecated */
 	this.setMarginLeft = function (n) { this._map.marginLeft = n; }
 	
-	this.getSource = function() {
+	this.getSource = function () {
 		return this._srcImg;
 	};
 
-	this.getWidth = function() {
+	this.getWidth = function () {
 		return (this._map.width == -1
 			? 0
 			: this._map.width + this._map.marginLeft + this._map.marginRight) / this._map.scale;
 	};
 
-	this.getHeight = function() {
+	this.getHeight = function () {
 		return (this._map.height == -1 ? 0 :
 							   this._map.height + this._map.marginTop + this._map.marginBottom) / this._map.scale;
 	};
 
 	this.getMap =
-	this.getBounds = function() { return this._map; };
-	this.setBounds = function(x, y, w, h, marginTop, marginRight, marginBottom, marginLeft) {
+	this.getBounds = function () { return this._map; };
+	this.setBounds = function (x, y, w, h, marginTop, marginRight, marginBottom, marginLeft) {
 		var map = this._map;
 		map.x = x;
 		map.y = y;
@@ -230,10 +230,10 @@ exports = Class(function() {
 	this.setBounds = this.setMap;
 	
 	// register a callback for onload
-	this.doOnLoad = function() { this._cb.forward(arguments); return this; };
+	this.doOnLoad = function () { this._cb.forward(arguments); return this; };
 
 	// internal onload handler for actual Image object
-	this._onLoad = function(didLoad) {
+	this._onLoad = function (didLoad) {
 		if (!didLoad) {
 			// TODO: something better?
 			logger.error('Image failed to load:', this._map.url);
@@ -270,7 +270,7 @@ exports = Class(function() {
 	};
 
 	this.isLoaded =
-	this.isReady = function() { return this._cb.fired(); };
+	this.isReady = function () { return this._cb.fired(); };
 
 	var isNative = GLOBAL.NATIVE && !device.simulatingMobileNative;
 	var SLICE = Array.prototype.slice;
@@ -280,7 +280,7 @@ exports = Class(function() {
 		var _filterCtx = _filterCanvas.getContext('2d');
 	};
 
-	this.render = function(ctx, destX, destY, destW, destH) {
+	this.render = function (ctx, destX, destY, destW, destH) {
 		if (!this._cb.fired()) { return; }
 
 		try {
@@ -412,7 +412,7 @@ exports = Class(function() {
 		} catch(e) {}
 	};
 
-	this.getImageData = function() {
+	this.getImageData = function () {
 		if (!GLOBAL.document || !document.createElement) { throw 'Not supported'; }
 		if (!this._map.width || !this._map.height) { throw 'Not loaded'; }
 
@@ -428,9 +428,9 @@ exports = Class(function() {
 		return imageData;
 	};
 
-	this.setImageData = function(data) { };
+	this.setImageData = function (data) { };
 
-	this.destroy = function() {
+	this.destroy = function () {
 		this._srcImg.destroy();
 	};
 });

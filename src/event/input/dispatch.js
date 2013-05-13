@@ -37,7 +37,7 @@ exports.HORIZONTAL_AXIS = 1;
  *  - call callbacks (e.g. onInputStart) and publish <inputType> (e.g. onInputstart)
  *    on the way up, checking evt.cancelled to see if someone has cancelled the event
  */
-exports.dispatchEvent = function(root, evt) {
+exports.dispatchEvent = function (root, evt) {
 	// if (evt.type == input.eventTypes.MOVE) { var now = +new Date(); }
 	// store the root in case an event listener wants the top-most view?
 	evt.root = root;
@@ -80,7 +80,7 @@ exports.dispatchEvent = function(root, evt) {
 /**
  * Trace an event recursively down to the view on which the event is triggered.
  */
-exports.traceEvt = function(view, evt, pt) {
+exports.traceEvt = function (view, evt, pt) {
 	// var now = +new Date();
 	var localPt = view.style.localizePoint(new Point(pt));
 	var inputHandler = view.getInput();
@@ -129,10 +129,10 @@ exports.clearOverState = function (id) {
 }
 
 exports._isDragging = false;
-exports.isDragging = function() { return exports._isDragging; }
+exports.isDragging = function () { return exports._isDragging; }
 
 exports._evtCb = {};
-exports.getEvtCbName = function(evtType) {
+exports.getEvtCbName = function (evtType) {
 	var name = exports.eventTypes[evtType];
 	return (exports._evtCb[evtType] = 'Input' + name.charAt(0) + name.substring(1).toLowerCase());
 }

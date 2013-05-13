@@ -30,14 +30,14 @@ import ui.resource.Image as Image;
 /**
  * @extends ui.View
  */
-var ImageView = exports = Class(View, function(supr) {
+var ImageView = exports = Class(View, function (supr) {
 
 	/** 
 	 * Options:
 	 *   autoSize - See .setImage()
 	 */
 
-	this.init = function(opts) {
+	this.init = function (opts) {
 		supr(this, 'init', arguments);
 		opts = merge(opts, {
 			image: null,
@@ -53,7 +53,7 @@ var ImageView = exports = Class(View, function(supr) {
 	 * Return this view's Image object.
 	 */
 
-	this.getImage = function() {
+	this.getImage = function () {
 		return this._img;
 	};
 
@@ -65,7 +65,7 @@ var ImageView = exports = Class(View, function(supr) {
 
 	this._imgCache = {};
 
-	this.setImage = function(img, opts) {
+	this.setImage = function (img, opts) {
 		if (typeof img == 'string') {
 			// Cache image requests to avoid heavy performance penalties at the
 			// expense of a small amount of additional JS memory usage.
@@ -97,7 +97,7 @@ var ImageView = exports = Class(View, function(supr) {
 	 * arguments that call lib.Callback::run() implicitly.
 	 */
 	
-	this.doOnLoad = function() {
+	this.doOnLoad = function () {
 		if (arguments.length == 1) {
 			this._img.doOnLoad(this, arguments[0]);
 		} else {
@@ -110,7 +110,7 @@ var ImageView = exports = Class(View, function(supr) {
 	 * Automatically resize the view to the size of the image.
 	 */
 	
-	this.autoSize = function() {
+	this.autoSize = function () {
 		if (this._img) {
 			this.style.width = this._img.getWidth();
 			this.style.height = this._img.getHeight();
@@ -141,7 +141,7 @@ var ImageView = exports = Class(View, function(supr) {
 	 * Render this image onto a canvas.
 	 */
 
-	this.render = function(ctx) {
+	this.render = function (ctx) {
 		if (!this._img) { return; }
 
 		var s = this.style;
@@ -157,7 +157,7 @@ var ImageView = exports = Class(View, function(supr) {
 	var _loc = window.location.toString();
 	var _host = window.location.hostname;
 	
-	this.getTag = function() {
+	this.getTag = function () {
 		var tag;
 		if (this._img) {
 			var url = this._img.getOriginalURL();

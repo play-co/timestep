@@ -28,8 +28,8 @@ var defaultScalingMode = device.isMobileBrowser || device.simulating ? SCALING.R
 /**
  * @extends lib.PubSub
  */
-var Document = Class(lib.PubSub, function() {
-	this.init = function() {
+var Document = Class(lib.PubSub, function () {
+	this.init = function () {
 		if (!$) {
 			return;
 		}
@@ -76,7 +76,7 @@ var Document = Class(lib.PubSub, function() {
 		return this._el;
 	};
 	
-	this.setScalingMode = function(scalingMode, opts) {
+	this.setScalingMode = function (scalingMode, opts) {
 		this._scalingMode = scalingMode;
 		
 		var el = this._el,
@@ -108,7 +108,7 @@ var Document = Class(lib.PubSub, function() {
 		setTimeout(bind(this, 'onResize'), 1000);
 	}
 	
-	this.onResize = function() {
+	this.onResize = function () {
 		var el = this._el;
 		var s = this._el.style;
 		
@@ -166,7 +166,7 @@ var Document = Class(lib.PubSub, function() {
 		if (this._engine) { this._engine.render(); }
 	}
 	
-	this._setDim = function(width, height) {
+	this._setDim = function (width, height) {
 		if (this.width != width || this.height != height) {
 			this.width = width;
 			this.height = height;
@@ -174,18 +174,18 @@ var Document = Class(lib.PubSub, function() {
 		}
 	}
 	
-	this.setColors = function(bgColor, engineColor) {
+	this.setColors = function (bgColor, engineColor) {
 		if (this._el) {
 			this._el.style.background = engineColor;
 			document.documentElement.style.background = document.body.style.background = bgColor;
 		}
 	}
 	
-	this.appendChild = function(el) {
+	this.appendChild = function (el) {
 		this._el.appendChild(el);
 	}
 	
-	this.getOffset = function() {
+	this.getOffset = function () {
 		return {
 			x: this._el.offsetLeft,
 			y: this._el.offsetTop
@@ -196,7 +196,7 @@ var Document = Class(lib.PubSub, function() {
 exports = new Document();
 exports.SCALING = SCALING;
 
-exports.setDocStyle = function() {
+exports.setDocStyle = function () {
 	var doc = GLOBAL.document,
 		body = doc && doc.body;
 	

@@ -20,19 +20,19 @@ import ui.View;
 /**
  * @extends timestep.dom.View
  */
-exports = Class(View, function(supr) {
+exports = Class(View, function (supr) {
 
-	this.init = function(opts) {
+	this.init = function (opts) {
 		supr(this, 'init', arguments);
 		this.stack = [];
 	}
 	
-	this.getCurrentView = function() {
+	this.getCurrentView = function () {
 		if (!this.stack.length) { return null; }
 		return this.stack[this.stack.length - 1];
 	}
 	
-	this.push = function(view, dontAnimate) {
+	this.push = function (view, dontAnimate) {
 		// don't animate the first (base) view of a stackview unless explicitly asked to
 		if (!this.stack[0] && dontAnimate !== false) {
 			dontAnimate = true;
@@ -47,7 +47,7 @@ exports = Class(View, function(supr) {
 		return view;
 	}
 	
-	this._hide = function(view, dontAnimate, backward) {
+	this._hide = function (view, dontAnimate, backward) {
 		view.publish('ViewWillDisappear');
 		if (!dontAnimate) {
 			// Prevent touches from triggering buttons/UI on the
@@ -65,7 +65,7 @@ exports = Class(View, function(supr) {
 		}
 	}
 
-	this._show = function(view, dontAnimate, backward) {
+	this._show = function (view, dontAnimate, backward) {
 		view.publish('ViewWillAppear');
 		view.style.visible = true;
 		if (!dontAnimate) {
@@ -80,7 +80,7 @@ exports = Class(View, function(supr) {
 		}
 	}
 	
-	this.pop = function(dontAnimate) {
+	this.pop = function (dontAnimate) {
 		if (!this.stack.length) { return false; }
 		var view = this.stack.pop();
 		this._hide(view, dontAnimate, true);
@@ -92,7 +92,7 @@ exports = Class(View, function(supr) {
 		return view;
 	}
 	
-	this.popAll = function(dontAnimate) {
+	this.popAll = function (dontAnimate) {
 		while (this.stack[1]) {
 			this.pop(dontAnimate);
 		}

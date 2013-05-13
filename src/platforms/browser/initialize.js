@@ -30,20 +30,20 @@ exports.init = function () {
 		if (device.isIOS || device.isAndroid) {
 			
 			var _isFocused = false;
-			window.addEventListener('focus', function(e) {
+			window.addEventListener('focus', function (e) {
 				var tag = e.target.tagName;
 				if (tag == 'TEXTAREA' || tag == 'INPUT') {
 					_isFocused = true;
 				}
 			}, true);
 			
-			document.addEventListener('blur', function(e) {
+			document.addEventListener('blur', function (e) {
 				if (_isFocused) {
 					_isFocused = false;
 				}
 			}, true);
 			
-			device.hideAddressBar = function() {
+			device.hideAddressBar = function () {
 				if (_isFocused || !device.isMobileBrowser || !(device.isIOS || device.isAndroid)) { return; }
 				if (device.isIOS) {
 					window.scrollTo(0, 1);
@@ -59,7 +59,7 @@ exports.init = function () {
 		}
 		
 		var lastWidth, lastHeight, lastOrientation;
-		onResize = function() {
+		onResize = function () {
 			if (device.isIOS) {
 				device.hideAddressBar();
 			}
@@ -91,7 +91,7 @@ exports.init = function () {
 			}
 		}
 	} else {
-		onResize = function() {
+		onResize = function () {
 			var doc = window.document,
 				width = window.innerWidth || (doc.clientWidth || doc.clientWidth),
 				height = window.innerHeight || (doc.clientHeight || doc.clientHeight);

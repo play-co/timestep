@@ -27,7 +27,7 @@ import timer;
 
 var anim_uid = 0;
 
-exports = function(subject, groupId) {
+exports = function (subject, groupId) {
 
 	// TODO: we have a circular import, so do the Engine import on first use
 	if (typeof Engine == 'undefined') {
@@ -51,29 +51,29 @@ exports = function(subject, groupId) {
 	return anim;
 }
 
-exports.getViewAnimator = function() {
+exports.getViewAnimator = function () {
 	return ViewAnimator;
 };
 
-exports.setViewAnimator = function(ctor) {
+exports.setViewAnimator = function (ctor) {
 	ViewAnimator = ctor;
 };
 
-var Group = Class(Emitter, function(supr) {
-	this.init = function() {
+var Group = Class(Emitter, function (supr) {
+	this.init = function () {
 		this._anims = {};
 		this._pending = [];
 	};
 
-	this.get = function(id) { return this._anims[id]; };
+	this.get = function (id) { return this._anims[id]; };
 
-	this.add = function(id, q) {
+	this.add = function (id, q) {
 		this._anims[id] = q;
 		q.id = id;
 		return q;
 	};
 
-	this.isActive = function() {
+	this.isActive = function () {
 		for (var id in this._anims) {
 			if (this._anims[id].hasFrames()) { return true; }
 		}
@@ -81,7 +81,7 @@ var Group = Class(Emitter, function(supr) {
 		return false;
 	};
 
-	this.onAnimationFinish = function(anim) {
+	this.onAnimationFinish = function (anim) {
 		delete this._anims[anim.id];
 
 		if (!this.isActive()) {
@@ -95,7 +95,7 @@ var groups = {
 	0: new Group()
 };
 
-exports.getGroup = function(i) {
+exports.getGroup = function (i) {
 	return groups[i || 0];
 };
 
@@ -118,8 +118,8 @@ function getTransition(n) {
 	return (typeof n == 'function' ? n : TRANSITIONS[n | 0]);
 }
 
-var Frame = Class(function() {
-	this.init = function(opts) {
+var Frame = Class(function () {
+	this.init = function (opts) {
 		this.subject = opts.subject;
 		this.target = opts.target;
 		this.duration = opts.duration || 0;
@@ -127,12 +127,12 @@ var Frame = Class(function() {
 		this.onTick = opts.onTick;
 	};
 
-	this.exec = function() {};
-	this.onInterrupt = function() {};
+	this.exec = function () {};
+	this.onInterrupt = function () {};
 });
 
-var CallbackFrame = Class(Frame, function() {
-	this.exec = function(tt, t) {
+var CallbackFrame = Class(Frame, function () {
+	this.exec = function (tt, t) {
 		this.target.apply(this.subject, arguments);
 	};
 });
@@ -141,8 +141,8 @@ var CallbackFrame = Class(Frame, function() {
 // don't need to do anything!
 var WaitFrame = Frame;
 
-var ObjectFrame = Class(Frame, function() {
-	this.exec = function(tt, t, debug) {
+var ObjectFrame = Class(Frame, function () {
+	this.exec = function (tt, t, debug) {
 		if (!this.base) {
 			this.base = {};
 			for (var key in this.target) {
@@ -165,11 +165,11 @@ var ObjectFrame = Class(Frame, function() {
 });
 
 // a ViewStyleFrame updates a view's style in exec
-var ViewStyleFrame = Class(Frame, function() {
+var ViewStyleFrame = Class(Frame, function () {
 
 	this._resolvedDeltas = false;
 
-	this.init = function(opts) {
+	this.init = function (opts) {
 		this.subject = opts.subject;
 		this.target = merge({}, opts.target);
 		this.duration = opts.duration === 0 ? 0 : (opts.duration || 500);
@@ -177,7 +177,7 @@ var ViewStyleFrame = Class(Frame, function() {
 		this.onTick = opts.onTick;
 	};
 
-	this.resolveDeltas = function(againstStyle) {
+	this.resolveDeltas = function (againstStyle) {
 		var style = this.target;
 		this._resolvedDeltas = true;
 		for (var key in style) {
@@ -189,7 +189,7 @@ var ViewStyleFrame = Class(Frame, function() {
 		}
 	};
 
-	this.exec = function(tt, t, debug) {
+	this.exec = function (tt, t, debug) {
 		var oldStyle = this._baseStyle || (this._baseStyle = this.subject.style.copy()),
 			newStyle = this.target;
 
@@ -213,7 +213,7 @@ var ViewStyleFrame = Class(Frame, function() {
 		}
 	};
 
-	this.onInterrupt = function(newFrame) {
+	this.onInterrupt = function (newFrame) {
 		// var preStyle = this.subject.style.copy();
 
 		// You might want to resolve any deltas against the post-committed style.
@@ -240,61 +240,61 @@ var ViewStyleFrame = Class(Frame, function() {
 	};
 });
 
-var Animator = exports.Animator = Class(Emitter, function() {
-	this.init = function(subject, group) {
+var Animator = exports.Animator = Class(Emitter, function () {
+	this.init = function (subject, group) {
 		this.subject = subject;
 		this._group = group;
 		this.clear();
 		this._isPaused = false;
 	};
 
-	this.clear = function() {
+	this.clear = function () {
 		this._elapsed = 0;
 		this._queue = [];
 		this._unschedule();
 		return this;
 	};
 
-	// this.getQueue = function() { return this._queue; }
+	// this.getQueue = function () { return this._queue; }
 
 	// Careful: pause will *not* fire the finish event, so anything pending the end of the
 	// animation will have to wait until the animation is resumed.
-	this.pause = function() {
+	this.pause = function () {
 		if (!this._isPaused) {
 			this._isPaused = true;
 			this._unschedule();
 		}
 	};
 
-	this.resume = function() {
+	this.resume = function () {
 		if (this._isPaused) {
 			this._isPaused = false;
 			this._schedule();
 		}
 	};
 
-	this._schedule = function() {
+	this._schedule = function () {
 		if (!this._isScheduled) {
 			this._isScheduled = true;
 			Engine.get().subscribe('Tick', this, 'onTick');
 		}
 	};
 
-	this._unschedule = function() {
+	this._unschedule = function () {
 		if (this._isScheduled) {
 			this._isScheduled = false;
 			Engine.get().unsubscribe('Tick', this, 'onTick');
 		}
 	};
 
-	this.isPaused = function() { return this._isPaused; };
-	this.hasFrames = function() { return !!this._queue[0]; };
+	this.isPaused = function () { return this._isPaused; };
+	this.hasFrames = function () { return !!this._queue[0]; };
 
-	this.wait = function(duration) {
+	this.wait = function (duration) {
 		return this.then(new WaitFrame({duration: duration}));
 	};
 
-	this.buildFrame = function(opts) {
+	this.buildFrame = function (opts) {
 		if (typeof opts.target == 'function') {
 			return new CallbackFrame(opts);
 		}
@@ -306,7 +306,7 @@ var Animator = exports.Animator = Class(Emitter, function() {
 		return new WaitFrame(opts);
 	};
 
-	this.now = function(target, duration, transition, onTick) {
+	this.now = function (target, duration, transition, onTick) {
 		transition = transition || (this._queue[0] ? exports.easeOut : exports.easeInOut);
 
 		var nextFrame = target instanceof Frame
@@ -326,7 +326,7 @@ var Animator = exports.Animator = Class(Emitter, function() {
 		return this.then(nextFrame);
 	};
 
-	this.then = function(target, duration, transition, onTick) {
+	this.then = function (target, duration, transition, onTick) {
 		var nextFrame = target instanceof Frame
 				? target
 				: this.buildFrame({
@@ -346,9 +346,9 @@ var Animator = exports.Animator = Class(Emitter, function() {
 		return this;
 	};
 
-	this.debug = function() { this._debug = true; return this; };
+	this.debug = function () { this._debug = true; return this; };
 
-	this.commit = function() {
+	this.commit = function () {
 		this._elapsed = 0;
 		for (var i = 0, p; p = this._queue[i]; ++i) {
 			this._elapsed += p.duration;
@@ -358,7 +358,7 @@ var Animator = exports.Animator = Class(Emitter, function() {
 		return this;
 	};
 
-	this.onTick = function(dt) {
+	this.onTick = function (dt) {
 		if (!this._isScheduled) {
 			return;
 		}
@@ -371,7 +371,7 @@ var Animator = exports.Animator = Class(Emitter, function() {
 		}
 	};
 
-	this.next = function() {
+	this.next = function () {
 		var p,
 			target;
 
@@ -406,8 +406,8 @@ var Animator = exports.Animator = Class(Emitter, function() {
 	};
 });
 
-var ViewAnimator = Class(Animator, function(supr) {
-	this.buildFrame = function(opts) {
+var ViewAnimator = Class(Animator, function (supr) {
+	this.buildFrame = function (opts) {
 		if (typeof opts.target == 'object') {
 			return new ViewStyleFrame(opts);
 		}

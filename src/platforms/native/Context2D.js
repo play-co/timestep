@@ -26,10 +26,10 @@ import ui.resource.Font as Font;
 var createdOnscreenCanvas = false,
 	__globalScissor = false;
 
-exports = Class(BufferedCanvas, function(supr) {
+exports = Class(BufferedCanvas, function (supr) {
 
 	//FIXME add globalalpha back to these
-	this.updateState = function(src, dest) {
+	this.updateState = function (src, dest) {
 /*
 		obj.stroke = this.stroke;
 		obj.patternQuality = this.patternQuality;
@@ -50,7 +50,7 @@ exports = Class(BufferedCanvas, function(supr) {
 		return dest;
 	};
 
-	this.init = function(opts) {
+	this.init = function (opts) {
 		supr(this, 'init', arguments);
 
 		this._stack = [];
@@ -90,7 +90,7 @@ exports = Class(BufferedCanvas, function(supr) {
 
 	this.getNativeCtx = function () { return this._ctx; }
 
-	this.getElement = function(){
+	this.getElement = function (){
 		return this.canvas;
 	};
 
@@ -101,31 +101,31 @@ exports = Class(BufferedCanvas, function(supr) {
 	this.fillStyle = 'rgb(255,255,255)';
 	this.strokeStyle = 'rgb(0,0,0)';
 
-	this.destroy = function() {
+	this.destroy = function () {
 		this._ctx.destroy();
 	};
 
-	this.show = function() {
+	this.show = function () {
 		// TODO: NATIVE.gl.show();
 	};
 
-	this.hide = function() {
+	this.hide = function () {
 		// TODO: NATIVE.gl.hide();
 	};
 
-	this.clear = function() {
+	this.clear = function () {
 		this._ctx.clear();
 	};
 
-	this.swap = function(operations) {
+	this.swap = function (operations) {
 		NATIVE.gl.flushImages();
 	};
 
-	this.loadIdentity = function() {
+	this.loadIdentity = function () {
 		this._ctx.loadIdentity();
 	};
 
-	this.save = function() {
+	this.save = function () {
 		if (this._stack.length <= this._stackPos) {
 			logger.log('expanding stack');
 			this._stack.push({});
@@ -134,16 +134,16 @@ exports = Class(BufferedCanvas, function(supr) {
 		this._ctx.save();
 	};
 
-	this.restore = function() {
+	this.restore = function () {
 		this._ctx.restore();
 		this.updateState(this._stack[this._stackPos--], this);
 	};
 
-	this.clipRect = function(x, y, w, h) {
+	this.clipRect = function (x, y, w, h) {
 		this._ctx.enableScissor(x, y, w, h);
 	};
 
-	this.drawImage = function(img, x1, y1, w1, h1, x2, y2, w2, h2) {
+	this.drawImage = function (img, x1, y1, w1, h1, x2, y2, w2, h2) {
 		if (!img || !img.complete) { return; }
 		var n = arguments.length,
 			op = this.getCompositeOperationID();
@@ -157,32 +157,32 @@ exports = Class(BufferedCanvas, function(supr) {
 		}
 	};
 
-	this.translate = function(x, y) { this._ctx.translate(x, y); }
-	this.rotate = function(r) { this._ctx.rotate(r); }
-	this.scale = function(x, y) { this._ctx.scale(x, y); }
+	this.translate = function (x, y) { this._ctx.translate(x, y); }
+	this.rotate = function (r) { this._ctx.rotate(r); }
+	this.scale = function (x, y) { this._ctx.scale(x, y); }
 
-	this.setFilters = function(filters) {
+	this.setFilters = function (filters) {
 		for (var name in filters) {
 			var filter = filters[name];
 			this._ctx.addFilter(name, filter.get());
 		}
 	}
 
-	this.clearFilters = function() {
+	this.clearFilters = function () {
 		this._ctx.clearFilters();
 	}
 
 	//FIXME the getter seems to crash v8 on android	
 	this.__defineSetter__(
 		'globalAlpha',
-		function(alpha) {
+		function (alpha) {
 			this._ctx.setGlobalAlpha(alpha);
 		}
 	);
 
 	this.__defineGetter__(
 		'globalAlpha',
-		function() {
+		function () {
 			return this._ctx.getGlobalAlpha();
 		}
 	);
@@ -203,15 +203,15 @@ exports = Class(BufferedCanvas, function(supr) {
 
 	this._globalCompositeOperation = 'source-over';
 
-	this.getCompositeOperationID = function() {
+	this.getCompositeOperationID = function () {
 		return compositeOps[this.globalCompositeOperation] || 0;
 	};
 
-	this.clearRect = function(x, y, width, height) {
+	this.clearRect = function (x, y, width, height) {
 		this._ctx.clearRect(x, y, width, height); 
 	};
 
-	this.fillRect = function(x, y, width, height) {
+	this.fillRect = function (x, y, width, height) {
 		if (typeof this.fillStyle == 'object') {
 			var img = this.fillStyle.img,
 				w = img.width, h = img.height,
@@ -251,18 +251,18 @@ exports = Class(BufferedCanvas, function(supr) {
 		}
 	};
 
-	this.strokeRect = function(x, y, width, height) {
+	this.strokeRect = function (x, y, width, height) {
 		this._ctx.strokeRect(x, y, width, height, this.strokeStyle, this.lineWidth || 1, this.getCompositeOperationID());
 	};
 
-	this.createPattern = function(img, repeatPattern) {
+	this.createPattern = function (img, repeatPattern) {
 		return {
 			img: img,
 			repeatPattern: repeatPattern
 		};
 	};
 
-	this._checkPath = function() {
+	this._checkPath = function () {
 		if (!this._path) {
 			this._path = [];
 		}
@@ -272,11 +272,11 @@ exports = Class(BufferedCanvas, function(supr) {
 		return (this._pathIndex > 0);
 	};
 
-	this.beginPath = function() {
+	this.beginPath = function () {
 		this._pathIndex = 0;
 	};
 
-	this.moveTo = this.lineTo = function(x, y) {
+	this.moveTo = this.lineTo = function (x, y) {
 		this._checkPath();
 		this._path[this._pathIndex] = {x:x, y:y};
 		this._pathIndex++;
@@ -288,21 +288,21 @@ exports = Class(BufferedCanvas, function(supr) {
 		this._ctx.drawPointSprites(this.pointSprite.src, this.lineWidth || 5, this.pointSpriteStep || 2, this.strokeStyle, x1, y1, x2, y2);
 	}
 	
-	this.closePath = function() {};
+	this.closePath = function () {};
 
-	this.fill = function() {
+	this.fill = function () {
 		if (this._checkPath()) {
 			this._ctx.fill(this._path, this._pathIndex, this.fillStyle, this.getCompositeOperationID());
 		}
 	};
 
-	this.stroke = function() {
+	this.stroke = function () {
 		if (this._checkPath()) {
 			this._ctx.stroke(this._path, this._pathIndex, this.strokeStyle, this.getCompositeOperationID());
 		}
 	};
 
-    this.fillText = FontRenderer.wrapFillText(function(str, x, y, maxWidth) {
+    this.fillText = FontRenderer.wrapFillText(function (str, x, y, maxWidth) {
         var font = Font.parse(this.font);
         var fontName = font.getName();
 
@@ -323,7 +323,7 @@ exports = Class(BufferedCanvas, function(supr) {
     this.fill = function () {}
     this.stroke = function () {}
 
-    this.strokeText = FontRenderer.wrapStrokeText(function(str, x, y, maxWidth) {
+    this.strokeText = FontRenderer.wrapStrokeText(function (str, x, y, maxWidth) {
         var font = Font.parse(this.font);
         var fontName = font.getName();
 
@@ -342,7 +342,7 @@ exports = Class(BufferedCanvas, function(supr) {
             );
     });
 
-    this.measureText = FontRenderer.wrapMeasureText(function(str) {
+    this.measureText = FontRenderer.wrapMeasureText(function (str) {
         var font = Font.parse(this.font);
         var fontName = font.getName();
 

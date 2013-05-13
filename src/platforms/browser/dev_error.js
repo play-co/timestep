@@ -23,7 +23,7 @@
  * ??? TODO move to a debug package.
  */
 
-exports.render = function(e) {
+exports.render = function (e) {
 	logger.error("unhandled tick exception");
 	logger.error(e.stack);
 	

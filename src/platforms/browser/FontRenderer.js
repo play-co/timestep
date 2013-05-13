@@ -37,7 +37,7 @@ var _origMeasureText;
 function loadCustomFontImage(customFont, index) {
 	var image = new Image();
 
-	image.onload = function() {
+	image.onload = function () {
 		image.onload = null;
 		customFont.imagesLoaded++;
 		customFont.loaded = (customFont.imagesLoaded === customFont.imagesTotal);
@@ -174,7 +174,7 @@ function loadingCustomFont (customFont) {
 	return true;
 }
 
-(function() {
+(function () {
 	var manifest = window.CONFIG;
 	if (manifest && manifest.fonts) {
 		var fonts = manifest.fonts;
@@ -402,7 +402,7 @@ function renderCustomFont(ctx, x, y, text, color, fontInfo, index) {
 	return true;
 };
 
-exports.findFontInfo = function(ctx) {
+exports.findFontInfo = function (ctx) {
 	var font = Font.parse(ctx.font);
 	var name = font.getName();
 	if (name && _customFonts[name]) {
@@ -415,10 +415,10 @@ exports.findFontInfo = function(ctx) {
 	return false;
 }
 
-exports.wrapMeasureText = function(origMeasureText) {
+exports.wrapMeasureText = function (origMeasureText) {
 	_origMeasureText = origMeasureText;
 
-	return function(text) {
+	return function (text) {
 		var fontInfo = exports.findFontInfo(this);
 
 		if (!fontInfo) {
@@ -433,8 +433,8 @@ exports.wrapMeasureText = function(origMeasureText) {
 	}
 };
 
-exports.wrapFillText = function(origFillText) {
-	return function(text, x, y) {
+exports.wrapFillText = function (origFillText) {
+	return function (text, x, y) {
 		var fontInfo = exports.findFontInfo(this);
 
 		if (!fontInfo) {
@@ -459,8 +459,8 @@ exports.wrapFillText = function(origFillText) {
 	}
 };
 
-exports.wrapStrokeText = function(origStrokeText) {
-	return function(text, x, y) {
+exports.wrapStrokeText = function (origStrokeText) {
+	return function (text, x, y) {
 		var fontInfo = exports.findFontInfo(this);
 
 		if (!fontInfo) {
@@ -485,6 +485,6 @@ exports.wrapStrokeText = function(origStrokeText) {
 	}
 };
 
-exports.getFontBuffer = function() {
+exports.getFontBuffer = function () {
 	return _fontBuffer;
 };

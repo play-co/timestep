@@ -50,7 +50,7 @@ exports = Class(View, function (supr) {
 		}
 	};
 
-	this.autoSize = function() {
+	this.autoSize = function () {
 		if (this._img) {
 			this.style.width = this._img.getWidth();
 			this.style.height = this._img.getHeight();
@@ -61,7 +61,7 @@ exports = Class(View, function (supr) {
 		}
 	}
 
-	this.tick = function() {
+	this.tick = function () {
 		if (this._img) {
 			var boundsHash = JSON.stringify(this._img.getBounds());
 			if (this._cachedBounds != boundsHash) {
@@ -73,8 +73,8 @@ exports = Class(View, function (supr) {
 
 	this._imgCache = {};
 
-	this.getImage = function() { return this._img; }
-	this.setImage = function(img, opts) {
+	this.getImage = function () { return this._img; }
+	this.setImage = function (img, opts) {
 		if (typeof img == 'string') {
 			// Cache image requests to avoid heavy performance penalties at the
 			// expense of a small amount of additional JS memory usage.
@@ -108,7 +108,7 @@ exports = Class(View, function (supr) {
 		this.updateImage();
 	}
 
-	this.updateImage = function() {
+	this.updateImage = function () {
 		var s = this.__view._node.style;
 		if (!this._img || !this._img.isReady()) {
 			s.backgroundImage = 'none';
@@ -136,10 +136,10 @@ exports = Class(View, function (supr) {
 		s.backgroundSize = sheetWidth * scaleX + 'px ' + sheetHeight * scaleY + 'px';
 	}
 
-	this.getOrigWidth = this.getOrigW = function() { return this._img.getOrigW(); }
-	this.getOrigHeight = this.getOrigH = function() { return this._img.getOrigH(); }
+	this.getOrigWidth = this.getOrigW = function () { return this._img.getOrigW(); }
+	this.getOrigHeight = this.getOrigH = function () { return this._img.getOrigH(); }
 
-	this.doOnLoad = function() {
+	this.doOnLoad = function () {
 		if (arguments.length == 1) {
 			this._img.doOnLoad(this, arguments[0]);
 		} else {

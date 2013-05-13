@@ -61,7 +61,7 @@ exports = Class(View, function (supr) {
 		supr(this, "init", [merge(opts, defaults)]);
 	};
 
-	this.updateOpts = function(opts) {
+	this.updateOpts = function (opts) {
 		opts = supr(this, "updateOpts", arguments);
 
 		var s = this.__view.getElement().style;
@@ -100,11 +100,11 @@ exports = Class(View, function (supr) {
 		if ("text" in opts) this.setText(opts.text);
 	};
 
-	this.getText = function() {
+	this.getText = function () {
 		return this.__view.getElement().getElementsByTagName("span")[0].innerHTML;
 	}
 
-	this.reflow = function() {
+	this.reflow = function () {
 		if (this._textNode && this._opts.autoSize) {
 			var idealHeight = this._textNode.scrollHeight;
 			if (!this.style.height || this.style.height < idealHeight) {

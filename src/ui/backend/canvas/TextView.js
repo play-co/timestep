@@ -36,7 +36,7 @@ var textViewID = 1;
 /**
  * @extends ui.View
  */
-var TextView = exports = Class(View, function(supr) {
+var TextView = exports = Class(View, function (supr) {
 
 	var DEPRECATED = {
 		multiline: { replacement: "wrap" },
@@ -363,11 +363,11 @@ var TextView = exports = Class(View, function(supr) {
 		this._cacheUpdate = false;
 	};
 
-	this.clearBuffers = function() {
+	this.clearBuffers = function () {
 		fontBuffer.clearBuffer();
 	};
 
-	this.getFontBuffer = function() {
+	this.getFontBuffer = function () {
 		return fontBuffer;
 	};
 
@@ -386,7 +386,7 @@ var TextView = exports = Class(View, function(supr) {
 		return this._opts.text;
 	};
 
-	this.getTag = function() {
+	this.getTag = function () {
 		return "TextView" + this.uid + ":" + (this.tag || this._opts.text.substring(0, 20));
 	};
 

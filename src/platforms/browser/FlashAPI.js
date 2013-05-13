@@ -33,8 +33,8 @@ soundManager.useFastPolling = true;
 /**
  * @extends lib.PubSub
  */
-var AudioAPI = exports = Class(lib.PubSub, function(supr) {
-	this.init = function(opts) {
+var AudioAPI = exports = Class(lib.PubSub, function (supr) {
+	this.init = function (opts) {
 
 		opts = merge(opts, {
 			map: {},
@@ -45,11 +45,11 @@ var AudioAPI = exports = Class(lib.PubSub, function(supr) {
 		var path = opts.path;
 		this._map = {};
 
-		_.each(opts.background, function(name) {
+		_.each(opts.background, function (name) {
 			opts.map[name] = {'name': name}
 		}, this);
 		
-		soundManager.onready(bind(this, function() {
+		soundManager.onready(bind(this, function () {
 			logger.log('SoundManager onReady');
 			for (key in opts.map) {
 				logger.log('SoundManager key: ', key);
@@ -66,23 +66,23 @@ var AudioAPI = exports = Class(lib.PubSub, function(supr) {
 		}));
 	}
 	
-	this.canPlay = function(name) {
+	this.canPlay = function (name) {
 		return (name in this._map);
 	}
 	
-	this.setVolume = function(volume) {
+	this.setVolume = function (volume) {
 		this._soundPlaying && soundManager.setVolume(this._soundPlaying, volume);
 		this._backgroundSoundPlaying && soundManager.setVolume(this._backgroundSoundPlaying, volume);
 	}
 
-	this.setMuted = function(muted) {
+	this.setMuted = function (muted) {
 		this.muted = muted;
 		if (muted) {
 			this.setVolume(0);
 		}
 	}
 
-	this.play = function(name, volume, channel) {
+	this.play = function (name, volume, channel) {
 		if (!this.canPlay(name)) { return; }
 		if (this.muted) { return; }
 		if (volume === undefined) {
@@ -93,12 +93,12 @@ var AudioAPI = exports = Class(lib.PubSub, function(supr) {
 		this._map[name].play();
 	}
 
-	this.pause = function() {
+	this.pause = function () {
 		this._map[this._soundPlaying].pause();
 		this._soundPlaying = null;
 	}
 
-	this.playBackgroundMusic = function(name, volume) {
+	this.playBackgroundMusic = function (name, volume) {
 		if (!this.canPlay(name)) { return; }
 		if (this.muted) { return; }
 		if (volume === undefined) {
@@ -109,7 +109,7 @@ var AudioAPI = exports = Class(lib.PubSub, function(supr) {
 		this._map[name].play();
 	}
 
-	this.pauseBackgroundMusic = function() {
+	this.pauseBackgroundMusic = function () {
 		if (!this._backgroundSoundPlaying) { return; }
 		this._map[this._backgroundSoundPlaying].pause();
 		this._backgroundSoundPlaying = null;

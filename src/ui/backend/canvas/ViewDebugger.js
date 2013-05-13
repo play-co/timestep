@@ -17,9 +17,9 @@
 
 import std.js as JS;
 
-exports = Class(function() {
+exports = Class(function () {
 	
-	this.init = function(target, opts) {
+	this.init = function (target, opts) {
 		this._target = target;
 		this._opts = opts = JS.merge(opts, {
 			trackClicks: false,
@@ -35,7 +35,7 @@ exports = Class(function() {
 		this._nextFlash = 0;
 	}
 	
-	this.preRender = function(ctx) {
+	this.preRender = function (ctx) {
 		if (!this._time) { this._time = +new Date(); }
 		var prevTime = this._time;
 		this._time = +new Date();
@@ -52,7 +52,7 @@ exports = Class(function() {
 		}
 	}
 	
-	this.postRender = function(ctx) {
+	this.postRender = function (ctx) {
 			var s = this._target.style;
 
 		var t = this._target;

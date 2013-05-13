@@ -15,7 +15,7 @@
  * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-exports = Class(function() {
+exports = Class(function () {
 	var T = NATIVE.textbox;
 	var SLICE = Array.prototype.slice;
 	
@@ -27,7 +27,7 @@ exports = Class(function() {
 		text: "",
 		color: "white"
 	};	
-	this.init = function(opts) {
+	this.init = function (opts) {
 		logger.log("in init");
 		opts = merge(opts, defaults);
 		logger.log('making a textbox with opts', JSON.stringify(opts));
@@ -48,19 +48,19 @@ exports = Class(function() {
 		})(m);
 	}
 	
-	this.setPosition = function(p) { T.setPosition(this._id, p.x, p.y); return this; }
-	this.getPosition = function() { return {x: this.getX(), y: this.getY()}; }
+	this.setPosition = function (p) { T.setPosition(this._id, p.x, p.y); return this; }
+	this.getPosition = function () { return {x: this.getX(), y: this.getY()}; }
 	
-	this.setDimensions = function(d) { T.setDimensions(this._id, d.width, d.height); return this; }
-	this.getDimensions = function() { return {width: this.getWidth(), height: this.getHeight()}; }
+	this.setDimensions = function (d) { T.setDimensions(this._id, d.width, d.height); return this; }
+	this.getDimensions = function () { return {width: this.getWidth(), height: this.getHeight()}; }
 
-	this.setApp = function() {}
+	this.setApp = function () {}
 
-	this.setOpacity = function(opacity) {
+	this.setOpacity = function (opacity) {
 		T.setOpacity(this._id, opacity);
 	}
 
-	this.setVisible = function(isVisible) {
+	this.setVisible = function (isVisible) {
 		if (isVisible) {
 			T.show(this._id); 
 		} else {
@@ -68,7 +68,7 @@ exports = Class(function() {
 		}
 	}
 
-	this.setValue = function(text) {
+	this.setValue = function (text) {
 		T.setValue(this._id, text);
 	}
 });

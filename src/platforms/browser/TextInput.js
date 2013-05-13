@@ -29,8 +29,8 @@ from util.browser import $;
 /**
  * @extends lib.PubSub
  */
-exports = Class(lib.PubSub, function() {
-	this.init = function(opts) {
+exports = Class(lib.PubSub, function () {
+	this.init = function (opts) {
 		this._el = $({
 			tag: 'input',
 			parent: document.body,
@@ -55,10 +55,10 @@ exports = Class(lib.PubSub, function() {
 		$.onEvent(this._el, 'blur', this, 'onBlur');
 	}
 	
-	this.onFocus = function() { this.publish('Focus'); }
-	this.onBlur = function() { this.publish('Blur'); }
+	this.onFocus = function () { this.publish('Focus'); }
+	this.onBlur = function () { this.publish('Blur'); }
 	
-	this.checkValue = function(evt) {
+	this.checkValue = function (evt) {
 		var target = evt.target,
 			start = target.selectionStart,
 			end = target.selectionEnd;
@@ -81,8 +81,8 @@ exports = Class(lib.PubSub, function() {
 		}
 	}
 	
-	this.focus = function() { logger.log('focus'); this._el.focus(); }
-	this.blur = function() { this._el.blur(); }
+	this.focus = function () { logger.log('focus'); this._el.focus(); }
+	this.blur = function () { this._el.blur(); }
 });
 
 
@@ -90,7 +90,7 @@ exports = Class(lib.PubSub, function() {
 var tab = '    ',
 	tabLength = 4;
 
-Array.prototype.map.call(document.getElementsByTagName('textarea'), function(el) {
+Array.prototype.map.call(document.getElementsByTagName('textarea'), function (el) {
 	el.addEventListener('keydown', checkTab, false);
 });
 
@@ -114,7 +114,7 @@ function checkTab(evt) {
 				var post = t.value.slice(se, t.value.length);
 				var sel = t.value.slice(i, se).replace(
 					new RegExp('(^|\n)' + tab, 'g'),
-					function(match) {
+					function (match) {
 						se -= tab.length;
 						if (match.charAt(0) == '\n') {
 							return '\n';
@@ -151,7 +151,7 @@ function checkTab(evt) {
 				while(i && t.value.charAt(i - 1) != '\n') { --i; }
 				var pre = t.value.slice(0, i);
 				var post = t.value.slice(se, t.value.length);
-				var sel = t.value.slice(i, se).replace(/\n/g, function() {
+				var sel = t.value.slice(i, se).replace(/\n/g, function () {
 					se += tab.length;
 					return '\n' + tab;
 				});

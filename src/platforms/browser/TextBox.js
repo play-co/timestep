@@ -25,7 +25,7 @@
 
 from util.browser import $;
 
-exports = Class(function() {
+exports = Class(function () {
 	
 	var defaultStyle = {
 		padding: 0,
@@ -44,7 +44,7 @@ exports = Class(function() {
 		left: 0
 	};
 	
-	this.init = function(opts) {
+	this.init = function (opts) {
 		opts = merge(opts, {
 			color: 'black',
 			height: 20
@@ -68,14 +68,14 @@ exports = Class(function() {
 	this.onBlur = 
 	this.onFocus =
 	this.onChange =
-	this.onClick = function() {}
+	this.onClick = function () {}
 	
-	this.destroy = function() {
+	this.destroy = function () {
 		$.remove(this._el);
 		this._el = null;
 	}
 	
-	this.setApp = function(app) {
+	this.setApp = function (app) {
 		if (app != this._app || !this._el.parentNode) {
 			this._app = app;
 			var canvas = app._ctx.canvas;
@@ -84,37 +84,37 @@ exports = Class(function() {
 		}
 	}
 	
-	this.change = function() {
+	this.change = function () {
 		
 	}
 	
-	this.click = function() {
+	this.click = function () {
 	}
 	
-	this.selectAll = function() {
+	this.selectAll = function () {
 		this._el.focus();
 		this._el.select();
 	}
 	
-	this.show = function() { $.show(this._el); }
-	this.hide = function() { $.hide(this._el); }
+	this.show = function () { $.show(this._el); }
+	this.hide = function () { $.hide(this._el); }
 	
-	this.setValue = function(value) { this._el.value = value; return this; }
-	this.setOpacity = function(o) { this._el.style.opacity = o; return this; }
-	this.setType = function(type) { this._el.type = type; return this; }
-	this.setVisible = function(isVisible) { return this[isVisible ? 'show': ' hide'](); }
-	this.getX = function() { return parseInt(this._el.style.left); }
-	this.getY = function() { return parseInt(this._el.style.top); }
-	this.getWidth = function() { return this._el.offsetWidth; }
-	this.getHeight = function() { return this._el.offsetHeight; }
-	this.getValue = function() { return this._el.value; }
-	this.getOpacity = function() { return this._el.style.opacity; }
-	this.getType = function() { return this._el.type; }
-	this.getVisible = function() { return this._el.parentNode && this._el.style.display == 'block'; }
+	this.setValue = function (value) { this._el.value = value; return this; }
+	this.setOpacity = function (o) { this._el.style.opacity = o; return this; }
+	this.setType = function (type) { this._el.type = type; return this; }
+	this.setVisible = function (isVisible) { return this[isVisible ? 'show': ' hide'](); }
+	this.getX = function () { return parseInt(this._el.style.left); }
+	this.getY = function () { return parseInt(this._el.style.top); }
+	this.getWidth = function () { return this._el.offsetWidth; }
+	this.getHeight = function () { return this._el.offsetHeight; }
+	this.getValue = function () { return this._el.value; }
+	this.getOpacity = function () { return this._el.style.opacity; }
+	this.getType = function () { return this._el.type; }
+	this.getVisible = function () { return this._el.parentNode && this._el.style.display == 'block'; }
 	
-	this.setPosition = function(p) { this._el.style.top = p.y + 'px'; this._el.style.left = p.x + 'px'; }
-	this.getPosition = function() { return {x: this.getX(), y: this.getY()}; }
+	this.setPosition = function (p) { this._el.style.top = p.y + 'px'; this._el.style.left = p.x + 'px'; }
+	this.getPosition = function () { return {x: this.getX(), y: this.getY()}; }
 	
-	this.setDimensions = function(d) { this._el.style.width = d.width + 'px'; this._el.style.height = d.height + 'px'; return this; }
-	this.getDimensions = function() { return {width: this.getWidth(), height: this.getHeight()}; }
+	this.setDimensions = function (d) { this._el.style.width = d.width + 'px'; this._el.style.height = d.height + 'px'; return this; }
+	this.getDimensions = function () { return {width: this.getWidth(), height: this.getHeight()}; }
 });
