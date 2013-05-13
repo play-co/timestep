@@ -102,7 +102,7 @@ function parseFont(fontStr) {
 	return res;
 };
 
-var Font = exports = Class(function(){
+var Font = exports = Class(function() {
 	
 	var defaults = {
 		name: device.defaultFontFamily,

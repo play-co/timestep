@@ -34,35 +34,35 @@ if (!NATIVE.gl.initialized) {
 		var lightRe = /(light)/i;
 
 		var fontMap = {};
-		for (var family in data){
+		for (var family in data) {
 			var fonts = data[family];
 			var familyMap = {};
 		
-			var keys = fonts.map(function(font){
+			var keys = fonts.map(function(font) {
 				var captures = /[\-]{1,1}(\w+)/.exec(font);
 				var style = captures ? captures[1] : null;
-				if (!style){
+				if (!style) {
 					return 'normal';
 				}
-				if (boldRe.test(style)){
-					if (italicRe.test(style)){
+				if (boldRe.test(style)) {
+					if (italicRe.test(style)) {
 						return 'bolditalic';
 					}else{
 						return 'bold'
 					}
 				}
-				if(italicRe.test(style)){
+				if(italicRe.test(style)) {
 					return 'italic';
 				}
-				if(mediumRe.test(style) && data[family].some(function(item){
+				if(mediumRe.test(style) && data[family].some(function(item) {
 					return lightRe.test(item);
-				})){
+				})) {
 					return 'bold';
 				}
 				return 'normal';
 			});
 
-			for (var i = 0, style; style = keys[i]; ++i){
+			for (var i = 0, style; style = keys[i]; ++i) {
 				familyMap[style] = fonts[i];
 			}
 			fontMap[family] = familyMap;

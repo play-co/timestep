@@ -3100,7 +3100,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
      * Ditto for sm2-preferFlash, too.
     */
     // <d>
-    (function(){
+    (function() {
       var a = 'sm2-usehtml5audio=', l = _wl.toLowerCase(), b = null,
       a2 = 'sm2-preferflash=', b2 = null, hasCon = (typeof console !== 'undefined' && typeof console.log !== 'undefined');
       if (l.indexOf(a) !== -1) {
