@@ -36,8 +36,8 @@ from util.browser import $;
 var gListenerSingleton = null;
 var gCancelKeys = lib.Enum(keyConstants.SPACE, keyConstants.LEFT, keyConstants.RIGHT, keyConstants.UP, keyConstants.DOWN);
 
-exports = Class(function() {
-	this.init = function(el, events) {
+exports = Class(function () {
+	this.init = function (el, events) {
 		if (gListenerSingleton) { return gListenerSingleton; }
 		gListenerSingleton = this;
 		
@@ -53,15 +53,15 @@ exports = Class(function() {
 		$.onEvent(window, 'blur', this, 'liftAll');
 	}
 	
-	this.setEnabled = function(isEnabled) { this._isEnabled = isEnabled; }
+	this.setEnabled = function (isEnabled) { this._isEnabled = isEnabled; }
 
-	this.captureShortcut = function(shortcut) {
+	this.captureShortcut = function (shortcut) {
 		this._shortcuts.push(shortcut);
 	}
 	
-	this.getPressed = function() { return this._keyMap; }
+	this.getPressed = function () { return this._keyMap; }
 
-	this.onKeyDown = function(e) {
+	this.onKeyDown = function (e) {
 		
 		if (!this._isEnabled) { return; }
 		
@@ -99,7 +99,7 @@ exports = Class(function() {
 		this._keyMap[e.keyCode] = +new Date();
 	}
 	
-	this.liftAll = function() {
+	this.liftAll = function () {
 		var progressDt = timer.getTickProgress();
 		for (var code in this._keyMap) {
 			this._events.push({
@@ -111,7 +111,7 @@ exports = Class(function() {
 		this._keyMap = {};
 	}
 	
-	this.onKeyUp = function(e) {
+	this.onKeyUp = function (e) {
 		var progressDt = timer.getTickProgress();
 		delete this._keyMap[e.keyCode];
 		this._events.push({
@@ -122,22 +122,22 @@ exports = Class(function() {
 		$.stopEvent(e);
 	}
 	
-	this.onKeyPress = function(e) {
+	this.onKeyPress = function (e) {
 		if (!this._isEnabled) { return; }
 		if (e.keyCode in gCancelKeys) {
 			$.stopEvent(e);
 		}
 	}
 	
-	this.peekEvents = function() { return this._events; }
-	this.popEvents = function() { return this._events.splice(0, this._events.length); }
+	this.peekEvents = function () { return this._events; }
+	this.popEvents = function () { return this._events.splice(0, this._events.length); }
 });
 
 // TODO: for maximum compatibility, especially with foreign keyboards, this needs to be inferred from the browser.  I think we can rely on a single DOM key event to get the constants in most browsers.
 merge(exports.prototype, keyConstants);
 
-exports.Shortcut = Class(PubSub, function() {
-	this.init = function(keyCode, ctrl, shift, alt, meta) {
+exports.Shortcut = Class(PubSub, function () {
+	this.init = function (keyCode, ctrl, shift, alt, meta) {
 		this.ctrl = !!ctrl;
 		this.shift = !!shift;
 		this.alt = !!alt;
@@ -145,7 +145,7 @@ exports.Shortcut = Class(PubSub, function() {
 		this.code = !!keyCode;
 	}
 	
-	this.compare = function(shortcut) {
+	this.compare = function (shortcut) {
 		return this.ctrl == shortcut.ctrl 
 			&& this.alt == shortcut.alt
 			&& this.meta == shortcut.meta

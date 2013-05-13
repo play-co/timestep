@@ -31,7 +31,7 @@ var Canvas = device.get('Canvas');
 var AVOID_CSS_ANIM = device.isAndroid;
 
 
-var ViewBacking = exports = Class(BaseBacking, function() {
+var ViewBacking = exports = Class(BaseBacking, function () {
 
 	var arr = ['x', 'y', 'r', 'width', 'height', 'visible', 'anchorX', 'anchorY',
 			   'opacity', 'scale', 'zIndex', 'scrollLeft', 'scrollTop', 'flipX', 'flipY'];
@@ -41,14 +41,14 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 	arr.forEach(function (prop) {
 		CUSTOM_KEYS[prop] = true;
 
-		this.__defineGetter__(prop, function() {
+		this.__defineGetter__(prop, function () {
 			if (prop in this._computed) {
 				return this._computed[prop];
 			} else {
 				return parseInt(this._node.style[prop]);
 			}
 		});
-		this.__defineSetter__(prop, function(val) {
+		this.__defineSetter__(prop, function (val) {
 			var props = {};
 			props[prop] = val;
 			this._setProps(props);
@@ -139,7 +139,7 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 		return false;
 	}
 
-	this.getSuperview = function() {
+	this.getSuperview = function () {
 		var p = this._node.parentNode;
 		if (p == document.body || !p) {
 			return null;
@@ -153,7 +153,7 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 		return this._subviews;
 	}
 
-	this.wrapTick = function(dt, app) {
+	this.wrapTick = function (dt, app) {
 		this._view.tick && this._view.tick(dt, app);
 
 		for (var i = 0, view; view = this._subviews[i]; ++i) {
@@ -161,7 +161,7 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 		}
 	}
 
-	this.wrapRender = function(ctx, opts) {
+	this.wrapRender = function (ctx, opts) {
 		if (!this.visible) { return; }
 
 		if (!this.__firstRender) { this._view.needsReflow(true); }
@@ -213,7 +213,7 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 		}
 	}
 
-	this._renderSubviews = function(ctx, opts) {
+	this._renderSubviews = function (ctx, opts) {
 		var i = 0;
 		var view;
 		var subviews = this._subviews;
@@ -222,7 +222,7 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 		}
 	}
 
-	this.localizePoint = function(pt) {
+	this.localizePoint = function (pt) {
 		var s = this._computed;
 		pt.x -= s.x + s.anchorX;
 		pt.y -= s.y + s.anchorY;
@@ -234,11 +234,11 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 	}
 
 	// exports the current style object
-	this.copy = function() {
+	this.copy = function () {
 		return merge({}, this._computed);
 	}
 
-	this.update = function(style) { this._setProps(style); }
+	this.update = function (style) { this._setProps(style); }
 
 	//****************************************************************
 	// ANIMATION
@@ -357,11 +357,11 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 					animate(obj).now({
 						scale: this._computed.scale,
 						r: this._computed.r
-					}, anim.duration, anim.easing, bind(this, function() {
+					}, anim.duration, anim.easing, bind(this, function () {
 						s.WebkitTransform = ('scale(' + (this._computed.flipX ? obj.scale * -1 : obj.scale) +
 											 ',' + (this._computed.flipY ? obj.scale * -1 : obj.scale) + ') ' +
 											 'rotate(' + obj.r + 'rad)');
-					})).then(bind(this, function() {
+					})).then(bind(this, function () {
 						s.WebkitTransform = ('scale(' + (this._computed.flipX ? obj.scale * -1 : obj.scale) +
 											 ',' + (this._computed.flipY ? obj.scale * -1 : obj.scale) + ') '  +
 											 'rotate(' + this._computed.r + 'rad)');
@@ -416,7 +416,7 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 		return animCount;
 	};
 
-	this._setCenter = function() {
+	this._setCenter = function () {
 		var s = this._node.style;
 		var origin = {
 			x: 0,
@@ -430,7 +430,7 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 		s.top = origin.y + 'px';
 	}
 
-	this._onSizeChanged = function() {
+	this._onSizeChanged = function () {
 		this._setCenter();
 		this._view.needsReflow();
 	}
@@ -444,7 +444,7 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 
 	this._sortIndex = "00000000";
 
-	this._onZIndex = function(zIndex) {
+	this._onZIndex = function (zIndex) {
 		zIndex = ~~zIndex;
 
 		if (zIndex < MIN_Z) { zIndex = this._zIndex = MIN_Z; }
@@ -459,12 +459,12 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 		this._setSortKey();
 	}
 
-	this._setAddedAt = function(addedAt) {
+	this._setAddedAt = function (addedAt) {
 		this._addedAt = addedAt;
 		this._setSortKey();
 	}
 
-	this._setSortKey = function() {
+	this._setSortKey = function () {
 		this.__sortKey = this._sortIndex + this._addedAt;
 	}
 
@@ -511,7 +511,7 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 		}
 		if (!doNow) {
 			if (!this._queuedTimeout) {
-				this._queuedTimeout = setTimeout(bind(this, function() {
+				this._queuedTimeout = setTimeout(bind(this, function () {
 					this._queuedTimeout = false;
 					this._processAnimation(true);
 				}), 0);
@@ -539,9 +539,9 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 
 			this.transitionCallback = new Callback();
 
-			this.transitionCallback.runOrTimeout(function() {
+			this.transitionCallback.runOrTimeout(function () {
 				// if webkitTransitionEnd fires, do nothing
-			}, bind(this, function(evt) {
+			}, bind(this, function (evt) {
 				// webkitTransitionEnd is too late, baby, it's too late
 				this._transitionEnd(evt);
 			}), anim.duration);
@@ -557,21 +557,21 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 
 	};
 
-	this.getQueue = function() {
+	this.getQueue = function () {
 		return [];
 	}
-	this.getAnimation = function() {
+	this.getAnimation = function () {
 		return this;
 	}
 
-	this.animate = function() {
+	this.animate = function () {
 		if (!arguments[0]) {
 			return this;
 		}
 		return this.next.apply(this, arguments);
 	}
 
-	this.clear = function() {
+	this.clear = function () {
 		this.transitionCallback && this.transitionCallback.fire();
 		if (this._transitionEndTimeout) {
 			clearTimeout(this._transitionEndTimeout);
@@ -582,7 +582,7 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 		return this;
 	};
 
-	this.finishNow = function() {
+	this.finishNow = function () {
 		this._node.style.webkitTransition = 'none';
 		// TODO: this isn't really right; you need to actually finish the queue
 
@@ -591,11 +591,11 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 
 	var DURATION = 600;
 
-	this.pause = function() {
+	this.pause = function () {
 		this._isPaused = true;
 	}
 
-	this.resume = function() {
+	this.resume = function () {
 		this._isPaused = false;
 		this._processAnimation();
 	}
@@ -627,7 +627,7 @@ var ViewBacking = exports = Class(BaseBacking, function() {
 		return this;
 	};
 
-	this.callback = function(fn) {
+	this.callback = function (fn) {
 		this._animationQueue.push({
 			type: "callback",
 			duration: 0,

@@ -45,7 +45,7 @@ exports = Class(View, function (supr) {
 		supr(this, 'init', [this._opts]);
 	};
 	
-	this.tick = function(dt) {
+	this.tick = function (dt) {
 		this._t += dt;
 		
 		var r = (this._t / 1000 % (1 / this._opts.cycles)) * Math.PI;
@@ -58,7 +58,7 @@ exports = Class(View, function (supr) {
 		}
 	}
 	
-	this.render = function(ctx) {
+	this.render = function (ctx) {
 		ctx.fillStyle = this._opts.backgroundColor;
 		
 		var w = this.style.width,

@@ -84,7 +84,7 @@ View.addExtension({
 		var proto = ViewBacking.prototype;
 
 		proto._sortOrder = strPad.initialValue;
-		proto._onOrder = function(_, order) {
+		proto._onOrder = function (_, order) {
 			this._sortOrder = strPad.pad(order);
 			this._onLayoutChange();
 		};

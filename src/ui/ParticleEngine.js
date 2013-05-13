@@ -27,7 +27,7 @@ import ui.ImageView as ImageView;
 /**
  * @extends ui.View
  */
-exports = Class(View, function(supr) {
+exports = Class(View, function (supr) {
 
 	// animation transtion functions borrowed from animate
 	var TRANSITION_LINEAR = "linear",
@@ -96,7 +96,7 @@ exports = Class(View, function(supr) {
 	 * initCount (integer) pre-initialize this many ImageViews for smooth particle emission
 	 * initImage (string) a URL to give the ImageViews an image to start with
 	 */
-	this.init = function(opts) {
+	this.init = function (opts) {
 		// particles and their engine don't handle input events
 		opts.canHandleEvents = false;
 		opts.blockEvents = true;
@@ -129,7 +129,7 @@ exports = Class(View, function(supr) {
 					canHandleEvents: false,
 					inLayout: false
 				});
-				particle.needsReflow = function() {};
+				particle.needsReflow = function () {};
 				this.freeParticles.push(particle);
 
 				// initialize particle objects with default properties
@@ -191,7 +191,7 @@ exports = Class(View, function(supr) {
 	 * returns an array populated with n particle objects
 	 * modify each particle object, then pass the array in via this.emitParticles
 	 */
-	this.obtainParticleArray = function(n) {
+	this.obtainParticleArray = function (n) {
 		for (var i = 0; i < n; i++) {
 			var obj;
 			if (this.freeParticleObjects.length) {
@@ -258,7 +258,7 @@ exports = Class(View, function(supr) {
 	/**
 	 * takes a particle object, populates it with defaults, then returns it
 	 */
-	this.cleanObject = function(obj) {
+	this.cleanObject = function (obj) {
 		for (var prop in particleDefaults) {
 			obj[prop] = particleDefaults[prop];
 		}
@@ -271,7 +271,7 @@ exports = Class(View, function(supr) {
 	/**
 	 * treat an external view as if it were a particle (don't recycle it internally)
 	 */
-	this.addExternalParticle = function(particle, data) {
+	this.addExternalParticle = function (particle, data) {
 		data.external = true;
 		for (var index in data.triggers) {
 			var trig = data.triggers[index];
@@ -296,7 +296,7 @@ exports = Class(View, function(supr) {
 	 * after obtaining the particle array full of particle objects
 	 * pass the array in here once you set up each objects' properties
 	 */
-	this.emitParticles = function(particleDataArray) {
+	this.emitParticles = function (particleDataArray) {
 		var s, particle, data,
 			sin = Math.sin,
 			cos = Math.cos,
@@ -358,7 +358,7 @@ exports = Class(View, function(supr) {
 					canHandleEvents: false,
 					inLayout: false
 				});
-				particle.needsReflow = function() {};
+				particle.needsReflow = function () {};
 			}
 
 			if (!data.delay) {
@@ -381,7 +381,7 @@ exports = Class(View, function(supr) {
 	 * data (object)
 	 * index (integer) position in this.activeParticles
 	 */
-	this._killParticle = function(particle, data, index) {
+	this._killParticle = function (particle, data, index) {
 		var active = this.activeParticles,
 			s = particle.style,
 			spliced = active.splice(index, 1);
@@ -404,7 +404,7 @@ exports = Class(View, function(supr) {
 	/**
 	 * finish and hide all particles immediately
 	 */
-	this.killAllParticles = function() {
+	this.killAllParticles = function () {
 		var active = this.activeParticles;
 		while (active.length) {
 			var particle = active[0];
@@ -418,7 +418,7 @@ exports = Class(View, function(supr) {
 	 * step the particle engine forward in time by dt milliseconds
 	 * this should be called manually from your own tick function
 	 */
-	this.runTick = function(dt) {
+	this.runTick = function (dt) {
 		var s, particle, data, pct,
 			active = this.activeParticles,
 			free = this.freeParticles,

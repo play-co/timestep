@@ -81,7 +81,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		return false;
 	}
 
-	this.wrapTick = function(dt, app) {
+	this.wrapTick = function (dt, app) {
 		this._view.tick && this._view.tick(dt, app);
 
 		for (var i = 0, view; view = this._subviews[i]; ++i) {
@@ -95,7 +95,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		// }
 	}
 
-	this.wrapRender = function(ctx, opts) {
+	this.wrapRender = function (ctx, opts) {
 		if (!this.visible) { return; }
 		
 		if (!this.__firstRender) { this._view.needsReflow(true); }
@@ -161,7 +161,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		}
 	}
 
-	this._renderSubviews = function(ctx, opts) {
+	this._renderSubviews = function (ctx, opts) {
 		var i = 0;
 		var view;
 		var subviews = this._subviews;
@@ -170,9 +170,9 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		}
 	}
 
-	// this._clearCache = function() { this._cache = null; }
+	// this._clearCache = function () { this._cache = null; }
 	
-	// this.updateRadius = function() {
+	// this.updateRadius = function () {
 	// 	var w = this.width * 0.5,
 	// 		h = this.height * 0.5;
 		
@@ -180,7 +180,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 	// 	return (this._cache.radius = Math.sqrt(w * w + h * h));
 	// }
 	
-	this._onResize = function(prop, value, prevValue) {
+	this._onResize = function (prop, value, prevValue) {
 		// local properties are invalidated
 		// this._cache = null;
 		
@@ -189,7 +189,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 	}
 	
 	this._sortIndex = strPad.initialValue;
-	this._onZIndex = function(_, zIndex) {
+	this._onZIndex = function (_, zIndex) {
 		this._sortIndex = strPad.pad(zIndex);
 
 		this._setSortKey();
@@ -199,12 +199,12 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		if (superview) { superview.__view._needsSort = true; }
 	}
 
-	this._setAddedAt = function(addedAt) {
+	this._setAddedAt = function (addedAt) {
 		this._addedAt = addedAt;
 		this._setSortKey();
 	}
 
-	this._setSortKey = function() {
+	this._setSortKey = function () {
 		this.__sortKey = this._sortIndex + this._addedAt;
 	}
 
@@ -218,5 +218,5 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		this.offsetY = n * this.height / 100;
 	};
 	
-	this.toString = function() { return this.__sortKey; }
+	this.toString = function () { return this.__sortKey; }
 });

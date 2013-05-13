@@ -18,7 +18,7 @@
 
 var activeInputs = {};
 
-NATIVE.InputPrompt.subscribe('Submit', function(evt) {
+NATIVE.InputPrompt.subscribe('Submit', function (evt) {
 	var input = activeInputs[evt.id];
 
 	if (input) {
@@ -27,7 +27,7 @@ NATIVE.InputPrompt.subscribe('Submit', function(evt) {
 	}
 });
 
-NATIVE.InputPrompt.subscribe('Cancel', function(evt) {
+NATIVE.InputPrompt.subscribe('Cancel', function (evt) {
 	var input = activeInputs[evt.id];
 
 	if (input) {
@@ -36,7 +36,7 @@ NATIVE.InputPrompt.subscribe('Cancel', function(evt) {
 	}
 });
 
-exports = Class(function() {
+exports = Class(function () {
 	this.init = function (opts) {
 		opts = opts || {};
 		this.onChange = opts.onChange;

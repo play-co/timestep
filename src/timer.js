@@ -30,8 +30,8 @@ var Timer = device.get('Timer');
 var MAX_TICK = 10000; // ticks over 10 seconds will be considered too large to process
 exports.now = 0;
 exports.frames = 0;
-exports.reset = function() { this._last = null; }
-exports.tick = function(dt) {
+exports.reset = function () { this._last = null; }
+exports.tick = function (dt) {
 	try {
 		if (dt > MAX_TICK) {
 			exports.onLargeTick(dt, MAX_TICK);
@@ -55,30 +55,30 @@ exports.tick = function(dt) {
  * to freeze while computing 1000s of simulation steps, so just drop
  * this tick.  Anyone who is interested can listen for a call to 'onLargeTick'
  */
-exports.onLargeTick = function(largeDt, threshold) {
+exports.onLargeTick = function (largeDt, threshold) {
 	logger.warn('Dropping large tick: ' + largeDt + '; Threshold is set at: ' + threshold);
 }
 
-exports.onTick = function(dt) {}
+exports.onTick = function (dt) {}
 
 exports.debug = false;
 
 
 // TODO: <jsio>('from iOS import start as exports.start, stop as exports.stop');
 
-exports.start = function(minDt) {
+exports.start = function (minDt) {
 	this.reset();
 	this.isRunning = true;
 	device.get('Timer').start(exports.tick, minDt);
 }
 
-exports.stop = function() {
+exports.stop = function () {
 	this.reset();
 	this.isRunning = false;
 	device.get('Timer').stop();
 }
 
-exports.getTickProgress = function() {
+exports.getTickProgress = function () {
 	var now = +new Date;
 	return (-(Timer.last || now) + now);
 }

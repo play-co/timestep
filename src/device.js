@@ -46,7 +46,7 @@ var ua = navigator.userAgent;
  */
 
 var _devices = {}
-exports.registerDevice = function(name, path) {
+exports.registerDevice = function (name, path) {
 	_devices[name] = path;
 }
 
@@ -75,7 +75,7 @@ exports.screen.width = window.screen.width * devicePixelRatio;
 exports.screen.height = window.screen.height * devicePixelRatio;
 
 // This is stubbed out unless available on the current device.
-exports.hideAddressBar = function() {};
+exports.hideAddressBar = function () {};
 
 exports.defaultFontFamily = 'Helvetica';
 
@@ -157,7 +157,7 @@ exports.setUseDOM = function (useDOM) {
 	}
 }
 
-exports.getDimensions = function(isLandscape) {
+exports.getDimensions = function (isLandscape) {
 	var dMin = Math.min(exports.width, exports.height),
 		dMax = Math.max(exports.width, exports.height);
 
@@ -170,7 +170,7 @@ exports.getDimensions = function(isLandscape) {
  * Initialize the device. Called from somewhere else.
  */
 
-exports.init = function() {
+exports.init = function () {
 	import ui.init;
 	exports.get('initialize').init();
 	exports.screen.width = exports.width;
@@ -180,11 +180,11 @@ exports.init = function() {
 /**
  * Event handlers
  */
-exports.setBackButtonHandler = function(handler) {
+exports.setBackButtonHandler = function (handler) {
 	NATIVE.onBackButton = handler;
 }
 
-exports.setRotationHandler = function(handler) {
+exports.setRotationHandler = function (handler) {
 	NATIVE.onRotation = handler;
 }
 

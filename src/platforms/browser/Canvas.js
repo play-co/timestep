@@ -26,12 +26,12 @@
 
 import .Context2D;
 
-exports = Class(function() {
-	this.init = function(opts) {
+exports = Class(function () {
+	this.init = function (opts) {
 		opts = merge(opts, {width: 300, height: 200});
 		var ctx = new Context2D(opts);
 		var el = this._el = ctx.getElement();
-		el.getContext = function() { return ctx; }
+		el.getContext = function () { return ctx; }
 		el.complete = true;
 		return el;
 	}

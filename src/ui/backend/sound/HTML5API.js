@@ -137,11 +137,11 @@ var MultiSound = Class(function () {
 		}
 	};
 
-	this.isPaused = function() {
+	this.isPaused = function () {
 		return this._isPaused;
 	};
 
-	this.isPlaying = function() {
+	this.isPlaying = function () {
 		var isPlaying = false;
 		if (this._lastSrc) {
 			var cur = this._lastSrc.currentTime;
@@ -157,15 +157,15 @@ var MultiSound = Class(function () {
 		return isPlaying;
 	};
 
-	this.getDuration = function() {
+	this.getDuration = function () {
 		return this._lastSrc && this._lastSrc.duration || 0;
 	};
 
-	this.getTime = function() {
+	this.getTime = function () {
 		return this._lastSrc ? this._lastSrc.currentTime : 0;
 	};
 
-	this.setTime = function(t) {
+	this.setTime = function (t) {
 		if (this._lastSrc && this.isBackgroundMusic && t != undefined) {
 			if (this._lastSrc.duration) {
 				this._lastSrc.currentTime = t;
@@ -197,7 +197,7 @@ var MultiSound = Class(function () {
 		this._lastSrc = src;
 		this.setTime(opts.time);
 		if (opts.duration) {
-			setTimeout(bind(this, function() {
+			setTimeout(bind(this, function () {
 				this.pause();
 			}), opts.duration * 1000);
 		}
@@ -212,8 +212,8 @@ var MultiSound = Class(function () {
 /**
  * @extends event.Emitter
  */
-exports = Class(Emitter, function(supr) {
-	this.init = function(opts) {
+exports = Class(Emitter, function (supr) {
+	this.init = function (opts) {
 		opts = opts || {};
 
 		supr(this, 'init', [opts]);
@@ -266,7 +266,7 @@ exports = Class(Emitter, function(supr) {
 		this._path = path || '';
 	};
 
-	this.addSound = function(name, opts) {
+	this.addSound = function (name, opts) {
 		this._sounds[name] = new MultiSound(this, name, opts);
 	};
 
@@ -335,7 +335,7 @@ exports = Class(Emitter, function(supr) {
 		}
 	};
 
-	this.setVolume = function(name, volume) {
+	this.setVolume = function (name, volume) {
 		var sound = this._sounds[name];
 		if (sound) {
 			sound.setVolume(volume);
@@ -355,7 +355,7 @@ exports = Class(Emitter, function(supr) {
 		}
 	};
 
-	this.setTime = function(name, t) {
+	this.setTime = function (name, t) {
 		var sound = this._sounds[name];
 		if (!sound) {
 			logger.log("warning: no sound of that name");
@@ -365,7 +365,7 @@ exports = Class(Emitter, function(supr) {
 		sound.setTime(t);
 	};
 
-	this.getTime = function(name) {
+	this.getTime = function (name) {
 		var sound = this._sounds[name];
 		if (!sound) {
 			logger.log("warning: no sound of that name");
@@ -375,7 +375,7 @@ exports = Class(Emitter, function(supr) {
 		return sound.getTime();
 	};
 
-	this.getDuration = function(name) {
+	this.getDuration = function (name) {
 		var sound = this._sounds[name];
 		if (!sound) {
 			logger.log("warning: no sound of that name");
@@ -444,7 +444,7 @@ exports = Class(Emitter, function(supr) {
 		return true;
 	};
 
-	this.isPaused = function(name) {
+	this.isPaused = function (name) {
 		var sound = this._sounds[name];
 		if (!sound) {
 			logger.log("warning: no sound of that name");
@@ -454,7 +454,7 @@ exports = Class(Emitter, function(supr) {
 		return sound.isPaused();
 	};
 
-	this.isPlaying = function(name) {
+	this.isPlaying = function (name) {
 		var sound = this._sounds[name];
 		if (!sound) {
 			logger.log("warning: no sound of that name");

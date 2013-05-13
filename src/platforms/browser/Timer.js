@@ -72,7 +72,7 @@ if (asFastAsPossible) {
 /*
 var frameDts = [];
 var print = false, frames = 0, lastPrint = 0;
-setInterval(function() { print = true; }, 1000)
+setInterval(function () { print = true; }, 1000)
 
 var slow = 0, fast = 0;
 */
@@ -121,9 +121,9 @@ function onFrame() {
 
 exports.last = null;
 
-exports.start = function(onTick) {
+exports.start = function (onTick) {
 	_onTick = onTick;
 	mainDriver.call(window, onFrame);
 }
 
-exports.stop = function() { _onTick = null; }
+exports.stop = function () { _onTick = null; }

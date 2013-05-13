@@ -16,34 +16,34 @@
  * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-exports = Class('timestep.KeyListener', function(logger, supr) {
-	this.init = function() {
+exports = Class('timestep.KeyListener', function (logger, supr) {
+	this.init = function () {
 		this._shortcuts = [];
 		this._events = [];
 	}
 
 
-	this.setEnabled = function(isEnabled) { this._isEnabled = isEnabled; }
+	this.setEnabled = function (isEnabled) { this._isEnabled = isEnabled; }
 
-	this.captureShortcut = function(shortcut) {
+	this.captureShortcut = function (shortcut) {
 		this._shortcuts.push(shortcut);
 	}
 	
-	this.getPressed = function() { return {}; }
+	this.getPressed = function () { return {}; }
 
-	this.onKeyDown = function(e) {
+	this.onKeyDown = function (e) {
 		
 	}
 	
-	this.liftAll = function() {
+	this.liftAll = function () {
 	}	
-	this.onKeyUp = function(e) {
+	this.onKeyUp = function (e) {
 	}
 	
-	this.onKeyPress = function(e) {
+	this.onKeyPress = function (e) {
 	}
 	
-	this.peekEvents = function() { return this._events; }
-	this.popEvents = function() { return this._events.splice(0, this._events.length); }
+	this.peekEvents = function () { return this._events; }
+	this.popEvents = function () { return this._events.splice(0, this._events.length); }
 });
 

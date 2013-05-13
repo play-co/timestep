@@ -24,7 +24,7 @@
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/viewpool.md
  */
 
-exports = Class(function() {
+exports = Class(function () {
 
 	/**
 	 * ctor (function) constructor function for the class you want to pool,
@@ -33,7 +33,7 @@ exports = Class(function() {
 		for optimal performance, avoid view instantiation during gameplay
 	 * initOpts (object) opts object used to pre-initialize your views
 	 */
-	this.init = function(opts) {
+	this.init = function (opts) {
 		// constructor (required)
 		this.ctor = opts.ctor;
 
@@ -66,7 +66,7 @@ exports = Class(function() {
 	 * opts (object) populated with view opts properties
 	 * returns a view from the pool
 	 */
-	this.obtainView = function(opts) {
+	this.obtainView = function (opts) {
 		var view;
 
 		if (this._freshViewIndex < this.views.length) {
@@ -91,7 +91,7 @@ exports = Class(function() {
 	/**
 	 * view (instance of this.ctor) to be recycled
 	 */
-	this.releaseView = function(view) {
+	this.releaseView = function (view) {
 		// only allow a view to be released once per obtain
 		if (view._obtainedFromPool) {
 			var temp = this.views[this._freshViewIndex - 1];
@@ -113,7 +113,7 @@ exports = Class(function() {
 	/**
 	 * release all views
 	 */
-	this.releaseAllViews = function() {
+	this.releaseAllViews = function () {
 		for (var i = 0; i < this.views.length; i++) {
 			var view = this.views[i];
 			view._obtainedFromPool = false;
