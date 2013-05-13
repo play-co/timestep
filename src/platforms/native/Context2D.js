@@ -91,7 +91,7 @@ exports = Class(BufferedCanvas, function(supr) {
 
 	this.getNativeCtx = function () { return this._ctx; }
 
-	this.getElement = function(){
+	this.getElement = function() {
 		return this.canvas;
 	};
 

@@ -78,7 +78,7 @@ exports = Class(ScrollView, function (supr) {
 		if (this._onSelect) {
 			this.model.subscribe('Select', this, this._onSelect);
 		}
-		if (this._onDeselect){
+		if (this._onDeselect) {
 			this.model.subscribe('Deselect', this, this._onDeselect);
 		}
 
