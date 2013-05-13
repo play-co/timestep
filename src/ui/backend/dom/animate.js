@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -23,7 +24,7 @@
 
 import ui.backend.canvas.animate as canvasAnimate;
 
-exports = function(view) {
+exports = function (view) {
 	// For DOM nodes, return only one singleton animation class.
 	if ('_node' in view) {
 		return view.getAnimation();

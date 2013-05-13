@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -44,7 +45,7 @@ var BaseBacking = exports = Class(function () {
 		'opacity': {value: 1},
 		'zIndex': {value: 0, cb: '_onZIndex'},
 		// 'radius': {
-		// 	get: function() {
+		// 	get: function () {
 		// 		return this._cache && 'radius' in this._cache ? this._cache.radius : this.updateRadius();
 		// 	}
 		// },

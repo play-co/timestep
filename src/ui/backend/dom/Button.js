@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -37,7 +38,7 @@ exports = Class(TextView, function (supr) {
 		this.setText(opts.text);
 	};
 
-	this.onInputSelect = function() {
+	this.onInputSelect = function () {
 		this.publish('Select');
 	}
 });

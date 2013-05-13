@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -23,7 +24,7 @@
  * ??? TODO move to a debug package.
  */
 
-exports.render = function(e) {
+exports.render = function (e) {
 	logger.error("unhandled tick exception");
 	logger.error(e.stack);
 	
