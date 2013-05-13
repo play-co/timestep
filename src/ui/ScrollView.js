@@ -375,7 +375,7 @@ exports = Class(View, function(supr) {
 	this.onDragStop = function(dragEvt, selectEvt) {
 		this._contentView.getInput().blockEvents = false;
 
-		if (this._opts.inertia){
+		if (this._opts.inertia) {
 			var delta = new Point(this._animState.lastDelta).scale(this._acceleration);
 			var offset = this._animState.offset;
 			var distance = delta.getMagnitude();

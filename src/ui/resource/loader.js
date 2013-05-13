@@ -283,7 +283,7 @@ var Loader = Class(function() {
 				// elsewhere can blindly call these without causing problems.
 				// An alternative would be to set these to null but not every
 				// piece of code that uses this does the right checks.
-				res.onreload = res.onload = res.onerror = function(){};
+				res.onreload = res.onload = res.onerror = function() {};
 
 				// The number of loads (success or failure) has increased.
 				++numLoaded;

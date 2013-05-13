@@ -41,7 +41,7 @@ if (GLOBAL.ONACCESSIBLE) {
 }
 
 // Determine which API to include.
-if (device.isMobileBrowser && !device.simulatingMobileBrowser){
+if (device.isMobileBrowser && !device.simulatingMobileBrowser) {
 	import platforms.browser.MobileBrowserAPI;
 	exports = platforms.browser.MobileBrowserAPI;
 } else {
