@@ -729,6 +729,19 @@ exports.package = function (builder, project, opts, next) {
 		// Parallelize android project setup and sprite building.
 		var apkPath;
 		var f = ff(function () {
+			var config_path = path.join(androidDir, "plugins/config.json");
+			var config_data = [];
+
+			var addons = project.manifest.addons;
+			if (addons) {
+				for (var ii = 0; ii < addons.length; ++ii) {
+					config_data.push(path.join("../../", addons[ii], "/android"));
+				}
+			}
+
+			config_data = JSON.stringify(config_data, undefined, 4);
+			fs.writeFileSync(config_path, config_data);
+		}, function() {
 			_builder.common.child("node", [path.join(androidDir, "plugins/installPlugins.js")], {}, f.wait());
 			require('./native').writeNativeResources(project, opts, f.waitPlain());
 		
