@@ -39,7 +39,7 @@ if (!NATIVE.gl.initialized) {
 			var fonts = data[family];
 			var familyMap = {};
 		
-			var keys = fonts.map(function(font) {
+			var keys = fonts.map(function (font) {
 				var captures = /[\-]{1,1}(\w+)/.exec(font);
 				var style = captures ? captures[1] : null;
 				if (!style) {
@@ -55,7 +55,7 @@ if (!NATIVE.gl.initialized) {
 				if(italicRe.test(style)) {
 					return 'italic';
 				}
-				if(mediumRe.test(style) && data[family].some(function(item) {
+				if(mediumRe.test(style) && data[family].some(function (item) {
 					return lightRe.test(item);
 				})) {
 					return 'bold';

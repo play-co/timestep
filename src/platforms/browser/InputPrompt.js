@@ -25,9 +25,9 @@
  *          in game code.
  */
 
-exports = Class(function() {
+exports = Class(function () {
 	var defaults = {
-		onChange: function() {},
+		onChange: function () {},
 		title: '',
 		message: '',
 		value: '',

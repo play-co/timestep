@@ -30,7 +30,7 @@ import animate;
 /**
  * @extends ui.View
  */
-exports = Class(View, function(supr) {
+exports = Class(View, function (supr) {
 	this.init = function (opts) {
 		opts = merge(opts, {
 			layout: 'box'
@@ -39,14 +39,14 @@ exports = Class(View, function(supr) {
 		this.stack = [];
 	};
 
-	this.getStack = function() { return this.stack; };
+	this.getStack = function () { return this.stack; };
 
-	this.getCurrentView = function() {
+	this.getCurrentView = function () {
 		if (!this.stack.length) { return null; }
 		return this.stack[this.stack.length - 1];
 	};
 
-	this.push = function(view, dontAnimate, reverse) {
+	this.push = function (view, dontAnimate, reverse) {
 		// don't animate the first (base) view of a stackview unless explicitly asked to
 		if (!this.stack[0] && dontAnimate !== false) {
 			dontAnimate = true;
@@ -61,7 +61,7 @@ exports = Class(View, function(supr) {
 		return view;
 	};
 
-	this._hide = function(view, dontAnimate, reverse) {
+	this._hide = function (view, dontAnimate, reverse) {
 		view.publish('ViewWillDisappear');
 		if (!dontAnimate) {
 			this.getInput().blockEvents = true;
@@ -78,7 +78,7 @@ exports = Class(View, function(supr) {
 		}
 	};
 
-	this._show = function(view, dontAnimate, reverse) {
+	this._show = function (view, dontAnimate, reverse) {
 		view.publish('ViewWillAppear');
 		view.style.visible = true;
 		if (!dontAnimate) {
@@ -94,18 +94,18 @@ exports = Class(View, function(supr) {
 		}
 	};
 
-	this.hasView = function(view) {
+	this.hasView = function (view) {
 		return this.stack.indexOf(view) >= 0;
 	};
 
-	this.remove = function(view) {
+	this.remove = function (view) {
 		var i = this.stack.indexOf(view);
 		if (i >= 0) {
 			this.stack.splice(i, 1);
 		}
 	}
 
-	this.pop = function(dontAnimate, reverse) {
+	this.pop = function (dontAnimate, reverse) {
 		if (!this.stack.length) { return false; }
 		var view = this.stack.pop();
 		//reverse by default
@@ -118,7 +118,7 @@ exports = Class(View, function(supr) {
 		return view;
 	};
 
-	this.popAll = function(dontAnimate) {
+	this.popAll = function (dontAnimate) {
 		while (this.stack[1]) {
 			this.pop(dontAnimate);
 		}

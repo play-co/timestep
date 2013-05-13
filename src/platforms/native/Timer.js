@@ -16,8 +16,8 @@
  * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-exports.start = function(onTick) {
-	NATIVE.timer.start(function() {
+exports.start = function (onTick) {
+	NATIVE.timer.start(function () {
 		var now = +new Date(),
 			dt = now - (exports.last || now);
 		
@@ -28,4 +28,4 @@ exports.start = function(onTick) {
 
 exports.last = null;
 
-exports.stop = function() { NATIVE.timer.stop(); }
+exports.stop = function () { NATIVE.timer.stop(); }

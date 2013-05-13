@@ -21,8 +21,8 @@ jsio('import .Context2D');
 // mock canvas object for IOS
 
 logger.log('setting up the canvas object');
-var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function() {
-	this.init = function(opts) {
+var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
+	this.init = function (opts) {
 		opts = merge(opts, {
 			width: 400,
 			height: 400,
@@ -41,23 +41,23 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function() {
 		this.complete = true;
 	}
 	
-	this.__defineSetter__('width', function(width) {
+	this.__defineSetter__('width', function (width) {
 		this._width = width;
 		if (this._context2D) { this._resize(); }
 	});
 	
-	this.__defineGetter__('width', function() { return this._width; });
+	this.__defineGetter__('width', function () { return this._width; });
 	
-	this.__defineSetter__('height', function(height) {
+	this.__defineSetter__('height', function (height) {
 		this._height = height;
 		if (this._context2D) { this._resize(); }
 	});
 	
-	this.__defineGetter__('height', function() { return this._height; });
+	this.__defineGetter__('height', function () { return this._height; });
 	
-	this._resize = function() { throw 'resizing a rendered canvas is not yet implemented!'; }
+	this._resize = function () { throw 'resizing a rendered canvas is not yet implemented!'; }
 	
-	this.getContext = function(which) {
+	this.getContext = function (which) {
 		if (which.toUpperCase() == '2D') {
 			this.complete = true;
 			return this._context2D || (this._context2D = new Context2D({
@@ -74,7 +74,7 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function() {
 
 logger.log('set it up')
 logger.log(GLOBAL.HTMLCanvasElement)
-document.__registerCreateElementHandler('CANVAS', function() {
+document.__registerCreateElementHandler('CANVAS', function () {
 	return new Canvas();
 });
 

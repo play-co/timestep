@@ -48,8 +48,8 @@ function fillRect(ctx, rect, color) {
 	ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
 };
 
-var Graph = Class(function() {
-	this.init = function(opts) {
+var Graph = Class(function () {
+	this.init = function (opts) {
 		var Canvas = device.get('Canvas');
 
 		this._width = opts.width;
@@ -69,7 +69,7 @@ var Graph = Class(function() {
 		this._index = 0;
 	};
 
-	this.addValues = function(values, timeAxis) {
+	this.addValues = function (values, timeAxis) {
 		var ctx = this._ctx,
 			width = this._width,
 			height = this._height,
@@ -112,7 +112,7 @@ var Graph = Class(function() {
 		}
 	};
 
-	this.render = function(ctx, x, y) {
+	this.render = function (ctx, x, y) {
 		var offset = this._offset,
 			width = this._width,
 			height = this._height;
@@ -126,8 +126,8 @@ var Graph = Class(function() {
 	};
 });
 
-exports = Class(function() {
-	this.init = function(opts) {
+exports = Class(function () {
+	this.init = function (opts) {
 		this._application = opts.application;
 
 		this._time = +(new Date()) + 1000;
@@ -173,7 +173,7 @@ exports = Class(function() {
 		});
 	};
 
-	this.tick = function(dt) {
+	this.tick = function (dt) {
 		var time = +(new Date());
 		if (time > this._time) {
 			this._time = time + 1000;
@@ -203,7 +203,7 @@ exports = Class(function() {
 		}
 	};
 
-	this._handleEvents = function(events) {
+	this._handleEvents = function (events) {
 		var types = dispatch.eventTypes;
 		var i = events.length;
 
@@ -230,7 +230,7 @@ exports = Class(function() {
 		}
 	};
 
-	this.render = function(ctx) {
+	this.render = function (ctx) {
 		ctx.save();
 
 		ctx.textBaseline = 'top';
@@ -265,7 +265,7 @@ exports = Class(function() {
 		ctx.restore();
 	};
 
-	this.getFPS = function() {
+	this.getFPS = function () {
 		return this._fps;
 	};
 });

@@ -19,19 +19,19 @@
 /**
  * TextBins are used in the FragmentBuffer caching of TextViews.
  **/
-var FragmentBin = exports = Class('TextBin', function(logger, supr) {
-	this.init = function(opts) {
+var FragmentBin = exports = Class('TextBin', function (logger, supr) {
+	this.init = function (opts) {
 		this.width = opts.width;
 		this.height = opts.height;
 		this.x = opts.x;
 		this.y = opts.y;
 	};
 
-	this.size = function() {
+	this.size = function () {
 		return this.width * this.height;
 	};
 
-	this.split = function(x, y) {
+	this.split = function (x, y) {
 		var newBins = [this];
 		if (this.width > 10 && this.height > 10) {
 			if (this.height - y > 10) {

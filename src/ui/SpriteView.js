@@ -61,14 +61,14 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 
 	var GROUPS = {};
 
-	this.init = function(opts) {
+	this.init = function (opts) {
 		this._opts = opts = merge(opts, this.defaults);
 		opts.visible = false;
 		supr(this, 'init', [opts]);
 		this.resetAllAnimations(opts);
 	};
 
-	this.resetAllAnimations = function(opts) {
+	this.resetAllAnimations = function (opts) {
 		this.stopAnimation();
 
 		this._opts = opts = merge(opts, this.defaults);
@@ -106,7 +106,7 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 		opts.autoStart && this.startAnimation(this._opts.defaultAnimation, opts);
 	};
 
-	this.addAnimation = function(animName, frameData) {
+	this.addAnimation = function (animName, frameData) {
 		if ( ! isArray(frameData) ) {
 			frameData = SpriteView.allAnimations[frameData][animName];
 		}
@@ -120,16 +120,16 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 	};
 	
 	/** Returns a ui.resource.Image for the given animation's frame. */
-	this.getFrame = function(animName, index) {
+	this.getFrame = function (animName, index) {
 		return this._animations[animName].frames[index];
 	};
 
 	/** Returns the number of frames in a given animation. */
-	this.getFrameCount = function(animName) {
+	this.getFrameCount = function (animName) {
 		return this._animations[animName].frames.length;
 	};
 
-	this.getGroup = function(groupID) {
+	this.getGroup = function (groupID) {
 		return GROUPS[groupID || this.groupID];
 	};
 
@@ -173,7 +173,7 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 	};
 
 	/** Stops the current animation. This will make the sprite invisible. */
-	this.stopAnimation = function() {
+	this.stopAnimation = function () {
 		if (this.isPlaying) {
 			this.style.visible = false;
 			GC.app.engine.unsubscribe('Tick', this, '_tickSprite');
@@ -193,7 +193,7 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 	 * and after 2 iterations of the 'walk' animation, it would go
 	 * back to the 'walk' animation.
 	 */
-	this.resetAnimation = function() {
+	this.resetAnimation = function () {
 		if (!this._opts.loop) {
 			this.stopAnimation();
 		} else {
@@ -201,19 +201,19 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 		}
 	};
 
-	this.setFramerate = function(fps) {
+	this.setFramerate = function (fps) {
 		this.frameRate = fps || 0.00001;
 	};
 
-	this.pause = function() {
+	this.pause = function () {
 		this.isPaused = this._isPaused = true;
 	};
 
-	this.resume = function() {
+	this.resume = function () {
 		this.isPaused = this._isPaused = false;
 	};
 
-	this._tickSprite = function(dt) {
+	this._tickSprite = function (dt) {
 		if (this.isPaused) { return; }
 
 		dt += this._dt;
@@ -300,37 +300,37 @@ SpriteView.getGroup = SpriteView.prototype.getGroup;
 /**
  * Group class
  */
-var Group = Class(jsio.__filename, function(logger) {
+var Group = Class(jsio.__filename, function (logger) {
 
-	this.init = function() {
+	this.init = function () {
 		this.sprites = {};
 	};
 
-	this.add = function(sprite) {
+	this.add = function (sprite) {
 		this.sprites[sprite.uid] = sprite;
 	};
 
-	this.remove = function(uid) {
+	this.remove = function (uid) {
 		delete this.sprites[uid];
 	};
 
-	this.pause = function() {
+	this.pause = function () {
 		this._forEachSprite('pause');
 	};
 
-	this.resume = function() {
+	this.resume = function () {
 		this._forEachSprite('resume');
 	};
 
-	this.stopAnimation = function() {
+	this.stopAnimation = function () {
 		this._forEachSprite('stopAnimation');
 	};
 
-	this.resetAnimation = function() {
+	this.resetAnimation = function () {
 		this._forEachSprite('resetAnimation');
 	};
 
-	this._forEachSprite = function(method) {
+	this._forEachSprite = function (method) {
 		for (var i in this.sprites) {
 			this.sprites[i][method]();
 		}

@@ -41,7 +41,7 @@ exports = Class(ui.View, function (supr) {
 		supr(this, 'init', [opts]);
 	};
 
-	this.updateOpts = function(opts) {
+	this.updateOpts = function (opts) {
 		opts = supr(this, 'updateOpts', arguments);
 
 		if (opts.scaleMethod) {
@@ -134,11 +134,11 @@ exports = Class(ui.View, function (supr) {
 		return opts;
 	};
 
-	this.getImage = function() {
+	this.getImage = function () {
 		return this._img;
 	};
 
-	this.setImage = function(img, opts) {
+	this.setImage = function (img, opts) {
 		var autoSized = false;
 		var sw, sh, iw, ih, bounds;
 		opts = merge(opts, this._opts);
@@ -218,7 +218,7 @@ exports = Class(ui.View, function (supr) {
 		}
 	};
 
-	this.doOnLoad = function() {
+	this.doOnLoad = function () {
 		if (arguments.length == 1) {
 			this._img.doOnLoad(this, arguments[0]);
 		} else {
@@ -227,22 +227,22 @@ exports = Class(ui.View, function (supr) {
 		return this;
 	};
 
-	this.autoSize = function() {
+	this.autoSize = function () {
 		if (this._img) {
 			this.style.width = this._opts.width || this._img.getWidth();
 			this.style.height = this._opts.height || this._img.getHeight();
 		}
 	};
 
-	this.getOrigWidth = this.getOrigW = function() {
+	this.getOrigWidth = this.getOrigW = function () {
 		return this._img.getOrigW();
 	};
 
-	this.getOrigHeight = this.getOrigH = function() {
+	this.getOrigHeight = this.getOrigH = function () {
 		return this._img.getOrigH();
 	};
 
-	this.renderSlice = function(ctx) {
+	this.renderSlice = function (ctx) {
 		var debugColors = ['#FF0000', '#00FF00', '#0000FF'];
 		var globalScale = this.getPosition().scale;
 
@@ -337,7 +337,7 @@ exports = Class(ui.View, function (supr) {
 		}
 	};
 
-	this.render = function(ctx) {
+	this.render = function (ctx) {
 		if (!this._img) { return; }
 
 		var s = this.style;
@@ -422,7 +422,7 @@ exports = Class(ui.View, function (supr) {
 		}
 	};
 
-	this.getTag = function() {
+	this.getTag = function () {
 		return 'ImageScaleView' + this.uid + ':' + (this._img && this._img._map.url.substring(0, 16));
 	};
 });
