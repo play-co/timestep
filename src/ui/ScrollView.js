@@ -348,8 +348,9 @@ exports = Class(View, function (supr) {
 
 			if (this._anim && this._anim.hasFrames()) {
 				this._anim.clear();
-				evt.cancel();
 			}
+
+			evt.cancel();
 		}
 	};
 
@@ -561,6 +562,8 @@ exports = Class(View, function (supr) {
 		} else if (this._opts.scrollX) {
 			this.addOffset(evt.scrollDelta * 40);
 		}
+
+		evt.cancel();
 	};
 
 	this.scrollTo = function (x, y, duration, cb) {
