@@ -83,13 +83,14 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 		}
 
 		this._animations = {};
-		var autoSizeWidth = null;
-		var autoSizeHeight = null;
 
 		if (opts.sheetData) {
+			var w = opts.sheetData.width || opts.width;
+			var h = opts.sheetData.height || opts.height;
 			for (var animName in opts.sheetData.anims) {
-				var w = opts.sheetData.width || opts.width;
-				var h = opts.sheetData.height || opts.height;
+				if (!this._opts.defaultAnimation) {
+					this._opts.defaultAnimation = animName;
+				}
 				this.loadFromSheet(animName, opts.sheetData.url, w, h,
 					opts.sheetData.offsetX || w, opts.sheetData.offsetY || h,
 					opts.sheetData.startX || 0, opts.sheetData.startY || 0,
@@ -101,17 +102,15 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 					this._opts.defaultAnimation = animName;
 				}
 				this.addAnimation(animName, animations[animName]);
-				var frameImages = this._animations[animName].frames;
-				if (!autoSizeWidth && frameImages[0]) {
-					autoSizeWidth = frameImages[0].getWidth();
-					autoSizeHeight = frameImages[0].getHeight();
-				}
 			}
 		}
 
-		if (opts.autoSize) {
-			this.style.width = autoSizeWidth;
-			this.style.height = autoSizeHeight;
+		if (opts.autoSize && this._opts.defaultAnimation) {
+			var frameImages = this._animations[this._opts.defaultAnimation].frames;
+			if (frameImages[0]) {
+				this.style.width = frameImages[0].getWidth();
+				this.style.height = frameImages[0].getHeight();
+			}
 		}
 
 		opts.autoStart && this.startAnimation(this._opts.defaultAnimation, opts);
