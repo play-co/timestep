@@ -45,6 +45,8 @@ var ImageView = exports = Class(View, function (supr) {
 			autoSize: false
 		});
 		
+		this._autoSize = opts.autoSize;
+		
 		if (opts.image) {
 			this.setImage(opts.image, opts);
 		}
@@ -80,7 +82,8 @@ var ImageView = exports = Class(View, function (supr) {
 		this._img = img;
 
 		if (this._img) {
-			if (opts && opts.autoSize) {
+			this._autoSize = opts && ('autoSize' in opts) ? opts.autoSize : this._autoSize;
+			if (this._autoSize) {
 				// sprited resources will know their dimensions immediately
 				if (this._img.getWidth() > 0 && this._img.getHeight() > 0) {
 					this.autoSize();
