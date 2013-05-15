@@ -47,7 +47,9 @@ exports = Class(ui.View, function (supr) {
 			this._isSlice = this._scaleMethod.slice(1) == 'slice';
 		}
 
-		this.debug = !!opts.debug
+		if ('debug' in opts) {
+			this.debug = !!opts.debug;
+		}
 
 		// {horizontal: {left: n, center: n, right: n}, vertical: {top: n, middle: n, bottom: n}}
 		this._sourceSlices = opts.sourceSlices;
@@ -81,13 +83,18 @@ exports = Class(ui.View, function (supr) {
 			if (!opts.sourceSlices || !(opts.sourceSlices.horizontal || opts.sourceSlices.vertical)) {
 				throw new Error('slice views require sourceSlices.horizontal and/or sourceSlices.vertical');
 			}
+
 			if (opts.sourceSlices.horizontal) {
-				var cent = opts.width ? (opts.width - opts.sourceSlices.horizontal.left - opts.sourceSlices.horizontal.right) : 0;
-				this._sourceSlicesHor = [
-					opts.sourceSlices.horizontal.left,
-					opts.sourceSlices.horizontal.center || cent,
-					opts.sourceSlices.horizontal.right
-				];
+				var src = opts.sourceSlices.horizontal;
+				var slices = [src.left || 0, src.center, src.right || 0];
+				if (slices.center == undefined && this._img) { // also captures null, but ignores 0
+					var width = this._img.getWidth();
+					slices[1] = width ? width - slices[0] - slices[2] : 0;
+				} else {
+					slices[1] = slices.center || 0;
+				}
+
+				this._sourceSlicesHor = slices;
 				this._destSlicesHor = [
 					(this._destSlices.horizontal.left || 0) * this._imgScale,
 					0,
@@ -99,12 +106,16 @@ exports = Class(ui.View, function (supr) {
 			}
 
 			if (opts.sourceSlices.vertical) {
-				var cent = opts.height ? (opts.height - opts.sourceSlices.vertical.top - opts.sourceSlices.vertical.bottom) : 0;
-				this._sourceSlicesVer = [
-					opts.sourceSlices.vertical.top,
-					opts.sourceSlices.vertical.middle || cent,
-					opts.sourceSlices.vertical.bottom
-				];
+				var src = opts.sourceSlices.vertical;
+				var slices = [src.top || 0, 0, src.bottom || 0];
+				if (slices.middle == undefined && this._img) {
+					var height = this._img.getHeight();
+					slices[1] = height ? height - slices[0] - slices[2] : 0;
+				} else {
+					slices[1] = slices.middle || 0;
+				}
+
+				this._sourceSlicesVer = slices;
 				this._destSlicesVer = [
 					(this._destSlices.vertical.top || 0) * this._imgScale,
 					0,
@@ -170,7 +181,13 @@ exports = Class(ui.View, function (supr) {
 			}
 		}
 
+		this._img = (typeof img == 'string') ? new Image({url: img}) : img;
+
 		if (this._isSlice) {
+			this.updateOpts({
+				sourceSlices: this._opts.sourceSlices
+			});
+
 			var sourceSlicesHor = this._sourceSlicesHor;
 			var sourceSlicesVer = this._sourceSlicesVer;
 			if (sourceSlicesHor) {
@@ -188,8 +205,6 @@ exports = Class(ui.View, function (supr) {
 				sourceSlicesVer[2] *= scale;
 			}
 		}
-
-		this._img = (typeof img == 'string') ? new Image({url: img}) : img;
 
 		if (this._img) {
 			if (opts && opts.autoSize && !autoSized) {
@@ -210,9 +225,10 @@ exports = Class(ui.View, function (supr) {
 	};
 
 	this.autoSize = function () {
-		if (this._img) {
-			this.style.width = this._opts.width || this._img.getWidth();
-			this.style.height = this._opts.height || this._img.getHeight();
+		if (this._img && this._img.isLoaded()) {
+			debugger;
+			this.style.width = this._img.getWidth() || this._opts.width;
+			this.style.height = this._img.getHeight() || this._opts.height;
 		}
 	};
 
