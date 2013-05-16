@@ -83,27 +83,53 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 		}
 
 		this._animations = {};
-		var autoSizeWidth = null;
-		var autoSizeHeight = null;
 
-		for (var animName in animations) {
-			if (!this._opts.defaultAnimation) {
-				this._opts.defaultAnimation = animName;
+		if (opts.sheetData) {
+			var w = opts.sheetData.width || opts.width;
+			var h = opts.sheetData.height || opts.height;
+			for (var animName in opts.sheetData.anims) {
+				if (!this._opts.defaultAnimation) {
+					this._opts.defaultAnimation = animName;
+				}
+				this.loadFromSheet(animName, opts.sheetData.url, w, h,
+					opts.sheetData.offsetX || w, opts.sheetData.offsetY || h,
+					opts.sheetData.startX || 0, opts.sheetData.startY || 0,
+					opts.sheetData.anims[animName]);
 			}
-			this.addAnimation(animName, animations[animName]);
-			var frameImages = this._animations[animName].frames;
-			if (!autoSizeWidth && frameImages[0]) {
-				autoSizeWidth = frameImages[0].getWidth();
-				autoSizeHeight = frameImages[0].getHeight();
+		} else {
+			for (var animName in animations) {
+				if (!this._opts.defaultAnimation) {
+					this._opts.defaultAnimation = animName;
+				}
+				this.addAnimation(animName, animations[animName]);
 			}
 		}
 
-		if (opts.autoSize) {
-			this.style.width = autoSizeWidth;
-			this.style.height = autoSizeHeight;
+		if (opts.autoSize && this._opts.defaultAnimation) {
+			var frameImages = this._animations[this._opts.defaultAnimation].frames;
+			if (frameImages[0]) {
+				this.style.width = frameImages[0].getWidth();
+				this.style.height = frameImages[0].getHeight();
+			}
 		}
 
 		opts.autoStart && this.startAnimation(this._opts.defaultAnimation, opts);
+	};
+
+	this.loadFromSheet = function (animName, sheetUrl, width, height, offsetX, offsetY, startX, startY, frames) {
+		var frameImages = [];
+		for (var i = 0; i < frames.length; i++) {
+			frameImages.push(new Image({
+				url: sheetUrl,
+				sourceW: width,
+				sourceH: height,
+				sourceX: startX + frames[i][0] * offsetX,
+				sourceY: startY + frames[i][1] * offsetY
+			}));
+		}
+		this._animations[animName] = {
+			frames: frameImages
+		};
 	};
 
 	this.addAnimation = function (animName, frameData) {
