@@ -18,6 +18,14 @@ exports = Class(View, function(supr) {
 		this.activeCharacters = [];
 		this.imageViews = [];
 
+		// container view for characters
+		this._container = new View({
+			superview: this,
+			width: this.style.width,
+			height: this.style.height,
+			canHandleEvents: false
+		});
+
 		// get our image data and set up Images
 		this.setCharacterData(opts.characterData);
 
@@ -67,9 +75,9 @@ exports = Class(View, function(supr) {
 		}
 
 		if (this.style.width < this.textWidth) {
-			this.style.scale = this.style.width / this.textWidth;
+			this._container.style.scale = this.style.width / this.textWidth;
 		} else {
-			this.style.scale = this.origScale;
+			this._container.style.scale = this.origScale;
 		}
 
 		if (this.textAlign == 'center') {
@@ -82,7 +90,7 @@ exports = Class(View, function(supr) {
 
 		while (text.length > this.imageViews.length) {
 			var newView = new ImageView({
-				parent: this,
+				superview: this._container,
 				x: 0,
 				y: 0,
 				width: 1,
