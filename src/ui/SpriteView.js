@@ -283,7 +283,7 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 				this._callback = null;
 
 				this.resetAnimation();
-				if (cb) cb();
+				if (cb) cb(this);
 			}
 		}
 	};
