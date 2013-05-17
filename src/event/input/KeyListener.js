@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -24,19 +25,19 @@ jsio('from util.browser import $');
 
 var listener = null;
 
-exports = Class(function() {
-	this.init = function() {
+exports = Class(function () {
+	this.init = function () {
 		if (!listener) {
 			listener = new Listener();
 		}
 	}
-	this.getKeys = function() {
+	this.getKeys = function () {
 		return listener.getKeys();
 	}
 });
 
-var Listener = Class(function() {
-	this.init = function(el, events) {
+var Listener = Class(function () {
+	this.init = function (el, events) {
 		this._el = el = el || document;
 		this._keys = {};
 
@@ -47,18 +48,18 @@ var Listener = Class(function() {
 	};
 
 
-	this.onKeyUp = function(e) {
+	this.onKeyUp = function (e) {
 		this._keys[e.keyCode] = false;
 		delete this._keys[e.keyCode];
 		$.stopEvent(e);
 	};
 	
-	this.onKeyDown = function(e) {
+	this.onKeyDown = function (e) {
 		this._keys[e.keyCode] = true;
 		$.stopEvent(e);
 	};
 
-	this.getKeys = function() {
+	this.getKeys = function () {
 		return this._keys;
 	};
 });

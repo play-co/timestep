@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -24,9 +25,9 @@
  *          in game code.
  */
 
-exports = Class(function() {
+exports = Class(function () {
 	var defaults = {
-		onChange: function() {},
+		onChange: function () {},
 		title: '',
 		message: '',
 		value: '',

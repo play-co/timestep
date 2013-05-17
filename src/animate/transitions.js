@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -28,4 +29,4 @@
 exports.linear = function (n) { return n; }
 exports.easeIn = function (n) { return n * n; }
 exports.easeInOut = function (n) { return (n *= 2) < 1 ? 0.5 * n * n * n : 0.5 * ((n -= 2) * n * n + 2); }
-exports.easeOut = function(n) { return n * (2 - n); }
+exports.easeOut = function (n) { return n * (2 - n); }

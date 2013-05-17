@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -35,7 +36,7 @@ exports.getDeviceImports = function (device) {
 }
 
 
-exports.getBackendImports = function(backend) {
+exports.getBackendImports = function (backend) {
 	if (backend == 'dom') {
 		return [
 			'.backend.dom.animate',
@@ -59,9 +60,9 @@ exports.getBackendImports = function(backend) {
 	return [];
 }
 
-exports.resolve = function(env, opts) {
+exports.resolve = function (env, opts) {
 	var imports = [];
-	var add = function(list) { imports = imports.concat(list); };
+	var add = function (list) { imports = imports.concat(list); };
 
 	add(exports.getDeviceImports(env));
 

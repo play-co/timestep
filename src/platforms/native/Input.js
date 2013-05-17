@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -17,17 +18,17 @@
 
 import event.input.InputEvent as InputEvent;
 
-exports = Class(function() {
+exports = Class(function () {
 	if (NATIVE.timestep && NATIVE.timestep.getEvents) {
 		if (!NATIVE.timestep.InputEvent) {
 			NATIVE.timestep.InputEvent = InputEvent;
 		}
 
-		this.getEvents = function() {
+		this.getEvents = function () {
 			return NATIVE.timestep.getEvents();
 		}
 	} else {
-		this.getEvents = function() {
+		this.getEvents = function () {
 			var raw = NATIVE.input.get(),
 				evts = [];
 			
