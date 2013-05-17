@@ -46,6 +46,7 @@ exports = Class(View, function(supr) {
 		});
 
 		// get our image data and set up Images
+		this._loadCount = 0;
 		opts.characterData && this.setCharacterData(opts.characterData);
 
 		// text options
@@ -53,20 +54,22 @@ exports = Class(View, function(supr) {
 		this.spacing = opts.spacing || 0;
 		this.srcHeight = opts.srcHeight;
 		this.origScale = opts.scale || 1;
-
-		if (opts.text) {
-			this.setText(opts.text);
-		}
+		this.setText(opts.text || "");
 	};
 
 	this._loadCharacter = function(c) {
 		var d = this.characterData[c];
 		d.img = new Image({ url: d.image });
 		if (!d.width || !this.srcHeight) {
-			d.img.doOnLoad = bind(this, function() {
+			this._loadCount += 1;
+			d.img.doOnLoad(bind(this, function() {
 				d.width = d.width || d.img.getWidth();
 				this.srcHeight = this.srcHeight || d.img.getHeight();
-			});
+				this._loadCount -= 1;
+				if (!this._loadCount) {
+					this.setText(this.text);
+				}
+			}));
 		}
 	};
 
@@ -75,14 +78,15 @@ exports = Class(View, function(supr) {
 		for (var c in data) {
 			this._loadCharacter(c);
 		}
-
-		if (this.text) {
-			this.setText(this.text);
-		}
 	};
 
 	this.setText = function(text) {
 		this.text = text = text + "";
+
+		if (this._loadCount || !text) {
+			return; // we'll call setText again when the characters are loaded
+		}
+
 		this.textWidth = 0;
 
 		var scale = this.style.height / this.srcHeight;
