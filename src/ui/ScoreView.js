@@ -67,18 +67,20 @@ exports = Class(View, function(supr) {
 
 		var scale = this.style.height / this.srcHeight;
 
-		var i = 0, data;
+		var i = 0, c = 0, data, character;
 		while (i < text.length) {
-			var character = text.charAt(i);
-			var data = this.characterData[character];
-			var w = data.width * scale;
+			character = text.charAt(i);
+			data = this.characterData[character];
 			if (data) {
-				this.activeCharacters[i] = data;
-				this.textWidth += w + this.spacing * scale;
+				this.activeCharacters[c] = data;
+				this.textWidth += (data.width + this.spacing) * scale;
 				// special x offsets to fix text kerning only affect text width if it's first or last char
 				if (data.offset && (i == 0 || i == text.length - 1)) {
 					this.textWidth += data.offset * scale;
 				}
+				c++;
+			} else {
+				logger.log("WARNING! Calling ScoreView.setText with unavailable character: " + character);
 			}
 			i++;
 		}
@@ -112,7 +114,7 @@ exports = Class(View, function(supr) {
 		}
 
 		// trim excess characters
-		this.activeCharacters.length = text.length;
+		this.activeCharacters.length = c;
 
 		var x = this.offset, y = 0;
 		for (i = 0; i < this.activeCharacters.length; i++) {
