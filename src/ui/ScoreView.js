@@ -26,7 +26,7 @@ exports = Class(View, function(supr) {
 		});
 
 		// get our image data and set up Images
-		this.setCharacterData(opts.characterData);
+		opts.characterData && this.setCharacterData(opts.characterData);
 
 		// text options
 		this.textAlign = opts.textAlign || 'center';
