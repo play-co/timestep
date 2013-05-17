@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -15,7 +16,7 @@
  * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-exports.resolve = function(env, opts) {
+exports.resolve = function (env, opts) {
 	return [
 		'.Canvas',
 		'.Context2D',

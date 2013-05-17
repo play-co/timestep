@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -35,9 +36,9 @@ var eventTypes = input.eventTypes;
 
 var UID = -1;
 
-exports = Class(function(supr) {
+exports = Class(function (supr) {
 	
-	this.init = function(opts) {
+	this.init = function (opts) {
 
 		if (device.simulatingMobileNative || device.simulatingMobileBrowser) { this._simulateMobile = true; }
 		
@@ -75,14 +76,14 @@ exports = Class(function(supr) {
 		}
 	}
 
-	this.enable = function() {
+	this.enable = function () {
 		this._handleMove = $.onEvent(document, device.events.move, this, 'handleMouse', eventTypes.MOVE);
 		this._handleSelect = $.onEvent(document, device.events.end, this, 'handleMouse', eventTypes.SELECT);
 		this._handleScroll = $.onEvent(window, 'DOMMouseScroll', this, 'handleMouse', eventTypes.SCROLL); // FF
 		this._handleWheel = $.onEvent(window, 'mousewheel', this, 'handleMouse', eventTypes.SCROLL); // webkit
 	};
 
-	this.disable = function() {
+	this.disable = function () {
 		if (this._handleMove) {
 			this._handleMove();
 			this._handleMove = false;
@@ -101,7 +102,7 @@ exports = Class(function(supr) {
 		}
 	};
 	
-	this.onFocusCapture = function(e) {
+	this.onFocusCapture = function (e) {
 		var tag = e.target.tagName;
 		if (tag == 'TEXTAREA' || tag == 'INPUT') {
 			this._hasFocus = e.target;
@@ -109,14 +110,14 @@ exports = Class(function(supr) {
 		}
 	}
 	
-	this.onBlurCapture = function(e) {
+	this.onBlurCapture = function (e) {
 		if (this._hasFocus) {
 			this._hasFocus = null;
 			this._keyListener && this._keyListener.setEnabled(true);
 		}
 	}
 	
-	this.setElement = function(el) {
+	this.setElement = function (el) {
 		this._el = el;
 		
 		if (this._elEvents) {
@@ -125,8 +126,8 @@ exports = Class(function(supr) {
 			}
 		}
 		
-		el.ondragstart = function() { return false; }
-		el.onselectstart = function() { return false; }
+		el.ondragstart = function () { return false; }
+		el.onselectstart = function () { return false; }
 		
 		this._elEvents = [];
 		
@@ -140,18 +141,18 @@ exports = Class(function(supr) {
 		}
 	}
 	
-	this.onMouseOver = function() { this._isOver = true; }
-	this.onMouseOut = function() { this._isOver = false; }
-	this.onMouseDown = function() { this._isMouseDown = true; }
-	this.onMouseUp = function() { this._isMouseUp = true; }
+	this.onMouseOver = function () { this._isOver = true; }
+	this.onMouseOut = function () { this._isOver = false; }
+	this.onMouseDown = function () { this._isMouseDown = true; }
+	this.onMouseUp = function () { this._isMouseUp = true; }
 	
-	this.getEvents = function() { return this._evtQueue.splice(0, this._evtQueue.length); }
+	this.getEvents = function () { return this._evtQueue.splice(0, this._evtQueue.length); }
 	
-	this.allowScrollEvents = function(allowScrollEvents) { this._allowScrollEvents = allowScrollEvents; }
+	this.allowScrollEvents = function (allowScrollEvents) { this._allowScrollEvents = allowScrollEvents; }
 	
-	var empty = function() {};
+	var empty = function () {};
 
-	this.handleMouse = function(type, evt, recursive) {
+	this.handleMouse = function (type, evt, recursive) {
 		var target = evt.target;
 		if (this._hasFocus && this._hasFocus == target || target && target.getAttribute && target.getAttribute('noCapture')) { return; }
 		

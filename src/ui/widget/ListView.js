@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -77,7 +78,7 @@ exports = Class(ScrollView, function (supr) {
 		if (this._onSelect) {
 			this.model.subscribe('Select', this, this._onSelect);
 		}
-		if (this._onDeselect){
+		if (this._onDeselect) {
 			this.model.subscribe('Deselect', this, this._onDeselect);
 		}
 

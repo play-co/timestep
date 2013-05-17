@@ -1,4 +1,5 @@
-/* @license
+/**
+ * @license
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
@@ -25,7 +26,7 @@
 import math.geom.Point as Point;
 import event.input.dispatch as dispatch;
 
-var InputHandler = exports = Class(function() {
+var InputHandler = exports = Class(function () {
 	
 	// ---- start mouseover
 	
@@ -34,7 +35,7 @@ var InputHandler = exports = Class(function() {
 	this.canHandleEvents = true;
 	this.blockEvents = false;
 
-	this.init = function(view, opts) {
+	this.init = function (view, opts) {
 		this.view = view;
 
 		if ('canHandleEvents' in opts) {
@@ -46,13 +47,13 @@ var InputHandler = exports = Class(function() {
 		}
 	}
 	
-	this.containsEvent = function(evt, localPt) {
+	this.containsEvent = function (evt, localPt) {
 		// block events must be false
 		return !this.blockEvents && (!this.view._superview   // top-view captures all events
 				|| this.view.containsLocalPoint(localPt));
 	}
 
-	this.onEnter = function(id, atTarget) {
+	this.onEnter = function (id, atTarget) {
 		var view = this.view;
 		var over = this._over || (this._over = {});
 		if (id in over) { return; }
@@ -64,7 +65,7 @@ var InputHandler = exports = Class(function() {
 		view.publish('InputOver', over, this.overCount, atTarget);
 	}
 	
-	this.onLeave = function(id, atTarget) {
+	this.onLeave = function (id, atTarget) {
 		var view = this.view;
 		var over = this._over || (this._over = {});
 		if (!(id in over)) { return; }
@@ -76,7 +77,7 @@ var InputHandler = exports = Class(function() {
 		view.publish('InputOut', over, this.overCount, atTarget);
 	}
 	
-	this.resetOver = function() {
+	this.resetOver = function () {
 		delete this._over;
 		this.overCount = 0;
 	}
@@ -86,7 +87,7 @@ var InputHandler = exports = Class(function() {
 	
 	// ---- start drag
 	
-	this.startDrag = function(opts) {
+	this.startDrag = function (opts) {
 		opts = opts || {};
 		var view = this.view;
 		var inputStartEvt = opts.inputStartEvt || opts.inputStartEvent || dispatch._evtHistory[dispatch.eventTypes.START];
@@ -109,9 +110,9 @@ var InputHandler = exports = Class(function() {
 		root.subscribe('InputSelectCapture', this, 'onDragStop', dragEvt);
 	}
 	
-	this.isDragging = function() { return this.dragCount && dispatch._isDragging; }
+	this.isDragging = function () { return this.dragCount && dispatch._isDragging; }
 	
-	this.onDragStart = function(dragEvt, moveEvt) {
+	this.onDragStart = function (dragEvt, moveEvt) {
 		// have we exceeded the move radius?
 		var dx = moveEvt.srcPt.x - dragEvt.srcPt.x;
 		var dy = moveEvt.srcPt.y - dragEvt.srcPt.y;
@@ -136,7 +137,7 @@ var InputHandler = exports = Class(function() {
 		this.onDrag(dragEvt, moveEvt);
 	}
 	
-	this.onDrag = function(dragEvt, moveEvt) {
+	this.onDrag = function (dragEvt, moveEvt) {
 		if (dragEvt.id != moveEvt.id
 				|| moveEvt.srcPt.x == dragEvt.currPt.x && moveEvt.srcPt.y == dragEvt.currPt.y) { return; }
 
@@ -160,7 +161,7 @@ var InputHandler = exports = Class(function() {
 		//moveEvt.cancel();
 	}
 	
-	this.onDragStop = function(dragEvt, selectEvt) {
+	this.onDragStop = function (dragEvt, selectEvt) {
 		var id = dragEvt.id;
 		var dragging = this._isDragging || (this._isDragging = {});
 		if (!dragging[id] || dragEvt.id != selectEvt.id) { return; }
