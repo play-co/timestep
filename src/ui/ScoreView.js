@@ -43,10 +43,11 @@ exports = Class(View, function(supr) {
 	this._loadCharacter = function(c) {
 		var d = this.characterData[c];
 		d.img = new Image({ url: d.image });
-		if (!d.width) {
-			d.img.doOnLoad = function() {
-				d.width = d.img.getWidth();
-			}
+		if (!d.width || !this.srcHeight) {
+			d.img.doOnLoad = bind(this, function() {
+				d.width = d.width || d.img.getWidth();
+				this.srcHeight = this.srcHeight || d.img.getHeight();
+			});
 		}
 	};
 
