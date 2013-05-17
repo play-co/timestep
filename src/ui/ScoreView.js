@@ -11,7 +11,6 @@ exports = Class(View, function(supr) {
 
 	this.init = function(opts) {
 		opts.blockEvents = true;
-		opts.canHandleEvents = false;
 		supr(this, 'init', arguments);
 
 		// characters that should be rendered
