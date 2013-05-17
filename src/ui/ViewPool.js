@@ -83,7 +83,7 @@ exports = Class(function () {
 			}
 
 			// create a new view
-			view = new this.ctor(opts);
+			view = new this.ctor(viewOpts);
 			view._poolIndex = this.views.length;
 			this.views.push(view);
 		}
