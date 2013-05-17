@@ -40,11 +40,20 @@ exports = Class(View, function(supr) {
 		}
 	};
 
+	this._loadCharacter = function(c) {
+		var d = this.characterData[c];
+		d.img = new Image({ url: d.image });
+		if (!d.width) {
+			d.img.doOnLoad = function() {
+				d.width = d.img.getWidth();
+			}
+		}
+	};
+
 	this.setCharacterData = function(data) {
 		this.characterData = data;
-		for (var i in data) {
-			var d = data[i];
-			d.img = new Image({ url: d.image });
+		for (var c in data) {
+			this._loadCharacter(c);
 		}
 
 		if (this.text) {
