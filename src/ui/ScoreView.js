@@ -79,6 +79,10 @@ exports = Class(View, function(supr) {
 		}
 	};
 
+	this.refresh = function() {
+		setTimeout(bind(this, 'setText', this.text), 0);
+	};
+
 	this.setText = function(text) {
 		this.text = text = text + "";
 
