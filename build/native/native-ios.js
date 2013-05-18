@@ -404,50 +404,6 @@ var _copyFile = function(srcPath, destPath) {
 };
 
 function copySplash(manifest, destPath, next) {
-	/*
-	var schema = {
-		"portrait480": "Default.png",
-		"portrait960": "Default@2x.png",
-		"portrait1024": "Default-Portrait~ipad.png",
-		"portrait1136": "Default-568h@2x.png",
-		"portrait2048": "Default-Portrait@2x~ipad.png",
-		"landscape768": "Default-Landscape~ipad.png",
-		"landscape1536": "Default-Landscape@2x~ipad.png"
-	};
-
-	function copySchema(loadingParent, schemaParent, desc) {
-		// For each key at this level of the schema tree,
-		for (var key in schemaParent) {
-			// Grab the subkey
-			var loadPath = loadingParent[key];
-			var schemaPath = schemaParent[key];
-			var loadType = typeof(loadPath);
-
-			if (loadType !== typeof(schemaPath)) {
-				// Load and schema do not agree: Report to user
-				logger.error('WARNING: The manifest.json key ',desc,':',key,' is missing, so the splash screen is not fully configured!');
-
-			} else if (loadType === "string") {
-				// Copy files in the schema
-				var copyPath = path.join(destPath, 'tealeaf', schemaPath);
-				logger.log("Splash: Copying " + path.resolve(loadPath) + " to " + path.resolve(copyPath));
-				_copyFile(loadPath, copyPath);
-
-			} else if (loadType === "object") {
-				// Recurse into collections in the schema
-				copySchema(loadingParent[key], schemaParent[key], desc+":"+key);
-			}
-		}
-	}
-
-	// If loading object exists,
-	if (typeof(loading) === "object") {
-		copySchema(loading, schema, "");
-	} else {
-		logger.error('WARNING: The manifest.json splash section is missing, so the splash screen is not configured for your app!');
-	}	
-	*/
-	
 	if (manifest.splash) {
 		var universalSplash = manifest.splash["universal"];
 		
@@ -511,6 +467,7 @@ function copyDir(srcPath, destPath, name) {
 	wrench.copyDirSyncRecursive(path.join(srcPath, name), path.join(destPath, name));
 	logger.log('copied', name, 'to', destPath);
 }
+
 function copyIOSProjectDir(srcPath, destPath, next) {
 	logger.log('copying', srcPath, 'to', destPath);
 	var parent = path.dirname(destPath);
@@ -522,36 +479,14 @@ function copyIOSProjectDir(srcPath, destPath, next) {
 	}
 	copyDir(srcPath, destPath, 'tealeaf');
 
-	//go through config.json of plugins
-	//and copy all plugin deps to the corerct places
-	
-	var f = ff(this, function() {
-		var configPath = path.join(iOSPath, 'plugins/config.json');
-		fs.readFile(configPath, 'utf8', f());
-	}, function(pluginsConfig) {
-			//loop through plugins
-			var group = f.group();
-			pluginsConfig = JSON.parse(pluginsConfig);
-			var pluginFiles = [];
-			for (var i in pluginsConfig) {
-				var relativePluginPath = pluginsConfig[i];
-				var pluginDir = path.join(iOSPath, "plugins", relativePluginPath);
-				var pluginConfigFile = path.join(pluginDir, "config.json");
-				pluginFiles.push(pluginDir);
-				//read all plugin configs, pass on 
-				fs.readFile(pluginConfigFile , 'utf8', group());
-			}
-			f(pluginFiles);
-	}, function(pluginConfigs, pluginFiles) {
-		for (var i in pluginConfigs) {
-			var config = JSON.parse(pluginConfigs[i]);
-			for (var cd in config.copyDirs) {
-				var dirPath = config.copyDirs[cd].path;
-				wrench.mkdirSyncRecursive(path.join(destPath, dirPath));
-				copyDir(path.join(srcPath, dirPath), path.join(destPath, dirPath), config.copyDirs[cd].dir);
+	var f = ff(this, function () {
+		var addons = project.manifest.addons;
+		if (addons) {
+			for (var ii = 0; ii < addons.length; ++ii) {
+				var addon_path = path.join("../../", addons[ii], "/ios");
 			}
 		}
-
+	}, function() {
 		next();
 	});
 }
@@ -576,31 +511,6 @@ function validateIOSManifest(manifest) {
 			halt: false,
 			silent: true
 		},
-/*		"apsalarKey": {
-			res: "Get this from your Apsalar account.",
-			def: "",
-			halt: false
-		},
-		"apsalarSecret": {
-			res: "Get this from your Apsalar account.",
-			def: "",
-			halt: false
-		},
-		"flurryKey": {
-			res: "Get this from your Flurry account.",
-			def: "",
-			halt: false
-		},
-		"tapjoyId": {
-			res: "Get this from your Tapjoy account.",
-			def: "",
-			halt: false
-		},
-		"tapjoyKey": {
-			res: "Get this from your Tapjoy account.",
-			def: "",
-			halt: false
-		}, */
 		"bundleID": {
 			res: "Should be set to the Bundle ID (a name) for your app from iTunes Connect. In-app purchases may not work!",
 			def: manifest.shortName,
@@ -687,7 +597,6 @@ function makeIOSProject(opts, next) {
 			orientations: manifest.supportedOrientations,
 			renderGloss: manifest.ios.icons && manifest.ios.icons.renderGloss,
 			version: manifest.ios.version,
-			fbappid: manifest.ios.facebookAppID,
 			title: opts.title
 		}, f.wait());
 
@@ -787,137 +696,13 @@ exports.package = function (builder, project, opts, next) {
 		return;
 	}
 
-	// Extract common commandline flags for subroutines
-	debug = argv.debug;
-	clean = argv.clean;
-
-	// Extracted values from options
-	var packageName = opts.packageName;
-	var studio = opts.studio;
-	var version = opts.version;
-	var displayVersion = opts.displayVersion;
-	var metadata = opts.metadata;
-	var servicesURL = opts.servicesURL;
+	// Merge command-line arguments into build options
+	opts.argv = argv;
 
 	common.track("BasilBuildNativeIOS", {"clean":clean, "debug":debug, "compress":opts.compress});
 
 	getTealeafIOSPath(function(dir) {
-		iOSPath = dir;
-
-		// Parse manifest and essential strings
-		var manifest = project.manifest;
-		var appID = manifest.appID;
-		var shortName = manifest.shortName;
-		if (appID == null || shortName == null) {
-			throw new Error("Build aborted: No appID or shortName in the manifest.");
-		}
-
-		// If shortName is invalid,
-		if (!/^[a-zA-Z0-9.-]+$/.test(shortName)) {
-			throw new Error("Build aborted: shortName contains invalid characters.  Should be a-Z 0-9 . - only");
-		}
-
-		// If IPA mode,
-		var developer, provision;
-		if (argv.ipa) {
-			developer = argv.name;
-			if (typeof developer !== "string") {
-				developer = manifest.ios && manifest.ios.developer;
-			}
-			if (typeof developer !== "string") {
-				logger.error("ERROR: IPA mode selected but developer name was not provided.  You can add it to your config.json under the ios:developer key, or with the --developer command-line option.");
-				process.exit(2);
-			}
-			logger.log("Using developer name:", developer);
-
-			provision = argv.provision;
-			if (typeof provision !== "string") {
-				provision = manifest.ios && manifest.ios.provision;
-			}
-			if (typeof provision !== "string") {
-				logger.error("ERROR: IPA mode selected but .mobileprovision file was not provided.  You can add it to your config.json under the ios:provision key, or with the --provision command-line option.");
-				process.exit(2);
-			}
-			logger.log("Using provision file:", provision);
-		}
-
-		// Parse appID.
-		appID = appID.replace(PUNCTUATION_REGEX, '');
-
-		// Parse paths.
-		var destPath = path.join('./build/native-ios', shortName);
-		opts.output = path.join(destPath, 'tealeaf/resources', 'resources.bundle');
-		opts.appID = appID;
-
-		// If cleaning out old directory first,
-		if (argv.clean) {
-			logger.log("Clean: Deleting previous build files");
-			wrench.rmdirSyncRecursive(destPath, function() {/* ignore errors */});
-		}
-
-		// Print out --open state
-		if (argv.open) {
-			if (argv.ipa) {
-				logger.log("Open: Open ignored because --ipa was specified");
-			} else {
-				logger.log("Open: Will open XCode project when build completes");
-			}
-		}
-
-		// Print out --debug state
-		if (debug) {
-			logger.log("Debug: Debug mode enabled");
-		} else {
-			logger.log("Debug: Release mode enabled");
-		}
-
-		var title = manifest.title;
-		if (!title) {
-			title = shortName;
-		}
-
-		logger.log("App ID:",appID);
-		logger.log("App Title:",title);
-
-		var f = ff(this, function() {
-			validateSubmodules(f());
-		}, function() {
-			makeIOSProject({
-				builder: builder,
-				project: project,
-				destPath: destPath,
-				debug: argv.debug,
-				servicesURL: servicesURL,
-				title: title
-			}, f());
-			require('./native').writeNativeResources(project, opts, f());
-		}, function() {
-			finishCopy(manifest, destPath, f());
-		}, function() {
-			// If IPA generation was requested,
-			if (argv.ipa) {
-				// TODO: Debug mode is currently turned off because it does not build
-				xcode.buildIPA(builder, path.join(destPath, '/tealeaf'), shortName, false, provision, developer, shortName+'.ipa', f());
-			}
-		}, function() {
-			if (argv.ipa) {
-				logger.log('Done with compilation.  The output .ipa file has been placed at', shortName+'.ipa');
-			} else {
-				var projPath = path.join(destPath, 'tealeaf/TeaLeafIOS.xcodeproj');
-
-				logger.log('Done with compilation.  The XCode project has been placed at', projPath);
-
-				// Launch XCode if requested
-				if (argv.open) {
-					logger.log('Open: Launching XCode project...');
-
-					require('child_process').exec('open "' + projPath + '"');
-				}
-			}
-			process.exit(0);
-		}).error(function(err) {
-			logger.error('ERROR:', err);
-			process.exit(2);
-		});
+		require(path.join(dir, "index")).build(common, builder, project, opts, next);
 	});
 };
+
