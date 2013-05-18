@@ -121,6 +121,7 @@ exports = Class(View, function(supr) {
 		} else {
 			this.offset = 0;
 		}
+		this.offset = Math.max(0, this.offset * this._container.style.scale);
 
 		while (text.length > this.imageViews.length) {
 			var newView = new ImageView({
