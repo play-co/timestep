@@ -40,8 +40,7 @@ exports = Class(View, function(supr) {
 		// container view for characters
 		this._container = new View({
 			superview: this,
-			width: this.style.width,
-			height: this.style.height,
+			layout: 'box',
 			canHandleEvents: false
 		});
 
