@@ -140,7 +140,8 @@ if (exports.isMobile) {
 		// All other browsers
 		exports.width = window.innerWidth;
 		exports.height = window.innerHeight;
-
+		exports.screen.width = window.innerWidth;
+		exports.screen.height = window.innerHeight;
 		exports.name = 'browser';
 		exports.canResize = false;
 	}
