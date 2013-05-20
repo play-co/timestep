@@ -189,6 +189,14 @@ exports.setRotationHandler = function (handler) {
 }
 
 /**
+ * Garbage Collection
+ */
+exports.collectGarbage = function () {
+	logger.log('collecting garbage');
+	NATIVE.gc && NATIVE.gc.runGC();
+}
+
+/**
  * Global device accessibility controls. Muting, click, color, font changing, etc.
  */
 
