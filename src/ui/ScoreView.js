@@ -73,6 +73,7 @@ exports = Class(View, function(supr) {
 	};
 
 	this.setCharacterData = function(data) {
+		this.srcHeight = this._opts.srcHeight;
 		this.characterData = data;
 		for (var c in data) {
 			this._loadCharacter(c);
