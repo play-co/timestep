@@ -335,8 +335,6 @@ var TextView = exports = Class(View, function (supr) {
 			if (desc != null) {
 				if (this._cacheUpdate) {
 					fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
-					//fontBufferCtx.fillStyle = ['#00FF00', '#00FF88', '#0088FF', '#0000FF'][~~(Math.random() * 4)];
-					//fontBufferCtx.fillRect(desc.x, desc.y, desc.width, desc.height);
 					this._renderToCtx(fontBufferCtx, desc.x - offsetRect.x, desc.y - offsetRect.y);
 				}
 				ctx.drawImage(fontBuffer.getCanvas(), desc.x, desc.y, width, height, offsetRect.x, offsetRect.y, width, height);
