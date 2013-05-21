@@ -106,7 +106,7 @@ var TextView = exports = Class(View, function (supr) {
 
 	var hashItems = {
 		// font properties...
-		color: false,
+		color: true,
 		fontFamily: true,
 		fontWeight: true,
 		size: true,
@@ -115,7 +115,7 @@ var TextView = exports = Class(View, function (supr) {
 		shadowColor: false,
 
 		// misc properties...
-		backgroundColor: false,
+		backgroundColor: true,
 		text: true
 	};
 	var hashItemsKeys = Object.keys(hashItems);
@@ -238,6 +238,7 @@ var TextView = exports = Class(View, function (supr) {
 		if (this._opts.buffer) {
 			fontBuffer.releaseBin(this.getHash());
 		}
+		this.updateCache();
 
 		this._checkDeprecatedOpts(opts);
 
@@ -283,7 +284,7 @@ var TextView = exports = Class(View, function (supr) {
 		var color = opts.color;
 		var strokeColor = opts.strokeColor;
 		var shadowColor = opts.shadowColor;
-		var lineOffset = opts.strokeWidth / 2;
+		var lineOffset = opts.strokeWidth * 0.5;
 		var x, y;
 		var i = cache.length;
 
@@ -304,7 +305,7 @@ var TextView = exports = Class(View, function (supr) {
 			y = offsetY + item.y;
 
 			if (strokeColor) {
-				ctx.strokeText(word, x, y, maxWidth);
+				ctx.strokeText(word, x + lineOffset, y + lineOffset, maxWidth);
 			}
 			if (shadowColor) {
 				ctx.fillStyle = shadowColor;
@@ -312,7 +313,7 @@ var TextView = exports = Class(View, function (supr) {
 			}
 
 			ctx.fillStyle = color;
-			ctx.fillText(word, x, y, maxWidth);
+			ctx.fillText(word, x + lineOffset, y + lineOffset, maxWidth);
 		}
 	};
 
@@ -333,7 +334,7 @@ var TextView = exports = Class(View, function (supr) {
 			desc = fontBuffer.getPositionForText(offsetRect);
 			if (desc != null) {
 				if (this._cacheUpdate) {
-					//fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
+					fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
 					this._renderToCtx(fontBufferCtx, desc.x - offsetRect.x, desc.y - offsetRect.y);
 				}
 				ctx.drawImage(fontBuffer.getCanvas(), desc.x, desc.y, width, height, offsetRect.x, offsetRect.y, width, height);

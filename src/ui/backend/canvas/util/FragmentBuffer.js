@@ -168,7 +168,7 @@ var FragmentBuffer = exports = Class(function () {
 			width: 1024,
 			height: 1024
 		}));
-		this._ctx.clearRect(0, 0, 1024, 1024);
+		this._ctx && this._ctx.clearRect(0, 0, 1024, 1024);
 		while (this._decriptions.length) {
 			this._decriptions.pop().textView.updateCache();
 		}
