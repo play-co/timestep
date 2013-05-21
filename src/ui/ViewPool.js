@@ -39,9 +39,11 @@ exports = Class(function () {
 
 		this.views = [];
 
+		this._initOpts = opts.initOpts || {};
+
 		// early initialization to avoid dropping frames
 		var initCount = opts.initCount,
-			initOpts = opts.initOpts;
+			initOpts = this._initOpts;
 		if (initCount) {
 			for (var i = 0; i < initCount; i++) {
 				// each view should have its own opts object
@@ -72,13 +74,20 @@ exports = Class(function () {
 		if (this._freshViewIndex < this.views.length) {
 			// re-use an existing view if we can
 			view = this.views[this._freshViewIndex];
-			view.updateOpts(opts);
 		} else {
+			var initOpts = this._initOpts,
+					viewOpts = {};
+
+			for (var o in initOpts) {
+				viewOpts[o] = initOpts[o];
+			}
+
 			// create a new view
-			view = new this.ctor(opts);
+			view = new this.ctor(viewOpts);
 			view._poolIndex = this.views.length;
 			this.views.push(view);
 		}
+		view.updateOpts(opts);
 
 		this._freshViewIndex++;
 		view._obtainedFromPool = true;
