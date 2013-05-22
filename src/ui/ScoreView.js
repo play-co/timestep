@@ -34,8 +34,8 @@ exports = Class(View, function(supr) {
 		supr(this, 'init', arguments);
 
 		// characters that should be rendered
-		this.activeCharacters = [];
-		this.imageViews = [];
+		this._activeCharacters = [];
+		this._imageViews = [];
 
 		// container view for characters
 		this._container = new View({
@@ -49,31 +49,31 @@ exports = Class(View, function(supr) {
 		opts.characterData && this.setCharacterData(opts.characterData);
 
 		// text options
-		this.textAlign = opts.textAlign || 'center';
-		this.spacing = opts.spacing || 0;
-		this.srcHeight = opts.srcHeight;
-		this.origScale = opts.scale || 1;
-		this.setText(opts.text || "");
+		this._textAlign = opts.textAlign || 'center';
+		this._spacing = opts.spacing || 0;
+		this._srcHeight = opts.srcHeight;
+		this._origScale = opts.scale || 1;
+		this.setText(opts.text || '');
 	};
 
 	this._loadCharacter = function(c) {
 		var d = this.characterData[c];
 		d.img = new Image({ url: d.image });
-		if (!d.width || !this.srcHeight) {
+		if (!d.width || !this._srcHeight) {
 			this._loadCount += 1;
 			d.img.doOnLoad(bind(this, function() {
 				d.width = d.width || d.img.getWidth();
-				this.srcHeight = this.srcHeight || d.img.getHeight();
+				this._srcHeight = this._srcHeight || d.img.getHeight();
 				this._loadCount -= 1;
 				if (!this._loadCount) {
-					this.setText(this.text);
+					this.setText(this._text);
 				}
 			}));
 		}
 	};
 
 	this.setCharacterData = function(data) {
-		this.srcHeight = this._opts.srcHeight;
+		this._srcHeight = this._opts.srcHeight;
 		this.characterData = data;
 		for (var c in data) {
 			this._loadCharacter(c);
@@ -81,54 +81,51 @@ exports = Class(View, function(supr) {
 	};
 
 	this.refresh = function() {
-		setTimeout(bind(this, 'setText', this.text), 0);
+		setTimeout(bind(this, 'setText', this._text), 0);
 	};
 
 	this.setText = function(text) {
-		this.text = text = text + "";
+		this._text = text = text + '';
 
 		if (this._loadCount || !text) {
 			return; // we'll call setText again when the characters are loaded
 		}
 
-		this.textWidth = 0;
+		var textWidth = 0, offset = 0,
+			scale = this.style.height / this._srcHeight,
+			i = 0, c = 0, data, character;
 
-		var scale = this.style.height / this.srcHeight;
-
-		var i = 0, c = 0, data, character;
 		while (i < text.length) {
 			character = text.charAt(i);
 			data = this.characterData[character];
 			if (data) {
-				this.activeCharacters[c] = data;
-				this.textWidth += (data.width + this.spacing) * scale;
+				this._activeCharacters[c] = data;
+				textWidth += (data.width + this._spacing) * scale;
 				// special x offsets to fix text kerning only affect text width if it's first or last char
 				if (data.offset && (i == 0 || i == text.length - 1)) {
-					this.textWidth += data.offset * scale;
+					textWidth += data.offset * scale;
 				}
 				c++;
 			} else {
-				logger.log("WARNING! Calling ScoreView.setText with unavailable character: " + character);
+				logger.log('WARNING! Calling ScoreView.setText with unavailable character: ' + character);
 			}
 			i++;
 		}
 
-		if (this.style.width < this.textWidth) {
-			this._container.style.scale = this.style.width / this.textWidth;
+		if (this.style.width < textWidth) {
+			this._container.style.scale = this.style.width / textWidth;
 		} else {
-			this._container.style.scale = this.origScale;
+			this._container.style.scale = this._origScale;
 		}
 
-		if (this.textAlign == 'center') {
-			this.offset = (this.style.width - this.textWidth) / 2;
-		} else if (this.textAlign == 'right') {
-			this.offset = this.style.width - this.textWidth;
-		} else {
-			this.offset = 0;
+		if (this._textAlign == 'center') {
+			offset = (this.style.width - textWidth) / 2;
+		} else if (this._textAlign == 'right') {
+			offset = this.style.width - textWidth;
 		}
-		this.offset = Math.max(0, this.offset * this._container.style.scale);
+		offset = Math.max(0, offset * this._container.style.scale);
 
-		while (text.length > this.imageViews.length) {
+		while (text.length > this._imageViews.length) {
 			var newView = new ImageView({
 				superview: this._container,
 				x: 0,
@@ -139,16 +136,16 @@ exports = Class(View, function(supr) {
 				inLayout: false
 			});
 			newView.needsReflow = function() {};
-			this.imageViews.push(newView);
+			this._imageViews.push(newView);
 		}
 
 		// trim excess characters
-		this.activeCharacters.length = c;
+		this._activeCharacters.length = c;
 
-		var x = this.offset, y = 0;
-		for (i = 0; i < this.activeCharacters.length; i++) {
-			var data = this.activeCharacters[i];
-			var view = this.imageViews[i];
+		var x = offset, y = 0;
+		for (i = 0; i < this._activeCharacters.length; i++) {
+			var data = this._activeCharacters[i];
+			var view = this._imageViews[i];
 			var w = data.width * scale;
 
 			// special x offsets to fix text kerning
@@ -168,11 +165,11 @@ exports = Class(View, function(supr) {
 				x -= data.offset * scale;
 			}
 
-			x += w + this.spacing * scale;
+			x += w + this._spacing * scale;
 		}
 
-		while (i < this.imageViews.length) {
-			this.imageViews[i].style.visible = false;
+		while (i < this._imageViews.length) {
+			this._imageViews[i].style.visible = false;
 			i++;
 		}
 	};
