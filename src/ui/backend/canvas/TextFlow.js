@@ -448,6 +448,8 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 			this._offsetRect.x = cache[0].x;
 			this._offsetRect.width = lastCacheItem.x + lastCacheItem.width - cache[0].x;
 		}
+
+		this._offsetRect.width += opts.strokeWidth ? opts.strokeWidth : 0;
 	};
 
 	this.setOpts = function (opts) {
