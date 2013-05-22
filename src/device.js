@@ -140,7 +140,8 @@ if (exports.isMobile) {
 		// All other browsers
 		exports.width = window.innerWidth;
 		exports.height = window.innerHeight;
-
+		exports.screen.width = window.innerWidth;
+		exports.screen.height = window.innerHeight;
 		exports.name = 'browser';
 		exports.canResize = false;
 	}
@@ -186,6 +187,14 @@ exports.setBackButtonHandler = function (handler) {
 
 exports.setRotationHandler = function (handler) {
 	NATIVE.onRotation = handler;
+}
+
+/**
+ * Garbage Collection
+ */
+exports.collectGarbage = function () {
+	logger.log('collecting garbage');
+	NATIVE.gc && NATIVE.gc.runGC();
 }
 
 /**

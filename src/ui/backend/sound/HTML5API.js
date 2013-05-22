@@ -41,6 +41,15 @@ var RawAudio = Class(function () {
 			}
 		}
 
+		audio.oldPlay = audio.play;
+		audio.play = function() {
+			if (audio.readyState == 4) {
+				audio.oldPlay();
+			} else {
+				setTimeout(audio.play, 32);
+			}
+		};
+
 		// Hook into accessibility features.
 		GLOBAL.ACCESSIBILITY.subscribe('MuteChange', this, function () {
 			audio.muted = GLOBAL.ACCESSIBILITY.muted;
@@ -106,7 +115,7 @@ var MultiSound = Class(function () {
 			audio.volume = volume;
 			audio.isBackgroundMusic = opts.background;
 			audio.src = fullPath;
-			audio.preload = (soundManager._preload && !opts.background) ? "auto" : "none";
+			audio.preload = ((audio.readyState != 4) || (soundManager._preload && !opts.background)) ? "auto" : "none";
 			sources.push(audio);
 			if (audio.isBackgroundMusic && window.NATIVE) {
 				NATIVE.sound.registerMusic(fullPath, audio);

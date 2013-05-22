@@ -267,7 +267,7 @@ function generateGameHTML (opts, project, target, imgCache, js, css) {
 		// Apple Touch startup image
 		var splash = project.manifest.splash;
 		var splashPaths = ['landscape1536', 'landscape768', 'portrait2048', 'portrait1136', 'portrait1024', 'portrait960', 'portrait480'];
-		var i = splashSizes.length;
+		var i = splashPaths.length;
 		var splashPath = splash[splashPaths[--i]];
 
 		while (i && !splashPath) {
