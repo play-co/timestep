@@ -18,94 +18,83 @@
 
 /**
  * @class ui.ViewPool;
- * Facilitates easy view re-use.
- *
- * @doc http://doc.gameclosure.com/api/ui-viewpool.html
- * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/viewpool.md
+ * facilitates easy view re-use
  */
-
 exports = Class(function () {
-
 	/**
 	 * ctor (function) constructor function for the class you want to pool,
-		must inherit from View
+	 * must inherit from View
+	 *
 	 * initCount (integer) pre-initialize this many views,
-		for optimal performance, avoid view instantiation during gameplay
+	 * for optimal performance, avoid view instantiation during gameplay
+	 *
 	 * initOpts (object) opts object used to pre-initialize your views
 	 */
 	this.init = function (opts) {
-		// constructor (required)
-		this.ctor = opts.ctor;
-
-		this.views = [];
-
-		this._initOpts = opts.initOpts || {};
+		this._views = [];
+		this._opts = opts;
 
 		// early initialization to avoid dropping frames
-		var initCount = opts.initCount,
-			initOpts = this._initOpts;
-		if (initCount) {
-			for (var i = 0; i < initCount; i++) {
-				// each view should have its own opts object
-				var viewOpts = {};
-				for (var o in initOpts) {
-					viewOpts[o] = initOpts[o];
-				}
-
-				var view = new this.ctor(viewOpts);
-				view.style.visible = false;
-				view._poolIndex = this.views.length;
-				this.views.push(view);
-			}
+		var i = opts.initCount || 0;
+		while (i) {
+			this._createNewView({});
+			i--;
 		}
 
 		this._freshViewIndex = 0;
 	};
 
+	this._createNewView = function () {
+		var viewOpts = {};
+		var initOpts = this._opts.initOpts;
 
-
-	/**
-	 * opts (object) populated with view opts properties
-	 * returns a view from the pool
-	 */
-	this.obtainView = function (opts) {
-		var view;
-
-		if (this._freshViewIndex < this.views.length) {
-			// re-use an existing view if we can
-			view = this.views[this._freshViewIndex];
-		} else {
-			var initOpts = this._initOpts,
-					viewOpts = {};
-
-			for (var o in initOpts) {
-				viewOpts[o] = initOpts[o];
-			}
-
-			// create a new view
-			view = new this.ctor(viewOpts);
-			view._poolIndex = this.views.length;
-			this.views.push(view);
+		// Each view should have its own opts object
+		for (var o in initOpts) {
+			viewOpts[o] = initOpts[o];
 		}
-		view.updateOpts(opts);
 
-		this._freshViewIndex++;
-		view._obtainedFromPool = true;
-		view.style.visible = true;
+		var view = new this._opts.ctor(viewOpts);
+		view.style.visible = false;
+		view._poolIndex = this._views.length;
+		this._views.push(view);
+
 		return view;
 	};
 
+	/**
+	 * Returns a view from the pool
+	 */
+	this.obtainView = function () {
+		var view;
 
+		if (this._freshViewIndex < this._views.length) {
+			// re-use an existing view if we can
+			view = this._views[this._freshViewIndex];
+		} else {
+			console.log('MAKING NEW VIEWS FOR: ' + (this._opts.tag || this._opts.ctor));
+			view = this._createNewView();
+		}
+
+		view.onObtain && view.onObtain();
+
+		this._freshViewIndex++;
+		view._obtainedFromPool = true;
+
+		return view;
+	};
 
 	/**
-	 * view (instance of this.ctor) to be recycled
+	 * View (instance of this._ctor) to be recycled
 	 */
 	this.releaseView = function (view) {
-		// only allow a view to be released once per obtain
+		// Only allow a view to be released once per obtain
 		if (view._obtainedFromPool) {
-			var temp = this.views[this._freshViewIndex - 1];
-			this.views[this._freshViewIndex - 1] = view;
-			this.views[view._poolIndex] = temp;
+			view.onRelease && view.onRelease();
+			view.stopAnimation && view.stopAnimation();
+
+			var temp = this._views[this._freshViewIndex - 1];
+			this._views[this._freshViewIndex - 1] = view;
+			this._views[view._poolIndex] = temp;
 
 			var tempIndex = temp._poolIndex;
 			temp._poolIndex = view._poolIndex;
@@ -114,17 +103,22 @@ exports = Class(function () {
 			view._obtainedFromPool = false;
 			view.style.visible = false;
 			this._freshViewIndex--;
+
+			return true;
 		}
+
+		return false;
 	};
 
-
-
 	/**
-	 * release all views
+	 * Release all views
 	 */
 	this.releaseAllViews = function () {
-		for (var i = 0; i < this.views.length; i++) {
-			var view = this.views[i];
+		var views = this._views;
+		var i = views.length;
+
+		while (i) {
+			var view = views[--i];
 			view._obtainedFromPool = false;
 			view.style.visible = false;
 		}
