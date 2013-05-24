@@ -71,7 +71,7 @@ exports = Class(function () {
 			// re-use an existing view if we can
 			view = this._views[this._freshViewIndex];
 		} else {
-			console.log('MAKING NEW VIEWS FOR: ' + (this._opts.tag || this._opts.ctor));
+			console.log('MAKING NEW VIEW FOR: ' + (this._opts.tag || this._opts.ctor));
 			view = this._createNewView();
 		}
 
