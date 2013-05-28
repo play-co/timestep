@@ -80,6 +80,7 @@ var ImageView = exports = Class(View, function (supr) {
 		this._img = img;
 
 		if (this._img) {
+			opts = merge(opts, this._opts);
 			if (opts && opts.autoSize) {
 				// sprited resources will know their dimensions immediately
 				if (this._img.getWidth() > 0 && this._img.getHeight() > 0) {
