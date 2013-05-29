@@ -43,7 +43,7 @@ exports.package = function (builder, project, opts, next) {
 	// Merge command-line arguments into build options
 	opts.argv = argv;
 
-	common.track("BasilBuildNativeAndroid", {"clean":clean, "debug":debug, "compress":opts.compress});
+	common.track("BasilBuildNativeAndroid", {"clean":argv.clean, "debug":argv.debug, "compress":opts.compress});
 
 	getTealeafAndroidPath(function(dir) {
 		require(path.join(dir, "index")).build(common, builder, project, opts, next);
