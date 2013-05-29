@@ -11,23 +11,20 @@ function getTealeafIOSPath(next) {
 		return next(dir);
 	}
 
-	logger.error( '       Cannot locate tealeaf-ios. Set the variable\n'
-				+ '       ios.root in basil/config.json that the path exists.\n'
-				+ '       Currently set to: ' + dir + '\n\n');
+	console.error( '       Cannot locate tealeaf-ios. Set the variable\n'
+				 + '       ios.root in basil/config.json that the path exists.\n'
+				 + '       Currently set to: ' + dir + '\n\n');
 
 	read({prompt: 'Manually enter the path to tealeaf-ios (or hit return to abort): '}, function (err, dir) {
 		if (dir && fs.existsSync(dir) && fs.existsSync(path.join(dir, "tealeaf"))) {
 			return next(dir);
 		}
 
-		logger.error('iOS root not found, aborting.');
+		console.error('iOS addon not found');
 		process.exit(2);
 	})
 }
 
-/**
- * Module interface.
- */
 exports.package = function (builder, project, opts, next) {
 	var argParser = require('optimist')
 		.alias('help', 'h').describe('help', 'Display this help menu')
