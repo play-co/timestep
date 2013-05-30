@@ -3,10 +3,9 @@ var fs = require('fs');
 var clc = require('cli-color');
 var read = require('read');
 var ff = require('ff');
-var common = require('../../../../src/common');
 
-function getTealeafIOSPath(next) {
-	var dir = common.config.get('ios.root');
+function getTealeafIOSPath(builder, next) {
+	var dir = builder.common.config.get('ios.root');
 	if (dir && fs.existsSync(dir) && fs.existsSync(path.join(dir, "tealeaf"))) {
 		return next(dir);
 	}
@@ -25,7 +24,7 @@ function getTealeafIOSPath(next) {
 	})
 }
 
-exports.package = function (builder, project, opts, next) {
+exports.package = function(builder, project, opts, next) {
 	var argParser = require('optimist')
 		.alias('help', 'h').describe('help', 'Display this help menu')
 		.alias('debug', 'd').describe('debug', 'Create debug build').boolean('debug').default('debug', opts.template !== "release")
@@ -45,10 +44,10 @@ exports.package = function (builder, project, opts, next) {
 	// Merge command-line arguments into build options
 	opts.argv = argv;
 
-	common.track("BasilBuildNativeIOS", {"clean":argv.clean, "debug":argv.debug, "compress":opts.compress});
+	builder.common.track("BasilBuildNativeIOS", {"clean":argv.clean, "debug":argv.debug, "compress":opts.compress});
 
-	getTealeafIOSPath(function(dir) {
-		require(path.join(dir, "index")).build(common, builder, project, opts, next);
+	getTealeafIOSPath(builder, function(dir) {
+		require(path.join(dir, "index")).build(builder, project, opts, next);
 	});
 };
 

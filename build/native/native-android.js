@@ -3,10 +3,9 @@ var fs = require('fs');
 var clc = require('cli-color');
 var read = require('read');
 var ff = require('ff');
-var common = require('../../../../src/common');
 
-function getTealeafAndroidPath (next) {
-	var dir = common.config.get('android.root');
+function getTealeafAndroidPath(builder, next) {
+	var dir = builder.common.config.get('android.root');
 	if (dir && fs.existsSync(dir) && fs.existsSync(path.join(dir, "TeaLeaf"))) {
 		return next(dir);
 	}
@@ -25,7 +24,7 @@ function getTealeafAndroidPath (next) {
 	});
 }
 
-exports.package = function (builder, project, opts, next) {
+exports.package = function(builder, project, opts, next) {
 	var argParser = require('optimist')
 		.alias('help', 'h').describe('help', 'Display this help menu')
 		.alias('install', 'i').describe('install', 'Launch `adb install` after build completes').boolean('install').default('install', false)
@@ -43,10 +42,10 @@ exports.package = function (builder, project, opts, next) {
 	// Merge command-line arguments into build options
 	opts.argv = argv;
 
-	common.track("BasilBuildNativeAndroid", {"clean":argv.clean, "debug":argv.debug, "compress":opts.compress});
+	builder.common.track("BasilBuildNativeAndroid", {"clean":argv.clean, "debug":argv.debug, "compress":opts.compress});
 
-	getTealeafAndroidPath(function(dir) {
-		require(path.join(dir, "index")).build(common, builder, project, opts, next);
+	getTealeafAndroidPath(builder, function(dir) {
+		require(path.join(dir, "index")).build(builder, project, opts, next);
 	});
 };
 
