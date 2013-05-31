@@ -51,13 +51,12 @@ exports = Class(View, function(supr) {
 		// text options
 		this._textAlign = opts.textAlign || 'center';
 		this._spacing = opts.spacing || 0;
-		this._srcHeight = opts.srcHeight;
 		this._origScale = opts.scale || 1;
-		this.setText(opts.text || '');
+		this.setText(opts.text);
 	};
 
 	this._loadCharacter = function(c) {
-		var d = this.characterData[c];
+		var d = this._characterData[c];
 		d.img = new Image({ url: d.image });
 		if (!d.width || !this._srcHeight) {
 			this._loadCount += 1;
@@ -73,8 +72,8 @@ exports = Class(View, function(supr) {
 	};
 
 	this.setCharacterData = function(data) {
-		this._srcHeight = this._opts.srcHeight;
-		this.characterData = data;
+		this._srcHeight = undefined;
+		this._characterData = data;
 		for (var c in data) {
 			this._loadCharacter(c);
 		}
@@ -85,7 +84,7 @@ exports = Class(View, function(supr) {
 	};
 
 	this.setText = function(text) {
-		this._text = text = text + '';
+		this._text = text = (text === undefined) ? '' : (text + '');
 
 		if (this._loadCount || !text) {
 			return; // we'll call setText again when the characters are loaded
@@ -97,7 +96,7 @@ exports = Class(View, function(supr) {
 
 		while (i < text.length) {
 			character = text.charAt(i);
-			data = this.characterData[character];
+			data = this._characterData[character];
 			if (data) {
 				this._activeCharacters[c] = data;
 				textWidth += (data.width + this._spacing) * scale;
