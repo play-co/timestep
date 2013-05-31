@@ -389,7 +389,7 @@ var TextView = exports = Class(View, function (supr) {
 	};
 
 	this.getTag = function () {
-		return "TextView" + this.uid + ":" + (this.tag || this._opts.text.substring(0, 20));
+		return "TextView" + this.uid + ":" + (this.tag || (this._opts.text || "").substring(0, 20));
 	};
 
 	this.getOpts = function () {
