@@ -17,6 +17,44 @@ var _paths;
 
 var INITIAL_IMPORT = 'gc.native.launchClient';
 
+var installAddons = function(builder, project, next) {
+	var paths = builder.common.paths;
+	var addons = project && project.manifest && project.manifest.addons;
+
+	var f = ff(this, function() {
+		// For each addon,
+		if (addons) {
+			for (var ii = 0; ii < addons.length; ++ii) {
+				var addon = addons[ii];
+
+				// Prefer paths in this order:
+				var addon_js_ios = paths.addons(addon, 'js', 'ios');
+				var addon_js_android = paths.addons(addon, 'js', 'android');
+				var addon_js_native = paths.addons(addon, 'js', 'native');
+				var addon_js = paths.addons(addon, 'js');
+
+				if (fs.existsSync(addon_js_ios)) {
+					logger.log("Installing addon:", addon, "-- Adding ./js/ios to jsio path");
+					require(paths.root('src', 'AddonManager')).registerPath(addon_js_ios);
+				} else if (fs.existsSync(addon_js_android)) {
+					logger.log("Installing addon:", addon, "-- Adding ./js/android to jsio path");
+					require(paths.root('src', 'AddonManager')).registerPath(addon_js_android);
+				} else if (fs.existsSync(addon_js_native)) {
+					logger.log("Installing addon:", addon, "-- Adding ./js/native to jsio path");
+					require(paths.root('src', 'AddonManager')).registerPath(addon_js_native);
+				} else if (fs.existsSync(addon_js)) {
+					logger.log("Installing addon:", addon, "-- Adding ./js to jsio path");
+					require(paths.root('src', 'AddonManager')).registerPath(addon_js);
+				} else {
+					logger.warn("Installing addon:", addon, "-- No js directory so no JavaScript will be installed");
+				}
+			}
+		}
+	}).error(function(err) {
+		logger.error("Failure installing addon javascript:", err);
+	}).cb(next);
+}
+
 // takes a project, subtarget(android/ios), additional opts.
 exports.build = function (build, project, subtarget, moreOpts, next) {
 	var target = 'native-' + subtarget;
@@ -56,7 +94,9 @@ exports.build = function (build, project, subtarget, moreOpts, next) {
 	
 	// doesn't build ios - builds the js that it would use, then you shim out NATIVE
 	if (opts.isTestApp) {
-		exports.writeNativeResources(project, opts, next);
+		installAddons(build, project, function() {
+			exports.writeNativeResources(project, opts, next);
+		});
 	} else if (opts.isSimulated) {
 		// Build simulated version
 		//
