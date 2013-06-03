@@ -435,7 +435,8 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 			return;
 		}
 
-		var lineSize = Math.ceil(opts.size * opts.lineHeight + opts.strokeWidth);
+		var strokeWidth = this._target.getStrokeWidth();
+		var lineSize = Math.ceil(opts.size * opts.lineHeight + strokeWidth);
 		this._offsetRect.x = this.getPaddingLeft();
 		this._offsetRect.y = this.getPaddingTop();
 		this._offsetRect.width = this.getActualWidth();
@@ -449,7 +450,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 			this._offsetRect.width = lastCacheItem.x + lastCacheItem.width - cache[0].x;
 		}
 
-		this._offsetRect.width += opts.strokeWidth ? opts.strokeWidth : 0;
+		this._offsetRect.width += strokeWidth;
 	};
 
 	this.setOpts = function (opts) {
