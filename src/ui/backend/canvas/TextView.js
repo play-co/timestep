@@ -272,7 +272,7 @@ var TextView = exports = Class(View, function (supr) {
 		ctx.textBaseline = "top";
 		ctx.fillStyle = opts.color;
 		ctx.font = opts.fontWeight + " " + opts.size + "px " + opts.fontFamily;
-		ctx.lineWidth = opts.strokeWidth;
+		ctx.lineWidth = this.getStrokeWidth();
 	};
 
 	this._renderToCtx = function (ctx, offsetX, offsetY) {
@@ -284,7 +284,7 @@ var TextView = exports = Class(View, function (supr) {
 		var color = opts.color;
 		var strokeColor = opts.strokeColor;
 		var shadowColor = opts.shadowColor;
-		var lineOffset = opts.strokeWidth * 0.5;
+		var lineOffset = this.getStrokeWidth() * 0.5;
 		var x, y;
 		var i = cache.length;
 
@@ -359,7 +359,8 @@ var TextView = exports = Class(View, function (supr) {
 		if (this._opts.buffer) {
 			this._renderBuffer(ctx);
 		} else {
-			this._renderToCtx(ctx, 0, 0);
+			var strokeWidthOffset = -this.getStrokeWidth()/2;
+			this._renderToCtx(ctx, strokeWidthOffset, strokeWidthOffset);
 		}
 
 		this._cacheUpdate = false;
@@ -382,6 +383,10 @@ var TextView = exports = Class(View, function (supr) {
 		this._opts.text = (text != undefined) ? text.toString() : "";
 		this.updateCache();
 		this.needsRepaint();
+	};
+
+	this.getStrokeWidth = function () {
+		return this._opts.strokeColor ? this._opts.strokeWidth : 0;
 	};
 
 	this.getText = function () {
