@@ -59,11 +59,43 @@ exports.build = function (builder, project, subtarget, moreOpts, next) {
 	exports.runBuild(builder, project, opts, next);
 };
 
+var installAddons = function(builder, project, next) {
+	var paths = builder.common.paths;
+	var addons = project && project.manifest && project.manifest.addons;
+
+	var f = ff(this, function() {
+		// For each addon,
+		if (addons) {
+			for (var ii = 0; ii < addons.length; ++ii) {
+				var addon = addons[ii];
+
+				// Prefer paths in this order:
+				var addon_js_browser = paths.addons(addon, 'js', 'browser');
+				var addon_js = paths.addons(addon, 'js');
+
+				if (fs.existsSync(addon_js_browser)) {
+					logger.log("Installing addon:", addon, "-- Adding ./js/browser to jsio path");
+					require(paths.root('src', 'AddonManager')).registerPath(addon_js_browser);
+				} else if (fs.existsSync(addon_js)) {
+					logger.log("Installing addon:", addon, "-- Adding ./js to jsio path");
+					require(paths.root('src', 'AddonManager')).registerPath(addon_js);
+				} else {
+					logger.warn("Installing addon:", addon, "-- No js directory so no JavaScript will be installed");
+				}
+			}
+		}
+	}).error(function(err) {
+		logger.error("Failure to install addons:", err);
+	}).cb(next);
+}
+
 exports.runBuild = function (builder, project, opts, next) {
 	_builder = builder;
 	logger = new _builder.common.Formatter('build-browser');
 
 	var f = ff(function () {
+		installAddons(builder, project, f());
+	}, function () {
 		_builder.packager.compileResources(project, opts, opts.target, INITIAL_IMPORT, f());
 	}, function (pkg) {
 		compileHTML(project, opts, opts.target, pkg.files, pkg.jsSrc, f());
