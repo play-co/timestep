@@ -596,6 +596,36 @@ var View = exports = Class(Emitter, function () {
 	};
 
 	/**
+	 * Return width and height.
+	 */
+	this._sizeData = {};
+	this.getSize = function () {
+		var w = this.style.width;
+		var h = this.style.height;
+		if (!(w && h) && this.style.layout) {
+			var superview = this.getSuperview();
+			if (superview) {
+				var supersize = superview.getSize();
+				if (!w) {
+					w = supersize.width;
+					if (this.style.layoutWidth) {
+						w *= parseInt(this.style.layoutWidth) / 100;
+					}
+				}
+				if (!h) {
+					h = supersize.height;
+					if (this.style.layoutHeight) {
+						h *= parseInt(this.style.layoutHeight) / 100;
+					}
+				}
+			}
+		}
+		this._sizeData.width = w;
+		this._sizeData.height = h;
+		return this._sizeData;
+	};
+
+	/**
 	 * Return the bounding shape for this view. The shape is defined in the
 	 * options object when this view was constructed.
 	 */
