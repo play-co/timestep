@@ -90,7 +90,7 @@ exports = Class(View, function(supr) {
 			return; // we'll call setText again when the characters are loaded
 		}
 
-		var size = this.getSize(),
+		var size = this.getBoundingShape(),
 			width = size.width, height = size.height,
 			textWidth = 0, offset = 0,
 			scale = height / this._srcHeight,
