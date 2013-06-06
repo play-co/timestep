@@ -42,7 +42,7 @@ exports = Class(ui.View, function (supr) {
 	};
 
 	this.updateOpts = function (opts) {
-		opts = supr(this, 'updateOpts', arguments);
+		opts = merge(supr(this, 'updateOpts', arguments), this._opts);
 
 		if (opts.scaleMethod) {
 			this._scaleMethod = opts.scaleMethod;
