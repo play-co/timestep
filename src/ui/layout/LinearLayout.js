@@ -317,7 +317,7 @@ exports = Class(BoxLayout, function (supr) {
 
 			v.margins = (s[propA] || 0) + (s[propB] || 0);
 
-			if (s.flex) {
+			if (s.flex || s.flex == 0) {
 				flexSum += s.flex;
 				v.baseSize = s[minPropDim] || 0;
 				sum += v.baseSize;
