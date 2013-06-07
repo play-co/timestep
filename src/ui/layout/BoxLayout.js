@@ -96,7 +96,7 @@ var BoxLayout = exports = Class(function () {
 		if (s.left == undefined && s.right != undefined) { s.x = availWidth - s.scale * w - s.right - (padding && padding.right || 0); }
 		if (s.left != undefined) { s.x = s.left + (padding && padding.left || 0); }
 
-		s.width = w;
+		s.width = Math.min(w, availWidth);
 
 		if (s.centerAnchor) {
 			s.anchorX = w / 2;
@@ -131,7 +131,7 @@ var BoxLayout = exports = Class(function () {
 		if (s.top == undefined && s.bottom != undefined) { s.y = availHeight - s.scale * h - s.bottom - (padding && padding.bottom || 0); }
 		if (s.top != undefined) { s.y = s.top + (padding && padding.top || 0); }
 
-		s.height = h;
+		s.height = Math.min(h, availHeight);
 
 		if (s.centerAnchor) {
 			s.anchorY = h / 2;
