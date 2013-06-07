@@ -317,7 +317,7 @@ exports = Class(BoxLayout, function (supr) {
 
 			v.margins = (s[propA] || 0) + (s[propB] || 0);
 
-			if (s.flex) {
+			if (typeof s.flex == "number") {
 				flexSum += s.flex;
 				v.baseSize = s[minPropDim] || 0;
 				sum += v.baseSize;
@@ -331,10 +331,8 @@ exports = Class(BoxLayout, function (supr) {
 				s.y = padding.top;
 			}
 
-//			if (v.view.style.layout == 'box') {
-				BoxLayout.reflowX(v.view, layoutStyle.width, padding);
-				BoxLayout.reflowY(v.view, layoutStyle.height, padding);
-//			}
+			BoxLayout.reflowX(v.view, layoutStyle.width, padding);
+			BoxLayout.reflowY(v.view, layoutStyle.height, padding);
 		}
 
 		if (flexSum && parentDim == undefined) { return; }
