@@ -331,10 +331,8 @@ exports = Class(BoxLayout, function (supr) {
 				s.y = padding.top;
 			}
 
-//			if (v.view.style.layout == 'box') {
-				BoxLayout.reflowX(v.view, layoutStyle.width, padding);
-				BoxLayout.reflowY(v.view, layoutStyle.height, padding);
-//			}
+			BoxLayout.reflowX(v.view, layoutStyle.width, padding);
+			BoxLayout.reflowY(v.view, layoutStyle.height, padding);
 		}
 
 		if (flexSum && parentDim == undefined) { return; }
