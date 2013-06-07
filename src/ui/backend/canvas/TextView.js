@@ -59,7 +59,7 @@ var TextView = exports = Class(View, function (supr) {
 		color: "#000000",
 		fontFamily: device.defaultFontFamily,
 		fontWeight: "",
-		size: 12,
+		size: 128,
 		strokeWidth: 2,
 		strokeColor: null,
 		shadowColor: null,
