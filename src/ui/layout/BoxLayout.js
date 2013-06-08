@@ -96,7 +96,13 @@ var BoxLayout = exports = Class(function () {
 		if (s.left == undefined && s.right != undefined) { s.x = availWidth - s.scale * w - s.right - (padding && padding.right || 0); }
 		if (s.left != undefined) { s.x = s.left + (padding && padding.left || 0); }
 
-		s.width = view._opts.width || availWidth || w;
+		if (view._opts.width) {
+			s.width = view._opts.width;
+		} else if (s.aspectRatio) {
+			s.width = (view._opts.height || s.height) * s.aspectRatio;
+		} else {
+			s.width = availWidth || w;
+		}
 
 		if (s.centerAnchor) {
 			s.anchorX = w / 2;
@@ -131,7 +137,13 @@ var BoxLayout = exports = Class(function () {
 		if (s.top == undefined && s.bottom != undefined) { s.y = availHeight - s.scale * h - s.bottom - (padding && padding.bottom || 0); }
 		if (s.top != undefined) { s.y = s.top + (padding && padding.top || 0); }
 
-		s.height = view._opts.height || availHeight || h;
+		if (view._opts.height) {
+			s.height = view._opts.height;
+		} else if (s.aspectRatio) {
+			s.height = (view._opts.width || s.width) / s.aspectRatio;
+		} else {
+			s.height = availHeight || h;
+		}
 
 		if (s.centerAnchor) {
 			s.anchorY = h / 2;
