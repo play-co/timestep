@@ -118,7 +118,7 @@ var ImageView = exports = Class(View, function (supr) {
 			this.style.height = this._img.getHeight();
 
 			if (this.style.fixedAspectRatio) {
-				this.style.updateAspectRatio();
+				this.style.enforceAspectRatio(this.style.width, this.style.height);
 			}
 		}
 	}
