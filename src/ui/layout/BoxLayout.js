@@ -86,23 +86,20 @@ var BoxLayout = exports = Class(function () {
 				}
 			}
 		} else {
+			var sv = view.getSuperview();
 			w = s.right != undefined && s.left != undefined ? availWidth / s.scale - (s.left || 0) - (s.right || 0)
 				: isPercent.test(s.layoutWidth) ? availWidth / s.scale * parseFloat(s.layoutWidth) / 100
-				: s.aspectRatio ? s.height * s.aspectRatio
-				: s.width || availWidth / s.scale;
+				: view._opts.width ? view._opts.width
+				: s.aspectRatio ? (view._opts.height || s.height) * s.aspectRatio
+				: (sv.style.direction == "horizontal" && typeof s.flex == "number") ? availWidth * s.flex / sv._flexSum
+				: availWidth / s.scale || s.width;
 		}
 
 		if (s.centerX) { s.x = (availWidth - s.scale * w) / 2 + (padding && padding.left || 0); }
 		if (s.left == undefined && s.right != undefined) { s.x = availWidth - s.scale * w - s.right - (padding && padding.right || 0); }
 		if (s.left != undefined) { s.x = s.left + (padding && padding.left || 0); }
 
-		if (view._opts.width) {
-			s.width = view._opts.width;
-		} else if (s.aspectRatio) {
-			s.width = (view._opts.height || s.height) * s.aspectRatio;
-		} else {
-			s.width = availWidth || w;
-		}
+		s.width = w;
 
 		if (s.centerAnchor) {
 			s.anchorX = w / 2;
@@ -127,23 +124,20 @@ var BoxLayout = exports = Class(function () {
 				}
 			}
 		} else {
+			var sv = view.getSuperview();
 			h = s.top != undefined && s.bottom != undefined ? availHeight / s.scale - (s.top || 0) - (s.bottom || 0)
 				: isPercent.test(s.layoutHeight) ? availHeight / s.scale * parseFloat(s.layoutHeight) / 100
-				: s.aspectRatio ? s.width / s.aspectRatio
-				: s.height || availHeight / s.scale;
+				: view._opts.height ? view._opts.height
+				: s.aspectRatio ? (view._opts.width || s.width) / s.aspectRatio
+				: (sv.style.direction == "vertical" && typeof s.flex == "number") ? availHeight * s.flex / sv._flexSum
+				: availHeight / s.scale || s.height;
 		}
 
 		if (s.centerY) { s.y = (availHeight - s.scale * h) / 2 + (padding && padding.top || 0); }
 		if (s.top == undefined && s.bottom != undefined) { s.y = availHeight - s.scale * h - s.bottom - (padding && padding.bottom || 0); }
 		if (s.top != undefined) { s.y = s.top + (padding && padding.top || 0); }
 
-		if (view._opts.height) {
-			s.height = view._opts.height;
-		} else if (s.aspectRatio) {
-			s.height = (view._opts.width || s.width) / s.aspectRatio;
-		} else {
-			s.height = availHeight || h;
-		}
+		s.height = h;
 
 		if (s.centerAnchor) {
 			s.anchorY = h / 2;
