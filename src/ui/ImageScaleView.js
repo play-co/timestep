@@ -165,27 +165,11 @@ exports = Class(ui.View, function (supr) {
 		if (opts.autoSize && this._scaleMethod == "stretch" && !((opts.width || opts.layoutWidth) && (opts.height || opts.layoutHeight))) {
 			autoSized = true;
 			if (this.style.fixedAspectRatio) {
-				this.style.updateAspectRatio(iw, ih);
-				var parent = this.getSuperview();
-				if (opts.width) {
-					iw = opts.width;
-					ih = opts.width / this.style.aspectRatio;
-				}
-				else if (opts.height) {
-					ih = opts.height;
-					iw = opts.height * this.style.aspectRatio;
-				}
-				else if (opts.layoutWidth && parent.style.width) {
-					iw = parent.style.width * parseFloat(opts.layoutWidth) / 100;
-					ih = iw / this.style.aspectRatio;
-				}
-				else if (opts.layoutHeight && parent.style.height) {
-					ih = parent.style.height * parseFloat(opts.layoutHeight) / 100;
-					iw = ih * this.style.aspectRatio;
-				}
+				this.style.enforceAspectRatio(iw, ih);
+			} else {
+				this.style.width = iw;
+				this.style.height = ih;
 			}
-			this.style.width = iw;
-			this.style.height = ih;
 		}
 
 		if (this._isSlice) {
