@@ -330,7 +330,9 @@ exports = Class(BoxLayout, function (supr) {
 				s.x = padding.left;
 				s.y = padding.top;
 			}
-
+		}
+		this._view._flexSum = flexSum;
+		for (var i = 0, v; v = views[i]; ++i) {
 			BoxLayout.reflowX(v.view, layoutStyle.width, padding);
 			BoxLayout.reflowY(v.view, layoutStyle.height, padding);
 		}
