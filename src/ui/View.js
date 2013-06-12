@@ -600,11 +600,31 @@ var View = exports = Class(Emitter, function () {
 	 * options object when this view was constructed.
 	 */
 	this.getBoundingShape = function () {
-		var s = this.style;
 		if (this._infinite) {
 			return true;
 		} else {
-			return new Rect(s.x, s.y, s.width * s.scale, s.height * s.scale);
+			var s = this.style;
+			var w = s.width;
+			var h = s.height;
+			if (!(w && h) && s.layout) {
+				var superview = this.getSuperview();
+				if (superview) {
+					var supersize = superview.getBoundingShape();
+					if (!w) {
+						w = supersize.width;
+						if (s.layoutWidth) {
+							w *= parseInt(s.layoutWidth) / 100;
+						}
+					}
+					if (!h) {
+						h = supersize.height;
+						if (s.layoutHeight) {
+							h *= parseInt(s.layoutHeight) / 100;
+						}
+					}
+				}
+			}
+			return new Rect(s.x, s.y, w * s.scale, h * s.scale);
 		}
 	};
 

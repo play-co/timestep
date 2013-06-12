@@ -90,8 +90,10 @@ exports = Class(View, function(supr) {
 			return; // we'll call setText again when the characters are loaded
 		}
 
-		var textWidth = 0, offset = 0,
-			scale = this.style.height / this._srcHeight,
+		var size = this.getBoundingShape(),
+			width = size.width, height = size.height,
+			textWidth = 0, offset = 0,
+			scale = height / this._srcHeight,
 			i = 0, c = 0, data, character;
 
 		while (i < text.length) {
@@ -111,16 +113,16 @@ exports = Class(View, function(supr) {
 			i++;
 		}
 
-		if (this.style.width < textWidth) {
-			this._container.style.scale = this.style.width / textWidth;
+		if (width < textWidth) {
+			this._container.style.scale = width / textWidth;
 		} else {
 			this._container.style.scale = this._origScale;
 		}
 
 		if (this._textAlign == 'center') {
-			offset = (this.style.width - textWidth) / 2;
+			offset = (width - textWidth) / 2;
 		} else if (this._textAlign == 'right') {
-			offset = this.style.width - textWidth;
+			offset = width - textWidth;
 		}
 		offset = Math.max(0, offset * this._container.style.scale);
 
@@ -155,7 +157,7 @@ exports = Class(View, function(supr) {
 			view.style.x = x;
 			view.style.y = y;
 			view.style.width = w;
-			view.style.height = this.style.height; // all characters should have the same height
+			view.style.height = height; // all characters should have the same height
 			view.style.visible = true;
 			view.setImage(data.img);
 

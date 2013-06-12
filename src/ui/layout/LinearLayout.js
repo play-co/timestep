@@ -317,7 +317,11 @@ exports = Class(BoxLayout, function (supr) {
 
 			v.margins = (s[propA] || 0) + (s[propB] || 0);
 
-			if (s.flex) {
+			if (isVertical && s.layoutHeight && s.layoutHeight.charAt(s.layoutHeight.length-1) == '%') {
+				sum += parentDim * parseFloat(s.layoutHeight) / 100;
+			} else if (!isVertical && s.layoutWidth && s.layoutWidth.charAt(s.layoutWidth.length-1) == '%') {
+				sum += parentDim * parseFloat(s.layoutWidth) / 100;
+			} else if (s.flex) {
 				flexSum += s.flex;
 				v.baseSize = s[minPropDim] || 0;
 				sum += v.baseSize;
@@ -330,11 +334,11 @@ exports = Class(BoxLayout, function (supr) {
 				s.x = padding.left;
 				s.y = padding.top;
 			}
-
-//			if (v.view.style.layout == 'box') {
-				BoxLayout.reflowX(v.view, layoutStyle.width, padding);
-				BoxLayout.reflowY(v.view, layoutStyle.height, padding);
-//			}
+		}
+		this._view._flexSum = flexSum;
+		for (var i = 0, v; v = views[i]; ++i) {
+			BoxLayout.reflowX(v.view, layoutStyle.width, padding);
+			BoxLayout.reflowY(v.view, layoutStyle.height, padding);
 		}
 
 		if (flexSum && parentDim == undefined) { return; }
