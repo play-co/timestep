@@ -322,7 +322,7 @@ exports = Class(BoxLayout, function (supr) {
 				sum += parentDim * parseFloat(s.layoutHeight) / 100;
 			} else if (!isVertical && isPercent.test(s.layoutWidth)) {
 				sum += parentDim * parseFloat(s.layoutWidth) / 100;
-			} else if (typeof s.flex == "number") {
+			} else if (s.flex) {
 				flexSum += s.flex;
 				v.baseSize = s[minPropDim] || 0;
 				sum += v.baseSize;
