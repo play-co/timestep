@@ -67,6 +67,7 @@ var BoxLayout = exports = Class(function () {
 		}));
 	}
 
+	var isPercent = /%$/;
 	cls.reflowX = function (view, svWidth, padding) {
 		if (!svWidth) { return; }
 
@@ -87,7 +88,7 @@ var BoxLayout = exports = Class(function () {
 		} else {
 			var sv = view.getSuperview();
 			w = s.right != undefined && s.left != undefined ? availWidth / s.scale - (s.left || 0) - (s.right || 0)
-				: (s.layoutWidth.charAt(0) == '%') ? (availWidth / s.scale) * (s.layoutWidth.substr(1) / 100)
+				: isPercent.test(s.layoutWidth) ? availWidth / s.scale * parseFloat(s.layoutWidth) / 100
 				: view._opts.width ? view._opts.width
 				: s.aspectRatio ? (view._opts.height || s.height) * s.aspectRatio
 				: (sv.style.direction == "horizontal" && typeof s.flex == "number") ? availWidth * s.flex / sv._flexSum
@@ -125,7 +126,7 @@ var BoxLayout = exports = Class(function () {
 		} else {
 			var sv = view.getSuperview();
 			h = s.top != undefined && s.bottom != undefined ? availHeight / s.scale - (s.top || 0) - (s.bottom || 0)
-				: (s.layoutHeight.charAt(0) == '%') ? (availHeight / s.scale) * (s.layoutHeight.substr(1) / 100)
+				: isPercent.test(s.layoutHeight) ? availHeight / s.scale * parseFloat(s.layoutHeight) / 100
 				: view._opts.height ? view._opts.height
 				: s.aspectRatio ? (view._opts.width || s.width) / s.aspectRatio
 				: (sv.style.direction == "vertical" && typeof s.flex == "number") ? availHeight * s.flex / sv._flexSum
