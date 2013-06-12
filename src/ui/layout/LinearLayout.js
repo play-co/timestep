@@ -263,6 +263,7 @@ exports = Class(BoxLayout, function (supr) {
 	 * Reflow logic.
 	 */
 
+	var isPercent = /%$/;
 	this.reflow = function () {
 		supr(this, 'reflow', arguments);
 
@@ -317,7 +318,11 @@ exports = Class(BoxLayout, function (supr) {
 
 			v.margins = (s[propA] || 0) + (s[propB] || 0);
 
-			if (typeof s.flex == "number") {
+			if (isVertical && isPercent.test(s.layoutHeight)) {
+				sum += parentDim * parseFloat(s.layoutHeight) / 100;
+			} else if (!isVertical && isPercent.test(s.layoutWidth)) {
+				sum += parentDim * parseFloat(s.layoutWidth) / 100;
+			} else if (typeof s.flex == "number") {
 				flexSum += s.flex;
 				v.baseSize = s[minPropDim] || 0;
 				sum += v.baseSize;
