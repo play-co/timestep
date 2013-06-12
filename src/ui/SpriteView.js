@@ -138,7 +138,7 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 		}
 		var frameImages = [];
 		for (var i = 0, frame; frame = frameData[i]; i++) {
-			frameImages.push(new Image({url: frame.url}));
+			frameImages.push(this.getImageFromCache(frame.url));
 		}
 		this._animations[animName] = {
 			frames: frameImages

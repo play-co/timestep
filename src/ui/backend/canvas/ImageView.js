@@ -28,6 +28,8 @@ import std.uri as URI;
 import ui.View as View
 import ui.resource.Image as Image;
 
+var imageCache = {};
+
 /**
  * @extends ui.View
  */
@@ -58,23 +60,23 @@ var ImageView = exports = Class(View, function (supr) {
 		return this._img;
 	};
 
+	this.getImageFromCache = function(url) {
+		var img = imageCache[url];
+		if (!img) {
+			imageCache[url] = img = new Image({ url: url });
+		}
+		return img;
+	};
+
 	/**
 	 * Set the image of the view from an Image object or string.
 	 * Options:
 	 *   autoSize - Automatically set view size from image dimensions.
 	 */
 
-	this._imgCache = {};
-
 	this.setImage = function (img) {
 		if (typeof img == 'string') {
-			// Cache image requests to avoid heavy performance penalties at the
-			// expense of a small amount of additional JS memory usage.
-			var name = img;
-			img = this._imgCache[name];
-			if (!img) {
-				this._imgCache[img] = img = new Image({url: name});
-			}
+			img = this.getImageFromCache(img);
 		}
 
 		this._img = img;
@@ -180,4 +182,3 @@ var ImageView = exports = Class(View, function (supr) {
 		return (tag || '') + ':ImageView' + this.uid;
 	}
 });
-
