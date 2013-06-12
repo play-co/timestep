@@ -66,7 +66,7 @@ var ImageView = exports = Class(View, function (supr) {
 
 	this._imgCache = {};
 
-	this.setImage = function (img) {
+	this.setImage = function (img, opts) {
 		if (typeof img == 'string') {
 			// Cache image requests to avoid heavy performance penalties at the
 			// expense of a small amount of additional JS memory usage.
@@ -80,8 +80,7 @@ var ImageView = exports = Class(View, function (supr) {
 		this._img = img;
 
 		if (this._img) {
-			var opts = this._opts;
-			if (opts && opts.autoSize) {
+			if (this._opts.autoSize || (opts && opts.autoSize)) {
 				// sprited resources will know their dimensions immediately
 				if (this._img.getWidth() > 0 && this._img.getHeight() > 0) {
 					this.autoSize();
