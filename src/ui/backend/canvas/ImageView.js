@@ -74,7 +74,7 @@ var ImageView = exports = Class(View, function (supr) {
 	 *   autoSize - Automatically set view size from image dimensions.
 	 */
 
-	this.setImage = function (img) {
+	this.setImage = function (img, opts) {
 		if (typeof img == 'string') {
 			img = this.getImageFromCache(img);
 		}
@@ -82,8 +82,7 @@ var ImageView = exports = Class(View, function (supr) {
 		this._img = img;
 
 		if (this._img) {
-			var opts = this._opts;
-			if (opts && opts.autoSize) {
+			if (this._opts.autoSize || (opts && opts.autoSize)) {
 				// sprited resources will know their dimensions immediately
 				if (this._img.getWidth() > 0 && this._img.getHeight() > 0) {
 					this.autoSize();
@@ -120,7 +119,7 @@ var ImageView = exports = Class(View, function (supr) {
 			this.style.height = this._img.getHeight();
 
 			if (this.style.fixedAspectRatio) {
-				this.style.updateAspectRatio();
+				this.style.enforceAspectRatio(this.style.width, this.style.height);
 			}
 		}
 	}
