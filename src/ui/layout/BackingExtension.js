@@ -165,39 +165,6 @@ View.addExtension({
 				}
 			}
 		}
-		
-		// var isPercent = /%$/;
-		// proto._onLayoutSizeChange = function (key, value, oldValue) {
-		// 	// Subscribes a view to parent resize events when the view is in the hierarchy and
-		// 	// contains a percentage height or width.
-		// 	//
-		// 	// NOTE: a view only sets up resize listeners once -- if layoutWidth is set to a percent and then reset
-		// 	// to not have a percent, it will still get reflow events when its superview resizes.  We could
-		// 	// remove the listeners once the view no longer has percentages.
-		// 	if (!this._hasResizeListeners && (isPercent.test(this._layoutWidth) || isPercent.test(this._layoutHeight))) {
-		// 		this._hasResizeListeners = true;
-		// 		this._view.on('ViewAdded', bind(this, function () {
-		// 			if (this.__superviewResize) {
-		// 				this.__superviewResize();
-		// 			}
-					
-		// 			var superview = this._view.getSuperview();
-		// 			var onResize = bind(this._view, 'needsReflow');
-		// 			superview.on('Resize', onResize);
-					
-		// 			this.__superviewResize = bind(this, function () {
-		// 				this.__superviewResize = null;
-		// 				superview.removeListener('Resize', onResize);
-		// 			});
-		// 		}));
-				
-		// 		this._view.on('ViewRemoved', bind(this, function (superview) {
-		// 			if (this.__superviewResize) { this.__superviewResize(); }
-		// 		}));
-		// 	}
-			
-		// 	this._onLayoutChange();
-		// }
 
 		proto._onLayoutChange = function () {
 			var superview = this.getSuperview();
