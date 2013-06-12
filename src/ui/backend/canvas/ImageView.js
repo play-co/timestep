@@ -46,7 +46,7 @@ var ImageView = exports = Class(View, function (supr) {
 		});
 		
 		if (opts.image) {
-			this.setImage(opts.image, opts);
+			this.setImage(opts.image);
 		}
 	};
 
@@ -66,7 +66,7 @@ var ImageView = exports = Class(View, function (supr) {
 
 	this._imgCache = {};
 
-	this.setImage = function (img, opts) {
+	this.setImage = function (img) {
 		if (typeof img == 'string') {
 			// Cache image requests to avoid heavy performance penalties at the
 			// expense of a small amount of additional JS memory usage.
@@ -80,7 +80,7 @@ var ImageView = exports = Class(View, function (supr) {
 		this._img = img;
 
 		if (this._img) {
-			opts = merge(opts, this._opts);
+			var opts = this._opts;
 			if (opts && opts.autoSize) {
 				// sprited resources will know their dimensions immediately
 				if (this._img.getWidth() > 0 && this._img.getHeight() > 0) {
