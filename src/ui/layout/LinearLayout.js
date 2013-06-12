@@ -317,10 +317,10 @@ exports = Class(BoxLayout, function (supr) {
 
 			v.margins = (s[propA] || 0) + (s[propB] || 0);
 
-			if (isVertical && s.layoutHeight && s.layoutHeight.charAt(0) == '%') {
-				sum += parentDim * s.layoutHeight.substr(1) / 100;
-			} else if (!isVertical && s.layoutWidth && s.layoutWidth.charAt(0) == '%') {
-				sum += parentDim * s.layoutWidth.substr(1) / 100;
+			if (isVertical && s.layoutHeight && s.layoutHeight.charAt(s.layoutHeight.length-1) == '%') {
+				sum += parentDim * parseFloat(s.layoutHeight) / 100;
+			} else if (!isVertical && s.layoutWidth && s.layoutWidth.charAt(s.layoutWidth.length-1) == '%') {
+				sum += parentDim * parseFloat(s.layoutWidth) / 100;
 			} else if (s.flex) {
 				flexSum += s.flex;
 				v.baseSize = s[minPropDim] || 0;
