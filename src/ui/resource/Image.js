@@ -432,7 +432,7 @@ exports = Class(function () {
 	this.setImageData = function (data) { };
 
 	this.destroy = function () {
-		this._srcImg.destroy();
+		this._srcImg.destroy && this._srcImg.destroy();
 	};
 });
 
