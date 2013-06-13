@@ -28,6 +28,8 @@ import std.uri as URI;
 import ui.View as View
 import ui.resource.Image as Image;
 
+var imageCache = {};
+
 /**
  * @extends ui.View
  */
@@ -46,7 +48,7 @@ var ImageView = exports = Class(View, function (supr) {
 		});
 		
 		if (opts.image) {
-			this.setImage(opts.image, opts);
+			this.setImage(opts.image);
 		}
 	};
 
@@ -58,30 +60,29 @@ var ImageView = exports = Class(View, function (supr) {
 		return this._img;
 	};
 
+	this.getImageFromCache = function(url) {
+		var img = imageCache[url];
+		if (!img) {
+			imageCache[url] = img = new Image({ url: url });
+		}
+		return img;
+	};
+
 	/**
 	 * Set the image of the view from an Image object or string.
 	 * Options:
 	 *   autoSize - Automatically set view size from image dimensions.
 	 */
 
-	this._imgCache = {};
-
 	this.setImage = function (img, opts) {
 		if (typeof img == 'string') {
-			// Cache image requests to avoid heavy performance penalties at the
-			// expense of a small amount of additional JS memory usage.
-			var name = img;
-			img = this._imgCache[name];
-			if (!img) {
-				this._imgCache[img] = img = new Image({url: name});
-			}
+			img = this.getImageFromCache(img);
 		}
 
 		this._img = img;
 
 		if (this._img) {
-			opts = merge(opts, this._opts);
-			if (opts && opts.autoSize) {
+			if (this._opts.autoSize || (opts && opts.autoSize)) {
 				// sprited resources will know their dimensions immediately
 				if (this._img.getWidth() > 0 && this._img.getHeight() > 0) {
 					this.autoSize();
@@ -118,7 +119,7 @@ var ImageView = exports = Class(View, function (supr) {
 			this.style.height = this._img.getHeight();
 
 			if (this.style.fixedAspectRatio) {
-				this.style.updateAspectRatio();
+				this.style.enforceAspectRatio(this.style.width, this.style.height);
 			}
 		}
 	}
@@ -180,4 +181,3 @@ var ImageView = exports = Class(View, function (supr) {
 		return (tag || '') + ':ImageView' + this.uid;
 	}
 });
-
