@@ -97,6 +97,10 @@ exports.isMobileBrowser = false;
 exports.isUIWebView = false;
 exports.isSafari = /Safari/.test(ua);
 
+import std.uri;
+uri = new std.uri(window.location);
+exports.isSimulator = uri.query('device') || uri.hash('device');
+
 if (exports.isMobile) {
 	exports.name = 'tealeaf';
 	exports.width = navigator.width;

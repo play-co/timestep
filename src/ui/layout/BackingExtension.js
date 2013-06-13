@@ -114,6 +114,35 @@ View.addExtension({
 			this.aspectRatio = (w || this.width) / (h || this.height);
 		}
 
+		proto.enforceAspectRatio = function(iw, ih, isTimeout) {
+			this.updateAspectRatio(iw, ih);
+			var parent = this._view.getSuperview();
+			var opts = this._view._opts;
+			iw = iw || opts.width;
+			ih = ih || opts.height;
+			if (opts.width) {
+				iw = opts.width;
+				ih = opts.width / this.aspectRatio;
+			}
+			else if (opts.height) {
+				ih = opts.height;
+				iw = opts.height * this.aspectRatio;
+			}
+			else if (opts.layoutWidth && parent.style.width) {
+				iw = parent.style.width * parseFloat(opts.layoutWidth) / 100;
+				ih = iw / this.aspectRatio;
+			}
+			else if (opts.layoutHeight && parent.style.height) {
+				ih = parent.style.height * parseFloat(opts.layoutHeight) / 100;
+				iw = ih * this.aspectRatio;
+			}
+			else if (parent && !isTimeout) {
+				setTimeout(bind(this, 'enforceAspectRatio', iw, ih, true), 0);
+			}
+			this.width = iw;
+			this.height = ih;
+		};
+
 		proto._onSetLayout = function (key, which) {
 			switch (which) {
 				case 'linear':

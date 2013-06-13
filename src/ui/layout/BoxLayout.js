@@ -67,7 +67,6 @@ var BoxLayout = exports = Class(function () {
 		}));
 	}
 
-	var isPercent = /%$/;
 	cls.reflowX = function (view, svWidth, padding) {
 		if (!svWidth) { return; }
 
@@ -86,10 +85,13 @@ var BoxLayout = exports = Class(function () {
 				}
 			}
 		} else {
+			var sv = view.getSuperview();
 			w = s.right != undefined && s.left != undefined ? availWidth / s.scale - (s.left || 0) - (s.right || 0)
-				: isPercent.test(s.layoutWidth) ? availWidth / s.scale * parseFloat(s.layoutWidth) / 100
-				: s.aspectRatio ? s.height * s.aspectRatio
-				: s.width || availWidth / s.scale;
+				: (s.layoutWidth && s.layoutWidth.charAt(s.layoutWidth.length-1) == '%') ? (availWidth / s.scale) * (parseFloat(s.layoutWidth) / 100)
+				: view._opts.width ? view._opts.width
+				: s.aspectRatio ? (view._opts.height || s.height) * s.aspectRatio
+				: (sv.style.direction == "horizontal" && typeof s.flex == "number") ? availWidth * s.flex / sv._flexSum
+				: availWidth / s.scale || s.width;
 		}
 
 		if (s.centerX) { s.x = (availWidth - s.scale * w) / 2 + (padding && padding.left || 0); }
@@ -121,10 +123,13 @@ var BoxLayout = exports = Class(function () {
 				}
 			}
 		} else {
+			var sv = view.getSuperview();
 			h = s.top != undefined && s.bottom != undefined ? availHeight / s.scale - (s.top || 0) - (s.bottom || 0)
-				: isPercent.test(s.layoutHeight) ? availHeight / s.scale * parseFloat(s.layoutHeight) / 100
-				: s.aspectRatio ? s.width / s.aspectRatio
-				: s.height || availHeight / s.scale;
+				: (s.layoutHeight && s.layoutHeight.charAt(s.layoutHeight.length-1) == '%') ? (availHeight / s.scale) * (parseFloat(s.layoutHeight) / 100)
+				: view._opts.height ? view._opts.height
+				: s.aspectRatio ? (view._opts.width || s.width) / s.aspectRatio
+				: (sv.style.direction == "vertical" && typeof s.flex == "number") ? availHeight * s.flex / sv._flexSum
+				: availHeight / s.scale || s.height;
 		}
 
 		if (s.centerY) { s.y = (availHeight - s.scale * h) / 2 + (padding && padding.top || 0); }
