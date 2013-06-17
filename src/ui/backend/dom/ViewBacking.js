@@ -276,7 +276,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 			var translate = 'translate3d(' + (x) + 'px,' + (y) + 'px,0)';
 
 			// Check for differences and other properties like scale, rotate, translate, etc
-			if (s[TRANSFORM_PREFIX] != '' && s[trans] != translate) {
+			if (s[TRANSFORM_PREFIX] != '' && s[TRANSFORM_PREFIX] != translate) {
 				s[TRANSFORM_PREFIX] += translate;
 			}
 			else {
