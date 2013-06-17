@@ -89,6 +89,7 @@ var BoxLayout = exports = Class(function () {
 				: view._opts.width ? view._opts.width
 				: s.aspectRatio ? (view._opts.height || s.height) * s.aspectRatio
 				: (sv.style.direction == "horizontal" && typeof s.flex == "number") ? availWidth * s.flex / sv._flexSum
+				: view._opts.autoSize ? s.width
 				: availWidth / s.scale || s.width;
 		}
 
@@ -127,6 +128,7 @@ var BoxLayout = exports = Class(function () {
 				: view._opts.height ? view._opts.height
 				: s.aspectRatio ? (view._opts.width || s.width) / s.aspectRatio
 				: (sv.style.direction == "vertical" && typeof s.flex == "number") ? availHeight * s.flex / sv._flexSum
+				: view._opts.autoSize ? s.height
 				: availHeight / s.scale || s.height;
 		}
 
