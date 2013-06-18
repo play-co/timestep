@@ -260,7 +260,7 @@ var Loader = Class(function () {
 		// do the preload asynchronously (note that base64 is synchronous, only downloads are asynchronous)
 		var nextIndexToLoad = 0;
 		var numResources = loadableResources.length;
-		var parallel = opts.parallel || 5; // how many should we try to download at a time?
+		var parallel = Math.min(numResources, opts.parallel || 5); // how many should we try to download at a time?
 		var numLoaded = 0;
 
 		var loadResource = bind(this, function () {
