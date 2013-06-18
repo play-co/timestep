@@ -187,7 +187,7 @@ exports.writeNativeResources = function (project, opts, next) {
 			// JS and JSONfiles get embedded in compile_native_js.
 			// Ignore .js, .json and .ogg files (oggerride) here
 			var exemptFiles = ["spritesheets/map.json", "spritesheets/spritesheetSizeMap.json", "resources/fonts/fontsheetSizeMap.json"];
-			if (!info.fullPath.endsWith(".js") && (exemptFiles.indexOf(info.relative) >= 0 || !info.fullPath.endsWith(".json")) && !info.fullPath.endsWith(".ogg")) {
+			if (!info.fullPath.endsWith(".js") && (exemptFiles.indexOf(info.relative) >= 0 || !info.fullPath.endsWith(".json"))) {
 				if (!cache[info.relative]) {
 					logger.log("Writing resource:", info.relative);
 					cache[info.relative] = {
