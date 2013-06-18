@@ -146,10 +146,65 @@ function wrapNativeJS (project, opts, target, resources, code) {
 	].join('');
 }
 
+function filterCopyFile(ios, file) {
+	var exemptFiles = ["spritesheets/map.json", "spritesheets/spritesheetSizeMap.json", "resources/fonts/fontsheetSizeMap.json"];
+
+	if (!file.endsWith(".js") && (exemptFiles.indexOf(file) >= 0 || !file.endsWith(".json"))) {
+		// If iOS,
+		if (ios) {
+			if (file.endsWith(".ogg")) {
+				return "ignore";
+			}
+		} else { // Else on Android or other platform that supports .ogg:
+			// If it is MP3,
+			if (file.endsWith(".mp3") && fs.existsSync(file.substr(0, file.length - 4) + ".ogg")) {
+				return "ignore";
+			} else if (file.endsWith(".ogg")) {
+				return "renameMP3";
+			}
+		}
+
+		return null;
+	}
+
+	return "ignore";
+}
+
 // Write out build resources to disk.
 //creates the js code which is the same on each native platform
 exports.writeNativeResources = function (project, opts, next) {
 	logger.log("Writing resources for " + opts.appID + " with target " + opts.target);
+
+	var ios = opts.target.indexOf("ios") >= 0;
+
+	opts.mapMutator = function(keys) {
+		var deleteList = [], renameList = [];
+
+		for (var key in keys) {
+			switch (filterCopyFile(ios, key)) {
+			case "ignore":
+				deleteList.push(key);
+				break;
+			case "renameMP3":
+				renameList.push(key);
+				break;
+			}
+		}
+
+		for (var ii = 0; ii < deleteList.length; ++ii) {
+			var key = deleteList[ii];
+
+			delete keys[key];
+		}
+
+		for (var ii = 0; ii < renameList.length; ++ii) {
+			var key = renameList[ii];
+			var mutatedKey = key.substr(0, key.length - 4) + ".mp3";
+			
+			keys[mutatedKey] = keys[key];
+			keys[key] = undefined;
+		}
+	};
 
 	var f = ff(function () {
 		_build.packager.compileResources(project, opts, opts.target, INITIAL_IMPORT, f());
@@ -164,41 +219,22 @@ exports.writeNativeResources = function (project, opts, next) {
 
 		var cache = {};
 
-		// OGGERRIDE FEATURE!  OGG files will override MP3 files with the same
-		// name.  This is case-sensitive.
-
-		// If not on iOS, allow .ogg files to override .mp3 files
-		if (opts.target.indexOf("ios") < 0) {
-			files.resources.forEach(function (info) {
-				// If it is an oggerride,
-				if (info.fullPath.endsWith(".ogg")) {
-					var smudgedName = path.join(path.dirname(info.relative), info.basename + '.mp3');
-
-					logger.log("{Oggerride!} Writing resource:", opts.target, ":", smudgedName, "<-", info.relative);
-
-					cache[smudgedName] = {
-						src: info.fullPath
-					};
-				}
-			});
-		}
-
 		function embedFile (info) {
-			// JS and JSONfiles get embedded in compile_native_js.
-			// Ignore .js, .json and .ogg files (oggerride) here
-			var exemptFiles = ["spritesheets/map.json", "spritesheets/spritesheetSizeMap.json", "resources/fonts/fontsheetSizeMap.json"];
-			if (!info.fullPath.endsWith(".js") && (exemptFiles.indexOf(info.relative) >= 0 || !info.fullPath.endsWith(".json")) && !info.fullPath.endsWith(".ogg")) {
-				if (!cache[info.relative]) {
-					logger.log("Writing resource:", info.relative);
-					cache[info.relative] = {
-						src: info.fullPath
-					};
-				} else {
-					logger.log("Ignored oggerridden resource:", info.relative);
-				}
+			switch (filterCopyFile(ios, info.relative)) {
+			case "ignore":
+				break;
+			case "renameMP3":
+				info.relative = info.relative.substr(0, info.relative.length - 4) + ".mp3";
+				// fall-thru
+			default:
+				logger.log("Writing resource:", info.relative);
+				cache[info.relative] = {
+					src: info.fullPath
+				};
+				break;
 			}
 		}
-		
+
 		files.sprites.forEach(embedFile);
 		files.resources.forEach(embedFile);
 
