@@ -31,12 +31,14 @@ var states = Enum(
 );
 var lastClicked = null;
 var ButtonView = exports = Class(ImageScaleView, function (supr) {
-	var selected = false;
 
 	this.init = function (opts) {
 		this._state = opts.defaultState || opts.state || states.UP;
 
 		supr(this, "init", arguments);
+
+	this.selected = (opts.toggleSelected && 
+        			opts.state === states.SELECTED)? true: false;
 
 		var textOpts = merge(
 			opts.text,
@@ -119,12 +121,12 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 		}
 
 		if (this._opts.toggleSelected) {
-			if (!selected) {
+			if (!this.selected) {
 				this._trigger(states.SELECTED);
-				selected = true;
+				this.selected = true;
 			} else {
 				this._trigger(states.UNSELECTED);
-				selected = false;
+				this.selected = false;
 			}
 		} else {
 			this._trigger(states.UP);
