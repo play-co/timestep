@@ -37,8 +37,8 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 
 		supr(this, "init", arguments);
 
-	this.selected = (opts.toggleSelected && 
-        			opts.state === states.SELECTED)? true: false;
+		this.selected = (opts.toggleSelected && 
+			opts.state === states.SELECTED) ? true: false;
 
 		var textOpts = merge(
 			opts.text,
