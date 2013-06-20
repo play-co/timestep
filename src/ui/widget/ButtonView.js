@@ -31,12 +31,14 @@ var states = Enum(
 );
 var lastClicked = null;
 var ButtonView = exports = Class(ImageScaleView, function (supr) {
-	var selected = false;
 
 	this.init = function (opts) {
 		this._state = opts.defaultState || opts.state || states.UP;
 
 		supr(this, "init", arguments);
+
+		this.selected = (opts.toggleSelected && 
+			opts.state === states.SELECTED) ? true: false;
 
 		var textOpts = merge(
 			opts.text,
@@ -45,6 +47,8 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 				text: opts.title || "",
 				x: 0,
 				y: 0,
+				width: this.style.width,
+				height: this.style.height,
 				canHandleEvents: false
 			}
 		);
@@ -56,6 +60,8 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 				superview: this,
 				x: 0,
 				y: 0,
+				width: this.style.width,
+				height: this.style.height,
 				canHandleEvents: false
 			}
 		);
@@ -119,12 +125,12 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 		}
 
 		if (this._opts.toggleSelected) {
-			if (!selected) {
+			if (!this.selected) {
 				this._trigger(states.SELECTED);
-				selected = true;
+				this.selected = true;
 			} else {
 				this._trigger(states.UNSELECTED);
-				selected = false;
+				this.selected = false;
 			}
 		} else {
 			this._trigger(states.UP);
@@ -145,7 +151,9 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 		stateName = stateName.toLowerCase();
 
 		if (this._images && this._images[stateName]) {
-			this.setImage(this._images[stateName]);
+			if (!(this._opts.toggleSelected && (state === states.UP))) {
+				this.setImage(this._images[stateName]);
+			}
 		}
 		if (dontPublish) {
 			return;
