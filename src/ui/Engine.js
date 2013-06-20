@@ -126,7 +126,9 @@ var Application = exports = Class(Emitter, function (supr) {
 			keyListener: this._keyListener
 		});
 
-		this._reflowMgr = ReflowManager.get();
+		this._reflowManager = ReflowManager.get();
+
+		this._view.setReflowManager(this._reflowManager);
 
 		this._tickBuffer = 0;
 		this._onTick = [];
@@ -156,6 +158,11 @@ var Application = exports = Class(Emitter, function (supr) {
 			this._keyListener.setEnabled(this._opts.keyListenerEnabled);
 		}
 
+		if (this._opts.noReflow) {
+			this._reflowManager = null;
+			this._view.setReflowManager(null);
+		}
+
 		if (this._opts.showFPS) {
 			if (!this._applicationFPS) {
 				import ui.backend.debug.FPSView as FPSView;
@@ -170,21 +177,43 @@ var Application = exports = Class(Emitter, function (supr) {
 		}
 	};
 
-	this.supports = function (key) { return this._opts[key]; }
+	this.supports = function (key) {
+		return this._opts[key];
+	};
 
 	/* @internal */
-	this.getInput = function () { return this._inputListener; }
-	this.getKeyListener = function () { return this._keyListener; }
+	this.getInput = function () {
+		return this._inputListener;
+	};
 
-	this.getEvents = function () { return this._events; }
+	this.getKeyListener = function () {
+		return this._keyListener;
+	};
+
+	this.getEvents = function () {
+		return this._events;
+	};
 
 	// deprecating getCanvas...
-	this.getElement = 
-	this.getCanvas = function () { return this._rootElement; }
-	
-	this.getViewCtor = function () { return View; }
-	this.getView = function () { return this._view; }
-	this.setView = function (view) { this._view = view; return this; }
+	this.getElement = this.getCanvas = function () {
+		return this._rootElement;
+	};
+
+	this.getViewCtor = function () {
+		return View;
+	};
+
+	this.getView = function () {
+		return this._view;
+	};
+
+	this.setView = function (view) {
+		this._view = view; return this;
+	};
+
+	this.getReflowManager = function () {
+		return this._reflowManager;
+	};
 
 	this.show = function () {
 		this._rootElement.style.display = 'block';
@@ -311,8 +340,10 @@ var Application = exports = Class(Emitter, function (supr) {
 			this.__tick(dt);
 		}
 
-		this._reflowMgr.startReflow(this._ctx);
-		this._reflowMgr.setInRender(true);
+		if (this._reflowManager) {
+			this._reflowManager.startReflow(this._ctx);
+			this._reflowManager.setInRender(true);
+		}
 
 		var doRepaint = this._opts.alwaysRepaint || this._needsRepaint;
 		if (!doRepaint && this._doubleBuffered && this._doubleBufferedState > 0) {
@@ -325,7 +356,7 @@ var Application = exports = Class(Emitter, function (supr) {
 			this.render(dt);
 		}
 
-		this._reflowMgr.setInRender(false);
+		this._reflowManager && this._reflowManager.setInRender(false);
 	};
 
 	this.render = function (dt) {

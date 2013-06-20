@@ -31,7 +31,6 @@ import math.geom.Rect as Rect;
 import .backend.canvas.ViewBacking;
 
 import ui.backend.ReflowManager as ReflowManager;
-var _reflowMgr = ReflowManager.get();
 
 import event.input.dispatch as dispatch;
 import event.input.InputHandler as InputHandler;
@@ -40,6 +39,7 @@ import animate;
 
 import util.setProperty;
 
+import .Engine;
 
 var KeyListener = device.get('KeyListener');
 
@@ -139,6 +139,11 @@ var View = exports = Class(Emitter, function () {
 
 		this.__view._view = this;
 
+		var engine = Engine.get();
+		if (engine) {
+			this._reflowManager = engine.getReflowManager();
+		}
+
 		this.updateOpts(opts);
 	};
 
@@ -191,7 +196,9 @@ var View = exports = Class(Emitter, function () {
 	/**
 	 * Returns the filter attached to this view.
 	 */
-	this.getFilter = function () { return this._filter; };
+	this.getFilter = function () {
+		return this._filter;
+	};
 
 	/**
 	 * Sets the filter on this view -- DEPRECATED
@@ -204,12 +211,16 @@ var View = exports = Class(Emitter, function () {
 	/**
 	 * Sets the filter on this view. Only one filter can exist on a view.
 	 */
-	this.setFilter = function (filter) { this._filter = filter; };
+	this.setFilter = function (filter) {
+		this._filter = filter;
+	};
 
 	/**
 	 * Remove the filter from this view.
 	 */
-	this.removeFilter = function () { this._filter = null; };
+	this.removeFilter = function () {
+		this._filter = null;
+	};
 
 	// --- render/tick setters ---
 
@@ -242,56 +253,77 @@ var View = exports = Class(Emitter, function () {
 	 * @deprecated
 	 * Return an animation object for this view.
 	 */
-	this.animate = function (style, duration, easing) { return this.getAnimation().then(style, duration, easing); };
+	this.animate = function (style, duration, easing) {
+		return this.getAnimation().then(style, duration, easing);
+	};
 
 	// --- ui focus/blur component ---
 
 	/**
 	 * Indicate to the focus manager singleton this element is focused.
 	 */
-	this.focus = function () { FocusMgr.get().focus(this); return this; };
+	this.focus = function () {
+		FocusMgr.get().focus(this); return this;
+	};
 
 	/**
 	 * Indicate to the focus manager singleton this element is blurred.
 	 */
-	this.blur = function () { FocusMgr.get().blur(this); return this; };
+	this.blur = function () {
+		FocusMgr.get().blur(this);
+		return this;
+	};
 
 	/**
 	 * Triggered when focus is given to this view.
 	 */
-	this.onFocus = function () { this._isFocused = true; };
+	this.onFocus = function () {
+		this._isFocused = true;
+	};
 
 	/**
 	 * Indicate to the focus manager singleton this element is blurred.
 	 */
-	this.onBlur = function () { this._isFocused = false; };
+	this.onBlur = function () {
+		this._isFocused = false;
+	};
 
 	// --- input component ---
 
 	/**
 	 * Returns a boolean indicating we are currently dragging this view.
 	 */
-	this.isDragging = function () { return this.__input.isDragging(); };
+	this.isDragging = function () {
+		return this.__input.isDragging();
+	};
 
 	/**
 	 * Start responding to touch input by dragging this view.
 	 */
-	this.startDrag = function (opts) { this.__input.startDrag(opts); };
+	this.startDrag = function (opts) {
+		this.__input.startDrag(opts);
+	};
 
 	/**
 	 * Return the InputHandler for this view.
 	 */
-	this.getInput = function () { return this.__input; };
+	this.getInput = function () {
+		return this.__input;
+	};
 
 	/**
 	 * Returns a boolean indicating if a touch is on this view.
 	 */
-	this.isInputOver = function () { return !!this.__input.overCount; };
+	this.isInputOver = function () {
+		return !!this.__input.overCount;
+	};
 
 	/**
 	 * Returns a number indicating how many touches are on this view.
 	 */
-	this.getInputOverCount = function () { return this._inputOverCount; };
+	this.getInputOverCount = function () {
+		return this._inputOverCount;
+	};
 
 	/**
 	 * Renamed to setHandleEvents, canHandleEvents is deprecated.
@@ -307,13 +339,21 @@ var View = exports = Class(Emitter, function () {
 	};
 
 	// TODO: think about refactoring internal components and exposing them differently...
-	this.setIsHandlingEvents = function (canHandleEvents) { this.__input.canHandleEvents = canHandleEvents; };
-	this.isHandlingEvents = function () { return this.__input.canHandleEvents; };
+	this.setIsHandlingEvents = function (canHandleEvents) {
+		this.__input.canHandleEvents = canHandleEvents;
+	};
 
-	this.needsRepaint = function () { this._needsRepaint = true; }
+	this.isHandlingEvents = function () {
+		return this.__input.canHandleEvents;
+	};
+
+	this.needsRepaint = function () {
+		this._needsRepaint = true;
+	};
+
 	this.needsReflow = function (force) {
 		if (this.style.__firstRender || force) {
-			_reflowMgr.add(this);
+			this._reflowManager && this._reflowManager.add(this);
 			this._needsRepaint = true;
 		}
 	};
@@ -382,6 +422,10 @@ var View = exports = Class(Emitter, function () {
 
 	// --- view hierarchy component ---
 
+	this.setReflowManager = function (reflowManager) {
+		this._reflowManager = reflowManager;
+	};
+
 	/**
 	 * Return the subview at the given index.
 	 */
@@ -433,7 +477,7 @@ var View = exports = Class(Emitter, function () {
 		}
 
 		return true;
-	}
+	};
 
 	this.disconnectEvent = function (src, name /*, args */) {
 		if (this.__subs) {
@@ -445,19 +489,19 @@ var View = exports = Class(Emitter, function () {
 				}
 			}
 		}
-	}
+	};
 
 	this._connectEvents = function () {
 		for (var i = 0, args; args = this.__subs[i]; ++i) {
 			args[0].on.apply(args[0], args[1]);
 		}
-	}
+	};
 
 	this._disconnectEvents = function () {
 		for (var i = 0, args; args = this.__subs[i]; ++i) {
 			args[0].removeListener.apply(args[0], args[1]);
 		}
-	}
+	};
 
 	/**
 	 * Add a subview.
@@ -465,7 +509,7 @@ var View = exports = Class(Emitter, function () {
 	this.addSubview = function (view) {
 		if (this.__view.addSubview(view)) {
 			view.needsRepaint();
-			view.needsReflow();
+			this._reflowManager && view.needsReflow();
 
 			// if successful, clear any residual input over count
 			view.__input.resetOver();
@@ -507,7 +551,7 @@ var View = exports = Class(Emitter, function () {
 		}
 
 		return view;
-	}
+	};
 
 	/**
 	 * Removes this view from its parent.
@@ -747,12 +791,12 @@ var _extensions = [];
 View.addExtension = function (ext) {
 	ext.extend(View.BackingCtor);
 	_extensions.push(ext);
-}
+};
 
 View.setDefaultViewBacking = function (ViewBackingCtor) {
 	_BackingCtor = View.BackingCtor = ViewBackingCtor;
 	_extensions.forEach(function (ext) { ext.extend(_BackingCtor); });
-}
+};
 
 // default view backing is canvas
 View.setDefaultViewBacking(backend.canvas.ViewBacking);
