@@ -47,6 +47,10 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 				text: opts.title || "",
 				x: 0,
 				y: 0,
+				width: this.style.width,
+				height: this.style.height,
+				autoSize: false,
+				autoFontSize: false,
 				canHandleEvents: false
 			}
 		);
@@ -58,6 +62,8 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 				superview: this,
 				x: 0,
 				y: 0,
+				width: this.style.width,
+				height: this.style.height,
 				canHandleEvents: false
 			}
 		);
