@@ -147,7 +147,9 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 		stateName = stateName.toLowerCase();
 
 		if (this._images && this._images[stateName]) {
-			this.setImage(this._images[stateName]);
+			if (!(this._opts.toggleSelected && (state === states.UP))) {
+				this.setImage(this._images[stateName]);
+			}
 		}
 		if (dontPublish) {
 			return;
