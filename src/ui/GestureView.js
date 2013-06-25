@@ -72,7 +72,7 @@ exports = Class(View, function (supr) {
 				this._initialAngle = angle;
 			} else {
 				this.emit('Pinch', d / this._initialDistance);
-				this.emit('Rotate', this._initialAngle - angle);
+				this.emit('Rotate', angle - this._initialAngle);
 			}
 		}
 	};
