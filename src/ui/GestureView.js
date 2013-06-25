@@ -43,12 +43,20 @@ exports = Class(View, function (supr) {
 		}
 	};
 
-	this.clearInput = this.onInputSelect = this.onInputOut = function () {
+	this.clearInput = this.onInputSelect = this.onInputOut = function (evt) {
 		this.emit('FingerUp');
 		this._fingerOne = null;
 		this._fingerTwo = null;
 		this._initialDistance = null;
 		this._initialAngle = null;
+		delete this._dragPoints['p' + evt.id];
+		for (var id in this._dragPoints) {
+			if (this._fingerOne == null) {
+				this._fingerOne = id;
+			} else if (this._fingerTwo == null) {
+				this._fingerTwo = id;
+			}
+		}
 	};
 
 	this.onDrag = function (dragEvent, moveEvent, delta) {
@@ -85,6 +93,6 @@ exports = Class(View, function (supr) {
 				: (degrees < -60 && degrees > -120) ? 'down'
 				: (degrees > 120 || degrees < -120) ? 'right' : 'left');
 		}
-		this.clearInput();
+		this.clearInput(selectEvent);
 	};
 });
