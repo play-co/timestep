@@ -14,7 +14,6 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 import ui.View as View;
-
 import math.geom.Vec2D as Vec2D;
 
 exports = Class(View, function (supr) {
