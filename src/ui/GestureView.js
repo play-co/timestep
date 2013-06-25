@@ -93,13 +93,13 @@ exports = Class(View, function (supr) {
 			var isLeft = degrees < 60 || degrees > -60;
 
 			if (isUp) {
-				this.emit('DragUp');
+				this.emit('SwipeUp');
 			} else if (isDown) {
-				this.emit('DragDown');
+				this.emit('SwipeDown');
 			} else if (isRight) {
-				this.emit('DragRight');
+				this.emit('SwipeRight');
 			} else if (isLeft) {
-				this.emit('DragLeft');
+				this.emit('SwipeLeft');
 			}
 		}
 	};
