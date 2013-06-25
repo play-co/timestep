@@ -25,9 +25,10 @@ exports = Class(View, function (supr) {
 
 		this._dragMagnitude = opts.dragMagnitude || 150;
 		this._dragTime = opts.dragTime || 250;
-		this._dragPointFirst = null;
-		this._dragPointSecond = null;
-		this._dragInitialDistance = null;
+		this._fingerOne = null;
+		this._fingerTwo = null;
+		this._initialDistance = null;
+		this._initialAngle = null;
 		this._dragPoints = {};
 	};
 
@@ -39,10 +40,10 @@ exports = Class(View, function (supr) {
 		var point = {x: dragEvent.srcPoint.x, y: dragEvent.srcPoint.y};
 		var index = 'p' + dragEvent.id;
 		this._dragPoints[index] = point;
-		if (this._dragPointFirst && this._dragPointFirst != index) {
-			this._dragPointSecond = index;
+		if (this._fingerOne && this._fingerOne != index) {
+			this._fingerTwo = index;
 		} else {
-			this._dragPointFirst = index;
+			this._fingerOne = index;
 			this._dragStartTime = Date.now();
 			this._dragStartPoint = dragEvent.srcPoint;
 		}
@@ -50,25 +51,28 @@ exports = Class(View, function (supr) {
 
 	this.onInputSelect = this.onInputOut = function (evt) {
 		this._dragPoints = {};
-		this._dragPointFirst = null;
-		this._dragPointSecond = null;
-		this._dragInitialDistance = null;
+		this._fingerOne = null;
+		this._fingerTwo = null;
+		this._initialDistance = null;
+		this._initialAngle = null;
 	};
 
 	this.onDrag = function (dragEvent, moveEvent, delta) {
-		if (this._dragPointFirst && this._dragPointSecond) {
+		if (this._fingerOne && this._fingerTwo) {
 			this._dragPoints['p' + dragEvent.id] = {x: moveEvent.srcPoint.x, y: moveEvent.srcPoint.y};
-			var p1 = this._dragPoints[this._dragPointFirst];
-			var p2 = this._dragPoints[this._dragPointSecond];
+			var p1 = this._dragPoints[this._fingerOne];
+			var p2 = this._dragPoints[this._fingerTwo];
 			var dx = p2.x - p1.x;
 			var dy = p2.y - p1.y;
 			var d = Math.sqrt(dx * dx + dy * dy);
-			if (this._dragInitialDistance === null) {
-				this._dragInitialDistance = d;
+			var dragVec = new Vec2D({x: dx, y: dy});
+			var angle = dragVec.getAngle();
+			if (this._initialDistance === null) {
+				this._initialDistance = d;
+				this._initialAngle = angle;
 			} else {
-				logger.log(d, this._dragInitialDistance, this._dragPointFirst, this._dragPointSecond);
-				logger.log(JSON.stringify(this._dragPoints));
-				this.emit('Pinch', d / this._dragInitialDistance);
+				this.emit('Pinch', d / this._initialDistance);
+				this.emit('Rotate', this._initialAngle - angle);
 			}
 		}
 	};
