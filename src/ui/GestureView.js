@@ -21,7 +21,6 @@ exports = Class(View, function (supr) {
 		supr(this, 'init', [opts]);
 		this._swipeMagnitude = opts.swipeMagnitude || 150;
 		this._swipeTime = opts.swipeTime || 250;
-		this._swipeStartTime = null;
 		this._fingerOne = null;
 		this._fingerTwo = null;
 		this._initialDistance = null;
@@ -41,7 +40,6 @@ exports = Class(View, function (supr) {
 			this._fingerTwo = index;
 		} else {
 			this._fingerOne = index;
-			this._swipeStartTime = Date.now();
 		}
 	};
 
@@ -78,7 +76,7 @@ exports = Class(View, function (supr) {
 		var dx = dragEvent.srcPoint.x - selectEvent.srcPoint.x;
 		var swipeVec = new Vec2D({x: dx, y: dy});
 		var mag = swipeVec.getMagnitude();
-		var dt = Date.now() - this._swipeStartTime;
+		var dt = selectEvent.when - dragEvent.when;
 		if ((mag > this._swipeMagnitude) && (dt < this._swipeTime)) {
 			var degrees = swipeVec.getAngle() * (180 / Math.PI);
 			this.emit('Swipe', (degrees > 60 && degrees < 120) ? 'up'
