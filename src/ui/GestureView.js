@@ -67,6 +67,8 @@ exports = Class(View, function (supr) {
 				this.emit('Pinch', d / this._initialDistance);
 				this.emit('Rotate', angle - this._initialAngle);
 			}
+		} else {
+			this.emit('DragSingle', delta.x, delta.y);
 		}
 	};
 
