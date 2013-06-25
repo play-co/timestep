@@ -25,29 +25,51 @@ exports = Class(View, function (supr) {
 
 		this._dragMagnitude = opts.dragMagnitude || 150;
 		this._dragTime = opts.dragTime || 250;
+		this._dragPointFirst = null;
+		this._dragPointSecond = null;
+		this._dragInitialDistance = null;
+		this._dragPoints = {};
 	};
 
 	this.onInputStart = function (evt) {
-		this.emit('Click', {x: evt.srcPt.x / GC.app.scale, y: evt.srcPt.y / GC.app.scale})
-
 		this.startDrag();
-		this.emit('Start');
 	};
 
 	this.onDragStart = function (dragEvent) {
-		this._dragStartTime = Date.now();
-		this._dragStartPoint = dragEvent.srcPoint;
+		var point = {x: dragEvent.srcPoint.x, y: dragEvent.srcPoint.y};
+		var index = 'p' + dragEvent.id;
+		this._dragPoints[index] = point;
+		if (this._dragPointFirst && this._dragPointFirst != index) {
+			this._dragPointSecond = index;
+		} else {
+			this._dragPointFirst = index;
+			this._dragStartTime = Date.now();
+			this._dragStartPoint = dragEvent.srcPoint;
+		}
 	};
 
-	this.onInputMove = function (evt, pt) {
-		this.emit('Move', pt);
+	this.onInputSelect = this.onInputOut = function (evt) {
+		this._dragPoints = {};
+		this._dragPointFirst = null;
+		this._dragPointSecond = null;
+		this._dragInitialDistance = null;
 	};
 
 	this.onDrag = function (dragEvent, moveEvent, delta) {
-		if ((delta.y < -1 && this._dragDY >= 0) || (delta.y > 1 && this._dragDY <= 0)) {
-			this._dragStartTime = this._totalTime;
-			this._dragStartPoint = dragEvent.srcPoint;
-			this._dragDY = delta.y;
+		if (this._dragPointFirst && this._dragPointSecond) {
+			this._dragPoints['p' + dragEvent.id] = {x: moveEvent.srcPoint.x, y: moveEvent.srcPoint.y};
+			var p1 = this._dragPoints[this._dragPointFirst];
+			var p2 = this._dragPoints[this._dragPointSecond];
+			var dx = p2.x - p1.x;
+			var dy = p2.y - p1.y;
+			var d = Math.sqrt(dx * dx + dy * dy);
+			if (this._dragInitialDistance === null) {
+				this._dragInitialDistance = d;
+			} else {
+				logger.log(d, this._dragInitialDistance, this._dragPointFirst, this._dragPointSecond);
+				logger.log(JSON.stringify(this._dragPoints));
+				this.emit('Pinch', d / this._dragInitialDistance);
+			}
 		}
 	};
 
@@ -66,9 +88,6 @@ exports = Class(View, function (supr) {
 			var isRight = degrees > 120 || degrees < -120;
 			var isLeft = degrees < 60 || degrees > -60;
 
-			this.emit('Drag', angle);
-
-			// Turned off for internal release
 			if (isUp) {
 				this.emit('DragUp');
 			} else if (isDown) {
