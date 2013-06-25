@@ -36,10 +36,10 @@ exports = Class(View, function (supr) {
 		var point = {x: dragEvent.srcPoint.x, y: dragEvent.srcPoint.y};
 		var index = 'p' + dragEvent.id;
 		this._dragPoints[index] = point;
-		if (this._fingerOne && this._fingerOne != index) {
-			this._fingerTwo = index;
-		} else {
+		if (this._fingerOne == null) {
 			this._fingerOne = index;
+		} else if (this._fingerTwo == null && this._fingerOne != index) {
+			this._fingerTwo = index;
 		}
 	};
 
