@@ -43,8 +43,7 @@ exports = Class(View, function (supr) {
 		}
 	};
 
-	this.onInputSelect = this.onInputOut = function (evt) {
-		this._dragPoints = {};
+	this.clearInput = this.onInputSelect = this.onInputOut = function () {
 		this._fingerOne = null;
 		this._fingerTwo = null;
 		this._initialDistance = null;
@@ -83,5 +82,6 @@ exports = Class(View, function (supr) {
 				: (degrees < -60 && degrees > -120) ? 'down'
 				: (degrees > 120 || degrees < -120) ? 'right' : 'left');
 		}
+		this.clearInput();
 	};
 });
