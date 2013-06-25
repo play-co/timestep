@@ -23,8 +23,10 @@ exports = Class(View, function (supr) {
 
 		supr(this, 'init', [opts]);
 
-		this._dragMagnitude = opts.dragMagnitude || 150;
-		this._dragTime = opts.dragTime || 250;
+		this._swipeMagnitude = opts.swipeMagnitude || 150;
+		this._swipeTime = opts.swipeTime || 250;
+		this._swipeStartTime = null;
+		this._swipeStartPoint = null;
 		this._fingerOne = null;
 		this._fingerTwo = null;
 		this._initialDistance = null;
@@ -44,8 +46,8 @@ exports = Class(View, function (supr) {
 			this._fingerTwo = index;
 		} else {
 			this._fingerOne = index;
-			this._dragStartTime = Date.now();
-			this._dragStartPoint = dragEvent.srcPoint;
+			this._swipeStartTime = Date.now();
+			this._swipeStartPoint = dragEvent.srcPoint;
 		}
 	};
 
@@ -78,29 +80,16 @@ exports = Class(View, function (supr) {
 	};
 
 	this.onDragStop = function (dragEvent, selectEvent) {
-		var dY = this._dragStartPoint.y - selectEvent.srcPoint.y;
-		var dX = this._dragStartPoint.x - selectEvent.srcPoint.x;
-		var dragVec = new Vec2D({x: dX, y: dY});
-		var mag = dragVec.getMagnitude();
-		var dt = Date.now() - this._dragStartTime;
-
-		if ((mag > this._dragMagnitude) && (dt < this._dragTime)) {
-			var angle = dragVec.getAngle();
-			var degrees = angle * (180 / Math.PI);
-			var isUp = degrees > 60 && degrees < 120;
-			var isDown = degrees < -60 && degrees > -120;
-			var isRight = degrees > 120 || degrees < -120;
-			var isLeft = degrees < 60 || degrees > -60;
-
-			if (isUp) {
-				this.emit('SwipeUp');
-			} else if (isDown) {
-				this.emit('SwipeDown');
-			} else if (isRight) {
-				this.emit('SwipeRight');
-			} else if (isLeft) {
-				this.emit('SwipeLeft');
-			}
+		var dy = this._swipeStartPoint.y - selectEvent.srcPoint.y;
+		var dx = this._swipeStartPoint.x - selectEvent.srcPoint.x;
+		var swipeVec = new Vec2D({x: dx, y: dy});
+		var mag = swipeVec.getMagnitude();
+		var dt = Date.now() - this._swipeStartTime;
+		if ((mag > this._swipeMagnitude) && (dt < this._swipeTime)) {
+			var degrees = swipeVec.getAngle() * (180 / Math.PI);
+			this.emit('Swipe', (degrees > 60 && degrees < 120) ? 'up'
+				: (degrees < -60 && degrees > -120) ? 'down'
+				: (degrees > 120 || degrees < -120) ? 'right' : 'left');
 		}
 	};
 });
