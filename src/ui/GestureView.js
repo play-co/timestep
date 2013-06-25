@@ -44,6 +44,7 @@ exports = Class(View, function (supr) {
 	};
 
 	this.clearInput = this.onInputSelect = this.onInputOut = function () {
+		this.emit('FingerUp');
 		this._fingerOne = null;
 		this._fingerTwo = null;
 		this._initialDistance = null;
