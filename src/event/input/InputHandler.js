@@ -27,7 +27,7 @@ import event.input.dispatch as dispatch;
 var InputHandler = exports = Class(function () {
 	
 	// ---- start mouseover
-	
+	this.startCount = 0;
 	this.dragCount = 0;
 	this.overCount = 0;
 	this.canHandleEvents = true;
@@ -97,6 +97,7 @@ var InputHandler = exports = Class(function () {
 		dragging[id] = true;
 		
 		++this.dragCount;
+		++this.startCount;
 
 		var root = inputStartEvt.root;
 		var dragEvt = new dispatch.InputEvent(inputStartEvt.id, 'input:drag', inputStartEvt.srcPt.x, inputStartEvt.srcPt.y, root, view);
@@ -116,10 +117,18 @@ var InputHandler = exports = Class(function () {
 		var dy = moveEvt.srcPt.y - dragEvt.srcPt.y;
 		if (dx * dx + dy * dy <= dragEvt.radius) { return; }
 
+		if (dragEvt.didDrag) {
+			return;
+		}
+		dragEvt.didDrag = true;
+		--this.startCount;
+		
 		var view = this.view;
 		
 		// no longer need to listen for move events for onDragStart
-		dragEvt.root.unsubscribe('InputMoveCapture', this, 'onDragStart');
+		if (this.startCount == 0) {
+			dragEvt.root.unsubscribe('InputMoveCapture', this, 'onDragStart');
+		}
 		
 		// want to fire onDragStart with the current point equal to the initial point 
 		// even though the user has moved away by now
@@ -147,8 +156,6 @@ var InputHandler = exports = Class(function () {
 		dragEvt.prevLocalPt = dragEvt.localPt;
 		dragEvt.localPt = view.localizePoint(new Point(dragEvt.currPt));
 
-		dragEvt.didDrag = true;
-		
 		var delta = Point.subtract(dragEvt.localPt, dragEvt.prevLocalPt);
 
 		dispatch._isDragging = true;
