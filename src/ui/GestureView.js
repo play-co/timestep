@@ -60,24 +60,27 @@ exports = Class(View, function (supr) {
 	};
 
 	this.onDrag = function (dragEvent, moveEvent, delta) {
-		if (this._fingerOne && this._fingerTwo) {
-			this._dragPoints['p' + dragEvent.id] = {x: moveEvent.srcPoint.x, y: moveEvent.srcPoint.y};
-			var p1 = this._dragPoints[this._fingerOne];
-			var p2 = this._dragPoints[this._fingerTwo];
-			var dx = p2.x - p1.x;
-			var dy = p2.y - p1.y;
-			var d = Math.sqrt(dx * dx + dy * dy);
-			var dragVec = new Vec2D({x: dx, y: dy});
-			var angle = dragVec.getAngle();
-			if (this._initialDistance === null) {
-				this._initialDistance = d;
-				this._initialAngle = angle;
-			} else {
-				this.emit('Pinch', d / this._initialDistance);
-				this.emit('Rotate', angle - this._initialAngle);
+		if (this._fingerOne) {
+			if (this._fingerTwo) {
+				this._dragPoints['p' + dragEvent.id] = {x: moveEvent.srcPoint.x, y: moveEvent.srcPoint.y};
+				var p1 = this._dragPoints[this._fingerOne];
+				var p2 = this._dragPoints[this._fingerTwo];
+				var dx = p2.x - p1.x;
+				var dy = p2.y - p1.y;
+				var d = Math.sqrt(dx * dx + dy * dy);
+				var dragVec = new Vec2D({x: dx, y: dy});
+				var angle = dragVec.getAngle();
+				if (this._initialDistance === null) {
+					this._initialDistance = d;
+					this._initialAngle = angle;
+				} else {
+					this.emit('Pinch', d / this._initialDistance);
+					this.emit('Rotate', angle - this._initialAngle);
+				}
 			}
-		} else {
-			this.emit('DragSingle', delta.x, delta.y);
+			if (this._fingerOne == 'p' + dragEvent.id) {
+				this.emit('DragSingle', delta.x, delta.y);
+			}
 		}
 	};
 
