@@ -26,24 +26,29 @@ exports = Class(View, function (supr) {
 		this._initialDistance = null;
 		this._initialAngle = null;
 		this._dragPoints = {};
+		this._activeFingers = 0;
 	};
 
 	this.onInputStart = function (evt) {
-		this.startDrag();
+		if (!Object.keys(this._dragPoints).length) {
+			this._activeFingers = 0;
+		}
+		this.startDrag({ inputStartEvt: evt });
 	};
 
 	this.onDragStart = function (dragEvent) {
 		var point = {x: dragEvent.srcPoint.x, y: dragEvent.srcPoint.y};
-		var index = 'p' + dragEvent.id;
-		this._dragPoints[index] = point;
+		var id = 'p' + dragEvent.id;
+		this._activeFingers += 1;
+		this._dragPoints[id] = point;
 		if (this._fingerOne == null) {
-			this._fingerOne = index;
-		} else if (this._fingerTwo == null && this._fingerOne != index) {
-			this._fingerTwo = index;
+			this._fingerOne = id;
+		} else if (this._fingerTwo == null && this._fingerOne != id) {
+			this._fingerTwo = id;
 		}
 	};
 
-	this.clearInput = this.onInputSelect = this.onInputOut = function (evt) {
+	this.clearInput = this.onInputSelect = function (evt) {
 		var id = 'p' + evt.id;
 		delete this._dragPoints[id];
 		if (this._fingerOne == id) {
@@ -93,7 +98,8 @@ exports = Class(View, function (supr) {
 			var degrees = swipeVec.getAngle() * (180 / Math.PI);
 			this.emit('Swipe', (degrees > 60 && degrees < 120) ? 'up'
 				: (degrees < -60 && degrees > -120) ? 'down'
-				: (degrees > 120 || degrees < -120) ? 'right' : 'left');
+				: (degrees > 120 || degrees < -120) ? 'right' : 'left',
+				this._activeFingers);
 		}
 		this.clearInput(selectEvent);
 	};
