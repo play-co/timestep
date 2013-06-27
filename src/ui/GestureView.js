@@ -34,6 +34,7 @@ exports = Class(View, function (supr) {
 			this._activeFingers = 0;
 		}
 		this.startDrag({ inputStartEvt: evt });
+		this.emit('FingerDown', Object.keys(this._dragPoints).length + 1);
 	};
 
 	this.onDragStart = function (dragEvent) {
@@ -51,17 +52,19 @@ exports = Class(View, function (supr) {
 	this.clearInput = this.onInputSelect = function (evt) {
 		var id = 'p' + evt.id;
 		delete this._dragPoints[id];
+		var initialFingerTwo = this._fingerTwo;
 		if (this._fingerOne == id) {
 			this._fingerOne = this._fingerTwo;
 			this._fingerTwo = null;
 		} else if (this._fingerTwo == id) {
 			this._fingerTwo = null;
 		}
-		if (this._fingerTwo == null) {
+		if (initialFingerTwo && ! this._fingerTwo) {
 			this._initialDistance = null;
 			this._initialAngle = null;
-			this.emit('FingerUp');
+			this.emit('ClearMulti');
 		}
+		this.emit('FingerUp', Object.keys(this._dragPoints).length);
 	};
 
 	this.onDrag = function (dragEvent, moveEvent, delta) {
@@ -96,7 +99,7 @@ exports = Class(View, function (supr) {
 		var dt = selectEvent.when - dragEvent.when;
 		if ((mag > this._swipeMagnitude) && (dt < this._swipeTime)) {
 			var degrees = swipeVec.getAngle() * (180 / Math.PI);
-			this.emit('Swipe', (degrees > 60 && degrees < 120) ? 'up'
+			this.emit('Swipe', degrees, (degrees > 60 && degrees < 120) ? 'up'
 				: (degrees < -60 && degrees > -120) ? 'down'
 				: (degrees > 120 || degrees < -120) ? 'right' : 'left',
 				this._activeFingers);
