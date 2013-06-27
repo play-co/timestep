@@ -63,6 +63,11 @@ exports.build = function (build, project, subtarget, moreOpts, next) {
 	_paths = _build.common.paths;
 	logger = new build.common.Formatter('build-native');
 
+	// Get domain from manifest under studio.domain
+	var studio = project.manifest.studio;
+	var domain = studio ? studio.domain : null;
+	domain = domain || "gameclosure.com";
+
 	//define a bunch of build options
 	var opts = _build.packager.getBuildOptions({
 		appID: project.manifest.appID,
@@ -82,7 +87,7 @@ exports.build = function (build, project, subtarget, moreOpts, next) {
 
 		// Build process.
 		packageName: '',
-		studio: project.manifest.studio.domain || 'gameclosure.com',
+		studio: domain,
 		version: project.manifest.version,
 		metadata: null,
 
