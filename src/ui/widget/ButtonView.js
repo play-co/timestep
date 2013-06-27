@@ -125,12 +125,12 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 		}
 
 		if (this._opts.toggleSelected) {
-			if (!this.selected) {
-				this._trigger(states.SELECTED);
-				this.selected = true;
-			} else {
+			if (this.selected) {
 				this._trigger(states.UNSELECTED);
 				this.selected = false;
+			} else {
+				this._trigger(states.SELECTED);
+				this.selected = true;
 			}
 		} else {
 			this._trigger(states.UP);
@@ -193,6 +193,16 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 	this.setState = function (state) {
 		var stateName = states[state];
 		if (!stateName) return;
+
+		switch (state) {
+			case states.SELECTED:
+				this.selected = true;
+				break;
+
+			case states.UNSELECTED:
+				this.selected = false;
+				break;
+		}
 
 		this._state = state;
 		stateName = stateName.toLowerCase();
