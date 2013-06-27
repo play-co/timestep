@@ -99,7 +99,7 @@ exports = Class(View, function (supr) {
 		var dt = selectEvent.when - dragEvent.when;
 		if ((mag > this._swipeMagnitude) && (dt < this._swipeTime)) {
 			var degrees = swipeVec.getAngle() * (180 / Math.PI);
-			this.emit('Swipe', (degrees > 60 && degrees < 120) ? 'up'
+			this.emit('Swipe', degrees, (degrees > 60 && degrees < 120) ? 'up'
 				: (degrees < -60 && degrees > -120) ? 'down'
 				: (degrees > 120 || degrees < -120) ? 'right' : 'left',
 				this._activeFingers);
