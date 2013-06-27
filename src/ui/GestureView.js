@@ -63,6 +63,12 @@ exports = Class(View, function (supr) {
 			this._initialDistance = null;
 			this._initialAngle = null;
 			this.emit('ClearMulti');
+			for (var k in this._dragPoints) {
+				if (k != this._fingerOne) {
+					this._fingerTwo = k;
+					break;
+				}
+			}
 		}
 		this.emit('FingerUp', Object.keys(this._dragPoints).length);
 	};
