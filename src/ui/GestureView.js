@@ -27,20 +27,19 @@ exports = Class(View, function (supr) {
 		this._initialAngle = null;
 		this._dragPoints = {};
 		this._activeFingers = 0;
+		this._swipeCount = 0;
 	};
 
 	this.onInputStart = function (evt) {
-		if (!Object.keys(this._dragPoints).length) {
-			this._activeFingers = 0;
-		}
+		this._activeFingers += 1;
+		this._swipeCount = this._activeFingers;
 		this.startDrag({ inputStartEvt: evt });
-		this.emit('FingerDown', Object.keys(this._dragPoints).length + 1);
+		this.emit('FingerDown', this._activeFingers);
 	};
 
 	this.onDragStart = function (dragEvent) {
 		var point = {x: dragEvent.srcPoint.x, y: dragEvent.srcPoint.y};
 		var id = 'p' + dragEvent.id;
-		this._activeFingers += 1;
 		this._dragPoints[id] = point;
 		if (this._fingerOne == null) {
 			this._fingerOne = id;
@@ -52,6 +51,7 @@ exports = Class(View, function (supr) {
 	this.clearInput = this.onInputSelect = function (evt) {
 		var id = 'p' + evt.id;
 		delete this._dragPoints[id];
+		this._activeFingers -= 1;
 		var initialFingerTwo = this._fingerTwo;
 		if (this._fingerOne == id) {
 			this._fingerOne = this._fingerTwo;
@@ -70,7 +70,7 @@ exports = Class(View, function (supr) {
 				}
 			}
 		}
-		this.emit('FingerUp', Object.keys(this._dragPoints).length);
+		this.emit('FingerUp', this._activeFingers);
 	};
 
 	this.onDrag = function (dragEvent, moveEvent, delta) {
@@ -108,7 +108,7 @@ exports = Class(View, function (supr) {
 			this.emit('Swipe', degrees, (degrees > 60 && degrees < 120) ? 'up'
 				: (degrees < -60 && degrees > -120) ? 'down'
 				: (degrees > 120 || degrees < -120) ? 'right' : 'left',
-				this._activeFingers);
+				this._swipeCount);
 		}
 		this.clearInput(selectEvent);
 	};
