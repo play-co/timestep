@@ -3,17 +3,15 @@
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
 
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Mozilla Public License v. 2.0 for more details.
 
- * You should have received a copy of the GNU General Public License
- * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the Mozilla Public License v. 2.0
+ * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
 /**
@@ -317,7 +315,11 @@ exports = Class(BoxLayout, function (supr) {
 
 			v.margins = (s[propA] || 0) + (s[propB] || 0);
 
-			if (s.flex) {
+			if (isVertical && s.layoutHeight && s.layoutHeight.charAt(s.layoutHeight.length-1) == '%') {
+				sum += parentDim * parseFloat(s.layoutHeight) / 100;
+			} else if (!isVertical && s.layoutWidth && s.layoutWidth.charAt(s.layoutWidth.length-1) == '%') {
+				sum += parentDim * parseFloat(s.layoutWidth) / 100;
+			} else if (s.flex) {
 				flexSum += s.flex;
 				v.baseSize = s[minPropDim] || 0;
 				sum += v.baseSize;
@@ -330,11 +332,11 @@ exports = Class(BoxLayout, function (supr) {
 				s.x = padding.left;
 				s.y = padding.top;
 			}
-
-//			if (v.view.style.layout == 'box') {
-				BoxLayout.reflowX(v.view, layoutStyle.width, padding);
-				BoxLayout.reflowY(v.view, layoutStyle.height, padding);
-//			}
+		}
+		this._view._flexSum = flexSum;
+		for (var i = 0, v; v = views[i]; ++i) {
+			BoxLayout.reflowX(v.view, layoutStyle.width, padding);
+			BoxLayout.reflowY(v.view, layoutStyle.height, padding);
 		}
 
 		if (flexSum && parentDim == undefined) { return; }

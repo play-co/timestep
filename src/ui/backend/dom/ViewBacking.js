@@ -3,17 +3,15 @@
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
 
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Mozilla Public License v. 2.0 for more details.
 
- * You should have received a copy of the GNU General Public License
- * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the Mozilla Public License v. 2.0
+ * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
 import device;
@@ -29,6 +27,36 @@ import ..BaseBacking;
 var Canvas = device.get('Canvas');
 
 var AVOID_CSS_ANIM = device.isAndroid;
+
+var TRANSFORM_PREFIX = 'transform';
+function CHECK_TRANSLATE3D() {
+    var el = document.createElement('p'),
+        has3d,
+        transforms = {
+            'webkitTransform':'-webkit-transform',
+            'OTransform':'-o-transform',
+            'msTransform':'-ms-transform',
+            'MozTransform':'-moz-transform',
+            'transform':'transform'
+        };
+
+    // Add it to the body to get the computed style.
+    document.body.insertBefore(el, null);
+
+    for (var t in transforms) {
+        if (el.style[t] !== undefined) {
+            el.style[t] = "translate3d(1px,1px,1px)";
+            has3d = window.getComputedStyle(el).getPropertyValue(transforms[t]);
+            TRANSFORM_PREFIX = t;
+        }
+    }
+
+    document.body.removeChild(el);
+
+    return (has3d !== undefined && has3d.length > 0 && has3d !== "none");
+}
+
+var SUPPORTS_TRANSLATE3D = CHECK_TRANSLATE3D();
 
 
 var ViewBacking = exports = Class(BaseBacking, function () {
@@ -70,8 +98,9 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		var s = n.style;
 		s.fontSize = '1px';
 		s.position = "absolute";
-		s.top = "0px";
-		s.left = "0px";
+		
+		this.position(0, 0);
+		
 		if (!device.isAndroid) {
 			s.webkitBackfaceVisibility = 'hidden';
 		}
@@ -239,6 +268,27 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 	}
 
 	this.update = function (style) { this._setProps(style); }
+	
+	this.position = function (x, y) {
+		var s = this._node.style;
+
+		if (SUPPORTS_TRANSLATE3D) {
+			var translate = 'translate3d(' + (x) + 'px,' + (y) + 'px,0)';
+
+			// Check for differences and other properties like scale, rotate, translate, etc
+			if (s[TRANSFORM_PREFIX] != '' && s[TRANSFORM_PREFIX] != translate) {
+				s[TRANSFORM_PREFIX] += translate;
+			}
+			else {
+				s[TRANSFORM_PREFIX] = translate;
+			}
+
+		}
+		else {
+			s.left = x + 'px';
+			s.top = y + 'px';
+		}
+	};
 
 	//****************************************************************
 	// ANIMATION
@@ -376,8 +426,12 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 				}
 				// use CSS animations for left and top though, since
 				// those can still be taken out of javascript.
-				s.left = (this._center ? -this.width / 2 | 0 : 0) + this._computed.x + 'px';
-				s.top = (this._center ? -this.height / 2 | 0 : 0) + this._computed.y + 'px';
+			        var computed = {
+                    			x: (this._center ? -this.width / 2 | 0 : 0) + this._computed.x,
+                    			y: (this._center ? -this.height / 2 | 0 : 0) + this._computed.y
+                		};
+				
+				this.position(computed.x, computed.y);
 			} else {
 				var matrix = new WebKitCSSMatrix();
 				matrix = matrix.translate(
@@ -426,8 +480,8 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 			origin.x += this._computed.x;
 			origin.y += this._computed.y;
 		}
-		s.left = origin.x + 'px';
-		s.top = origin.y + 'px';
+		
+		this.position(origin.x, origin.y);
 	}
 
 	this._onSizeChanged = function () {

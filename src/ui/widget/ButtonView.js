@@ -3,17 +3,15 @@
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
 
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Mozilla Public License v. 2.0 for more details.
 
- * You should have received a copy of the GNU General Public License
- * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the Mozilla Public License v. 2.0
+ * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
 import ui.View as View;
@@ -33,12 +31,14 @@ var states = Enum(
 );
 var lastClicked = null;
 var ButtonView = exports = Class(ImageScaleView, function (supr) {
-	var selected = false;
 
 	this.init = function (opts) {
 		this._state = opts.defaultState || opts.state || states.UP;
 
 		supr(this, "init", arguments);
+
+		this.selected = (opts.toggleSelected && 
+			opts.state === states.SELECTED) ? true: false;
 
 		var textOpts = merge(
 			opts.text,
@@ -47,6 +47,8 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 				text: opts.title || "",
 				x: 0,
 				y: 0,
+				width: this.style.width,
+				height: this.style.height,
 				canHandleEvents: false
 			}
 		);
@@ -58,6 +60,8 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 				superview: this,
 				x: 0,
 				y: 0,
+				width: this.style.width,
+				height: this.style.height,
 				canHandleEvents: false
 			}
 		);
@@ -121,12 +125,12 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 		}
 
 		if (this._opts.toggleSelected) {
-			if (!selected) {
-				this._trigger(states.SELECTED);
-				selected = true;
-			} else {
+			if (this.selected) {
 				this._trigger(states.UNSELECTED);
-				selected = false;
+				this.selected = false;
+			} else {
+				this._trigger(states.SELECTED);
+				this.selected = true;
 			}
 		} else {
 			this._trigger(states.UP);
@@ -147,7 +151,9 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 		stateName = stateName.toLowerCase();
 
 		if (this._images && this._images[stateName]) {
-			this.setImage(this._images[stateName]);
+			if (!(this._opts.toggleSelected && (state === states.UP))) {
+				this.setImage(this._images[stateName]);
+			}
 		}
 		if (dontPublish) {
 			return;
@@ -187,6 +193,16 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 	this.setState = function (state) {
 		var stateName = states[state];
 		if (!stateName) return;
+
+		switch (state) {
+			case states.SELECTED:
+				this.selected = true;
+				break;
+
+			case states.UNSELECTED:
+				this.selected = false;
+				break;
+		}
 
 		this._state = state;
 		stateName = stateName.toLowerCase();

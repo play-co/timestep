@@ -3,17 +3,15 @@
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
 
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Mozilla Public License v. 2.0 for more details.
 
- * You should have received a copy of the GNU General Public License
- * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the Mozilla Public License v. 2.0
+ * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
 /**
@@ -128,7 +126,9 @@ var Application = exports = Class(Emitter, function (supr) {
 			keyListener: this._keyListener
 		});
 
-		this._reflowMgr = ReflowManager.get();
+		this._reflowManager = ReflowManager.get();
+
+		this._view.setReflowManager(this._reflowManager);
 
 		this._tickBuffer = 0;
 		this._onTick = [];
@@ -158,6 +158,11 @@ var Application = exports = Class(Emitter, function (supr) {
 			this._keyListener.setEnabled(this._opts.keyListenerEnabled);
 		}
 
+		if (this._opts.noReflow) {
+			this._reflowManager = null;
+			this._view.setReflowManager(null);
+		}
+
 		if (this._opts.showFPS) {
 			if (!this._applicationFPS) {
 				import ui.backend.debug.FPSView as FPSView;
@@ -172,21 +177,43 @@ var Application = exports = Class(Emitter, function (supr) {
 		}
 	};
 
-	this.supports = function (key) { return this._opts[key]; }
+	this.supports = function (key) {
+		return this._opts[key];
+	};
 
 	/* @internal */
-	this.getInput = function () { return this._inputListener; }
-	this.getKeyListener = function () { return this._keyListener; }
+	this.getInput = function () {
+		return this._inputListener;
+	};
 
-	this.getEvents = function () { return this._events; }
+	this.getKeyListener = function () {
+		return this._keyListener;
+	};
+
+	this.getEvents = function () {
+		return this._events;
+	};
 
 	// deprecating getCanvas...
-	this.getElement = 
-	this.getCanvas = function () { return this._rootElement; }
-	
-	this.getViewCtor = function () { return View; }
-	this.getView = function () { return this._view; }
-	this.setView = function (view) { this._view = view; return this; }
+	this.getElement = this.getCanvas = function () {
+		return this._rootElement;
+	};
+
+	this.getViewCtor = function () {
+		return View;
+	};
+
+	this.getView = function () {
+		return this._view;
+	};
+
+	this.setView = function (view) {
+		this._view = view; return this;
+	};
+
+	this.getReflowManager = function () {
+		return this._reflowManager;
+	};
 
 	this.show = function () {
 		this._rootElement.style.display = 'block';
@@ -312,8 +339,10 @@ var Application = exports = Class(Emitter, function (supr) {
 			this.__tick(dt);
 		}
 
-		this._reflowMgr.startReflow(this._ctx);
-		this._reflowMgr.setInRender(true);
+		if (this._reflowManager) {
+			this._reflowManager.startReflow(this._ctx);
+			this._reflowManager.setInRender(true);
+		}
 
 		var doRepaint = this._opts.alwaysRepaint || this._needsRepaint;
 		if (!doRepaint && this._doubleBuffered && this._doubleBufferedState > 0) {
@@ -327,7 +356,7 @@ var Application = exports = Class(Emitter, function (supr) {
 		}
 
 		this._needsRepaint = false;
-		this._reflowMgr.setInRender(false);
+		this._reflowManager && this._reflowManager.setInRender(false);
 	};
 
 	this.render = function (dt) {

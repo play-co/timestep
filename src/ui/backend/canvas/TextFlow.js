@@ -3,17 +3,15 @@
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
 
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Mozilla Public License v. 2.0 for more details.
 
- * You should have received a copy of the GNU General Public License
- * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the Mozilla Public License v. 2.0
+ * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
 import lib.Enum as Enum;
@@ -435,7 +433,8 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 			return;
 		}
 
-		var lineSize = Math.ceil(opts.size * opts.lineHeight + opts.strokeWidth);
+		var strokeWidth = this._target.getStrokeWidth();
+		var lineSize = Math.ceil(opts.size * opts.lineHeight + strokeWidth);
 		this._offsetRect.x = this.getPaddingLeft();
 		this._offsetRect.y = this.getPaddingTop();
 		this._offsetRect.width = this.getActualWidth();
@@ -448,6 +447,8 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 			this._offsetRect.x = cache[0].x;
 			this._offsetRect.width = lastCacheItem.x + lastCacheItem.width - cache[0].x;
 		}
+
+		this._offsetRect.width += strokeWidth;
 	};
 
 	this.setOpts = function (opts) {

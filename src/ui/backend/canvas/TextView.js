@@ -3,17 +3,15 @@
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
 
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Mozilla Public License v. 2.0 for more details.
 
- * You should have received a copy of the GNU General Public License
- * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the Mozilla Public License v. 2.0
+ * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
 /**
@@ -59,7 +57,7 @@ var TextView = exports = Class(View, function (supr) {
 		color: "#000000",
 		fontFamily: device.defaultFontFamily,
 		fontWeight: "",
-		size: 12,
+		size: 128,
 		strokeWidth: 2,
 		strokeColor: null,
 		shadowColor: null,
@@ -69,7 +67,7 @@ var TextView = exports = Class(View, function (supr) {
 		horizontalAlign: "center",
 
 		// misc properties...
-		buffer: GLOBAL.NATIVE && !device.simulatingMobileNative,
+		buffer: false,//GLOBAL.NATIVE && !device.simulatingMobileNative,
 		backgroundColor: null
 	};
 
@@ -106,7 +104,7 @@ var TextView = exports = Class(View, function (supr) {
 
 	var hashItems = {
 		// font properties...
-		color: false,
+		color: true,
 		fontFamily: true,
 		fontWeight: true,
 		size: true,
@@ -115,7 +113,7 @@ var TextView = exports = Class(View, function (supr) {
 		shadowColor: false,
 
 		// misc properties...
-		backgroundColor: false,
+		backgroundColor: true,
 		text: true
 	};
 	var hashItemsKeys = Object.keys(hashItems);
@@ -238,6 +236,7 @@ var TextView = exports = Class(View, function (supr) {
 		if (this._opts.buffer) {
 			fontBuffer.releaseBin(this.getHash());
 		}
+		this.updateCache();
 
 		this._checkDeprecatedOpts(opts);
 
@@ -271,7 +270,7 @@ var TextView = exports = Class(View, function (supr) {
 		ctx.textBaseline = "top";
 		ctx.fillStyle = opts.color;
 		ctx.font = opts.fontWeight + " " + opts.size + "px " + opts.fontFamily;
-		ctx.lineWidth = opts.strokeWidth;
+		ctx.lineWidth = this.getStrokeWidth();
 	};
 
 	this._renderToCtx = function (ctx, offsetX, offsetY) {
@@ -283,7 +282,7 @@ var TextView = exports = Class(View, function (supr) {
 		var color = opts.color;
 		var strokeColor = opts.strokeColor;
 		var shadowColor = opts.shadowColor;
-		var lineOffset = opts.strokeWidth / 2;
+		var lineOffset = this.getStrokeWidth() * 0.5;
 		var x, y;
 		var i = cache.length;
 
@@ -304,7 +303,7 @@ var TextView = exports = Class(View, function (supr) {
 			y = offsetY + item.y;
 
 			if (strokeColor) {
-				ctx.strokeText(word, x, y, maxWidth);
+				ctx.strokeText(word, x + lineOffset, y + lineOffset, maxWidth);
 			}
 			if (shadowColor) {
 				ctx.fillStyle = shadowColor;
@@ -312,7 +311,7 @@ var TextView = exports = Class(View, function (supr) {
 			}
 
 			ctx.fillStyle = color;
-			ctx.fillText(word, x, y, maxWidth);
+			ctx.fillText(word, x + lineOffset, y + lineOffset, maxWidth);
 		}
 	};
 
@@ -333,7 +332,7 @@ var TextView = exports = Class(View, function (supr) {
 			desc = fontBuffer.getPositionForText(offsetRect);
 			if (desc != null) {
 				if (this._cacheUpdate) {
-					//fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
+					fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
 					this._renderToCtx(fontBufferCtx, desc.x - offsetRect.x, desc.y - offsetRect.y);
 				}
 				ctx.drawImage(fontBuffer.getCanvas(), desc.x, desc.y, width, height, offsetRect.x, offsetRect.y, width, height);
@@ -358,7 +357,8 @@ var TextView = exports = Class(View, function (supr) {
 		if (this._opts.buffer) {
 			this._renderBuffer(ctx);
 		} else {
-			this._renderToCtx(ctx, 0, 0);
+			var strokeWidthOffset = -this.getStrokeWidth()/2;
+			this._renderToCtx(ctx, strokeWidthOffset, strokeWidthOffset);
 		}
 
 		this._cacheUpdate = false;
@@ -383,12 +383,16 @@ var TextView = exports = Class(View, function (supr) {
 		this.needsRepaint();
 	};
 
+	this.getStrokeWidth = function () {
+		return this._opts.strokeColor ? this._opts.strokeWidth : 0;
+	};
+
 	this.getText = function () {
 		return this._opts.text;
 	};
 
 	this.getTag = function () {
-		return "TextView" + this.uid + ":" + (this.tag || this._opts.text.substring(0, 20));
+		return "TextView" + this.uid + ":" + (this.tag || (this._opts.text || "").substring(0, 20));
 	};
 
 	this.getOpts = function () {

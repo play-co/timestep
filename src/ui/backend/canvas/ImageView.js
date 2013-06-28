@@ -3,17 +3,15 @@
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
 
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Mozilla Public License v. 2.0 for more details.
 
- * You should have received a copy of the GNU General Public License
- * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the Mozilla Public License v. 2.0
+ * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
 /**
@@ -27,6 +25,8 @@ import std.uri as URI;
 
 import ui.View as View
 import ui.resource.Image as Image;
+
+var imageCache = {};
 
 /**
  * @extends ui.View
@@ -48,7 +48,7 @@ var ImageView = exports = Class(View, function (supr) {
 		this._autoSize = opts.autoSize;
 		
 		if (opts.image) {
-			this.setImage(opts.image, opts);
+			this.setImage(opts.image);
 		}
 	};
 
@@ -60,23 +60,23 @@ var ImageView = exports = Class(View, function (supr) {
 		return this._img;
 	};
 
+	this.getImageFromCache = function(url) {
+		var img = imageCache[url];
+		if (!img) {
+			imageCache[url] = img = new Image({ url: url });
+		}
+		return img;
+	};
+
 	/**
 	 * Set the image of the view from an Image object or string.
 	 * Options:
 	 *   autoSize - Automatically set view size from image dimensions.
 	 */
 
-	this._imgCache = {};
-
 	this.setImage = function (img, opts) {
 		if (typeof img == 'string') {
-			// Cache image requests to avoid heavy performance penalties at the
-			// expense of a small amount of additional JS memory usage.
-			var name = img;
-			img = this._imgCache[name];
-			if (!img) {
-				this._imgCache[img] = img = new Image({url: name});
-			}
+			img = this.getImageFromCache(img);
 		}
 
 		this._img = img;
@@ -120,7 +120,7 @@ var ImageView = exports = Class(View, function (supr) {
 			this.style.height = this._img.getHeight();
 
 			if (this.style.fixedAspectRatio) {
-				this.style.updateAspectRatio();
+				this.style.enforceAspectRatio(this.style.width, this.style.height);
 			}
 		}
 	}
@@ -182,4 +182,3 @@ var ImageView = exports = Class(View, function (supr) {
 		return (tag || '') + ':ImageView' + this.uid;
 	}
 });
-

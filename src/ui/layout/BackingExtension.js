@@ -3,17 +3,15 @@
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
 
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Mozilla Public License v. 2.0 for more details.
 
- * You should have received a copy of the GNU General Public License
- * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the Mozilla Public License v. 2.0
+ * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
 import ..View;
@@ -113,6 +111,35 @@ View.addExtension({
 		proto.updateAspectRatio = function (w, h) {
 			this.aspectRatio = (w || this.width) / (h || this.height);
 		}
+
+		proto.enforceAspectRatio = function(iw, ih, isTimeout) {
+			this.updateAspectRatio(iw, ih);
+			var parent = this._view.getSuperview();
+			var opts = this._view._opts;
+			iw = iw || opts.width;
+			ih = ih || opts.height;
+			if (opts.width) {
+				iw = opts.width;
+				ih = opts.width / this.aspectRatio;
+			}
+			else if (opts.height) {
+				ih = opts.height;
+				iw = opts.height * this.aspectRatio;
+			}
+			else if (opts.layoutWidth && parent.style.width) {
+				iw = parent.style.width * parseFloat(opts.layoutWidth) / 100;
+				ih = iw / this.aspectRatio;
+			}
+			else if (opts.layoutHeight && parent.style.height) {
+				ih = parent.style.height * parseFloat(opts.layoutHeight) / 100;
+				iw = ih * this.aspectRatio;
+			}
+			else if (parent && !isTimeout) {
+				setTimeout(bind(this, 'enforceAspectRatio', iw, ih, true), 0);
+			}
+			this.width = iw;
+			this.height = ih;
+		};
 
 		proto._onSetLayout = function (key, which) {
 			switch (which) {

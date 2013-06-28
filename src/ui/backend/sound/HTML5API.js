@@ -3,17 +3,15 @@
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
 
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Mozilla Public License v. 2.0 for more details.
 
- * You should have received a copy of the GNU General Public License
- * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the Mozilla Public License v. 2.0
+ * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
 // An API for playing named sounds. Sounds can be given a single file source
@@ -40,6 +38,15 @@ var RawAudio = Class(function () {
 				audio[i] = RawAudio.prototype[i];
 			}
 		}
+
+		audio.oldPlay = audio.play;
+		audio.play = function() {
+			if (audio.readyState == 4) {
+				audio.oldPlay();
+			} else {
+				setTimeout(audio.play, 32);
+			}
+		};
 
 		// Hook into accessibility features.
 		GLOBAL.ACCESSIBILITY.subscribe('MuteChange', this, function () {
@@ -106,7 +113,7 @@ var MultiSound = Class(function () {
 			audio.volume = volume;
 			audio.isBackgroundMusic = opts.background;
 			audio.src = fullPath;
-			audio.preload = (soundManager._preload && !opts.background) ? "auto" : "none";
+			audio.preload = ((audio.readyState != 4) || (soundManager._preload && !opts.background)) ? "auto" : "none";
 			sources.push(audio);
 			if (audio.isBackgroundMusic && window.NATIVE) {
 				NATIVE.sound.registerMusic(fullPath, audio);

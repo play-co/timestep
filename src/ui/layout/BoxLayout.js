@@ -3,17 +3,15 @@
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
 
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Mozilla Public License v. 2.0 for more details.
 
- * You should have received a copy of the GNU General Public License
- * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the Mozilla Public License v. 2.0
+ * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
 var BoxLayout = exports = Class(function () {
@@ -67,7 +65,6 @@ var BoxLayout = exports = Class(function () {
 		}));
 	}
 
-	var isPercent = /%$/;
 	cls.reflowX = function (view, svWidth, padding) {
 		if (!svWidth) { return; }
 
@@ -86,10 +83,14 @@ var BoxLayout = exports = Class(function () {
 				}
 			}
 		} else {
+			var sv = view.getSuperview();
 			w = s.right != undefined && s.left != undefined ? availWidth / s.scale - (s.left || 0) - (s.right || 0)
-				: isPercent.test(s.layoutWidth) ? availWidth / s.scale * parseFloat(s.layoutWidth) / 100
-				: s.aspectRatio ? s.height * s.aspectRatio
-				: s.width || availWidth / s.scale;
+				: (s.layoutWidth && s.layoutWidth.charAt(s.layoutWidth.length-1) == '%') ? (availWidth / s.scale) * (parseFloat(s.layoutWidth) / 100)
+				: view._opts.width ? view._opts.width
+				: s.aspectRatio ? (view._opts.height || s.height) * s.aspectRatio
+				: (sv.style.direction == "horizontal" && typeof s.flex == "number") ? availWidth * s.flex / sv._flexSum
+				: view._opts.autoSize ? s.width
+				: availWidth / s.scale || s.width;
 		}
 
 		if (s.centerX) { s.x = (availWidth - s.scale * w) / 2 + (padding && padding.left || 0); }
@@ -121,10 +122,14 @@ var BoxLayout = exports = Class(function () {
 				}
 			}
 		} else {
+			var sv = view.getSuperview();
 			h = s.top != undefined && s.bottom != undefined ? availHeight / s.scale - (s.top || 0) - (s.bottom || 0)
-				: isPercent.test(s.layoutHeight) ? availHeight / s.scale * parseFloat(s.layoutHeight) / 100
-				: s.aspectRatio ? s.width / s.aspectRatio
-				: s.height || availHeight / s.scale;
+				: (s.layoutHeight && s.layoutHeight.charAt(s.layoutHeight.length-1) == '%') ? (availHeight / s.scale) * (parseFloat(s.layoutHeight) / 100)
+				: view._opts.height ? view._opts.height
+				: s.aspectRatio ? (view._opts.width || s.width) / s.aspectRatio
+				: (sv.style.direction == "vertical" && typeof s.flex == "number") ? availHeight * s.flex / sv._flexSum
+				: view._opts.autoSize ? s.height
+				: availHeight / s.scale || s.height;
 		}
 
 		if (s.centerY) { s.y = (availHeight - s.scale * h) / 2 + (padding && padding.top || 0); }

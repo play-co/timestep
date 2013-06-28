@@ -3,17 +3,15 @@
  * This file is part of the Game Closure SDK.
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
 
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * Mozilla Public License v. 2.0 for more details.
 
- * You should have received a copy of the GNU General Public License
- * along with the Game Closure SDK.  If not, see <http://www.gnu.org/licenses/>.
+ * You should have received a copy of the Mozilla Public License v. 2.0
+ * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
 /**
@@ -41,18 +39,7 @@ exports = Class(ui.View, function (supr) {
 		supr(this, 'init', [opts]);
 	};
 
-	this.updateOpts = function (opts) {
-		opts = supr(this, 'updateOpts', arguments);
-
-		if (opts.scaleMethod) {
-			this._scaleMethod = opts.scaleMethod;
-			this._isSlice = this._scaleMethod.slice(1) == 'slice';
-		}
-
-		if ('debug' in opts) {
-			this.debug = !!opts.debug;
-		}
-
+	this.updateSlices = function (opts) {
 		// {horizontal: {left: n, center: n, right: n}, vertical: {top: n, middle: n, bottom: n}}
 		this._sourceSlices = opts.sourceSlices;
 		// {horizontal: {left: n, right: n}, vertical: {top: n, bottom: n}}
@@ -128,6 +115,23 @@ exports = Class(ui.View, function (supr) {
 				this._destSlicesVer = [0, 100, 0];
 			}
 		}
+	}
+
+	this.updateOpts = function (opts) {
+		opts = merge(supr(this, 'updateOpts', arguments), this._opts);
+
+		if (opts.scaleMethod) {
+			this._scaleMethod = opts.scaleMethod;
+			this._isSlice = this._scaleMethod.slice(1) == 'slice';
+		}
+
+		if ('debug' in opts) {
+			this.debug = !!opts.debug;
+		}
+
+		if (this._isSlice) {
+			this.updateSlices(opts);
+		}
 
 		if (opts.image) {
 			this.setImage(opts.image, opts);
@@ -176,33 +180,17 @@ exports = Class(ui.View, function (supr) {
 		if (opts.autoSize && this._scaleMethod == "stretch" && !((opts.width || opts.layoutWidth) && (opts.height || opts.layoutHeight))) {
 			autoSized = true;
 			if (this.style.fixedAspectRatio) {
-				this.style.updateAspectRatio(iw, ih);
-				var parent = this.getSuperview();
-				if (opts.width) {
-					iw = opts.width;
-					ih = opts.width / this.style.aspectRatio;
-				}
-				else if (opts.height) {
-					ih = opts.height;
-					iw = opts.height * this.style.aspectRatio;
-				}
-				else if (opts.layoutWidth && parent.style.width) {
-					iw = parent.style.width * parseFloat(opts.layoutWidth) / 100;
-					ih = iw / this.style.aspectRatio;
-				}
-				else if (opts.layoutHeight && parent.style.height) {
-					ih = parent.style.height * parseFloat(opts.layoutHeight) / 100;
-					iw = ih * this.style.aspectRatio;
-				}
+				this.style.enforceAspectRatio(iw, ih);
+			} else {
+				this.style.width = iw;
+				this.style.height = ih;
 			}
-			this.style.width = iw;
-			this.style.height = ih;
 		}
 
 		this._img = (typeof img == 'string') ? new Image({url: img}) : img;
 
 		if (this._isSlice) {
-			this.updateOpts({
+			this.updateSlices({
 				sourceSlices: this._opts.sourceSlices
 			});
 
@@ -244,7 +232,6 @@ exports = Class(ui.View, function (supr) {
 
 	this.autoSize = function () {
 		if (this._img && this._img.isLoaded()) {
-			debugger;
 			this.style.width = this._img.getWidth() || this._opts.width;
 			this.style.height = this._img.getHeight() || this._opts.height;
 		}
