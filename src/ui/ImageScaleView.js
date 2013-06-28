@@ -39,18 +39,7 @@ exports = Class(ui.View, function (supr) {
 		supr(this, 'init', [opts]);
 	};
 
-	this.updateOpts = function (opts) {
-		opts = merge(supr(this, 'updateOpts', arguments), this._opts);
-
-		if (opts.scaleMethod) {
-			this._scaleMethod = opts.scaleMethod;
-			this._isSlice = this._scaleMethod.slice(1) == 'slice';
-		}
-
-		if ('debug' in opts) {
-			this.debug = !!opts.debug;
-		}
-
+	this.updateSlices = function (opts) {
 		// {horizontal: {left: n, center: n, right: n}, vertical: {top: n, middle: n, bottom: n}}
 		this._sourceSlices = opts.sourceSlices;
 		// {horizontal: {left: n, right: n}, vertical: {top: n, bottom: n}}
@@ -126,6 +115,23 @@ exports = Class(ui.View, function (supr) {
 				this._destSlicesVer = [0, 100, 0];
 			}
 		}
+	}
+
+	this.updateOpts = function (opts) {
+		opts = merge(supr(this, 'updateOpts', arguments), this._opts);
+
+		if (opts.scaleMethod) {
+			this._scaleMethod = opts.scaleMethod;
+			this._isSlice = this._scaleMethod.slice(1) == 'slice';
+		}
+
+		if ('debug' in opts) {
+			this.debug = !!opts.debug;
+		}
+
+		if (this._isSlice) {
+			this.updateSlices(opts);
+		}
 
 		if (opts.image) {
 			this.setImage(opts.image, opts);
@@ -184,7 +190,7 @@ exports = Class(ui.View, function (supr) {
 		this._img = (typeof img == 'string') ? new Image({url: img}) : img;
 
 		if (this._isSlice) {
-			this.updateOpts({
+			this.updateSlices({
 				sourceSlices: this._opts.sourceSlices
 			});
 
@@ -226,7 +232,6 @@ exports = Class(ui.View, function (supr) {
 
 	this.autoSize = function () {
 		if (this._img && this._img.isLoaded()) {
-			debugger;
 			this.style.width = this._img.getWidth() || this._opts.width;
 			this.style.height = this._img.getHeight() || this._opts.height;
 		}
