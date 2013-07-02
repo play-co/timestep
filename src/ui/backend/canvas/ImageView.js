@@ -68,6 +68,20 @@ var ImageView = exports = Class(View, function (supr) {
 		return img;
 	};
 
+	this.updateOpts = function (opts) {
+		var opts = supr(this, 'updateOpts', arguments);
+		
+		if ('autoSize' in opts) {
+			this._autoSize = !!opts.autoSize;
+		}
+
+		if (opts.image) {
+			this.setImage(opts.image);
+		}
+
+		return opts;
+	}
+
 	/**
 	 * Set the image of the view from an Image object or string.
 	 * Options:

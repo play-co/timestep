@@ -35,7 +35,7 @@ exports = Class(ImageScaleView, function (supr) {
 	};
 
 	this._initThumb = function (opts) {
-		var thumb = opts.thumb;
+		var thumb = opts.thumb || {};
 
 		if (!thumb.pressed) {
 			thumb.pressed = thumb.active;
@@ -59,10 +59,11 @@ exports = Class(ImageScaleView, function (supr) {
 
 		supr(this, "updateOpts", [opts]);
 
-		var track = opts.track;
+		var track = opts.track || {};
 		if (!track.inactive) {
 			track.inactive = track.active;
 		}
+
 		this._activeImage = new Image({url: track.active || ""});
 		this._inactiveImage = new Image({url: track.inactive || ""});
 
