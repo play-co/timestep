@@ -136,6 +136,7 @@ var View = exports = Class(Emitter, function () {
 		this.__view = this.style = new (opts.Backing || _BackingCtor)(this, opts);
 
 		this._filter = null;
+		this._dragOffset = {};
 
 		this.__view._view = this;
 
@@ -175,6 +176,32 @@ var View = exports = Class(Emitter, function () {
 		}
 
 		return opts;
+	};
+
+	this.onInputStart = function (evt) {
+		if (!this._opts.dragRadius) {
+			return;
+		}
+		this.startDrag({
+			inputStartEvt: evt,
+			radius: this._opts.dragRadius
+		});
+	};
+
+	this.onDragStart = function (dragEvt) {
+		if (!this._opts.dragRadius) {
+			return;
+		}
+		this._dragOffset.x = dragEvt.srcPt.x - this.style.x;
+		this._dragOffset.y = dragEvt.srcPt.y - this.style.y;
+	};
+
+	this.onDrag = this.onDragStop = function (startEvt, dragEvt, delta) {
+		if (!this._opts.dragRadius) {
+			return;
+		}
+		this.style.x = dragEvt.srcPt.x - this._dragOffset.x;
+		this.style.y = dragEvt.srcPt.y - this._dragOffset.y;
 	};
 
 	// --- filters ---
