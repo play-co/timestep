@@ -138,11 +138,10 @@ exports = Class(ImageScaleView, function (supr) {
 		}
 	};
 
-	this.onDrag = function (event) {
-		if (this._active) {
-			this._thumb.style[this._fields.pos] = this._positionFromPoint(event.localPt);
+	this.onDrag = function (dragEvt, moveEvt) {
+		if (this._active && moveEvt.point[this.uid]) {
+			this._thumb.style[this._fields.pos] = this._positionFromPoint(moveEvt.point[this.uid]);
 			this._value = this._valueFromThumbPosition();
-
 			this.publish("Change", this._publicValue(this._value));
 		}
 	};
