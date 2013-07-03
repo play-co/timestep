@@ -192,16 +192,17 @@ var View = exports = Class(Emitter, function () {
 		if (!this._opts.dragRadius) {
 			return;
 		}
-		this._dragOffset.x = dragEvt.srcPt.x - this.style.x;
-		this._dragOffset.y = dragEvt.srcPt.y - this.style.y;
+		var scale = this.getPosition().scale;
+		this._dragOffset.x = (dragEvt.srcPt.x / scale) - this.style.x;
+		this._dragOffset.y = (dragEvt.srcPt.y / scale) - this.style.y;
 	};
 
 	this.onDrag = this.onDragStop = function (startEvt, dragEvt, delta) {
 		if (!this._opts.dragRadius) {
 			return;
 		}
-		this.style.x = dragEvt.srcPt.x - this._dragOffset.x;
-		this.style.y = dragEvt.srcPt.y - this._dragOffset.y;
+		this.style.x = dragEvt.point[1].x - this._dragOffset.x;
+		this.style.y = dragEvt.point[1].y - this._dragOffset.y;
 	};
 
 	// --- filters ---
