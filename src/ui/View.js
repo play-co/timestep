@@ -203,6 +203,11 @@ var View = exports = Class(Emitter, function () {
 		}
 		this.style.x = dragEvt.point[1].x - this._dragOffset.x;
 		this.style.y = dragEvt.point[1].y - this._dragOffset.y;
+		if (!this._opts.unboundDrag) {
+			var parent = this.getSuperview();
+			this.style.x = Math.max(0, Math.min(this.style.x, parent.style.width - this.style.width));
+			this.style.y = Math.max(0, Math.min(this.style.y, parent.style.height - this.style.height));
+		}
 	};
 
 	// --- filters ---
