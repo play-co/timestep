@@ -67,7 +67,7 @@ var TextView = exports = Class(View, function (supr) {
 		horizontalAlign: "center",
 
 		// misc properties...
-		buffer: false,//GLOBAL.NATIVE && !device.simulatingMobileNative,
+		buffer: GLOBAL.NATIVE && !device.simulatingMobileNative,
 		backgroundColor: null
 	};
 
