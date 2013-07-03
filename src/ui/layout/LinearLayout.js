@@ -429,6 +429,9 @@ exports = Class(BoxLayout, function (supr) {
 			if (s.flex) {
 				// set width
 				s[propDim] = v.dim;
+				if (s.aspectRatio) {
+					s.enforceAspectRatio()
+				}
 
 				this._debug && logger.log('  view', uid, 'layout subview', v.view.uid, propDim, '=', s[propDim]);
 			}
