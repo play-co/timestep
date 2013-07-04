@@ -354,16 +354,27 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 				this._lines = [this._line];
 				this._wordFlow(ctx);
 
-				(actualWidth < this._maxWidth) && this.publish("ChangeWidth", this._maxWidth + this.getHorizontalPadding());
-				(actualHeight < this._maxHeight) && this.publish("ChangeHeight", this._maxHeight + this.getVerticalPadding());
+				if (this._opts.fitWidth || actualWidth < this._maxWidth) {
+					this.publish("ChangeWidth", this._maxWidth + this.getHorizontalPadding());
+				}
+
+				if (this._opts.fitHeight || actualHeight < this._maxHeight) {
+					this.publish("ChangeHeight", this._maxHeight + this.getVerticalPadding());
+				}
 				break;
 
 			case textFlowMode.AUTOSIZE_WRAP:
 				this._wrap(ctx, actualWidth);
 				this._wordFlow(ctx);
 
-				(actualWidth < this._maxWidth) && this.publish("ChangeWidth", this._maxWidth + this.getHorizontalPadding());
-				(actualHeight < this._maxHeight) && this.publish("ChangeHeight", this._maxHeight + this.getVerticalPadding());
+				if (this._opts.fitWidth || actualWidth < this._maxWidth) {
+					this.publish("ChangeWidth", this._maxWidth + this.getHorizontalPadding());
+				}
+				
+				if (this._opts.fitHeight  || actualHeight < this._maxHeight) {
+					this.publish("ChangeHeight", this._maxHeight + this.getVerticalPadding());
+				}
+
 				break;
 
 			case textFlowMode.AUTOFONTSIZE:
