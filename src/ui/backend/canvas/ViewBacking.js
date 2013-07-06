@@ -28,6 +28,8 @@ var _styleKeys = {};
 
 var ViewBacking = exports = Class(BaseBacking, function () {
 	
+	this.constructor.absScale = 1;
+
 	this.init = function (view) {
 		this._view = view;
 		this._subviews = [];
@@ -110,7 +112,12 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		if (this.r) { ctx.rotate(this.r); }
 		
 		// clip this render to be within its view;
-		if (this.scale != 1) { ctx.scale(this.scale, this.scale); }
+		if (this.scale != 1) {
+			ctx.scale(this.scale, this.scale);
+			ViewBacking.absScale *= this.scale;
+		}
+
+		this.absScale = ViewBacking.absScale;
 		
 		if (this.opacity != 1) { ctx.globalAlpha *= this.opacity; }
 
