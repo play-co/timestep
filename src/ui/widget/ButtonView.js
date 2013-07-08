@@ -33,7 +33,8 @@ var lastClicked = null;
 var ButtonView = exports = Class(ImageScaleView, function (supr) {
 
 	this.init = function (opts) {
-		this._state = opts.defaultState || opts.state || states.UP;
+		this._state = opts.defaultState || opts.state ||
+			(opts.toggleSelected ? states.UNSELECTED : states.UP);
 
 		supr(this, "init", arguments);
 
