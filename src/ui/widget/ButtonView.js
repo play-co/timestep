@@ -119,6 +119,11 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 		this._opts.onClick && this._opts.onClick.call(this);
 		this.onClick && this.onClick();
 
+		// onClick handler may disable button
+		if (this._state == states.DISABLED) {
+			return;
+		}
+
 		if (this._opts.clickOnce) {
 			this._state = states.DISABLED;
 			this._trigger(states.UP);
