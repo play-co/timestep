@@ -16,6 +16,16 @@
 
 var activeInputs = {};
 
+var KeyboardTypes = {
+	Default: 0,                // Default type for the current input method.
+    NumbersAndPunctuation: 2,  // Numbers and assorted punctuation.
+    URL: 3,                    // A type optimized for URL entry (shows . / .com prominently).
+    NumberPad: 4,              // A number pad (0-9). Suitable for PIN entry.
+    PhonePad: 5,               // A phone pad (1-9, *, 0, #, with letters under the numbers).
+    EmailAddress: 7,           // A type optimized for multiple email address entry (shows space @ . prominently).
+    DecimalPad: 8
+}
+
 NATIVE.InputPrompt.subscribe('Submit', function (evt) {
 	var input = activeInputs[evt.id];
 
@@ -43,16 +53,21 @@ exports = Class(function () {
 		this._message = opts.prompt != undefined ? opts.prompt : '';
 		this._autoShowKeyboard = opts.autoShowKeyboard !== undefined ? opts.autoShowKeyboard : false;
 		this._isPassword = opts.isPassword !== undefined ? opts.isPassword : false;
+		this._keyboardType = opts.keyboardType !== undefined ? opts.keyboardType : KeyboardTypes.default;
 		this._id = -1;
 	};
 
 	this.show = function () {
-		this._id = NATIVE.inputPrompt.show(this._title, this._message, this._value, this._autoShowKeyboard, this._isPassword);
+		this._id = NATIVE.inputPrompt.show(this._title, this._message, this._value, this._autoShowKeyboard, this._isPassword, this._keyboardType);
 		activeInputs[this._id] = this;
 	};
 
 	this.setValue = function (value) {
 		this._value = value;
+	};
+
+	this.setKeyboardType = function (keyboardType) {
+		this._keyboardType = keyboardType;
 	};
 
 	this.getValue = function () {
@@ -69,4 +84,4 @@ exports = Class(function () {
 
 	this.refresh = function() {}
 });
-
+exports.KeyboardTypes = KeyboardTypes;

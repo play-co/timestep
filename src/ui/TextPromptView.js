@@ -44,7 +44,8 @@ exports = Class(TextView, function (supr) {
 			prompt: this._opts.prompt,
 			autoShowKeyboard: this._opts.autoShowKeyboard,
 			isPassword: this._opts.isPassword,
-			onChange: bind(this, 'onChange')
+			onChange: bind(this, 'onChange'),
+			keyboardType: this._opts.keyboardType
 		});
 	};
 
@@ -72,4 +73,10 @@ exports = Class(TextView, function (supr) {
 	this.showPrompt = function () {
 		this._prompt.show();
 	};
+
+	this.setKeyboardType = function(keyboardType) {
+		this._prompt.setKeyboardType(keyboardType);
+	};
 });
+
+exports.KeyboardTypes = InputPrompt.KeyboardTypes;
