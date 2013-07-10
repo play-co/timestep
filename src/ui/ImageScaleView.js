@@ -245,7 +245,7 @@ exports = Class(ui.View, function (supr) {
 				dw = roundedWidth;
 
 				var cache = this._sliceCache[j * 3 + i];
-				if ((dw > 0) && (dh > 0)) {
+				if (sw > 0 && sh > 0 && dw > 0 && dh > 0) {
 					cache[1] = sx;
 					cache[2] = sy;
 					cache[3] = sw;
@@ -456,6 +456,9 @@ exports = Class(ui.View, function (supr) {
 			}
 		},
 		'slice': function (ctx, opts) {
+
+			if (!this._img) { return; }
+			
 			var s = this.style;
 			var w = s.width;
 			var h = s.height;
