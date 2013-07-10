@@ -54,6 +54,7 @@ exports = Class(ScrollView, function (supr) {
 			getCell: opts.getCell,
 			sorter: opts.sorter,
 			selectable: opts.selectable,
+			selections: opts.selections,
 			maxSelections: opts.maxSelections,
 			dataSource: opts.dataSource,
 			renderMargin: opts.renderMargin
