@@ -402,6 +402,9 @@ exports = Class(ui.View, function (supr) {
 			this._img && this._img.render(ctx, 0, 0);
 		},
 		'stretch': function (ctx, opts) {
+			var s = this.style;
+			var w = s.width;
+			var h = s.height;
 			this._img && this._img.render(ctx, 0, 0, w, h);
 		},
 		'contain': renderCoverOrContain,
