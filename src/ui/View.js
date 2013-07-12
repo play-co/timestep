@@ -216,7 +216,7 @@ var View = exports = Class(Emitter, function () {
 			this.style.y = Math.min(0, Math.max(this.style.y, parent.style.height - this.style.height));
 		}
 	};
-t
+
 	// --- filters ---
 	// each filter can have multiple views
 	// but no view can have more than one filter
