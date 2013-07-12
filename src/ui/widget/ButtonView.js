@@ -33,7 +33,8 @@ var lastClicked = null;
 var ButtonView = exports = Class(ImageScaleView, function (supr) {
 
 	this.init = function (opts) {
-		this._state = opts.defaultState || opts.state || states.UP;
+		this._state = opts.defaultState || opts.state ||
+			(opts.toggleSelected ? states.UNSELECTED : states.UP);
 
 		supr(this, "init", arguments);
 
@@ -117,6 +118,11 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 		//call the click handler
 		this._opts.onClick && this._opts.onClick.call(this);
 		this.onClick && this.onClick();
+
+		// onClick handler may disable button
+		if (this._state == states.DISABLED) {
+			return;
+		}
 
 		if (this._opts.clickOnce) {
 			this._state = states.DISABLED;

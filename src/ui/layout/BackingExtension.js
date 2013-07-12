@@ -113,7 +113,9 @@ View.addExtension({
 		}
 
 		proto.enforceAspectRatio = function(iw, ih, isTimeout) {
-			this.updateAspectRatio(iw, ih);
+			if (iw && ih) {
+				this.updateAspectRatio(iw, ih);
+			}
 			var parent = this._view.getSuperview();
 			var opts = this._view._opts;
 			iw = iw || opts.width;
@@ -132,6 +134,14 @@ View.addExtension({
 			}
 			else if (opts.layoutHeight && parent.style.height) {
 				ih = parent.style.height * parseFloat(opts.layoutHeight) / 100;
+				iw = ih * this.aspectRatio;
+			}
+			else if (this.flex && parent.style.direction == 'horizontal' && this.width) {
+				iw = this.width;
+				ih = iw / this.aspectRatio;
+			}
+			else if (this.flex && parent.style.direction == 'vertical' && this.height) {
+				ih = this.height;
 				iw = ih * this.aspectRatio;
 			}
 			else if (parent && !isTimeout) {
