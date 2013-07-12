@@ -87,7 +87,6 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 	};
 
 	this.onInputStart = function () {
-		supr(this, 'onInputStart', arguments);
 		//no action when disabled
 		if (this._state === states.DISABLED) {
 			return;
