@@ -106,6 +106,19 @@ import std.uri;
 uri = new std.uri(window.location);
 exports.isSimulator = !!(uri.query('device') || uri.hash('device'));
 
+if (exports.isSimulator) {
+	if (window.location && window.location.href) {
+		exports.isIOSSimulator = window.location.href.toLowerCase().indexOf('ipad') !== -1 || window.location.href.toLowerCase().indexOf('iphone') !== -1;
+		
+		// Until we support more platforms, if it's not
+		// iOS then it's assumed to be an Android device
+		exports.isAndroidSimulator = !exports.isIOSSimulator;
+	}
+} else {
+	exports.isAndroidSimulator = false;
+	exports.isIOSSimulator = false;
+}
+
 if (exports.isMobile) {
 	exports.name = 'tealeaf';
 	exports.width = navigator.width;
