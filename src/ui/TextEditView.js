@@ -14,23 +14,24 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
+import device;
 import ui.TextView as TextView;
 import ui.ImageScaleView as ImageScaleView;
-import device;
 
 var EditText = device.get('EditText');
 
 exports = Class(ImageScaleView, function(supr) {
 
-    var HINT_COLOR = "#979797";
     var defaults = {
+        color: 'black',
+        hintColor: '#979797',
         paddingLeft: 20,
         paddingRight: 20,
         paddingTop: 0,
         paddingBottom: 0
     };
 
-    this.init = function(opts) {
+    this.init = function (opts) {
         this._opts = merge(opts || {}, defaults);
         supr(this, 'init', [this._opts]);
 
@@ -48,6 +49,7 @@ exports = Class(ImageScaleView, function(supr) {
         this._hint = this._opts.hintJs || this._opts.hint;
         this._hintSet = false;
         this._normalColor = this._opts.color;
+        this._hintColor = this._opts.hintColor;
         this._editText = new EditText(merge({}, // avoid side effects
             merge(opts, {
                 textEditView: this,
@@ -56,30 +58,30 @@ exports = Class(ImageScaleView, function(supr) {
             })
         ));
 
-        this.setText(this._opts.text || "");
+        this.setText(this._opts.text);
     };
 
-    this.onInputSelect = function() {
+    this.onInputSelect = function () {
         this.requestFocus();
     };
 
-    this.requestFocus = function() {
+    this.requestFocus = function () {
         this._focused = true;
         this._editText.requestFocus();
         this.refresh();
     }
 
-    this.removeFocus = function() {
+    this.removeFocus = function () {
         this._editText.closeEditField();
     }
 
-    this.refresh = function() {
+    this.refresh = function () {
         this._editText.refresh(this.getText(),
-                               this._backTextEditView != null,
-                               this._forwardTextEditView != null);
+           this._backTextEditView != null,
+           this._forwardTextEditView != null);
     }
 
-    this.onFocusChange = function(focused) {
+    this.onFocusChange = function (focused) {
         if (focused) {
             this.emit('focusAdd');
         } else {
@@ -87,9 +89,8 @@ exports = Class(ImageScaleView, function(supr) {
         }
     }
 
-    this.onChange = function(value) {
+    this.onChange = function (value) {
         var isProcessed;
-        console.log("TextEditView onChange called");
         if (value !== this._textBox.getText()) {
             isProcessed = typeof this._textFilter === 'function';
             
@@ -107,11 +108,11 @@ exports = Class(ImageScaleView, function(supr) {
         }
     }
 
-    this.setBackward = function(view) {
+    this.setBackward = function (view) {
         this._backTextEditView = view;
     }
 
-    this.setForward = function(view) {
+    this.setForward = function (view) {
         this._forwardTextEditView = view;
     }
 
@@ -120,7 +121,7 @@ exports = Class(ImageScaleView, function(supr) {
      * and returns a string. This can be used to process text
      * entered into the EditText.
      */
-    this.registerTextFilter = function(fn) {
+    this.registerTextFilter = function (fn) {
         this._textFilter = fn; 
     }
 
@@ -128,7 +129,7 @@ exports = Class(ImageScaleView, function(supr) {
         var result;
 
         if (this._hintSet) {
-            result = ""; 
+            result = ''; 
         } else {
             result = this._textBox.getText();
         }
@@ -136,11 +137,11 @@ exports = Class(ImageScaleView, function(supr) {
         return result;
     }
 
-    this.setText = function(text) {
+    this.setText = function (text) {
         if ((text == null || (text != null && text.length == 0)) && this._hint != null) {
             this._hintSet = true;
-            text = this._hint; 
-            this._textBox._opts.color = "#979797";
+            text = this._hint;
+            this._textBox._opts.color = this._hintColor;
         } else {
             this._hintSet = false;
             this._textBox._opts.color = this._normalColor; 
