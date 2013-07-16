@@ -43,15 +43,13 @@ exports = Class(View, function(supr) {
 			canHandleEvents: false
 		});
 
-		// get our image data and set up Images
-		opts.characterData && this.setCharacterData(opts.characterData);
-
 		// text options
 		this._textAlign = opts.textAlign || 'center';
 		this._spacing = opts.spacing || 0;
 		this._origScale = opts.scale || 1;
 		this._reflowWaitCount = 0;
-		this.setText(opts.text);
+		this._text = opts.text;
+		opts.characterData && this.setCharacterData(opts.characterData);
 	};
 
 	this.setCharacterData = function(data) {
