@@ -642,7 +642,8 @@ var View = exports = Class(Emitter, function () {
 	 * Return the bounding shape for this view. The shape is defined in the
 	 * options object when this view was constructed.
 	 */
-	this.getBoundingShape = function () {
+	this._boundingShape = {};
+	this.getBoundingShape = function (simple) {
 		if (this._infinite) {
 			return true;
 		} else {
@@ -652,7 +653,7 @@ var View = exports = Class(Emitter, function () {
 			if (!(w && h) && s.layout) {
 				var superview = this.getSuperview();
 				if (superview) {
-					var supersize = superview.getBoundingShape();
+					var supersize = superview.getBoundingShape(true);
 					if (!w) {
 						w = supersize.width;
 						if (s.layoutWidth) {
@@ -666,6 +667,13 @@ var View = exports = Class(Emitter, function () {
 						}
 					}
 				}
+			}
+			if (simple) {
+				this._boundingShape.x = s.x;
+				this._boundingShape.y = s.y;
+				this._boundingShape.width = w * s.scale;
+				this._boundingShape.height = h * s.scale;
+				return this._boundingShape;
 			}
 			return new Rect(s.x, s.y, w * s.scale, h * s.scale);
 		}
