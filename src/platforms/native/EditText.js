@@ -13,6 +13,8 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
+import device;
+
 var focused;
 
 NATIVE.InputPrompt.subscribe('KeyUp', function(evt) {
@@ -29,7 +31,7 @@ NATIVE.InputPrompt.subscribe('Move', function(evt) {
     }
 });
 
-exports = Class(function() {
+exports = device.isIOS ? device.get('InputPrompt') : Class(function() {
 
     var defaults = {
         hint: '',
