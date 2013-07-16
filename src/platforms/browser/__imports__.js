@@ -32,6 +32,7 @@ exports.resolve = function (env, opts) {
 		'.SoundManager',
 		'.TextBox',
 		'.TextInput',
-		'.Timer'
+		'.Timer',
+		'.EditText'
 	];
 };
