@@ -38,8 +38,7 @@ exports = Class(View, function (supr) {
 		this._props = {};
 		
 		supr(this, 'init', [opts]);
-
-		this._opts = opts;
+		
 		this.updatePosition();
 	};
 	
