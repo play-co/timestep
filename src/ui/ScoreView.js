@@ -83,23 +83,24 @@ exports = Class(View, function(supr) {
 		}
 
 		var size = this.getBoundingShape(true),
-			width = size.width, height = size.height,
-			textWidth = 0, offset = 0,
-			scale = height / this._srcHeight,
-			i = 0, c = 0, data, character;
-
+			width = size.width, height = size.height;
 		if (this._opts.layout && (!width || !height) && this._reflowWaitCount < REFLOW_WAIT_MAX_COUNT) {
 			this._reflowWaitCount += 1;
 			return setTimeout(bind(this, 'setText', text), 0);
 		}
 		this._reflowWaitCount = 0;
 
+		var textWidth = 0, offset = 0,
+			scale = height / this._srcHeight,
+			spacing = this._spacing * scale,
+			i = 0, c = 0, data, character;
+
 		while (i < text.length) {
 			character = text.charAt(i);
 			data = this._characterData[character];
 			if (data) {
 				this._activeCharacters[c] = data;
-				textWidth += (data.width + this._spacing) * scale;
+				textWidth += data.width * scale + spacing;
 				// special x offsets to fix text kerning only affect text width if it's first or last char
 				if (data.offset && (i == 0 || i == text.length - 1)) {
 					textWidth += data.offset * scale;
@@ -164,7 +165,7 @@ exports = Class(View, function(supr) {
 				x -= data.offset * scale;
 			}
 
-			x += w + this._spacing * scale;
+			x += w + spacing;
 		}
 
 		while (i < this._imageViews.length) {
