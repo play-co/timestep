@@ -31,11 +31,9 @@ exports = Class(ImageScaleView, function(supr) {
     };
 
     this.init = function(opts) {
-        this._opts = merge(opts || {}, defaults); 
-        console.log('create TextEditView with opts: ' + opts.hint);
+        this._opts = merge(opts || {}, defaults);
         supr(this, 'init', [this._opts]);
 
-        this.supr = supr;
         this._textBox = new TextView(merge({
             x: this._opts.paddingLeft,
             y: this._opts.paddingTop,
