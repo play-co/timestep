@@ -81,7 +81,7 @@ exports = Class(View, function(supr) {
 			return;
 		}
 
-		var size = this.getBoundingShape(),
+		var size = this.getBoundingShape(true),
 			width = size.width, height = size.height,
 			textWidth = 0, offset = 0,
 			scale = height / this._srcHeight,
