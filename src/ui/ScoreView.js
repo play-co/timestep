@@ -44,7 +44,7 @@ exports = Class(View, function(supr) {
 		});
 
 		// text options
-		this._textAlign = opts.textAlign || 'center';
+		this._textAlign = opts.horizontalAlign || opts.textAlign || 'center';
 		this._spacing = opts.spacing || 0;
 		this._origScale = opts.scale || 1;
 		this._reflowWaitCount = 0;
