@@ -39,14 +39,15 @@ exports = Class(View, function(supr) {
 		// container view for characters
 		this._container = new View({
 			superview: this,
-			layout: 'box',
+			layout: opts.layout && 'box',
+			width: opts.width,
+			height: opts.height,
 			canHandleEvents: false
 		});
 
 		// text options
 		this._textAlign = opts.horizontalAlign || opts.textAlign || 'center';
 		this._spacing = opts.spacing || 0;
-		this._origScale = opts.scale || 1;
 		this._reflowWaitCount = 0;
 		this._text = opts.text;
 		opts.characterData && this.setCharacterData(opts.characterData);
@@ -113,7 +114,7 @@ exports = Class(View, function(supr) {
 		if (width < textWidth) {
 			this._container.style.scale = width / textWidth;
 		} else {
-			this._container.style.scale = this._origScale;
+			this._container.style.scale = 1;
 		}
 
 		if (this._textAlign == 'center') {
