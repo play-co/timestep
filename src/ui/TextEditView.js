@@ -151,3 +151,6 @@ exports = Class(ImageScaleView, function(supr) {
         this._textBox.setText(text);
     }
 });
+
+exports.showStatusBar = EditText.showStatusBar;
+exports.hideStatusBar = EditText.hideStatusBar;

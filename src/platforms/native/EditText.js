@@ -78,3 +78,11 @@ exports = Class(function() {
     }
 
 });
+
+exports.showStatusBar = function() {
+	NATIVE.inputPrompt.showStatusBar();
+};
+
+exports.hideStatusBar = function() {
+	NATIVE.inputPrompt.hideStatusBar();
+};
