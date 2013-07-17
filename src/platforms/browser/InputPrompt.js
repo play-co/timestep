@@ -61,4 +61,13 @@ exports = Class(function () {
 	this.setMessage = function (message) {
 		this._message = message;
 	};
+
+	this.requestFocus = function() { this.show(); }
+
+	this.closeEditField = function() {}
+
+	this.refresh = function() {}
 });
+
+exports.showStatusBar = function() {};
+exports.hideStatusBar = function() {};
