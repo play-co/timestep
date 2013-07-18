@@ -96,13 +96,14 @@ exports = Class(View, function (supr) {
 		}
 
 		var dragPoint = moveEvent.srcPoint;
-		var deltaX = dragPoint.x - this._dragPoint.x;
-		var deltaY = dragPoint.y - this._dragPoint.y;
-		this._dragPoint = dragPoint;
 
 		if (this._fingerOne == id) {
+			var deltaX = dragPoint.x - this._dragPoint.x;
+			var deltaY = dragPoint.y - this._dragPoint.y;
 			this.emit('DragSingle', deltaX, deltaY);
 		}
+
+		this._dragPoint = dragPoint;
 	};
 
 	this.onDragStop = function (dragEvent, selectEvent) {
