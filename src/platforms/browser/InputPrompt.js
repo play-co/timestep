@@ -68,3 +68,6 @@ exports = Class(function () {
 
 	this.refresh = function() {}
 });
+
+exports.showStatusBar = function() {};
+exports.hideStatusBar = function() {};

@@ -15,6 +15,8 @@
  */
 var focused;
 
+import device;
+
 NATIVE.InputPrompt.subscribe('KeyUp', function(evt) {
 	if (focused != null) {
         focused.onChange(evt.text);    
@@ -78,3 +80,7 @@ exports = Class(function() {
     }
 
 });
+
+if (device.isIOS) {
+    exports = jsio("import .InputPrompt");
+}

@@ -390,7 +390,11 @@ function compileHTML (project, opts, target, files, code, cb) {
 			}, function (contents) {
 				if (info.ext == '.json') {
 					// validate and remove whitespace:
-					contents = JSON.stringify(JSON.parse(contents));
+					try {
+						contents = JSON.stringify(JSON.parse(contents));
+					} catch (e) {
+						logger.error('invalid JSON:', info.fullPath);
+					}
 				}
 
 				cache[info.relative] = contents;
