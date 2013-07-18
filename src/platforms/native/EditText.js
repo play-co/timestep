@@ -15,6 +15,8 @@
  */
 var focused;
 
+import device;
+
 NATIVE.InputPrompt.subscribe('KeyUp', function(evt) {
 	if (focused != null) {
         focused.onChange(evt.text);    
@@ -79,10 +81,6 @@ exports = Class(function() {
 
 });
 
-exports.showStatusBar = function() {
-	NATIVE.inputPrompt.showStatusBar();
-};
-
-exports.hideStatusBar = function() {
-	NATIVE.inputPrompt.hideStatusBar();
-};
+if (device.isIOS) {
+    exports = jsio("import .InputPrompt");
+}

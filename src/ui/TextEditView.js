@@ -32,7 +32,7 @@ exports = Class(ImageScaleView, function(supr) {
 
     this.init = function(opts) {
         this._opts = merge(opts || {}, defaults); 
-        console.log('create TextEditView with opts: ' + opts.hint);
+
         supr(this, 'init', [this._opts]);
 
         this.supr = supr;
@@ -42,6 +42,7 @@ exports = Class(ImageScaleView, function(supr) {
             width: opts.width - this._opts.paddingLeft - this._opts.paddingRight,
             height: opts.height
         }, opts));
+
         this.addSubview(this._textBox);
         this._focused = false;
         this._textFilter = null;
@@ -52,6 +53,7 @@ exports = Class(ImageScaleView, function(supr) {
         this._normalColor = this._opts.color;
         this._editText = new EditText(merge({}, // avoid side effects
             merge(opts, {
+                title: this._hint,
                 textEditView: this,
                 onChange: bind(this, this.onChange),
                 onFocusChange: bind(this, this.onFocusChange)
@@ -151,6 +153,3 @@ exports = Class(ImageScaleView, function(supr) {
         this._textBox.setText(text);
     }
 });
-
-exports.showStatusBar = EditText.showStatusBar;
-exports.hideStatusBar = EditText.hideStatusBar;
