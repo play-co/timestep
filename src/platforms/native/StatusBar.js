@@ -1,8 +1,8 @@
 
 exports.show = function() {
-	NATIVE.statusBar && NATIVE.statusBar.show && NATIVE.statusBar.show();
+	NATIVE.statusBar && NATIVE.statusBar.showStatusBar && NATIVE.statusBar.showStatusBar();
 };
 
 exports.hide = function() {
-	NATIVE.statusBar && NATIVE.statusBar.hide && NATIVE.statusBar.hide();
+	NATIVE.statusBar && NATIVE.statusBar.hideStatusBar && NATIVE.statusBar.hideStatusBar();
 };
