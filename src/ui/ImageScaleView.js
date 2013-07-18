@@ -386,20 +386,22 @@ exports = Class(ui.View, function (supr) {
 			if (isCover) {
 				if (cache.h > s.height) {
 					if (this._verticalAlign == 'bottom') {
-						cache.sy = cache.sh - s.height;
+						cache.sy = cache.sh - s.height * s.scale;
 					} else if (this._verticalAlign != 'top') {
-						cache.sy = -cache.y;
+						cache.sy = -cache.y * s.scale;
 					}
 					cache.y = 0;
-					cache.h = cache.sh = s.height;
+					cache.h = s.height;
+					cache.sh = cache.h * s.scale;
 				} else if (cache.w > s.width) {
 					if (this._align == 'right') {
-						cache.sx = cache.sw - s.width;
+						cache.sx = cache.sw - s.width * s.scale;
 					} else if (this._align != 'left') {
-						cache.sx = -cache.x;
+						cache.sx = -cache.x * s.scale;
 					}
 					cache.x = 0;
-					cache.w = cache.sw = s.width;
+					cache.w = s.width;
+					cache.sw = cache.w * s.scale;
 				}
 			}
 		}
