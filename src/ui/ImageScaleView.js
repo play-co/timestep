@@ -30,8 +30,7 @@ exports = Class(ui.View, function (supr) {
 		image: null,
 		autoSize: false,
 		scaleMethod: 'stretch',
-		renderCenter: true,
-		clip: true
+		renderCenter: true
 	};
 
 	this.init = function (opts) {
@@ -368,7 +367,8 @@ exports = Class(ui.View, function (supr) {
 			var scale = 1;
 			var targetRatio = iw / ih;
 			var ratio = w / h;
-			if (this._scaleMethod == 'cover' ? ratio > targetRatio : ratio < targetRatio) {
+			var isCover = this._scaleMethod == 'cover';
+			if (isCover ? ratio > targetRatio : ratio < targetRatio) {
 				scale = w / iw;
 			} else {
 				scale = h / ih;
@@ -379,9 +379,38 @@ exports = Class(ui.View, function (supr) {
 			cache.y = this._verticalAlign == 'top' ? 0 : this._verticalAlign == 'bottom' ? h - finalHeight : (h - finalHeight) / 2;
 			cache.w = finalWidth;
 			cache.h = finalHeight;
+			cache.sx = 0;
+			cache.sy = 0;
+			cache.sw = iw;
+			cache.sh = ih;
+			if (isCover) {
+				if (cache.h > s.height) {
+					if (this._verticalAlign == 'bottom') {
+						cache.sy = cache.sh - s.height * s.scale;
+					} else if (this._verticalAlign != 'top') {
+						cache.sy = -cache.y * s.scale;
+					}
+					cache.y = 0;
+					cache.h = s.height;
+					cache.sh = cache.h * s.scale;
+				} else if (cache.w > s.width) {
+					if (this._align == 'right') {
+						cache.sx = cache.sw - s.width * s.scale;
+					} else if (this._align != 'left') {
+						cache.sx = -cache.x * s.scale;
+					}
+					cache.x = 0;
+					cache.w = s.width;
+					cache.sw = cache.w * s.scale;
+				}
+			}
 		}
 
-		this._img.render(ctx, cache.x, cache.y, cache.w, cache.h);
+		this._img.render(ctx, cache.sx, cache.sy, cache.sw, cache.sh, cache.x, cache.y, cache.w, cache.h);
+		if (this.debug) {
+			ctx.strokeStyle = debugColors[0];
+			ctx.strokeRect(0, 0, s.width, s.height);
+		}
 	}
 
 	var renderFunctions = {
