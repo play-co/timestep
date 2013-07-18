@@ -28,6 +28,7 @@ exports = Class(View, function (supr) {
 		this._dragPoints = {};
 		this._activeFingers = 0;
 		this._swipeCount = 0;
+		this._dragPoint = null;
 	};
 
 	this.onInputStart = function (evt) {
@@ -46,6 +47,7 @@ exports = Class(View, function (supr) {
 		} else if (this._fingerTwo == null && this._fingerOne != id) {
 			this._fingerTwo = id;
 		}
+		this._dragPoint = dragEvent.srcPoint;
 	};
 
 	this.clearInput = this.onInputSelect = function (evt) {
@@ -92,8 +94,14 @@ exports = Class(View, function (supr) {
 				this.emit('Rotate', angle - this._initialAngle);
 			}
 		}
+
+		var dragPoint = moveEvent.srcPoint;
+		var deltaX = dragPoint.x - this._dragPoint.x;
+		var deltaY = dragPoint.y - this._dragPoint.y;
+		this._dragPoint = dragPoint;
+
 		if (this._fingerOne == id) {
-			this.emit('DragSingle', delta.x, delta.y);
+			this.emit('DragSingle', deltaX, deltaY);
 		}
 	};
 
