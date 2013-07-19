@@ -53,6 +53,9 @@ exports = Class(function () {
 		this._message = opts.prompt != undefined ? opts.prompt : '';
 		this._autoShowKeyboard = opts.autoShowKeyboard !== undefined ? opts.autoShowKeyboard : false;
 		this._isPassword = opts.isPassword !== undefined ? opts.isPassword : false;
+		if (typeof opts.keyboardType === 'string') {
+			opts.keyboardType = KeyboardTypes[opts.keyboardType];
+		}
 		this._keyboardType = opts.keyboardType !== undefined ? opts.keyboardType : KeyboardTypes.default;
 		this._id = -1;
 	};
