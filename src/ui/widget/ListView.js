@@ -131,6 +131,18 @@ exports = Class(ScrollView, function (supr) {
 		this.needsRepaint(true);
 	};
 
+	this.setFooterView = function (footerView) {
+		if (this._footerView) {
+			this._footerView.removeFromSuperview();
+		}
+		
+		this._footerView = footerView;
+		if (this._footerView) {
+			footerView.style.y = this._footerY || 0;
+			this.addSubview(footerView);
+		}
+	}
+
 	this.setMaxX = function (maxX) {
 
 		if (this._autoSize && this.style.width != maxX) {
@@ -161,6 +173,15 @@ exports = Class(ScrollView, function (supr) {
 	};
 
 	this.setMaxY = function (maxY) {
+
+		var footerHeight = 0;
+		if (this._footerView) {
+			footerHeight = this._footerView.style.height || 0;
+			this._footerView.style.y = maxY;
+		}
+
+		this._footerY = maxY;
+		maxY = maxY + footerHeight;
 
 		if (this._autoSize && this.style.height != maxY) {
 			this.style.height = maxY;
