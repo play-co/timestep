@@ -138,8 +138,13 @@ exports = Class(ScrollView, function (supr) {
 		
 		this._footerView = footerView;
 		if (this._footerView) {
-			footerView.style.y = this._footerY || 0;
 			this.addSubview(footerView);
+
+			// position the footer at the bottom of the list
+			footerView.style.y = this._heightWithoutFooter || 0;
+
+			// update the scroll bounds to account for the footer
+			this.setMaxY(this._heightWithoutFooter);
 		}
 	}
 
@@ -180,7 +185,7 @@ exports = Class(ScrollView, function (supr) {
 			this._footerView.style.y = maxY;
 		}
 
-		this._footerY = maxY;
+		this._heightWithoutFooter = maxY;
 		maxY = maxY + footerHeight;
 
 		if (this._autoSize && this.style.height != maxY) {
