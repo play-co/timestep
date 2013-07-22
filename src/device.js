@@ -116,8 +116,9 @@ if (exports.isMobile) {
 	exports.width = navigator.width;
 	exports.height = navigator.height;
 	exports.isAndroid = /Android/.test(ua);
+	exports.isTablet = !/Mobile/.test(ua);
 	if (!exports.isAndroid) {
-		exports.isIPad = /iPad/.test(ua);
+		exports.isIPad = exports.isTablet = /iPad/.test(ua);
 		exports.isIPhone = /iPhone/.test(ua);
 
 		// Until we support more platforms, if it's not
