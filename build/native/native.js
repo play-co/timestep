@@ -19,14 +19,12 @@ var INITIAL_IMPORT = 'gc.native.launchClient';
 
 var installAddons = function(builder, project, next) {
 	var paths = builder.common.paths;
-	var addons = project && project.manifest && project.manifest.addons;
+	var addons = project.getAddonConfig();
 
 	var f = ff(this, function() {
 		// For each addon,
 		if (addons) {
-			for (var ii = 0; ii < addons.length; ++ii) {
-				var addon = addons[ii];
-
+			Object.keys(addons).forEach(function (addon) {
 				// Prefer paths in this order:
 				var addon_js_ios = paths.addons(addon, 'js', 'ios');
 				var addon_js_android = paths.addons(addon, 'js', 'android');
@@ -48,7 +46,7 @@ var installAddons = function(builder, project, next) {
 				} else {
 					logger.warn("Installing addon:", addon, "-- No js directory so no JavaScript will be installed");
 				}
-			}
+			});
 		}
 	}).error(function(err) {
 		logger.error("Failure installing addon javascript:", err);
@@ -214,7 +212,7 @@ exports.writeNativeResources = function (project, opts, next) {
 	var f = ff(function () {
 		_build.packager.compileResources(project, opts, opts.target, INITIAL_IMPORT, f());
 	}, function (pkg) {
-		var files = pkg.files;
+		var resources = pkg.files;
 
 		/*
 		icons = manifest.get("icons", {}).values()
@@ -240,8 +238,8 @@ exports.writeNativeResources = function (project, opts, next) {
 			}
 		}
 
-		files.sprites.forEach(embedFile);
-		files.resources.forEach(embedFile);
+		resources.images.forEach(embedFile);
+		resources.other.forEach(embedFile);
 
 		cache["manifest.json"] = {
 			contents: JSON.stringify(project.manifest)
@@ -251,7 +249,7 @@ exports.writeNativeResources = function (project, opts, next) {
 		// be uncompressed. To avoid this, we suffix it with .mp3, a filetype that the
 		// Android system won't compress.
 		cache["native.js.mp3"] = {
-			contents: wrapNativeJS(project, opts, opts.target, files.resources, pkg.jsSrc)
+			contents: wrapNativeJS(project, opts, opts.target, resources.other, pkg.jsSrc)
 		};
 
 		logger.log('writing files to', opts.output);
