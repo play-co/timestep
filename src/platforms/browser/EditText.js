@@ -14,18 +14,5 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-exports.resolve = function (env, opts) {
-	return [
-		'.Canvas',
-		'.Context2D',
-		'.initialize',
-		'.FontRenderer',
-		'.Input',
-		'.InputPrompt',
-		'.StatusBar',
-		'.KeyListener',
-		'.TextBox',
-		'.Timer',
-		'.EditText'
-	];
-};
+import .InputPrompt as InputPrompt;
+exports = InputPrompt;

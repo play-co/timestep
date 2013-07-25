@@ -60,10 +60,16 @@ var ImageView = exports = Class(View, function (supr) {
 		return this._img;
 	};
 
-	this.getImageFromCache = function(url) {
-		var img = imageCache[url];
+	this.getImageFromCache = function(url, forceReload) {
+		var img;
+		if (!forceReload) {
+			img = imageCache[url];
+		}
 		if (!img) {
-			imageCache[url] = img = new Image({ url: url });
+			imageCache[url] = img = new Image({
+				url: url,
+				forceReload: !!forceReload
+			});
 		}
 		return img;
 	};
@@ -89,8 +95,9 @@ var ImageView = exports = Class(View, function (supr) {
 	 */
 
 	this.setImage = function (img, opts) {
+		var forceReload = opts && opts.forceReload;
 		if (typeof img == 'string') {
-			img = this.getImageFromCache(img);
+			img = this.getImageFromCache(img, forceReload);
 		}
 
 		this._img = img;

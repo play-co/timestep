@@ -88,20 +88,20 @@ exports = Class(function () {
 
 		// srcImage can be null, then setSrcImg will create one
 		// (use the map's URL in case it was updated to a spritesheet)
-		this._setSrcImg(opts.srcImage, this._map.url);
+		this._setSrcImg(opts.srcImage, this._map.url, opts.forceReload);
 	};
 
-	this._setSrcImg = function (img, url) {
+	this._setSrcImg = function (img, url, forceReload) {
 		this._cb.reset();
 
 		// if we haven't found an image, look in the image cache
-		if (!img && url && ImageCache[url]) {
+		if (!img && url && !forceReload && ImageCache[url]) {
 			img = ImageCache[url];
 		}
 
 		// look up the base64 cache -- if it's been preloaded, we'll get back an image that's already loaded
 		// if it has not been preloaded, we'll get back raw base64 in the b64 variable
-		if (!img && Image.get) {
+		if (!img && !forceReload && Image.get) {
 			var b64 = Image.get(url);
 			if (typeof b64 == 'object') {
 				img = b64;

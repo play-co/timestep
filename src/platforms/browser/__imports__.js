@@ -30,8 +30,10 @@ exports.resolve = function (env, opts) {
 		'.KeyListener',
 		'.MobileBrowserAPI',
 		'.SoundManager',
+		'.StatusBar',
 		'.TextBox',
 		'.TextInput',
-		'.Timer'
+		'.Timer',
+		'.EditText'
 	];
 };

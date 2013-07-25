@@ -342,13 +342,16 @@ var TextView = exports = Class(View, function (supr) {
 		}
 	};
 
-	this.render = function (ctx) {
-		var opts = this._opts;
-
+	this.computeSize = function (ctx) {
 		if (this._cacheUpdate) {
 			this._updateCtx(ctx);
+			var opts = this._opts;
 			this._textFlow.reflow(ctx, 1 + (opts.autoFontSize ? 4 : 0) + (opts.autoSize ? 2 : 0) + (opts.wrap ? 1 : 0));
 		}
+	}
+
+	this.render = function (ctx) {
+		this.computeSize(ctx);
 		if (!this._textFlow.getCache().length) {
 			this._cacheUpdate = false;
 			return;

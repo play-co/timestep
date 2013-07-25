@@ -22,6 +22,15 @@
  * ??? TODO Move this to debug, probably. A native modal prompt has no place
  *          in game code.
  */
+var KeyboardTypes = {
+	Default: 0,                // Default type for the current input method.
+    NumbersAndPunctuation: 2,  // Numbers and assorted punctuation.
+    URL: 3,                    // A type optimized for URL entry (shows . / .com prominently).
+    NumberPad: 4,              // A number pad (0-9). Suitable for PIN entry.
+    PhonePad: 5,               // A phone pad (1-9, *, 0, #, with letters under the numbers).
+    EmailAddress: 7,           // A type optimized for multiple email address entry (shows space @ . prominently).
+    DecimalPad: 8
+}
 
 exports = Class(function () {
 	var defaults = {
@@ -61,4 +70,18 @@ exports = Class(function () {
 	this.setMessage = function (message) {
 		this._message = message;
 	};
+	
+	this.setKeyboardType = function(keyboardType) {
+		logger.warn('Setting keyboard type in the browser does nothing');
+	};
+
+	this.requestFocus = function() { this.show(); }
+
+	this.closeEditField = function() {}
+
+	this.refresh = function() {}
 });
+
+exports.showStatusBar = function() {};
+exports.hideStatusBar = function() {};
+exports.KeyboardTypes = KeyboardTypes;

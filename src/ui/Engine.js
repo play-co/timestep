@@ -357,7 +357,6 @@ var Application = exports = Class(Emitter, function (supr) {
 
 		this._needsRepaint = false;
 		this._reflowManager && this._reflowManager.setInRender(false);
-		this._needsRepaint = false;
 	};
 
 	this.render = function (dt) {

@@ -322,7 +322,7 @@ function generateIndexHTML(opts, project) {
 }
 
 // Compile HTML resources.
-function compileHTML (project, opts, target, files, code, cb) {
+function compileHTML (project, opts, target, resources, code, cb) {
 	logger.log('Compiling html for ' + target);
 
 	// filenames starting with build/debug are already in the build directory
@@ -333,7 +333,7 @@ function compileHTML (project, opts, target, files, code, cb) {
 		if (/^native/.test(target)) {
 			f('jsio=function(){window._continueLoad()}');
 		} else {
-			var compiler = _builder.packager.createCompiler(opts);
+			var compiler = _builder.packager.createCompiler(project, opts);
 			compiler.inferOptsFromEnv('browser');
 
 			var onImgCacheComplete = f.wait();
@@ -369,7 +369,7 @@ function compileHTML (project, opts, target, files, code, cb) {
 		f(fontList);
 
 		// Iterate file resources.
-		files.resources.forEach(function (info) {
+		resources.other.forEach(function (info) {
 			var f2 = ff(function () {
 				fs.exists(info.fullPath, f2.slotPlain());
 			}, function (exists) {
@@ -390,31 +390,38 @@ function compileHTML (project, opts, target, files, code, cb) {
 			}, function (contents) {
 				if (info.ext == '.json') {
 					// validate and remove whitespace:
-					contents = JSON.stringify(JSON.parse(contents));
+					try {
+						contents = JSON.stringify(JSON.parse(contents));
+					} catch (e) {
+						logger.error('invalid JSON:', info.fullPath);
+					}
 				}
 
 				cache[info.relative] = contents;
-			}).cb(f());
+			}).cb(f())
+				.error(function (e) {
+					logger.error(e);
+				});
 		});
 	}, function (preloadJS, bootstrapCSS, bootstrapJS, cache, fontList) {
 		logger.log('built cache.');
 
 		// HTML resources we will generate as a result of this function.
-		var resources = {};
+		var resourceMap = {};
 		f(cache);
-		f(resources);
+		f(resourceMap);
 
 		// Stub out resources for the offline manifest to recognize.
-		files.resources.forEach(function (info) {
+		resources.other.forEach(function (info) {
 			if (!(info.relative in cache)) {
-				resources[info.relative] = {
+				resourceMap[info.relative] = {
 					src: info.fullPath
 				};
 			}
 		});
 
-		files.sprites.forEach(function (info) {
-			resources[info.relative] = true;
+		resources.images.forEach(function (info) {
+			resourceMap[info.relative] = true;
 		});
 
 		// CSS
@@ -454,7 +461,7 @@ function compileHTML (project, opts, target, files, code, cb) {
 		if (opts.compress) {
 			_builder.packager.compressCSS(cssSrc, f());
 
-			var compiler = _builder.packager.createCompiler(opts);
+			var compiler = _builder.packager.createCompiler(project, opts);
 			compiler.inferOptsFromEnv('browser');
 
 			var onCompress = f();
@@ -466,7 +473,7 @@ function compileHTML (project, opts, target, files, code, cb) {
 		} else {
 			f(cssSrc, preloadSrc + ';' + preloadJS);
 		}
-	}, function (cache, resources, css, js) {
+	}, function (cache, resourceMap, css, js) {
 
 		// Filenames.
 		var indexName = 'index.html';
@@ -475,20 +482,19 @@ function compileHTML (project, opts, target, files, code, cb) {
 		var jsName = target + '.js';
 
 		if (target === 'browser-desktop') {
-			resources[gameName] = {contents: generateGameHTML(opts, project, target, imgCache, js, css)};
-			resources[indexName] = {contents: generateIndexHTML(opts, project)};
+			resourceMap[gameName] = {contents: generateGameHTML(opts, project, target, imgCache, js, css)};
+			resourceMap[indexName] = {contents: generateIndexHTML(opts, project)};
 		} else {
-			resources[indexName] = {contents: generateGameHTML(opts, project, target, imgCache, js, css)};
+			resourceMap[indexName] = {contents: generateGameHTML(opts, project, target, imgCache, js, css)};
 		}
 
-		resources[jsName] = {contents: 'CACHE=' + JSON.stringify(cache) + ';\n' + code + '; jsio("import ' + INITIAL_IMPORT + '");'};
-		resources[manifestName] = {contents: generateOfflineManifest(resources, project.manifest.appID, opts.version)};
+		resourceMap[jsName] = {contents: 'CACHE=' + JSON.stringify(cache) + ';\n' + code + '; jsio("import ' + INITIAL_IMPORT + '");'};
+		resourceMap[manifestName] = {contents: generateOfflineManifest(resourceMap, project.manifest.appID, opts.version)};
 		
 		// Pass compiled resources to callback.
-		f.succeed(resources);
+		f.succeed(resourceMap);
 	}).error(function (err) {
-		logger.error('unexpected error:');
-		console.error(err.stack);
+		logger.error('unexpected error:', err);
 	}).cb(cb);
 };
 
