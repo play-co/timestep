@@ -22,7 +22,6 @@
  */
 
 import ui.View;
-import ui.ImageView;
 import ui.resource.Image as Image;
 
 exports = Class(ui.View, function (supr) {
@@ -31,21 +30,18 @@ exports = Class(ui.View, function (supr) {
 		image: null,
 		autoSize: false,
 		scaleMethod: 'stretch',
-		renderCenter: true,
-		clip: true
+		renderCenter: true
 	};
 
 	this.init = function (opts) {
-		var opts = merge(opts, defaults);
-		supr(this, 'init', [opts]);
+		supr(this, 'init', [merge(opts, defaults)]);
 	};
 
 	this.getScaleMethod = function () {
 		return this._scaleMethod;
-	}
+	};
 
 	this.updateSlices = function (opts) {
-
 		// reset slice cache
 		this._renderCacheKey = {};
 		this._sliceCache = [];
@@ -130,7 +126,7 @@ exports = Class(ui.View, function (supr) {
 				this._destSlicesVer = [0, 100, 0];
 			}
 		}
-	}
+	};
 
 	this.updateOpts = function (opts) {
 		opts = merge(supr(this, 'updateOpts', arguments), this._opts);
@@ -175,8 +171,8 @@ exports = Class(ui.View, function (supr) {
 
 	this._computeSlices = function (w, h, absScale) {
 		var bounds = this._img.getBounds();
-		var iw = bounds.width;
-		var ih = bounds.height;
+		var iw = bounds.width - bounds.marginLeft - bounds.marginRight;
+		var ih = bounds.height - bounds.marginTop - bounds.marginBottom;
 		if (iw <= 0 || ih <= 0) {
 			return;
 		}
@@ -186,13 +182,6 @@ exports = Class(ui.View, function (supr) {
 		var sourceSlicesVer = this._sourceSlicesVer;
 		var destSlicesHor = [];
 		var destSlicesVer = [];
-		var sx = bounds.x;
-		var sy = bounds.y;
-
-		var dx = 0;
-		var dy = 0;
-		var dw = w;
-		var dh = h;
 
 		var i, j;
 
@@ -224,8 +213,44 @@ exports = Class(ui.View, function (supr) {
 			}
 		}
 
+		var marginLeft = bounds.marginLeft,
+			origLeftSlice = sourceSlicesHor[0] + bounds.marginLeft;
+		if (origLeftSlice) {
+			marginLeft *= destSlicesHor[0] / origLeftSlice;
+		}
+
+		var marginRight = bounds.marginRight,
+			origRightSlice = sourceSlicesHor[2] + bounds.marginRight;
+		if (origRightSlice) {
+			marginRight *= destSlicesHor[2] / origRightSlice;
+		}
+
+		var marginTop = bounds.marginTop,
+			origTopSlice = sourceSlicesVer[0] + bounds.marginTop;
+		if (origTopSlice) {
+			marginTop *= destSlicesVer[0] / origTopSlice;
+		}
+
+		var marginBottom = bounds.marginBottom,
+			origBottomSlice = sourceSlicesVer[2] + bounds.marginBottom;
+		if (origBottomSlice) {
+			marginBottom *= destSlicesVer[2] / origBottomSlice;
+		}
+
 		var heightBalance = 0;
-		var sw, sh;
+		var sx, sw, sh;
+		var sy = bounds.y;
+
+		var dx = 0;
+		var dy = marginTop;
+		var dw = w;
+		var dh = h;
+
+		destSlicesHor[0] -= marginLeft;
+		destSlicesVer[0] -= marginTop;
+		destSlicesHor[2] -= marginRight;
+		destSlicesVer[2] -= marginBottom;
+
 		for (j = 0; j < 3; j++) {
 			var widthBalance = 0;
 			var idealHeight = destSlicesVer[j] + heightBalance;
@@ -235,7 +260,7 @@ exports = Class(ui.View, function (supr) {
 			sh = sourceSlicesVer[j];
 			dh = roundedHeight;
 			sx = bounds.x;
-			dx = 0;
+			dx = marginLeft;
 			for (i = 0; i < 3; i++) {
 				var idealWidth = destSlicesHor[i] + widthBalance;
 				var roundedWidth = Math.round(absScale * idealWidth) / absScale;
@@ -264,8 +289,10 @@ exports = Class(ui.View, function (supr) {
 			}
 			sy += sh;
 			dy += dh;
+
+			marginTop = 0;
 		}
-	}
+	};
 
 	this.getImage = function () {
 		return this._img;
@@ -279,13 +306,13 @@ exports = Class(ui.View, function (supr) {
 		if (typeof img == 'string') {
 			bounds = GCResources.getMap()[img];
 			if (bounds) {
-				iw = bounds.w;
-				ih = bounds.h;
+				iw = bounds.w + bounds.marginLeft + bounds.marginRight;
+				ih = bounds.h + bounds.marginTop + bounds.marginBottom;
 			}
 		} else if (img instanceof Image && img.isLoaded()) {
 			bounds = img.getBounds();
-			iw = bounds.width;
-			ih = bounds.height;
+			iw = bounds.width + bounds.marginLeft + bounds.marginRight;
+			ih = bounds.height + bounds.marginTop + bounds.marginBottom;
 		}
 
 		if (!bounds) {
@@ -307,26 +334,30 @@ exports = Class(ui.View, function (supr) {
 
 		this._img = (typeof img == 'string') ? new Image({url: img}) : img;
 
+		this._imageWidth = iw;
+		this._imageHeight = ih;
+
 		if (this._isSlice) {
 			this.updateSlices({
-				sourceSlices: this._opts.sourceSlices
+				sourceSlices: this._opts.sourceSlices,
+				destSlices: this._opts.destSlices
 			});
 
 			var sourceSlicesHor = this._sourceSlicesHor;
 			var sourceSlicesVer = this._sourceSlicesVer;
 			if (sourceSlicesHor) {
 				sw = sourceSlicesHor[0] + sourceSlicesHor[1] + sourceSlicesHor[2];
-				var scale = iw / sw;
-				sourceSlicesHor[0] *= scale;
-				sourceSlicesHor[1] *= scale;
-				sourceSlicesHor[2] *= scale;
+				var sourceScaleX = iw / sw;
+				sourceSlicesHor[0] = sourceSlicesHor[0] * sourceScaleX - bounds.marginLeft;
+				sourceSlicesHor[1] *= sourceScaleX;
+				sourceSlicesHor[2] = sourceSlicesHor[2] * sourceScaleX - bounds.marginRight;
 			}
 			if (sourceSlicesVer) {
 				sh = sourceSlicesVer[0] + sourceSlicesVer[1] + sourceSlicesVer[2];
-				var scale = ih / sh;
-				sourceSlicesVer[0] *= scale;
-				sourceSlicesVer[1] *= scale;
-				sourceSlicesVer[2] *= scale;
+				var sourceScaleY = ih / sh;
+				sourceSlicesVer[0] = sourceSlicesVer[0] * sourceScaleY - bounds.marginTop;
+				sourceSlicesVer[1] *= sourceScaleY;
+				sourceSlicesVer[2] = sourceSlicesVer[2] * sourceScaleY - bounds.marginBottom;
 			}
 		}
 
@@ -381,21 +412,61 @@ exports = Class(ui.View, function (supr) {
 			var scale = 1;
 			var targetRatio = iw / ih;
 			var ratio = w / h;
-			if (ratio > targetRatio) {
+
+			var isCover = this._scaleMethod == 'cover';
+			if (isCover ? ratio > targetRatio : ratio < targetRatio) {
 				scale = w / iw;
 			} else {
 				scale = h / ih;
 			}
+
 			var finalWidth = iw * scale;
 			var finalHeight = ih * scale;
-			cache.x = this._align == 'left' ? 0 : this._align == 'right' ? w - finalWidth : (w - finalWidth) / 2;
-			cache.y = this._verticalAlign == 'top' ? 0 : this._verticalAlign == 'bottom' ? h - finalHeight : (h - finalHeight) / 2;
+			cache.x = this._align == 'left'
+				? 0
+				: this._align == 'right'
+					? w - finalWidth
+					: (w - finalWidth) / 2;
+			cache.y = this._verticalAlign == 'top'
+				? 0
+				: this._verticalAlign == 'bottom'
+					? h - finalHeight
+					: (h - finalHeight) / 2;
 			cache.w = finalWidth;
 			cache.h = finalHeight;
+			cache.sx = bounds.x;
+			cache.sy = bounds.y;
+			cache.sw = iw;
+			cache.sh = ih;
+			if (isCover) {
+				if (finalHeight > h) {
+					var sdy = (finalHeight - h) / scale;
+					if (this._verticalAlign == 'bottom') {
+						cache.sy += sdy;
+					} else if (this._verticalAlign != 'top') {
+						// center vertically
+						cache.sy += sdy / 2;
+					}
+					cache.sh -= sdy;
+					cache.y = 0;
+					cache.h = h * s.scale;
+				} else if (finalWidth > w) {
+					var sdx = (finalWidth - w) / scale;
+					if (this._align == 'right') {
+						cache.sx += sdx;
+					} else if (this._align != 'left') {
+						// center horizontally
+						cache.sx += sdx / 2;
+					}
+					cache.sw -= sdx;
+					cache.x = 0;
+					cache.w = w * s.scale;
+				}
+			}
 		}
 
-		this._img.render(ctx, cache.x, cache.y, cache.w, cache.h);
-	}
+		this._img.render(ctx, cache.sx, cache.sy, cache.sw, cache.sh, cache.x, cache.y, cache.w, cache.h);
+	};
 
 	var renderFunctions = {
 		'none': function (ctx, opts) {
@@ -471,7 +542,6 @@ exports = Class(ui.View, function (supr) {
 				this._computeSlices(w, h, scale);
 			}
 
-			var img = this._img.getSource();
 			var slices = this._sliceCache;
 			slices[0].render && ctx.drawImage.apply(ctx, slices[0]);
 			slices[1].render && ctx.drawImage.apply(ctx, slices[1]);
@@ -483,7 +553,7 @@ exports = Class(ui.View, function (supr) {
 			slices[7].render && ctx.drawImage.apply(ctx, slices[7]);
 			slices[8].render && ctx.drawImage.apply(ctx, slices[8]);
 		}
-	}
+	};
 
 	var debugColors = ['#FF0000', '#00FF00', '#0000FF'];
 
