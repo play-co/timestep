@@ -159,8 +159,8 @@ exports = Class(ui.View, function (supr) {
 		if (opts.verticalAlign) {
 			this._verticalAlign = opts.verticalAlign;
 		}
-		if (opts.align) {
-			this._align = opts.align;
+		if (opts.align || opts.horizontalAlign) {
+			this._align = opts.align || opts.horizontalAlign;
 		}
 
 		this.rows = opts.rows;
@@ -397,6 +397,8 @@ exports = Class(ui.View, function (supr) {
 	function renderCoverOrContain(ctx, opts) {
 		if (!this._img) { return; }
 
+		var max = Math.max;
+		var min = Math.min;
 		var s = this.style;
 		var w = s.width;
 		var h = s.height;
@@ -407,60 +409,81 @@ exports = Class(ui.View, function (supr) {
 			cachedKey.height = h;
 
 			var bounds = this._img.getBounds();
-			var iw = bounds.width;
-			var ih = bounds.height;
+			var marginLeft = bounds.marginLeft;
+			var marginRight = bounds.marginRight;
+			var marginTop = bounds.marginTop;
+			var marginBottom = bounds.marginBottom;
+			var sw = bounds.width;
+			var sh = bounds.height;
+			var ow = sw + marginLeft + marginRight;
+			var oh = sh + marginTop + marginBottom;
 			var scale = 1;
-			var targetRatio = iw / ih;
+			var targetRatio = ow / oh;
 			var ratio = w / h;
 
 			var isCover = this._scaleMethod == 'cover';
 			if (isCover ? ratio > targetRatio : ratio < targetRatio) {
-				scale = w / iw;
+				scale = w / ow;
 			} else {
-				scale = h / ih;
+				scale = h / oh;
 			}
 
-			var finalWidth = iw * scale;
-			var finalHeight = ih * scale;
+			var dw = sw * scale;
+			var dh = sh * scale;
+			var fw = ow * scale;
+			var fh = oh * scale;
+
 			cache.x = this._align == 'left'
-				? 0
+				? marginLeft * scale
 				: this._align == 'right'
-					? w - finalWidth
-					: (w - finalWidth) / 2;
+					? w - (sw + marginRight) * scale
+					: (w - dw) / 2;
 			cache.y = this._verticalAlign == 'top'
-				? 0
+				? marginTop * scale
 				: this._verticalAlign == 'bottom'
-					? h - finalHeight
-					: (h - finalHeight) / 2;
-			cache.w = finalWidth;
-			cache.h = finalHeight;
+					? h - (sh + marginBottom) * scale
+					: (h - dh) / 2;
+
+			cache.w = dw;
+			cache.h = dh;
 			cache.sx = bounds.x;
 			cache.sy = bounds.y;
-			cache.sw = iw;
-			cache.sh = ih;
+			cache.sw = sw;
+			cache.sh = sh;
+
 			if (isCover) {
-				if (finalHeight > h) {
-					var sdy = (finalHeight - h) / scale;
+				if (fh > h) {
 					if (this._verticalAlign == 'bottom') {
-						cache.sy += sdy;
-					} else if (this._verticalAlign != 'top') {
-						// center vertically
-						cache.sy += sdy / 2;
+						cache.y = max(0, h - marginBottom * scale - dh);
+						cache.h = min(dh, h - marginBottom * scale);
+						cache.sy += max(0, sh - cache.h / scale);
+						cache.sh = cache.h / scale;
+					} else if (this._verticalAlign == 'top') {
+						cache.y = marginTop * scale;
+						cache.h = min(dh, h - cache.y);
+						cache.sh = cache.h / scale;
+					} else {
+						cache.y = max(0, (h - dh) / 2);
+						cache.h = min(dh, h);
+						cache.sh = cache.h / scale;
+						cache.sy = max(0, (sh - cache.sh) / 2);
 					}
-					cache.sh -= sdy;
-					cache.y = 0;
-					cache.h = h * s.scale;
-				} else if (finalWidth > w) {
-					var sdx = (finalWidth - w) / scale;
+				} else if (fw > w) {
 					if (this._align == 'right') {
-						cache.sx += sdx;
-					} else if (this._align != 'left') {
-						// center horizontally
-						cache.sx += sdx / 2;
+						cache.x = max(0, w - marginRight * scale - dw);
+						cache.w = min(dw, w - marginRight * scale);
+						cache.sx += max(0, sw - cache.w / scale);
+						cache.sw = cache.w / scale;
+					} else if (this._align == 'left') {
+						cache.x = marginLeft * scale;
+						cache.w = min(dw, w - cache.x);
+						cache.sw = cache.w / scale;
+					} else {
+						cache.x = max(0, (w - dw) / 2);
+						cache.w = min(dw, w);
+						cache.sw = cache.w / scale;
+						cache.sx = max(0, (sw - cache.sw) / 2);
 					}
-					cache.sw -= sdx;
-					cache.x = 0;
-					cache.w = w * s.scale;
 				}
 			}
 		}
