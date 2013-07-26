@@ -45,7 +45,7 @@ exports.package = function(builder, project, opts, next) {
 	builder.common.track("BasilBuildNativeAndroid", {"clean":argv.clean, "debug":argv.debug, "compress":opts.compress});
 
 	getTealeafAndroidPath(builder, function(dir) {
-		require(path.join(dir, "index")).build(builder, project, opts, next);
+		require(path.join(dir, "build")).build(builder, project, opts, next);
 	});
 };
 
