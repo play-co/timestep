@@ -150,8 +150,8 @@ exports = Class(ui.View, function (supr) {
 			this._renderCacheKey = {};
 			this._verticalAlign = opts.verticalAlign;
 		}
-		if (opts.align) {
-			this._align = opts.align;
+		if (opts.align || opts.horizontalAlign) {
+			this._align = opts.align || opts.horizontalAlign;
 		}
 
 		this.rows = opts.rows;
