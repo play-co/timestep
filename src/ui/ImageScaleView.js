@@ -147,6 +147,7 @@ exports = Class(ui.View, function (supr) {
 			this.setImage(opts.image, opts);
 		}
 		if (opts.verticalAlign) {
+			this._renderCacheKey = {};
 			this._verticalAlign = opts.verticalAlign;
 		}
 		if (opts.align) {
