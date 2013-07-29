@@ -26,4 +26,5 @@ exports.start = function (onTick) {
 
 exports.last = null;
 
-exports.stop = function () { NATIVE.timer.stop(); }
+// NOTE: The timer is stopped automatically so this is just a stub
+exports.stop = function () { }
