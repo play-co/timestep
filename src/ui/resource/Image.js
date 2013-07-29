@@ -48,6 +48,7 @@ function imageOnLoad(success, evt, failCount) {
 	}
 
 	this.__cb.fire(success);
+	this.isError = !success;
 	this.onLoad = this.onError = null;
 }
 
@@ -113,7 +114,7 @@ exports = Class(function () {
 		// if it's already loaded...
 		if (img && img.complete) {
 			this._srcImg = img;
-			this._onLoad(true);
+			this._onLoad(!img.isError);
 		} else {
 			// add a callback and wait for it
 
@@ -236,6 +237,7 @@ exports = Class(function () {
 		if (!didLoad) {
 			// TODO: something better?
 			logger.error('Image failed to load:', this._map.url);
+			this._isError = true;
 			this._cb.fire({NoImage: true});
 			return;
 		}
@@ -268,8 +270,9 @@ exports = Class(function () {
 		this._cb.fire(null, this);
 	};
 
+	this.isError = function () { return this._isError; }
 	this.isLoaded =
-	this.isReady = function () { return this._cb.fired(); };
+	this.isReady = function () { return !this._isError && this._cb.fired(); };
 
 	var isNative = GLOBAL.NATIVE && !device.simulatingMobileNative;
 	var SLICE = Array.prototype.slice;
