@@ -18,7 +18,7 @@ var focused;
 import device;
 
 NATIVE.InputPrompt.subscribe('KeyUp', function(evt) {
-	if (focused != null) {
+	if (focused != null) {   
         focused.onChange(evt.text, evt.cursorPos);    
     }
 });
@@ -30,6 +30,12 @@ NATIVE.InputPrompt.subscribe('Move', function(evt) {
         focused._textEditView._backTextEditView.requestFocus();
     }
 });
+
+NATIVE.InputPrompt.subscribe('Submit', function(evt) {
+	focused && focused.closeEditField();
+});
+
+
 
 exports = Class(function() {
 
@@ -45,7 +51,13 @@ exports = Class(function() {
         this._textEditView = opts.textEditView;
         this.onChange = opts.onChange;
         this.onFocusChange = opts.onFocusChange || function() {};
+        this.onSubmit = opts.onSubmit || function () {}
     };
+
+    this.setValue = function (value) {
+        this._value = value;
+        this.onChange(value);
+    }
 
     this.requestFocus = function() {
         if (focused !== this) {
@@ -58,6 +70,7 @@ exports = Class(function() {
 
     this.closeEditField = function() {
         console.log("TextEditView editText removeFocus");
+		if (focused != null) focused.removeFocus(); 
         NATIVE.inputPrompt.hideSoftKeyboard(); 
      }
 
@@ -77,7 +90,8 @@ exports = Class(function() {
     }
 
     this.removeFocus = function() {
-        this.onFocusChange(false); 
+        this.onFocusChange(false);
+        this.onSubmit(this._value);
     }
 
 });
