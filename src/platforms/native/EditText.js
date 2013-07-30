@@ -18,7 +18,7 @@ var focused;
 import device;
 
 NATIVE.InputPrompt.subscribe('KeyUp', function(evt) {
-	if (focused != null) {   
+    if (focused != null) {   
         focused.onChange(evt.text, evt.cursorPos);    
     }
 });
@@ -32,7 +32,7 @@ NATIVE.InputPrompt.subscribe('Move', function(evt) {
 });
 
 NATIVE.InputPrompt.subscribe('Submit', function(evt) {
-	focused && focused.closeEditField();
+    focused && focused.closeEditField();
 });
 
 
@@ -70,7 +70,7 @@ exports = Class(function() {
 
     this.closeEditField = function() {
         console.log("TextEditView editText removeFocus");
-		if (focused != null) focused.removeFocus(); 
+        if (focused != null) focused.removeFocus(); 
         NATIVE.inputPrompt.hideSoftKeyboard(); 
      }
 
