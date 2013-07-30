@@ -31,6 +31,12 @@ NATIVE.InputPrompt.subscribe('Move', function(evt) {
     }
 });
 
+NATIVE.InputPrompt.subscribe('Submit', function(evt) {
+	focused && focused.closeEditField();
+});
+
+
+
 exports = Class(function() {
 
     var defaults = {
@@ -64,6 +70,7 @@ exports = Class(function() {
 
     this.closeEditField = function() {
         console.log("TextEditView editText removeFocus");
+		if (focused != null) focused.removeFocus(); 
         NATIVE.inputPrompt.hideSoftKeyboard(); 
      }
 
