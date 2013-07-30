@@ -64,6 +64,8 @@ exports = Class(ImageScaleView, function(supr) {
         this.setText(this._opts.text || "");
     };
 
+    this.onSubmit = function () {};
+
     this.onInputSelect = function() {
         this.requestFocus();
     };
