@@ -319,7 +319,12 @@ exports = Class(ui.View, function (supr) {
 			if (typeof img == 'string') {
 				img = new Image({url: img});
 			}
-			return img.doOnLoad(this, 'setImage', img, opts);
+
+			if (!img.isError()) {
+				return img.doOnLoad(this, 'setImage', img, opts);
+			} else {
+				return;
+			}
 		}
 
 		if (opts.autoSize && this._scaleMethod == "stretch" && !((opts.width || opts.layoutWidth) && (opts.height || opts.layoutHeight))) {
