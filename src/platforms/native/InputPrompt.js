@@ -32,6 +32,7 @@ NATIVE.InputPrompt.subscribe('Submit', function (evt) {
 	if (input) {
 		input.setValue(evt.text);
 		input.onChange && input.onChange(evt.text);
+		input.onSubmit && input.onSubmit(evt.text);
 	}
 });
 
@@ -48,6 +49,7 @@ exports = Class(function () {
 	this.init = function (opts) {
 		opts = opts || {};
 		this.onChange = opts.onChange;
+		this.onSubmit = opts.onSubmit;
 		this._value = opts.value != undefined ? opts.value : '';
 		this._title = opts.title != undefined ? opts.title : '';
 		this._message = opts.prompt != undefined ? opts.prompt : '';

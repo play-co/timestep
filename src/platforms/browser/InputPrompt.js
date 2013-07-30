@@ -44,6 +44,7 @@ exports = Class(function () {
 	this.init = function (opts) {
 		opts = merge(opts, defaults);
 		this.onChange = opts.onChange;
+		this.onSubmit = opts.onSubmit;
 		this._value = opts.value;
 		this._message = opts.title || opts.message || opts.prompt;
 	};
@@ -52,10 +53,11 @@ exports = Class(function () {
 		var value = window.prompt(this._message, this._value);
 		if (value !== null) { // returns null if user presses cancel
 			this._value = value;
-			this.onChange(value);
+			this.onChange && this.onChange(value);
+			this.onSubmit && this.onSubmit(value);
 		} else {
 			// TODO: do something else on cancel?
-			this.onChange(value);
+			this.onChange && this.onChange(value);
 		}
 	};
 

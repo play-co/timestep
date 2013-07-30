@@ -55,7 +55,8 @@ exports = Class(ImageScaleView, function(supr) {
             merge(opts, {
                 title: this._hint,
                 textEditView: this,
-                onChange: bind(this, this.onChange),
+                onChange: bind(this, 'onChange'),
+                onSubmit: bind(this, 'onSubmit'),
                 onFocusChange: bind(this, this.onFocusChange)
             })
         ));
@@ -140,6 +141,7 @@ exports = Class(ImageScaleView, function(supr) {
         return result;
     }
 
+    this.setValue = 
     this.setText = function(text) {
         if ((text == null || (text != null && text.length == 0)) && this._hint != null) {
             this._hintSet = true;
