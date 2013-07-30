@@ -46,10 +46,12 @@ exports = Class(ImageScaleView, function(supr) {
         this.addSubview(this._textBox);
         this._focused = false;
         this._textFilter = null;
+        this._textCursorFilter = null;
         this._backTextEditView = null;
         this._forwardTextEditView = null;
         this._hint = this._opts.hintJs || this._opts.hint;
         this._hintSet = false;
+        this._cursorPosition = -1;
         this._normalColor = this._opts.color;
         this._editText = new EditText(merge({}, // avoid side effects
             merge(opts, {
@@ -80,7 +82,8 @@ exports = Class(ImageScaleView, function(supr) {
     this.refresh = function() {
         this._editText.refresh(this.getText(),
                                this._backTextEditView != null,
-                               this._forwardTextEditView != null);
+                               this._forwardTextEditView != null,
+                               this._cursorPosition);
     }
 
     this.onFocusChange = function(focused) {
@@ -91,13 +94,19 @@ exports = Class(ImageScaleView, function(supr) {
         }
     }
 
-    this.onChange = function(value) {
+    this.onChange = function(value, cursorPos) {
         var isProcessed;
-        console.log("TextEditView onChange called");
+        var isCursorSet;
+
         if (value !== this._textBox.getText()) {
             isProcessed = typeof this._textFilter === 'function';
+            isCursorSet = typeof this._textCursorFilter === 'function';
             
             if (isProcessed) {
+                if (isCursorSet) {
+                    this._cursorPosition = this._textCursorFilter(value, cursorPos);    
+                }
+
                 value = this._textFilter(value); 
             } 
 
@@ -124,8 +133,9 @@ exports = Class(ImageScaleView, function(supr) {
      * and returns a string. This can be used to process text
      * entered into the EditText.
      */
-    this.registerTextFilter = function(fn) {
+    this.registerTextFilter = function(fn, fn2) {
         this._textFilter = fn; 
+        this._textCursorFilter = fn2;
     }
 
     this.getText = function() {

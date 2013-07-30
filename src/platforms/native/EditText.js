@@ -19,7 +19,7 @@ import device;
 
 NATIVE.InputPrompt.subscribe('KeyUp', function(evt) {
 	if (focused != null) {
-        focused.onChange(evt.text);    
+        focused.onChange(evt.text, evt.cursorPos);    
     }
 });
 
@@ -61,14 +61,15 @@ exports = Class(function() {
         NATIVE.inputPrompt.hideSoftKeyboard(); 
      }
 
-    this.refresh = function(currentVal, hasBack, hasForward) {
+    this.refresh = function(currentVal, hasBack, hasForward, cursorPos) {
         console.log("TextEditView refresh with: " + currentVal);
         NATIVE.inputPrompt.showSoftKeyboard(currentVal || "", 
                                             this._opts.hint, 
                                             hasBack, 
                                             hasForward, 
                                             this._opts.inputType, 
-                                            this._opts.maxLength);
+                                            this._opts.maxLength,
+                                            cursorPos);
     }
 
     this.hasFocus = function() {
