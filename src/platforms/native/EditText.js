@@ -94,6 +94,10 @@ exports = Class(function() {
         this.onSubmit(this._value);
     }
 
+    this.setHint = function(hint) {
+        this._opts.hint = hint;
+    }
+
 });
 
 if (device.isIOS) {

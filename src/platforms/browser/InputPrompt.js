@@ -81,6 +81,8 @@ exports = Class(function () {
 
 	this.closeEditField = function() {}
 
+	this.setHint = function() {}
+
 	this.refresh = function() {}
 });
 

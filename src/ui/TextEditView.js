@@ -166,4 +166,10 @@ exports = Class(ImageScaleView, function(supr) {
 
         this._textBox.setText(text);
     }
+
+    this.setHint = function(hint) {
+        this._hint = hint; 
+        this._editText.setHint(hint);
+        this.setText(this.getText());
+    }
 });
