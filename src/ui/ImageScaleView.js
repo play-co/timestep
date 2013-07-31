@@ -58,6 +58,10 @@ exports = Class(ui.View, function (supr) {
 
 		this._imgScale = opts.imgScale || 1;
 
+		if (!opts.sourceSlices || !(opts.sourceSlices.horizontal || opts.sourceSlices.vertical)) {
+			throw new Error('slice views require sourceSlices.horizontal and/or sourceSlices.vertical');
+		}
+
 		if (opts.scaleMethod === '2slice') {
 			if (opts.sourceSlices.horizontal && opts.destSlices.horizontal) {
 				if (opts.destSlices.horizontal.left) {
@@ -79,17 +83,17 @@ exports = Class(ui.View, function (supr) {
 			}
 		}
 
-		if (!opts.sourceSlices || !(opts.sourceSlices.horizontal || opts.sourceSlices.vertical)) {
-			throw new Error('slice views require sourceSlices.horizontal and/or sourceSlices.vertical');
-		}
-
 		if (opts.sourceSlices.horizontal) {
-			var cent = opts.width ? (opts.width - opts.sourceSlices.horizontal.left - opts.sourceSlices.horizontal.right) : 0;
-			this._sourceSlicesHor = [
-				opts.sourceSlices.horizontal.left,
-				opts.sourceSlices.horizontal.center || cent,
-				opts.sourceSlices.horizontal.right
-			];
+			var src = opts.sourceSlices.horizontal;
+			var slices = [src.left || 0, src.center, src.right || 0];
+			if (slices.center == undefined && this._img) { // also captures null, but ignores 0
+				var width = this._img.getWidth();
+				slices[1] = width ? width - slices[0] - slices[2] : 0;
+			} else {
+				slices[1] = slices.center || 0;
+			}
+
+			this._sourceSlicesHor = slices;
 			this._destSlicesHor = [
 				(this._destSlices.horizontal.left || 0) * this._imgScale,
 				0,
@@ -101,12 +105,16 @@ exports = Class(ui.View, function (supr) {
 		}
 
 		if (opts.sourceSlices.vertical) {
-			var cent = opts.height ? (opts.height - opts.sourceSlices.vertical.top - opts.sourceSlices.vertical.bottom) : 0;
-			this._sourceSlicesVer = [
-				opts.sourceSlices.vertical.top,
-				opts.sourceSlices.vertical.middle || cent,
-				opts.sourceSlices.vertical.bottom
-			];
+			var src = opts.sourceSlices.vertical;
+			var slices = [src.top || 0, 0, src.bottom || 0];
+			if (slices.middle == undefined && this._img) {
+				var height = this._img.getHeight();
+				slices[1] = height ? height - slices[0] - slices[2] : 0;
+			} else {
+				slices[1] = slices.middle || 0;
+			}
+
+			this._sourceSlicesVer = slices;
 			this._destSlicesVer = [
 				(this._destSlices.vertical.top || 0) * this._imgScale,
 				0,
@@ -279,7 +287,12 @@ exports = Class(ui.View, function (supr) {
 			if (typeof img == 'string') {
 				img = new Image({url: img});
 			}
-			return img.doOnLoad(this, 'setImage', img, opts);
+
+			if (!img.isError()) {
+				return img.doOnLoad(this, 'setImage', img, opts);
+			} else {
+				return;
+			}
 		}
 
 		if (opts.autoSize && this._scaleMethod == 'stretch' && !((opts.width || opts.layoutWidth) && (opts.height || opts.layoutHeight))) {
@@ -296,7 +309,9 @@ exports = Class(ui.View, function (supr) {
 
 		if (this._isSlice) {
 			this.updateSlices({
-				sourceSlices: this._opts.sourceSlices
+				scaleMethod: this._opts.scaleMethod,
+				sourceSlices: this._opts.sourceSlices,
+				destSlices: this._opts.destSlices
 			});
 
 			var sourceSlicesHor = this._sourceSlicesHor;
