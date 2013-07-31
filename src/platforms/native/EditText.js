@@ -19,7 +19,7 @@ import device;
 
 NATIVE.InputPrompt.subscribe('KeyUp', function(evt) {
     if (focused != null) {   
-        focused.onChange(evt.text, evt.cursorPos);    
+        focused.onChange(evt.text, evt.prevText, evt.cursorPos);    
     }
 });
 
