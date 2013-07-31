@@ -153,9 +153,9 @@ exports = Class(function () {
 		}
 	};
 
-	this.setURL = function (url) {
+	this.setURL = function (url, forceReload) {
 		resourceLoader._updateImageMap(this._map, url);
-		this._setSrcImg(null, this._map.url);
+		this._setSrcImg(null, this._map.url, forceReload);
 	};
 
 	this.getURL = function () { return this._map.url; };
