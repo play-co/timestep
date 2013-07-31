@@ -107,10 +107,10 @@ exports = Class(ImageScaleView, function(supr) {
             
             if (isProcessed) {
                 if (isCursorSet) {
-                    this._cursorPos = this._textCursorFilter(value, prevValue, cursorPos);    
+                    this._cursorPos = this._textCursorFilter(value || '', prevValue || '', cursorPos || 0);
                 }
 
-                value = this._textFilter(value, prevValue); 
+                value = this._textFilter(value || '', prevValue || '');
             } 
 
             this.setText(value);
