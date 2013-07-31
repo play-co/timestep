@@ -111,6 +111,18 @@ exports = Class(function () {
 			}
 		}
 
+		if (forceReload) {
+			// clear native texture in an image object
+			if (img && img.destroy) {
+				img.destroy();
+			}
+
+			// clear native textures by URL
+			if (url && NATIVE && NATIVE.gl && NATIVE.gl.deleteTexture) {
+				NATIVE.gl.deleteTexture(url);
+			}
+		}
+
 		// if it's already loaded...
 		if (img && img.complete) {
 			this._srcImg = img;
