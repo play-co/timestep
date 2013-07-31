@@ -51,7 +51,7 @@ exports = Class(ImageScaleView, function(supr) {
         this._forwardTextEditView = null;
         this._hint = this._opts.hintJs || this._opts.hint;
         this._hintSet = false;
-        this._cursorPosition = -1;
+        this._cursorPos = -1;
         this._normalColor = this._opts.color;
         this._editText = new EditText(merge({}, // avoid side effects
             merge(opts, {
@@ -86,7 +86,7 @@ exports = Class(ImageScaleView, function(supr) {
         this._editText.refresh(this.getText(),
                                this._backTextEditView != null,
                                this._forwardTextEditView != null,
-                               this._cursorPosition);
+                               this._cursorPos);
     }
 
     this.onFocusChange = function(focused) {
@@ -107,7 +107,7 @@ exports = Class(ImageScaleView, function(supr) {
             
             if (isProcessed) {
                 if (isCursorSet) {
-                    this._cursorPosition = this._textCursorFilter(value, prevValue, cursorPos);    
+                    this._cursorPos = this._textCursorFilter(value, prevValue, cursorPos);    
                 }
 
                 value = this._textFilter(value, prevValue); 
