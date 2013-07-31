@@ -85,12 +85,10 @@ exports = Class(ui.View, function (supr) {
 
 		if (opts.sourceSlices.horizontal) {
 			var src = opts.sourceSlices.horizontal;
-			var slices = [src.left || 0, src.center, src.right || 0];
-			if (slices.center == undefined && this._img) { // also captures null, but ignores 0
+			var slices = [src.left || 0, src.center || 0, src.right || 0];
+			if (src.center == undefined && this._img) { // also captures null, but ignores 0
 				var width = this._img.getWidth();
 				slices[1] = width ? width - slices[0] - slices[2] : 0;
-			} else {
-				slices[1] = slices.center || 0;
 			}
 
 			this._sourceSlicesHor = slices;
@@ -106,12 +104,10 @@ exports = Class(ui.View, function (supr) {
 
 		if (opts.sourceSlices.vertical) {
 			var src = opts.sourceSlices.vertical;
-			var slices = [src.top || 0, 0, src.bottom || 0];
-			if (slices.middle == undefined && this._img) {
+			var slices = [src.top || 0, src.middle || 0, src.bottom || 0];
+			if (src.middle == undefined && this._img) {
 				var height = this._img.getHeight();
 				slices[1] = height ? height - slices[0] - slices[2] : 0;
-			} else {
-				slices[1] = slices.middle || 0;
 			}
 
 			this._sourceSlicesVer = slices;
