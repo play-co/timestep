@@ -45,6 +45,7 @@ exports = Class(TextView, function (supr) {
 			autoShowKeyboard: this._opts.autoShowKeyboard,
 			isPassword: this._opts.isPassword,
 			onChange: bind(this, 'onChange'),
+			onSubmit: bind(this, 'onSubmit'),
 			keyboardType: this._opts.keyboardType
 		});
 	};
@@ -53,6 +54,10 @@ exports = Class(TextView, function (supr) {
 		this._prompt.show();
 		this.publish('InputSelect');
 	};
+
+	this.onSubmit = function (value) {
+		this.publish('Submit', value);
+	}
 
 	this.onChange = function (changeValue) {
 		if (changeValue === null) {
