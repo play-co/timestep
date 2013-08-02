@@ -39,7 +39,23 @@ var Loader = Class(function () {
 	this._map = {};
 
 	this.getMap = function () { return this._map; }
-	this.setMap = function (map) { this._map = map || {}; }
+	this.setMap = function (map) { 
+		var localizedMap = {};
+		// For any resource staring with resource-local/ change the path to be resources/
+		// This allows localized resources to be loaded the same way for all languages
+		for (var key in map) {
+			var language = navigator.language && navigator.language.split('-')[0].toLowerCase() || 'en';
+			var localResources = 'resources-' + language;
+			var localLoc = key.indexOf(localResources);
+			if (localLoc == 0) {
+				var modifiedPath = 'resources' + key.substring(localResources.length);
+				localizedMap[modifiedPath] = map[key];
+			} else {
+				localizedMap[key] = map[key];
+			}
+		}
+		this._map = localizedMap; 
+	}
 	
 	// TODO: rename this function...
 	this.get = function (file) {
