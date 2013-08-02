@@ -67,17 +67,30 @@ exports = Class(function () {
 
 	this.setValue = function (value) {
 		this._value = value;
+		return this;
 	};
 
 	this.setMessage = function (message) {
 		this._message = message;
-	};
-	
-	this.setKeyboardType = function(keyboardType) {
-		logger.warn('Setting keyboard type in the browser does nothing');
+		return this;
 	};
 
-	this.requestFocus = function() { this.show(); }
+	this.setOkButton = function (value) {
+		this._okText = value;
+		return this;
+	}
+
+	this.setCancelButton = function (value) {
+		this._cancelText = value;
+		return this;
+	}
+
+	this.setKeyboardType = function(keyboardType) {
+		logger.warn('Setting keyboard type in the browser does nothing');
+		return this;
+	};
+
+	this.requestFocus = function() { this.show(); return this; }
 
 	this.closeEditField = function() {}
 

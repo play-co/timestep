@@ -51,10 +51,15 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 
 	// Split the text into a list containing the word and the width of the word...
 	this._lineSplit = function (ctx) {
-		var spaceWidth = ctx.measureText(" ").width;
 		var opts = this._opts;
+		var spaceWidth = opts.wrapCharacter ? 0 : ctx.measureText(" ").width;
 		var text = opts.text || "";
-		var words = (opts.wrap || (opts.horizontalAlign === "justify")) ? (text.replace(/\t/g, " ").match(/\S+|[\n]| +(?= )/g) || []) : text.split("\n");
+		var words = 
+				opts.wrapCharacter
+					? text.replace(/\t/g, " ").match(/\S[。，]?|[\n]/g) || []
+					: (opts.wrap || (opts.horizontalAlign === "justify")) 
+						? (text.replace(/\t/g, " ").match(/\S+|[\n]| +(?= )/g) || [])
+						: text.split("\n");
 		var word;
 		var currentWord = 0;
 		var wordCount = words.length;
@@ -96,7 +101,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 	};
 
 	this._measureWords = function (ctx) {
-		var spaceWidth = ctx.measureText(" ").width;
+		var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(" ").width;
 		var currentWord = 0;
 		var wordCount = this._line.length;
 
@@ -116,7 +121,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 
 	// Split the single line into multiple lines which fit into the available width...
 	this._wrap = function (ctx, width) {
-		var spaceWidth = ctx.measureText(" ").width;
+		var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(" ").width;
 		var word;
 		var currentWidth = 0;
 		var lines = [];
@@ -159,7 +164,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 						(s !== "") && lines.push([{word: s, width: currentWidth, line: lines.length}]);
 						s = word.word;
 					} else {
-						s += (s !== "" ? " " : "") + word.word;
+						s += (s !== "" && !this._opts.wrapCharacter ? " " : "") + word.word;
 					}
 				}
 			}
@@ -177,7 +182,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 
 	// Calculate the position of each word on the line...
 	this._wordFlow = function (ctx) {
-		var spaceWidth = ctx.measureText(" ").width;
+		var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(" ").width;
 		var lines = this._lines;
 
 		this._cache = [];
@@ -258,7 +263,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 
 	this._horizontalAlign = function (ctx) {
 		var paddingLeft = this.getPaddingLeft();
-		var spaceWidth = ctx.measureText(" ").width;
+		var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(" ").width;
 		var div = {left: -1, center: 2, right: 1, justify: 3}[this._opts.horizontalAlign];
 		var cache = this._cache;
 		var actualWidth = this.getActualWidth();

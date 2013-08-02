@@ -143,15 +143,6 @@ exports = Class(function () {
 			_forwardButton.disabled = true;
 		}
 
-        console.log("TextEditView refresh with: " + currentVal);
-        NATIVE.inputPrompt.showSoftKeyboard(currentVal || "", 
-                                            this._opts.hint, 
-                                            hasBack,
-                                            hasForward,
-                                            this._opts.inputType, 
-                                            this._opts.maxLength,
-                                            cursorPos);
-
 		*/
     }
 

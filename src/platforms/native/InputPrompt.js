@@ -50,6 +50,8 @@ exports = Class(function () {
 		opts = opts || {};
 		this.onChange = opts.onChange;
 		this.onSubmit = opts.onSubmit;
+		this._okText = 'okText' in opts ? (opts.okText || '') : 'ok';
+		this._cancelText = 'cancelText' in opts ? (opts.cancelText || '') : 'cancel';
 		this._value = opts.value != undefined ? opts.value : '';
 		this._title = opts.title != undefined ? opts.title : '';
 		this._message = opts.prompt != undefined ? opts.prompt : '';
@@ -63,16 +65,38 @@ exports = Class(function () {
 	};
 
 	this.show = function () {
-		this._id = NATIVE.inputPrompt.show(this._title, this._message, this._value, this._autoShowKeyboard, this._isPassword, this._keyboardType);
+		this._id = NATIVE.inputPrompt.show(
+				this._title,
+				this._message,
+				this._okText,
+				this._cancelText,
+				this._value,
+				this._autoShowKeyboard,
+				this._isPassword,
+				this._keyboardType);
+
 		activeInputs[this._id] = this;
+		return this;
 	};
+
+	this.setOkButton = function (value) {
+		this._okText = value;
+		return this;
+	}
+
+	this.setCancelButton = function (value) {
+		this._cancelText = value;
+		return this;
+	}
 
 	this.setValue = function (value) {
 		this._value = value;
+		return this;
 	};
 
 	this.setKeyboardType = function (keyboardType) {
 		this._keyboardType = keyboardType;
+		return this;
 	};
 
 	this.getValue = function () {
@@ -81,9 +105,10 @@ exports = Class(function () {
 
 	this.setMessage = function (message) {
 		this._message = message;
+		return this;
 	};
 
-	this.requestFocus = function() { this.show(); }
+	this.requestFocus = function() { this.show(); return this; }
 
 	this.closeEditField = function() {}
 

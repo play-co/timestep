@@ -66,8 +66,19 @@ exports = Class(TextView, function (supr) {
 		}
 	};
 
+	this.setOkButton = function (value) {
+		this._prompt.setOkButton(value);
+		return this;
+	}
+
+	this.setCancelButton = function (value) {
+		this._prompt.setCancelButton(value);
+		return this;
+	}
+
 	this.setPrompt = function (prompt) {
 		this._prompt.setMessage(prompt);
+		return this;
 	};
 
 	this.showPrompt = function () {
@@ -76,6 +87,7 @@ exports = Class(TextView, function (supr) {
 
 	this.setKeyboardType = function(keyboardType) {
 		this._prompt.setKeyboardType(keyboardType);
+		return this;
 	};
 });
 
