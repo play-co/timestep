@@ -68,6 +68,8 @@ var InputField = Class(squill.Widget, function (supr) {
         }
     }
 
+    this.getValue = function () { return this._el.value; }
+
     this.onBlur = function (evt) {
         _focused && _focused.closeEditField();
     }
@@ -115,7 +117,9 @@ exports = Class(function () {
 
     this.closeEditField = function() {
         console.log("TextEditView editText removeFocus");
-        if (_focused != null) _focused.removeFocus();
+        if (_focused != null) {
+            _focused.removeFocus();
+        }
 
         _input.hide();
         // NATIVE.inputPrompt.hideSoftKeyboard(); 
@@ -157,7 +161,10 @@ exports = Class(function () {
 
     this.removeFocus = function() {
         this.onFocusChange(false);
-        this.onSubmit(this._value);
+        this.onSubmit(_input.getValue());
+        if (_focused == this) {
+            _focused = null;    
+        }
     }
 
     this.setHint = function(hint) {

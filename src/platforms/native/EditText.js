@@ -87,12 +87,15 @@ exports = Class(function() {
     }
 
     this.hasFocus = function() {
-        return focused = this; 
+        return focused == this; 
     }
 
     this.removeFocus = function() {
         this.onFocusChange(false);
         this.onSubmit(this._value);
+        if (focused == this) {
+            focused = null;
+        }
     }
 
     this.setHint = function(hint) {
