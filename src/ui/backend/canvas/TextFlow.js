@@ -160,9 +160,25 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 					lines.push([{word: s, width: currentWidth, line: lines.length}]);
 					s = "";
 				} else {
-					if (currentWidth + word.width + spaceWidth > width) {
-						(s !== "") && lines.push([{word: s, width: currentWidth, line: lines.length}]);
-						s = word.word;
+					var isEmpty = !!s.length;
+					var offset = isEmpty ? 0 : spaceWidth;
+					if (currentWidth + word.width + offset > width) {
+						//if word is longer than the entire line width
+						if (word.width > width) {
+							var wordPiece =  "";
+							for (var i in word.word) {
+								if (ctx.measureText(wordPiece + word.word[i]).width + offset + currentWidth <= width) {
+									wordPiece += word.word[i];
+								} else {
+									lines.push([{word: s + (isEmpty ? "" : " ") + wordPiece, width: currentWidth, line: lines.length}]);
+									s = word.word.substring(i);
+									break;
+								}
+							}
+						} else {
+							(s !== "") && lines.push([{word: s, width: currentWidth, line: lines.length}]);
+							s = word.word;
+						}
 					} else {
 						s += (s !== "" && !this._opts.wrapCharacter ? " " : "") + word.word;
 					}
