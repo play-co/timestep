@@ -160,23 +160,38 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 					lines.push([{word: s, width: currentWidth, line: lines.length}]);
 					s = "";
 				} else {
-					var isEmpty = !!s.length;
-					var offset = isEmpty ? 0 : spaceWidth;
+					var isLineEmpty = !s.length;
+					var offset = isLineEmpty ? 0 : spaceWidth;
 					if (currentWidth + word.width + offset > width) {
-						//if word is longer than the entire line width
-						if (word.width > width) {
-							var wordPiece =  "";
-							for (var i in word.word) {
-								if (ctx.measureText(wordPiece + word.word[i]).width + offset + currentWidth <= width) {
-									wordPiece += word.word[i];
+						var wordWidth = word.width;
+
+						// if word is longer than the entire line width
+						if (wordWidth > width) {
+							var current = word.word;
+
+							// split word into lines
+							var wordPiece = "";
+							for (var i = 0, n = current.length; i < n; ++i) {
+								if ((isLineEmpty && !wordPiece) || ctx.measureText(wordPiece + current[i]).width + offset + currentWidth <= width) {
+									wordPiece += current[i];
 								} else {
-									lines.push([{word: s + (isEmpty ? "" : " ") + wordPiece, width: currentWidth, line: lines.length}]);
-									s = word.word.substring(i);
-									break;
+									var line = s + (isLineEmpty ? "" : " ") + wordPiece;
+									currentWidth = ctx.measureText(line).width;
+									lines.push([{word: line, width: ctx.measureText(line).width, line: lines.length}]);
+									currentWidth = 0;
+									offset = 0;
+									s = "";
+									isLineEmpty = true;
+									wordPiece = "";
 								}
 							}
+
+							if (wordPiece) {
+								var line = s + (isLineEmpty ? "" : " ") + wordPiece;
+								lines.push([{word: line, width: ctx.measureText(line).width, line: lines.length}]);
+							}
 						} else {
-							(s !== "") && lines.push([{word: s, width: currentWidth, line: lines.length}]);
+							(!isLineEmpty) && lines.push([{word: s, width: currentWidth, line: lines.length}]);
 							s = word.word;
 						}
 					} else {
