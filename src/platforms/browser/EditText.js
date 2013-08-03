@@ -41,6 +41,10 @@ var InputField = Class(squill.Widget, function (supr) {
         this._prevValue = value;
     }
 
+    this.setCursor = function (cursorPos) {
+        this._el.selectionStart = this._el.selectionEnd = cursorPos;
+    }
+
     this.setPlaceholder = function (placeholder) {
         this._el.placeholder = placeholder;
     }
@@ -119,6 +123,7 @@ exports = Class(function () {
 
     this.refresh = function(value, hasBack, hasForward, cursorPos) {
 
+        _input.setCursor(cursorPos);
     	_input.setValue(value);
         _input.setPlaceholder(this._opts.hint);
         _input.setMaxLength(this._opts.maxLength);

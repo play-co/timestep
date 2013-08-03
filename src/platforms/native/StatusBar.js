@@ -6,3 +6,7 @@ exports.show = function() {
 exports.hide = function() {
 	NATIVE.statusBar && NATIVE.statusBar.hideStatusBar && NATIVE.statusBar.hideStatusBar();
 };
+
+exports.getHeight = function () {
+	return NATIVE.statusBar && NATIVE.statusBar.statusBarHeight;
+}
