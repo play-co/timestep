@@ -22,7 +22,6 @@ var BoxLayout = exports = Class(function () {
 
 	this.init = function (opts) {
 		this._view = opts.view;
-		this._resizer = null;
 
 		cls.initParentListener(opts.view);
 	}
@@ -45,16 +44,10 @@ var BoxLayout = exports = Class(function () {
 			view.style.__removeSuperviewResize();
 		}
 
-		if (!this._resizer) {
-			this._resizer = bind(view, 'needsReflow');
-		}
 		// reflow on parent view resize
-		var onResize = this._resizer;
+		var onResize = bind(view, 'needsReflow');
 		var superview = view.getSuperview();
-		if (superview) {
-			superview.removeListener('Resize', onResize); // Try to remove...
-			superview.on('Resize', onResize);
-		}
+		superview && superview.on('Resize', onResize);
 
 		// store a closure to unsubscribe this event
 		view.style.__removeSuperviewResize = bind(view.style, function () {
@@ -150,3 +143,4 @@ var BoxLayout = exports = Class(function () {
 		}
 	}
 });
+
