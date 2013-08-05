@@ -29,7 +29,7 @@ exports.package = function(builder, project, opts, next) {
 		.alias('help', 'h').describe('help', 'Display this help menu')
 		.alias('install', 'i').describe('install', 'Launch `adb install` after build completes').boolean('install').default('install', false)
 		.alias('open', 'o').describe('open', 'Launch the app on the phone after build completes (implicitly installs)').boolean('open').default('open', false)
-		.alias('debug', 'd').describe('debug', 'Create debug build').boolean('debug').default('debug', opts.template !== "release")
+		.alias('debug', 'd').describe('debug', 'Create debug build').boolean('debug').default('debug', opts.template === "debug")
 		.alias('clean', 'c').describe('clean', 'Clean build before compilation').boolean('clean').default('clean', opts.template !== "debug");
 	var argv = argParser.argv;
 
