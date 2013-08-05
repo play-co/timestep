@@ -50,10 +50,18 @@ exports = Class(function() {
         console.log('instantiate EditText with hint: ' + opts.hint);
         this._opts = merge(opts, defaults);
         this._textEditView = opts.textEditView;
-        this.onChange = opts.onChange;
         this.onFocusChange = opts.onFocusChange || function() {};
         this.onSubmit = opts.onSubmit || function () {}
     };
+
+    this.onChange = function (value, prevValue, cursorPos) {
+        this._value = value;
+        if (this._opts.onChange) {
+            this._opts.onChange(value, prevValue, cursorPos);
+        }
+    }
+
+    this.getValue = function () { return this._value; }
 
     this.setValue = function (value) {
         this._value = value;

@@ -22,11 +22,11 @@ var EditText = device.get('EditText');
 
 exports = Class(ImageScaleView, function(supr) {
 
-    var HINT_COLOR = "#979797";
     var defaults = {
         paddingLeft: 20,
         paddingRight: 20,
         paddingTop: 0,
+        hintColor: "#979797",
         paddingBottom: 0
     };
 
@@ -53,6 +53,7 @@ exports = Class(ImageScaleView, function(supr) {
         this._hintSet = false;
         this._cursorPos = -1;
         this._normalColor = this._opts.color;
+        this._hintColor = this._opts.hintColor;
         this._editText = new EditText(merge({}, // avoid side effects
             merge(opts, {
                 title: this._hint,
@@ -153,12 +154,23 @@ exports = Class(ImageScaleView, function(supr) {
         return result;
     }
 
-    this.setValue = 
+    this.getValue = function () {
+        return this._editText.getValue();
+    }
+
+    this.setValue = function (value) {
+        this.setText(value);
+
+        if (this._editText.setValue) {
+            this._editText.setValue(value);
+        }
+    }
+
     this.setText = function(text) {
         if ((text == null || (text != null && text.length == 0)) && this._hint != null) {
             this._hintSet = true;
             text = this._hint; 
-            this._textBox._opts.color = "#979797";
+            this._textBox._opts.color = this._hintColor;
         } else {
             this._hintSet = false;
             this._textBox._opts.color = this._normalColor; 
