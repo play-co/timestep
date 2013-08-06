@@ -52,7 +52,6 @@ exports = Class(TextView, function (supr) {
 
 	this.onInputSelect = function () {
 		this._prompt.show();
-		this.publish('InputSelect');
 	};
 
 	this.onSubmit = function (value) {

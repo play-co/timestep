@@ -44,7 +44,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 		this._maxWidth = 0;
 		this._maxHeight = 0;
 
-		this._heightFound = -1;
+		this._heightFound = 0;
 
 		this._offsetRect = {x: 0, y: 0, width: 0, height: 0};
 	};

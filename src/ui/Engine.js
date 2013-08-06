@@ -158,6 +158,17 @@ var Application = exports = Class(Emitter, function (supr) {
 			this._keyListener.setEnabled(this._opts.keyListenerEnabled);
 		}
 
+		if (this._opts.scaleUI) {
+			if (Array.isArray(this._opts.scaleUI)) {
+				if (this._opts.scaleUI.length != 2) {
+					throw new Error("Illegal value for engine option scaleUI: " + this._opts.scaleUI);
+				}
+				this.scaleUI(this._opts.scaleUI[0], this._opts.scaleUI[1]);
+			} else {
+				this.scaleUI(576, 1024);
+			}
+		}
+
 		if (this._opts.noReflow) {
 			this._reflowManager = null;
 			this._view.setReflowManager(null);
@@ -175,6 +186,19 @@ var Application = exports = Class(Emitter, function (supr) {
 			this._renderFPS = function () {};
 			this._tickFPS = function () {};
 		}
+	};
+
+	this.scaleUI = function (w, h) {
+		if (device.height > device.width) {
+			this._view.baseWidth = w;
+			this._view.baseHeight = device.height * (w / device.width);
+			this._view.scale = device.width / this._view.baseWidth;
+		} else {
+			this._view.baseWidth = h;
+			this._view.baseHeight = device.height * (h / device.width);
+			this._view.scale = device.height / this._view.baseHeight;
+		}
+		this._view.style.scale = this._view.scale;
 	};
 
 	this.supports = function (key) {

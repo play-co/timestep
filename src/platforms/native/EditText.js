@@ -13,14 +13,15 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-var focused;
 
 import device;
 
+var focused;
+
 NATIVE.InputPrompt.subscribe('KeyUp', function(evt) {
-    if (focused != null) {   
+    if (focused != null) {
         focused._value = evt.text;
-        focused.onChange(evt.text, evt.prevText, evt.cursorPos);    
+        focused.onChange(evt.text, evt.prevText, evt.cursorPos);
     }
 });
 
@@ -35,8 +36,6 @@ NATIVE.InputPrompt.subscribe('Move', function(evt) {
 NATIVE.InputPrompt.subscribe('Submit', function(evt) {
     focused && focused.closeEditField();
 });
-
-
 
 exports = Class(function() {
 
@@ -70,7 +69,7 @@ exports = Class(function() {
 
     this.requestFocus = function() {
         if (focused !== this) {
-            if (focused != null) focused.removeFocus(); 
+            if (focused != null) focused.removeFocus();
             this.onFocusChange(true);
         }
 
@@ -79,23 +78,26 @@ exports = Class(function() {
 
     this.closeEditField = function() {
         console.log("TextEditView editText removeFocus");
-        if (focused != null) focused.removeFocus(); 
-        NATIVE.inputPrompt.hideSoftKeyboard(); 
+        if (focused != null) {
+            focused.removeFocus();
+        }
+
+        NATIVE.inputPrompt.hideSoftKeyboard();
      }
 
     this.refresh = function(currentVal, hasBack, hasForward, cursorPos) {
         console.log("TextEditView refresh with: " + currentVal);
-        NATIVE.inputPrompt.showSoftKeyboard(currentVal || "", 
-                                            this._opts.hint, 
-                                            hasBack, 
-                                            hasForward, 
-                                            this._opts.inputType, 
+        NATIVE.inputPrompt.showSoftKeyboard(currentVal || "",
+                                            this._opts.hint,
+                                            hasBack,
+                                            hasForward,
+                                            this._opts.inputType,
                                             this._opts.maxLength,
                                             cursorPos);
     }
 
     this.hasFocus = function() {
-        return focused == this; 
+        return focused == this;
     }
 
     this.removeFocus = function() {
@@ -111,7 +113,3 @@ exports = Class(function() {
     }
 
 });
-
-if (device.isIOS) {
-    exports = jsio("import .InputPrompt");
-}

@@ -25,6 +25,7 @@ import ui.View as View;
 import ui.ImageView as ImageView;
 import ui.resource.Image as Image;
 
+var REFLOW_WAIT_MAX_COUNT = 2;
 exports = Class(View, function(supr) {
 
 	this.init = function(opts) {
@@ -38,42 +39,35 @@ exports = Class(View, function(supr) {
 		// container view for characters
 		this._container = new View({
 			superview: this,
-			layout: 'box',
+			layout: opts.layout && 'box',
+			width: opts.width,
+			height: opts.height,
 			canHandleEvents: false
 		});
 
-		// get our image data and set up Images
-		this._loadCount = 0;
-		opts.characterData && this.setCharacterData(opts.characterData);
-
 		// text options
-		this._textAlign = opts.textAlign || 'center';
+		this._textAlign = opts.horizontalAlign || opts.textAlign || 'center';
 		this._spacing = opts.spacing || 0;
-		this._origScale = opts.scale || 1;
-		this.setText(opts.text);
-	};
-
-	this._loadCharacter = function(c) {
-		var d = this._characterData[c];
-		d.img = new Image({ url: d.image });
-		if (!d.width || !this._srcHeight) {
-			this._loadCount += 1;
-			d.img.doOnLoad(bind(this, function() {
-				d.width = d.width || d.img.getWidth();
-				this._srcHeight = this._srcHeight || d.img.getHeight();
-				this._loadCount -= 1;
-				if (!this._loadCount) {
-					this.setText(this._text);
-				}
-			}));
-		}
+		this._reflowWaitCount = 0;
+		this._text = opts.text;
+		opts.characterData && this.setCharacterData(opts.characterData);
 	};
 
 	this.setCharacterData = function(data) {
 		this._srcHeight = undefined;
 		this._characterData = data;
-		for (var c in data) {
-			this._loadCharacter(c);
+
+		for (var i in data) {
+			var d = data[i];
+			d.img = new Image({ url: d.image });
+
+			var map = d.img.getMap();
+			d.width = d.width || (map.width + map.marginLeft + map.marginRight);
+			this._srcHeight = this._srcHeight || (map.height + map.marginTop + map.marginBottom);
+		}
+
+		if (this._text) {
+			this.setText(this._text);
 		}
 	};
 
@@ -84,14 +78,21 @@ exports = Class(View, function(supr) {
 	this.setText = function(text) {
 		this._text = text = (text === undefined) ? '' : (text + '');
 
-		if (this._loadCount || !text) {
-			return; // we'll call setText again when the characters are loaded
+		if (!text) {
+			return;
 		}
 
-		var size = this.getBoundingShape(),
-			width = size.width, height = size.height,
-			textWidth = 0, offset = 0,
+		var size = this.getBoundingShape(true),
+			width = size.width, height = size.height;
+		if (this._opts.layout && (!width || !height) && this._reflowWaitCount < REFLOW_WAIT_MAX_COUNT) {
+			this._reflowWaitCount += 1;
+			return setTimeout(bind(this, 'setText', text), 0);
+		}
+		this._reflowWaitCount = 0;
+
+		var textWidth = 0, offset = 0,
 			scale = height / this._srcHeight,
+			spacing = this._spacing * scale,
 			i = 0, c = 0, data, character;
 
 		while (i < text.length) {
@@ -99,7 +100,7 @@ exports = Class(View, function(supr) {
 			data = this._characterData[character];
 			if (data) {
 				this._activeCharacters[c] = data;
-				textWidth += (data.width + this._spacing) * scale;
+				textWidth += data.width * scale + spacing;
 				// special x offsets to fix text kerning only affect text width if it's first or last char
 				if (data.offset && (i == 0 || i == text.length - 1)) {
 					textWidth += data.offset * scale;
@@ -114,7 +115,7 @@ exports = Class(View, function(supr) {
 		if (width < textWidth) {
 			this._container.style.scale = width / textWidth;
 		} else {
-			this._container.style.scale = this._origScale;
+			this._container.style.scale = 1;
 		}
 
 		if (this._textAlign == 'center') {
@@ -164,7 +165,7 @@ exports = Class(View, function(supr) {
 				x -= data.offset * scale;
 			}
 
-			x += w + this._spacing * scale;
+			x += w + spacing;
 		}
 
 		while (i < this._imageViews.length) {

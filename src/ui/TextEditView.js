@@ -14,28 +14,27 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
+import device;
 import ui.TextView as TextView;
 import ui.ImageScaleView as ImageScaleView;
-import device;
 
 var EditText = device.get('EditText');
 
 exports = Class(ImageScaleView, function(supr) {
 
     var defaults = {
+        color: 'black',
+        hintColor: "#979797",
         paddingLeft: 20,
         paddingRight: 20,
         paddingTop: 0,
-        hintColor: "#979797",
         paddingBottom: 0
     };
 
     this.init = function(opts) {
         this._opts = merge(opts || {}, defaults); 
-
         supr(this, 'init', [this._opts]);
 
-        this.supr = supr;
         this._textBox = new TextView(merge({
             x: this._opts.paddingLeft,
             y: this._opts.paddingTop,
@@ -77,26 +76,26 @@ exports = Class(ImageScaleView, function(supr) {
         this._focused = true;
         this._editText.requestFocus();
         this.refresh();
-    }
+    };
 
     this.removeFocus = function() {
         this._editText.closeEditField();
-    }
+    };
 
     this.refresh = function() {
         this._editText.refresh(this.getText(),
                                this._backTextEditView != null,
                                this._forwardTextEditView != null,
                                this._cursorPos);
-    }
+    };
 
-    this.onFocusChange = function(focused) {
+    this.onFocusChange = function (focused) {
         if (focused) {
             this.emit('focusAdd');
         } else {
             this.emit('focusRemove');
         }
-    }
+    };
 
     this.onChange = function(value, prevValue, cursorPos) {
         var isProcessed;
@@ -122,11 +121,11 @@ exports = Class(ImageScaleView, function(supr) {
 
             this.emit('onChange', value);
         }
-    }
+    };
 
     this.setBackward = function(view) {
         this._backTextEditView = view;
-    }
+    };
 
     this.setForward = function(view) {
         this._forwardTextEditView = view;
@@ -169,7 +168,7 @@ exports = Class(ImageScaleView, function(supr) {
     this.setText = function(text) {
         if ((text == null || (text != null && text.length == 0)) && this._hint != null) {
             this._hintSet = true;
-            text = this._hint; 
+            text = this._hint;
             this._textBox._opts.color = this._hintColor;
         } else {
             this._hintSet = false;

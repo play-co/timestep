@@ -144,4 +144,3 @@ var BoxLayout = exports = Class(function () {
 	}
 });
 
-

@@ -178,45 +178,6 @@ var View = exports = Class(Emitter, function () {
 		return opts;
 	};
 
-	this.onInputStart = function (evt) {
-		if (!this._opts.dragRadius) {
-			return;
-		}
-		this.startDrag({
-			inputStartEvt: evt,
-			radius: this._opts.dragRadius
-		});
-	};
-
-	this.onDragStart = function (dragEvt) {
-		if (!this._opts.dragRadius) {
-			return;
-		}
-		var scale = this.getPosition().scale;
-		this._dragOffset.x = (dragEvt.srcPt.x / scale) - this.style.x;
-		this._dragOffset.y = (dragEvt.srcPt.y / scale) - this.style.y;
-	};
-
-	this.onDrag = this.onDragStop = function (startEvt, dragEvt, delta) {
-		if (!this._opts.dragRadius) {
-			return;
-		}
-		this.style.x = dragEvt.point[1].x - this._dragOffset.x;
-		this.style.y = dragEvt.point[1].y - this._dragOffset.y;
-		
-		if (!this._opts.unboundDrag) { // view is smaller than parent
-			var parent = this.getSuperview();
-			this.style.x = Math.max(0, Math.min(this.style.x, parent.style.width - this.style.width));
-			this.style.y = Math.max(0, Math.min(this.style.y, parent.style.height - this.style.height));
-		}
-		
-		if (this._opts.coverDrag) { // view is larger than parent
-			var parent = this.getSuperview();
-			this.style.x = Math.min(0, Math.max(this.style.x, parent.style.width - this.style.width));
-			this.style.y = Math.min(0, Math.max(this.style.y, parent.style.height - this.style.height));
-		}
-	};
-
 	// --- filters ---
 	// each filter can have multiple views
 	// but no view can have more than one filter
@@ -681,7 +642,8 @@ var View = exports = Class(Emitter, function () {
 	 * Return the bounding shape for this view. The shape is defined in the
 	 * options object when this view was constructed.
 	 */
-	this.getBoundingShape = function () {
+	this._boundingShape = {};
+	this.getBoundingShape = function (simple) {
 		if (this._infinite) {
 			return true;
 		} else {
@@ -691,7 +653,7 @@ var View = exports = Class(Emitter, function () {
 			if (!(w && h) && s.layout) {
 				var superview = this.getSuperview();
 				if (superview) {
-					var supersize = superview.getBoundingShape();
+					var supersize = superview.getBoundingShape(true);
 					if (!w) {
 						w = supersize.width;
 						if (s.layoutWidth) {
@@ -705,6 +667,13 @@ var View = exports = Class(Emitter, function () {
 						}
 					}
 				}
+			}
+			if (simple) {
+				this._boundingShape.x = s.x;
+				this._boundingShape.y = s.y;
+				this._boundingShape.width = w * s.scale;
+				this._boundingShape.height = h * s.scale;
+				return this._boundingShape;
 			}
 			return new Rect(s.x, s.y, w * s.scale, h * s.scale);
 		}

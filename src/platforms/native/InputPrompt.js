@@ -108,10 +108,11 @@ exports = Class(function () {
 		return this;
 	};
 
-	this.requestFocus = function() { this.show(); return this; }
+	this.requestFocus = function () { this.show(); return this; }
 
-	this.closeEditField = function() {}
+	this.closeEditField = function () {};
 
-	this.refresh = function() {}
+	this.refresh = function () {};
 });
+
 exports.KeyboardTypes = KeyboardTypes;

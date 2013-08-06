@@ -57,7 +57,7 @@ exports = Class(ScrollView, function (supr) {
 			selections: opts.selections,
 			maxSelections: opts.maxSelections,
 			dataSource: opts.dataSource,
-			renderMargin: opts.renderMargin
+			margin: opts.renderMargin
 		};
 
 		if ('recycle' in opts) {

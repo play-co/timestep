@@ -128,24 +128,26 @@ View.addExtension({
 				ih = opts.height;
 				iw = opts.height * this.aspectRatio;
 			}
-			else if (opts.layoutWidth && parent.style.width) {
-				iw = parent.style.width * parseFloat(opts.layoutWidth) / 100;
-				ih = iw / this.aspectRatio;
-			}
-			else if (opts.layoutHeight && parent.style.height) {
-				ih = parent.style.height * parseFloat(opts.layoutHeight) / 100;
-				iw = ih * this.aspectRatio;
-			}
-			else if (this.flex && parent.style.direction == 'horizontal' && this.width) {
-				iw = this.width;
-				ih = iw / this.aspectRatio;
-			}
-			else if (this.flex && parent.style.direction == 'vertical' && this.height) {
-				ih = this.height;
-				iw = ih * this.aspectRatio;
-			}
-			else if (parent && !isTimeout) {
-				setTimeout(bind(this, 'enforceAspectRatio', iw, ih, true), 0);
+			else if (parent) {
+				if (opts.layoutWidth && parent.style.width) {
+					iw = parent.style.width * parseFloat(opts.layoutWidth) / 100;
+					ih = iw / this.aspectRatio;
+				}
+				else if (opts.layoutHeight && parent.style.height) {
+					ih = parent.style.height * parseFloat(opts.layoutHeight) / 100;
+					iw = ih * this.aspectRatio;
+				}
+				else if (this.flex && parent.style.direction == 'horizontal' && this.width) {
+					iw = this.width;
+					ih = iw / this.aspectRatio;
+				}
+				else if (this.flex && parent.style.direction == 'vertical' && this.height) {
+					ih = this.height;
+					iw = ih * this.aspectRatio;
+				}
+				else if (!isTimeout) {
+					setTimeout(bind(this, 'enforceAspectRatio', iw, ih, true), 0);
+				}
 			}
 			this.width = iw;
 			this.height = ih;

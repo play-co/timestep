@@ -66,22 +66,18 @@ exports = Class(View, function (supr) {
 	this.setController = function (controller) {
 		this.controller = controller;
 		if (this._onSelect) {
-			this.controller.subscribe(
-				'Select',
-				this,
-				function (data) {
+			this._selectCB = this._selectCB || function (data) {
 					(data === this._data) && this._onSelect();
-				}
-			);
+				};
+			this.controller.unsubscribe('Select', this, this._selectCB);
+			this.controller.subscribe('Select', this, this._selectCB);
 		}
 		if (this._onDeselect) {
-			this.controller.subscribe(
-				'Deselect',
-				this,
-				function (data) {
+			this._deselectCB = this._deselectCB || function (data) {
 					(data === this._data) && this._onDeselect();
-				}
-			);
+				};
+			this.controller.unsubscribe('Deselect', this, this._deselectCB);
+			this.controller.subscribe('Deselect', this, this._deselectCB);
 		}
 	};
 
