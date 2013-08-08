@@ -166,8 +166,8 @@ exports = Class(ui.View, function (supr) {
 
 	this._computeSlices = function (w, h, absScale) {
 		var bounds = this._img.getBounds();
-		var iw = bounds.width - bounds.marginLeft - bounds.marginRight;
-		var ih = bounds.height - bounds.marginTop - bounds.marginBottom;
+		var iw = bounds.width;
+		var ih = bounds.height;
 		if (iw <= 0 || ih <= 0) {
 			return;
 		}
@@ -295,13 +295,13 @@ exports = Class(ui.View, function (supr) {
 		if (typeof img == 'string') {
 			bounds = GCResources.getMap()[img];
 			if (bounds) {
-				iw = bounds.w;
-				ih = bounds.h;
+				iw = bounds.w + bounds.marginLeft + bounds.marginRight;
+				ih = bounds.h + bounds.marginTop + bounds.marginBottom;
 			}
 		} else if (img instanceof Image && img.isLoaded()) {
 			bounds = img.getBounds();
-			iw = bounds.width;
-			ih = bounds.height;
+			iw = bounds.width + bounds.marginLeft + bounds.marginRight;
+			ih = bounds.height + bounds.marginTop + bounds.marginBottom;
 		}
 
 		if (!bounds) {
@@ -339,18 +339,28 @@ exports = Class(ui.View, function (supr) {
 			var sourceSlicesVer = this._sourceSlicesVer;
 			if (sourceSlicesHor) {
 				sw = sourceSlicesHor[0] + sourceSlicesHor[1] + sourceSlicesHor[2];
-				var scale = iw / sw;
-				sourceSlicesHor[0] *= scale;
-				sourceSlicesHor[1] *= scale;
-				sourceSlicesHor[2] *= scale;
+				var sourceScaleX = iw / sw;
+				sourceSlicesHor[0] = sourceSlicesHor[0] * sourceScaleX - bounds.marginLeft;
+				sourceSlicesHor[1] *= sourceScaleX;
+				sourceSlicesHor[2] = sourceSlicesHor[2] * sourceScaleX - bounds.marginRight;
 			}
 			if (sourceSlicesVer) {
 				sh = sourceSlicesVer[0] + sourceSlicesVer[1] + sourceSlicesVer[2];
-				var scale = ih / sh;
-				sourceSlicesVer[0] *= scale;
-				sourceSlicesVer[1] *= scale;
-				sourceSlicesVer[2] *= scale;
+				var sourceScaleY = ih / sh;
+				sourceSlicesVer[0] = sourceSlicesVer[0] * sourceScaleY - bounds.marginTop;
+				sourceSlicesVer[1] *= sourceScaleY;
+				sourceSlicesVer[2] = sourceSlicesVer[2] * sourceScaleY - bounds.marginBottom;
 			}
+			[0, 2].forEach(function(num) {
+				if (sourceSlicesHor && sourceSlicesHor[num] < 0) {
+					sourceSlicesHor[1] += sourceSlicesHor[num];
+					sourceSlicesHor[num] = 0;
+				}
+				if (sourceSlicesVer && sourceSlicesVer[num] < 0) {
+					sourceSlicesVer[1] += sourceSlicesVer[num];
+					sourceSlicesVer[num] = 0;
+				}
+			});
 		}
 
 		if (this._img) {
