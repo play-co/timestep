@@ -177,15 +177,6 @@ exports = Class(ui.View, function (supr) {
 		var sourceSlicesVer = this._sourceSlicesVer;
 		var destSlicesHor = [];
 		var destSlicesVer = [];
-		var sx = bounds.x;
-		var sy = bounds.y;
-
-		var dx = 0;
-		var dy = 0;
-		var dw = w;
-		var dh = h;
-
-		var i, j;
 
 		if (sourceSlicesHor) {
 			var ratio = this.style.fixedAspectRatio ? h / ih : 1;
@@ -194,8 +185,7 @@ exports = Class(ui.View, function (supr) {
 			destSlicesHor[1] = w - destSlicesHor[0] - destSlicesHor[2];
 
 			if (destSlicesHor[1] < 0) {
-				dw = destSlicesHor[0] + destSlicesHor[2];
-				destSlicesHor[0] = (destSlicesHor[0] * w / dw) | 0;
+				destSlicesHor[0] = (destSlicesHor[0] * w / (destSlicesHor[0] + destSlicesHor[2])) | 0;
 				destSlicesHor[1] = 0;
 				destSlicesHor[2] = w - destSlicesHor[0];
 			}
@@ -208,15 +198,48 @@ exports = Class(ui.View, function (supr) {
 			destSlicesVer[1] = h - destSlicesVer[0] - destSlicesVer[2];
 
 			if (destSlicesVer[1] < 0) {
-				dh = destSlicesVer[0] + destSlicesVer[2];
-				destSlicesVer[0] = (destSlicesVer[0] * h / dh) | 0;
+				destSlicesVer[0] = (destSlicesVer[0] * h / (destSlicesVer[0] + destSlicesVer[2])) | 0;
 				destSlicesVer[1] = 0;
 				destSlicesVer[2] = h - destSlicesVer[0];
 			}
 		}
 
+		var marginLeft = bounds.marginLeft,
+			origLeftSlice = sourceSlicesHor[0] + bounds.marginLeft;
+		if (origLeftSlice) {
+			marginLeft *= destSlicesHor[0] / origLeftSlice;
+		}
+
+		var marginRight = bounds.marginRight,
+			origRightSlice = sourceSlicesHor[2] + bounds.marginRight;
+		if (origRightSlice) {
+			marginRight *= destSlicesHor[2] / origRightSlice;
+		}
+
+		var marginTop = bounds.marginTop,
+			origTopSlice = sourceSlicesVer[0] + bounds.marginTop;
+		if (origTopSlice) {
+			marginTop *= destSlicesVer[0] / origTopSlice;
+		}
+
+		var marginBottom = bounds.marginBottom,
+			origBottomSlice = sourceSlicesVer[2] + bounds.marginBottom;
+		if (origBottomSlice) {
+			marginBottom *= destSlicesVer[2] / origBottomSlice;
+		}
+
+		destSlicesHor[0] -= marginLeft;
+		destSlicesVer[0] -= marginTop;
+		destSlicesHor[2] -= marginRight;
+		destSlicesVer[2] -= marginBottom;
+
 		var heightBalance = 0;
-		var sw, sh;
+		var sx, sw, sh;
+		var sy = bounds.y;
+		var dx, dw, dh;
+		var dy = marginTop;
+		var i, j;
+
 		for (j = 0; j < 3; j++) {
 			var widthBalance = 0;
 			var idealHeight = destSlicesVer[j] + heightBalance;
@@ -226,7 +249,7 @@ exports = Class(ui.View, function (supr) {
 			sh = sourceSlicesVer[j];
 			dh = roundedHeight;
 			sx = bounds.x;
-			dx = 0;
+			dx = marginLeft;
 			for (i = 0; i < 3; i++) {
 				var idealWidth = destSlicesHor[i] + widthBalance;
 				var roundedWidth = Math.round(absScale * idealWidth) / absScale;
@@ -255,6 +278,8 @@ exports = Class(ui.View, function (supr) {
 			}
 			sy += sh;
 			dy += dh;
+
+			marginTop = 0;
 		}
 	};
 
@@ -270,13 +295,13 @@ exports = Class(ui.View, function (supr) {
 		if (typeof img == 'string') {
 			bounds = GCResources.getMap()[img];
 			if (bounds) {
-				iw = bounds.w;
-				ih = bounds.h;
+				iw = bounds.w + bounds.marginLeft + bounds.marginRight;
+				ih = bounds.h + bounds.marginTop + bounds.marginBottom;
 			}
 		} else if (img instanceof Image && img.isLoaded()) {
 			bounds = img.getBounds();
-			iw = bounds.width;
-			ih = bounds.height;
+			iw = bounds.width + bounds.marginLeft + bounds.marginRight;
+			ih = bounds.height + bounds.marginTop + bounds.marginBottom;
 		}
 
 		if (!bounds) {
@@ -314,18 +339,28 @@ exports = Class(ui.View, function (supr) {
 			var sourceSlicesVer = this._sourceSlicesVer;
 			if (sourceSlicesHor) {
 				sw = sourceSlicesHor[0] + sourceSlicesHor[1] + sourceSlicesHor[2];
-				var scale = iw / sw;
-				sourceSlicesHor[0] *= scale;
-				sourceSlicesHor[1] *= scale;
-				sourceSlicesHor[2] *= scale;
+				var sourceScaleX = iw / sw;
+				sourceSlicesHor[0] = sourceSlicesHor[0] * sourceScaleX - bounds.marginLeft;
+				sourceSlicesHor[1] *= sourceScaleX;
+				sourceSlicesHor[2] = sourceSlicesHor[2] * sourceScaleX - bounds.marginRight;
 			}
 			if (sourceSlicesVer) {
 				sh = sourceSlicesVer[0] + sourceSlicesVer[1] + sourceSlicesVer[2];
-				var scale = ih / sh;
-				sourceSlicesVer[0] *= scale;
-				sourceSlicesVer[1] *= scale;
-				sourceSlicesVer[2] *= scale;
+				var sourceScaleY = ih / sh;
+				sourceSlicesVer[0] = sourceSlicesVer[0] * sourceScaleY - bounds.marginTop;
+				sourceSlicesVer[1] *= sourceScaleY;
+				sourceSlicesVer[2] = sourceSlicesVer[2] * sourceScaleY - bounds.marginBottom;
 			}
+			[0, 2].forEach(function(num) {
+				if (sourceSlicesHor && sourceSlicesHor[num] < 0) {
+					sourceSlicesHor[1] += sourceSlicesHor[num];
+					sourceSlicesHor[num] = 0;
+				}
+				if (sourceSlicesVer && sourceSlicesVer[num] < 0) {
+					sourceSlicesVer[1] += sourceSlicesVer[num];
+					sourceSlicesVer[num] = 0;
+				}
+			});
 		}
 
 		if (this._img) {
