@@ -58,73 +58,67 @@ exports = Class(ui.View, function (supr) {
 
 		this._imgScale = opts.imgScale || 1;
 
-		if (this._isSlice) {
-			if (opts.scaleMethod === '2slice') {
-				if (opts.sourceSlices.horizontal && opts.destSlices.horizontal) {
-					if (opts.destSlices.horizontal.left) {
-						opts.sourceSlices.horizontal.center = opts.sourceSlices.horizontal.right;
-						opts.sourceSlices.horizontal.right = 0;
-					} else if (opts.destSlices.horizontal.right) {
-						opts.sourceSlices.horizontal.center = opts.sourceSlices.horizontal.left;
-						opts.sourceSlices.horizontal.left = 0;
-					}
-				}
-				if (opts.sourceSlices.vertical && opts.destSlices.vertical) {
-					if (opts.destSlices.vertical.top) {
-						opts.sourceSlices.vertical.middle = opts.sourceSlices.vertical.bottom;
-						opts.sourceSlices.vertical.bottom = 0;
-					} else if (opts.destSlices.vertical.bottom) {
-						opts.sourceSlices.vertical.middle = opts.sourceSlices.vertical.bottom;
-						opts.sourceSlices.vertical.bottom = 0;
-					}
+		if (!opts.sourceSlices || !(opts.sourceSlices.horizontal || opts.sourceSlices.vertical)) {
+			throw new Error('slice views require sourceSlices.horizontal and/or sourceSlices.vertical');
+		}
+
+		if (opts.scaleMethod === '2slice') {
+			if (opts.sourceSlices.horizontal && opts.destSlices.horizontal) {
+				if (opts.destSlices.horizontal.left) {
+					opts.sourceSlices.horizontal.center = opts.sourceSlices.horizontal.right;
+					opts.sourceSlices.horizontal.right = 0;
+				} else if (opts.destSlices.horizontal.right) {
+					opts.sourceSlices.horizontal.center = opts.sourceSlices.horizontal.left;
+					opts.sourceSlices.horizontal.left = 0;
 				}
 			}
-
-			if (!opts.sourceSlices || !(opts.sourceSlices.horizontal || opts.sourceSlices.vertical)) {
-				throw new Error('slice views require sourceSlices.horizontal and/or sourceSlices.vertical');
-			}
-
-			if (opts.sourceSlices.horizontal) {
-				var src = opts.sourceSlices.horizontal;
-				var slices = [src.left || 0, src.center, src.right || 0];
-				if (slices.center == undefined && this._img) { // also captures null, but ignores 0
-					var width = this._img.getWidth();
-					slices[1] = width ? width - slices[0] - slices[2] : 0;
-				} else {
-					slices[1] = slices.center || 0;
+			if (opts.sourceSlices.vertical && opts.destSlices.vertical) {
+				if (opts.destSlices.vertical.top) {
+					opts.sourceSlices.vertical.middle = opts.sourceSlices.vertical.bottom;
+					opts.sourceSlices.vertical.bottom = 0;
+				} else if (opts.destSlices.vertical.bottom) {
+					opts.sourceSlices.vertical.middle = opts.sourceSlices.vertical.bottom;
+					opts.sourceSlices.vertical.bottom = 0;
 				}
+			}
+		}
 
-				this._sourceSlicesHor = slices;
-				this._destSlicesHor = [
-					(this._destSlices.horizontal.left || 0) * this._imgScale,
-					0,
-					(this._destSlices.horizontal.right || 0) * this._imgScale
-				];
-			} else {
-				this._sourceSlicesHor = [0, 100, 0];
-				this._destSlicesHor = [0, 100, 0];
+		if (opts.sourceSlices.horizontal) {
+			var src = opts.sourceSlices.horizontal;
+			var slices = [src.left || 0, src.center || 0, src.right || 0];
+			if (src.center == undefined && this._img) { // also captures null, but ignores 0
+				var width = this._img.getWidth();
+				slices[1] = width ? width - slices[0] - slices[2] : 0;
 			}
 
-			if (opts.sourceSlices.vertical) {
-				var src = opts.sourceSlices.vertical;
-				var slices = [src.top || 0, 0, src.bottom || 0];
-				if (slices.middle == undefined && this._img) {
-					var height = this._img.getHeight();
-					slices[1] = height ? height - slices[0] - slices[2] : 0;
-				} else {
-					slices[1] = slices.middle || 0;
-				}
+			this._sourceSlicesHor = slices;
+			this._destSlicesHor = [
+				(this._destSlices.horizontal.left || 0) * this._imgScale,
+				0,
+				(this._destSlices.horizontal.right || 0) * this._imgScale
+			];
+		} else {
+			this._sourceSlicesHor = [0, 100, 0];
+			this._destSlicesHor = [0, 100, 0];
+		}
 
-				this._sourceSlicesVer = slices;
-				this._destSlicesVer = [
-					(this._destSlices.vertical.top || 0) * this._imgScale,
-					0,
-					(this._destSlices.vertical.bottom || 0) * this._imgScale
-				];
-			} else {
-				this._sourceSlicesVer = [0, 100, 0];
-				this._destSlicesVer = [0, 100, 0];
+		if (opts.sourceSlices.vertical) {
+			var src = opts.sourceSlices.vertical;
+			var slices = [src.top || 0, src.middle || 0, src.bottom || 0];
+			if (src.middle == undefined && this._img) {
+				var height = this._img.getHeight();
+				slices[1] = height ? height - slices[0] - slices[2] : 0;
 			}
+
+			this._sourceSlicesVer = slices;
+			this._destSlicesVer = [
+				(this._destSlices.vertical.top || 0) * this._imgScale,
+				0,
+				(this._destSlices.vertical.bottom || 0) * this._imgScale
+			];
+		} else {
+			this._sourceSlicesVer = [0, 100, 0];
+			this._destSlicesVer = [0, 100, 0];
 		}
 	};
 
@@ -135,7 +129,7 @@ exports = Class(ui.View, function (supr) {
 			if (this._scaleMethod != opts.scaleMethod) {
 				var key = opts.scaleMethod;
 				if (/slice$/.test(key)) {
-					key = "slice";
+					key = 'slice';
 				}
 
 				this.render = renderFunctions[key];
@@ -157,6 +151,7 @@ exports = Class(ui.View, function (supr) {
 			this.setImage(opts.image, opts);
 		}
 		if (opts.verticalAlign) {
+			this._renderCacheKey = {};
 			this._verticalAlign = opts.verticalAlign;
 		}
 		if (opts.align || opts.horizontalAlign) {
@@ -171,8 +166,8 @@ exports = Class(ui.View, function (supr) {
 
 	this._computeSlices = function (w, h, absScale) {
 		var bounds = this._img.getBounds();
-		var iw = bounds.width - bounds.marginLeft - bounds.marginRight;
-		var ih = bounds.height - bounds.marginTop - bounds.marginBottom;
+		var iw = bounds.width;
+		var ih = bounds.height;
 		if (iw <= 0 || ih <= 0) {
 			return;
 		}
@@ -183,8 +178,6 @@ exports = Class(ui.View, function (supr) {
 		var destSlicesHor = [];
 		var destSlicesVer = [];
 
-		var i, j;
-
 		if (sourceSlicesHor) {
 			var ratio = this.style.fixedAspectRatio ? h / ih : 1;
 			destSlicesHor[0] = this._destSlicesHor[0] * ratio;
@@ -192,8 +185,7 @@ exports = Class(ui.View, function (supr) {
 			destSlicesHor[1] = w - destSlicesHor[0] - destSlicesHor[2];
 
 			if (destSlicesHor[1] < 0) {
-				dw = destSlicesHor[0] + destSlicesHor[2];
-				destSlicesHor[0] = (destSlicesHor[0] * w / dw) | 0;
+				destSlicesHor[0] = (destSlicesHor[0] * w / (destSlicesHor[0] + destSlicesHor[2])) | 0;
 				destSlicesHor[1] = 0;
 				destSlicesHor[2] = w - destSlicesHor[0];
 			}
@@ -206,8 +198,7 @@ exports = Class(ui.View, function (supr) {
 			destSlicesVer[1] = h - destSlicesVer[0] - destSlicesVer[2];
 
 			if (destSlicesVer[1] < 0) {
-				dh = destSlicesVer[0] + destSlicesVer[2];
-				destSlicesVer[0] = (destSlicesVer[0] * h / dh) | 0;
+				destSlicesVer[0] = (destSlicesVer[0] * h / (destSlicesVer[0] + destSlicesVer[2])) | 0;
 				destSlicesVer[1] = 0;
 				destSlicesVer[2] = h - destSlicesVer[0];
 			}
@@ -237,19 +228,17 @@ exports = Class(ui.View, function (supr) {
 			marginBottom *= destSlicesVer[2] / origBottomSlice;
 		}
 
-		var heightBalance = 0;
-		var sx, sw, sh;
-		var sy = bounds.y;
-
-		var dx = 0;
-		var dy = marginTop;
-		var dw = w;
-		var dh = h;
-
 		destSlicesHor[0] -= marginLeft;
 		destSlicesVer[0] -= marginTop;
 		destSlicesHor[2] -= marginRight;
 		destSlicesVer[2] -= marginBottom;
+
+		var heightBalance = 0;
+		var sx, sw, sh;
+		var sy = bounds.y;
+		var dx, dw, dh;
+		var dy = marginTop;
+		var i, j;
 
 		for (j = 0; j < 3; j++) {
 			var widthBalance = 0;
@@ -327,7 +316,7 @@ exports = Class(ui.View, function (supr) {
 			}
 		}
 
-		if (opts.autoSize && this._scaleMethod == "stretch" && !((opts.width || opts.layoutWidth) && (opts.height || opts.layoutHeight))) {
+		if (opts.autoSize && this._scaleMethod == 'stretch' && !((opts.width || opts.layoutWidth) && (opts.height || opts.layoutHeight))) {
 			autoSized = true;
 			if (this.style.fixedAspectRatio) {
 				this.style.enforceAspectRatio(iw, ih);
@@ -339,11 +328,9 @@ exports = Class(ui.View, function (supr) {
 
 		this._img = (typeof img == 'string') ? new Image({url: img}) : img;
 
-		this._imageWidth = iw;
-		this._imageHeight = ih;
-
 		if (this._isSlice) {
 			this.updateSlices({
+				scaleMethod: this._opts.scaleMethod,
 				sourceSlices: this._opts.sourceSlices,
 				destSlices: this._opts.destSlices
 			});
@@ -364,6 +351,16 @@ exports = Class(ui.View, function (supr) {
 				sourceSlicesVer[1] *= sourceScaleY;
 				sourceSlicesVer[2] = sourceSlicesVer[2] * sourceScaleY - bounds.marginBottom;
 			}
+			[0, 2].forEach(function(num) {
+				if (sourceSlicesHor && sourceSlicesHor[num] < 0) {
+					sourceSlicesHor[1] += sourceSlicesHor[num];
+					sourceSlicesHor[num] = 0;
+				}
+				if (sourceSlicesVer && sourceSlicesVer[num] < 0) {
+					sourceSlicesVer[1] += sourceSlicesVer[num];
+					sourceSlicesVer[num] = 0;
+				}
+			});
 		}
 
 		if (this._img) {
@@ -494,7 +491,12 @@ exports = Class(ui.View, function (supr) {
 		}
 
 		this._img.render(ctx, cache.sx, cache.sy, cache.sw, cache.sh, cache.x, cache.y, cache.w, cache.h);
-	};
+
+		if (this.debug) {
+			ctx.strokeStyle = debugColors[0];
+			ctx.strokeRect(0, 0, s.width, s.height);
+		}
+	}
 
 	var renderFunctions = {
 		'none': function (ctx, opts) {
@@ -555,9 +557,8 @@ exports = Class(ui.View, function (supr) {
 			}
 		},
 		'slice': function (ctx, opts) {
-
 			if (!this._img) { return; }
-			
+
 			var s = this.style;
 			var w = s.width;
 			var h = s.height;
@@ -570,16 +571,19 @@ exports = Class(ui.View, function (supr) {
 				this._computeSlices(w, h, scale);
 			}
 
-			var slices = this._sliceCache;
-			slices[0].render && ctx.drawImage.apply(ctx, slices[0]);
-			slices[1].render && ctx.drawImage.apply(ctx, slices[1]);
-			slices[2].render && ctx.drawImage.apply(ctx, slices[2]);
-			slices[3].render && ctx.drawImage.apply(ctx, slices[3]);
-			slices[4].render && ctx.drawImage.apply(ctx, slices[4]);
-			slices[5].render && ctx.drawImage.apply(ctx, slices[5]);
-			slices[6].render && ctx.drawImage.apply(ctx, slices[6]);
-			slices[7].render && ctx.drawImage.apply(ctx, slices[7]);
-			slices[8].render && ctx.drawImage.apply(ctx, slices[8]);
+			for (var i = 0; i < 9; i++) {
+				this._drawSlice(ctx, this._sliceCache[i], i);
+			}
+		}
+	};
+
+	this._drawSlice = function (ctx, sliceData, i) {
+		if (!sliceData.render) { return; }
+		ctx.drawImage.apply(ctx, sliceData);
+		if (this.debug) {
+			ctx.strokeStyle = debugColors[i % 3];
+			ctx.strokeRect(sliceData[5] + 0.5, sliceData[6] + 0.5,
+				sliceData[7] - 1, sliceData[8] - 1);
 		}
 	};
 
