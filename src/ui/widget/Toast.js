@@ -38,6 +38,15 @@ exports = Class(ImageView, function (supr) {
 	};
 
 	var positions = {
+		top: {
+			vertical: true,
+			negFirst: false,
+			style: {
+				x: 0,
+				bottom: undefined,
+				layoutWidth: '100%'
+			}
+		},
 		bottom: {
 			vertical: true,
 			negFirst: true,
@@ -64,6 +73,24 @@ exports = Class(ImageView, function (supr) {
 				bottom: 0,
 				layoutWidth: undefined
 			}
+		},
+		topleft: {
+			vertical: false,
+			negFirst: false,
+			style: {
+				y: 0,
+				bottom: undefined,
+				layoutWidth: undefined
+			}
+		},
+		bottomleft: {
+			vertical: false,
+			negFirst: false,
+			style: {
+				y: undefined,
+				bottom: 0,
+				layoutWidth: undefined
+			}
 		}
 	};
 
@@ -76,7 +103,11 @@ exports = Class(ImageView, function (supr) {
 		supr(this, 'init', [opts]);
 		this.text = new TextView({
 			superview: this,
-			layout: 'box'
+			layout: 'box',
+			layoutWidth: '80%',
+			layoutHeight: '60%',
+			centerX: true,
+			centerY: true
 		});
 		this.setPosition(opts.position);
 		opts.txt && this.setText(opts.txt);
@@ -100,7 +131,7 @@ exports = Class(ImageView, function (supr) {
 			inAnim = {}, outAnim = {};
 		inAnim['d'+prop] = pos.negFirst ? -this.style[dim] : this.style[dim];
 		outAnim['d'+prop] = pos.negFirst ? this.style[dim] : -this.style[dim];
-		this.style[prop] = sv.style[dim];
+		this.style[prop] = pos.negFirst ? sv.style[dim] : -this.style[dim];
 		this.style.visible = true;
 		animate(this).now(inAnim).wait(1000).then(outAnim);
 	};
