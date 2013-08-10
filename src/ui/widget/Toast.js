@@ -15,7 +15,7 @@
  */
 
 /**
- * @class ui.widget.TOast
+ * @class ui.widget.Toast
  *
  * @doc http://doc.gameclosure.com/api/ui-widget-toast.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/widget/toast.md
