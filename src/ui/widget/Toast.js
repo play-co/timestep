@@ -17,8 +17,8 @@
 /**
  * @class ui.widget.TOast
  *
- * @doc http://doc.gameclosure.com/api/ui-imageview.html#class-ui.imagescaleview
- * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/imageview.md
+ * @doc http://doc.gameclosure.com/api/ui-widget-toast.html
+ * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/widget/toast.md
  */
 
 import animate;
@@ -99,7 +99,6 @@ exports = Class(ImageView, function (supr) {
 			opts.backgroundColor = 'red';
 		}
 		opts = merge(opts, defaults);
-		this._images = opts.images;
 		supr(this, 'init', [opts]);
 		this.text = new TextView({
 			superview: this,
@@ -109,15 +108,24 @@ exports = Class(ImageView, function (supr) {
 			centerX: true,
 			centerY: true
 		});
+		opts.images && this.setImages(opts.images);
 		this.setPosition(opts.position);
 		opts.txt && this.setText(opts.txt);
+	};
+
+	this.setImages = function(imgs) {
+		this._images = imgs || {};
 	};
 
 	this.setPosition = function (pos) {
 		for (var k in positions[pos].style) {
 			this.style[k] = positions[pos].style[k];
 		}
-		this.setImage(this._images[pos]);
+		var img = this._images[pos];
+		if (!img) {
+			throw new Error("no image specified for " + pos);
+		}
+		this.setImage(img);
 		this.position = pos;
 	};
 
