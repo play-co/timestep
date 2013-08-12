@@ -52,6 +52,7 @@ exports = Class(View, function (supr) {
 
 		var current = this.getCurrentView();
 		if (current) { this._hide(current, dontAnimate); }
+		view.style.y = 0;
 		view.style.width = this.style.width / view.style.scale;
 		view.style.height = this.style.height / view.style.scale;
 		this.stack.push(view);
