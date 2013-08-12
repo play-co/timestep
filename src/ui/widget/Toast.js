@@ -108,29 +108,29 @@ exports = Class(ImageView, function (supr) {
 			centerX: true,
 			centerY: true
 		});
-		opts.images && this.setImages(opts.images);
+		this.setImages(opts.images);
 		this.setPosition(opts.position);
-		opts.txt && this.setText(opts.txt);
+		opts.txt && this.text.setText(opts.txt);
 	};
 
 	this.setImages = function(imgs) {
 		this._images = imgs || {};
+		this.position && this.setImage(this._images[this.position]);
 	};
 
 	this.setPosition = function (pos) {
 		for (var k in positions[pos].style) {
 			this.style[k] = positions[pos].style[k];
 		}
-		var img = this._images[pos];
-		if (!img) {
-			throw new Error("no image specified for " + pos);
-		}
-		this.setImage(img);
 		this.position = pos;
+		this.setImage(this._images[this.position]);
 	};
 
 	this.pop = function (text, position) {
 		position && this.setPosition(position);
+		if (!this._images[this.position]) {
+			throw new Error("Toast " + this.uid + " doesn't have an image for position: " + this.position);
+		}
 		this.text.setText(text);
 		var sv = this.getSuperview(),
 			pos = positions[this.position],
