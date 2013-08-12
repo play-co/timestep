@@ -129,12 +129,12 @@ View.addExtension({
 				iw = opts.height * this.aspectRatio;
 			}
 			else if (parent) {
-				if (opts.layoutWidth && parent.style.width) {
-					iw = parent.style.width * parseFloat(opts.layoutWidth) / 100;
+				if (this.layoutWidth && parent.style.width) {
+					iw = parent.style.width * parseFloat(this.layoutWidth) / 100;
 					ih = iw / this.aspectRatio;
 				}
-				else if (opts.layoutHeight && parent.style.height) {
-					ih = parent.style.height * parseFloat(opts.layoutHeight) / 100;
+				else if (this.layoutHeight && parent.style.height) {
+					ih = parent.style.height * parseFloat(this.layoutHeight) / 100;
 					iw = ih * this.aspectRatio;
 				}
 				else if (this.flex && parent.style.direction == 'horizontal' && this.width) {
