@@ -299,6 +299,7 @@ var TextView = exports = Class(View, function (supr) {
 		while (i) {
 			item = cache[--i];
 			word = item.word;
+
 			x = offsetX + item.x;
 			y = offsetY + item.y;
 
@@ -375,15 +376,19 @@ var TextView = exports = Class(View, function (supr) {
 		return fontBuffer;
 	};
 
-	this.setText = function (text) {
-		if (this._opts.buffer) {
-			fontBuffer.releaseBin(this.getHash());
-		}
+	this.setText = function (textData) {
+		var text = (textData != undefined) ? textData.toString() : "";
 
-		this._restoreOpts();
-		this._opts.text = (text != undefined) ? text.toString() : "";
-		this.updateCache();
-		this.needsRepaint();
+		if (this._opts.text != text) {
+			if (this._opts.buffer) {
+				fontBuffer.releaseBin(this.getHash());
+			}
+
+			this._restoreOpts();
+			this._opts.text = text;
+			this.updateCache();
+			this.needsRepaint();
+		}
 	};
 
 	this.getStrokeWidth = function () {

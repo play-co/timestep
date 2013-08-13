@@ -153,15 +153,28 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 
 			line.length && lines.push(line);
 		} else {
+			// Note: this algorithm isn't 100% accurate because we are going
+			// to use the cumulative width of the line (sum up widths of all
+			// measured words plus space widths), which on some platforms will
+			// actually be slightly longer than the actual line length.  Usually
+			// we're only off by a few pixels, so it doesn't matter.  However,
+			// if we remeasured each line after computing the full line length,
+			// we'd end up with a shorter line than we expected, and if we then
+			// resize our view to fit the width and try to wrap text again, we'd
+			// find that the width of the line is now longer than the width of 
+			// the view, resulting in the line wrapping shorter than the previous
+			// time (unnecessarily).  Additionally, this extra measure is 
+			// expensive, so we'll just use our rough approximation. 
 			while (currentWord < wordCount) {
 				word = this._line[currentWord++];
-				currentWidth = ctx.measureText(s).width;
+				// currentWidth = ctx.measureText(s).width;
 				if (word.word === "\n") {
 					lines.push([{word: s, width: currentWidth, line: lines.length}]);
 					s = "";
 				} else {
 					var isLineEmpty = !s.length;
-					var offset = isLineEmpty ? 0 : spaceWidth;
+					var hasSpace = !isLineEmpty && !this._opts.wrapCharacter;
+					var offset = hasSpace ? spaceWidth : 0;
 					if (currentWidth + word.width + offset > width) {
 						var wordWidth = word.width;
 
@@ -175,33 +188,37 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 								if ((isLineEmpty && !wordPiece) || ctx.measureText(wordPiece + current[i]).width + offset + currentWidth <= width) {
 									wordPiece += current[i];
 								} else {
-									var line = s + (isLineEmpty ? "" : " ") + wordPiece;
+									var line = s + (hasSpace ? " " : "") + wordPiece;
 									currentWidth = ctx.measureText(line).width;
-									lines.push([{word: line, width: ctx.measureText(line).width, line: lines.length}]);
+									lines.push([{word: line, width: currentWidth, line: lines.length}]);
 									currentWidth = 0;
 									offset = 0;
 									s = "";
 									isLineEmpty = true;
+									hasSpace = false;
 									wordPiece = "";
 								}
 							}
 
 							if (wordPiece) {
-								var line = s + (isLineEmpty ? "" : " ") + wordPiece;
-								lines.push([{word: line, width: ctx.measureText(line).width, line: lines.length}]);
+								var line = s + (hasSpace ? " " : "") + wordPiece;
+								currentWidth = ctx.measureText(line).width;
+								lines.push([{word: line, width: currentWidth, line: lines.length}]);
 							}
 						} else {
 							(!isLineEmpty) && lines.push([{word: s, width: currentWidth, line: lines.length}]);
 							s = word.word;
+							currentWidth = word.width;
 						}
 					} else {
-						s += (s !== "" && !this._opts.wrapCharacter ? " " : "") + word.word;
+						s += (hasSpace ? " " : "") + word.word;
+						currentWidth += word.width + offset;
 					}
 				}
 			}
 
 			if (s !== "") {
-				lines.push([{word: s, width: ctx.measureText(s).width, line: lines.length}]);
+				lines.push([{word: s, width: currentWidth, line: lines.length}]);
 			}
 		}
 	};
