@@ -42,7 +42,8 @@ exports = Class(function() {
     var defaults = {
         hint: '',
         inputType: 'default', // default | number | phone | password | capital
-        maxLength: -1
+        maxLength: -1,
+        inputReturnButton: 'default' // default (return) | go | google | join | next | route | search | send | yahoo | done | emergencycall,
     }
 
     this.init = function(opts) {
@@ -86,12 +87,12 @@ exports = Class(function() {
      }
 
     this.refresh = function(currentVal, hasBack, hasForward, cursorPos) {
-        console.log("TextEditView refresh with: " + currentVal);
         NATIVE.inputPrompt.showSoftKeyboard(currentVal || "",
                                             this._opts.hint,
                                             hasBack,
                                             hasForward,
                                             this._opts.inputType,
+                                            this._opts.inputReturnButton,
                                             this._opts.maxLength,
                                             cursorPos);
     }

@@ -116,7 +116,7 @@ exports = Class(ImageScaleView, function(supr) {
             this.setText(value);
 
             if (isProcessed) {
-                this.refresh(); // update native EditText with processed values 
+                this.refresh(); // update native EditText with processed values
             }
 
             this.emit('onChange', value);
