@@ -18,14 +18,14 @@ import device;
 
 var focused;
 
-NATIVE.InputPrompt.subscribe('KeyUp', function(evt) {
+NATIVE.input.subscribe('KeyUp', function(evt) {
     if (focused != null) {
         focused._value = evt.text;
         focused.onChange(evt.text, evt.prevText, evt.cursorPos);
     }
 });
 
-NATIVE.InputPrompt.subscribe('Move', function(evt) {
+NATIVE.input.subscribe('FocusNext', function(evt) {
     if (evt.next && focused && focused._textEditView && focused._textEditView._forwardTextEditView) {
         focused._textEditView._forwardTextEditView.requestFocus();
     } else if (!evt.next && focused && focused._textEditView && focused._textEditView._backTextEditView) {
@@ -33,7 +33,7 @@ NATIVE.InputPrompt.subscribe('Move', function(evt) {
     }
 });
 
-NATIVE.InputPrompt.subscribe('Submit', function(evt) {
+NATIVE.input.subscribe('Submit', function(evt) {
     focused && focused.closeEditField();
 });
 
@@ -83,11 +83,11 @@ exports = Class(function() {
             focused.removeFocus();
         }
 
-        NATIVE.inputPrompt.hideSoftKeyboard();
+        NATIVE.input.hideKeyboard();
      }
 
     this.refresh = function(currentVal, hasBack, hasForward, cursorPos) {
-        NATIVE.inputPrompt.showSoftKeyboard(currentVal || "",
+        NATIVE.input.showKeyboard(currentVal || "",
                                             this._opts.hint,
                                             hasBack,
                                             hasForward,

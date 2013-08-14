@@ -18,15 +18,15 @@ var activeInputs = {};
 
 var KeyboardTypes = {
 	Default: 0,                // Default type for the current input method.
-    NumbersAndPunctuation: 2,  // Numbers and assorted punctuation.
-    URL: 3,                    // A type optimized for URL entry (shows . / .com prominently).
-    NumberPad: 4,              // A number pad (0-9). Suitable for PIN entry.
-    PhonePad: 5,               // A phone pad (1-9, *, 0, #, with letters under the numbers).
-    EmailAddress: 7,           // A type optimized for multiple email address entry (shows space @ . prominently).
-    DecimalPad: 8
+	NumbersAndPunctuation: 2,  // Numbers and assorted punctuation.
+	URL: 3,                    // A type optimized for URL entry (shows . / .com prominently).
+	NumberPad: 4,              // A number pad (0-9). Suitable for PIN entry.
+	PhonePad: 5,               // A phone pad (1-9, *, 0, #, with letters under the numbers).
+	EmailAddress: 7,           // A type optimized for multiple email address entry (shows space @ . prominently).
+	DecimalPad: 8
 }
 
-NATIVE.InputPrompt.subscribe('Submit', function (evt) {
+NATIVE.input.subscribe('Submit', function (evt) {
 	var input = activeInputs[evt.id];
 
 	if (input) {
@@ -36,7 +36,7 @@ NATIVE.InputPrompt.subscribe('Submit', function (evt) {
 	}
 });
 
-NATIVE.InputPrompt.subscribe('Cancel', function (evt) {
+NATIVE.input.subscribe('Cancel', function (evt) {
 	var input = activeInputs[evt.id];
 
 	if (input) {
@@ -65,7 +65,7 @@ exports = Class(function () {
 	};
 
 	this.show = function () {
-		this._id = NATIVE.inputPrompt.show(
+		this._id = NATIVE.input.openPrompt(
 				this._title,
 				this._message,
 				this._okText,
