@@ -212,6 +212,13 @@ exports.setRotationHandler = function (handler) {
 	NATIVE.onRotation = handler;
 }
 
+/*
+ * Stay awake
+ */
+exports.stayAwake = function(enable) {
+	NATIVE.stayAwake && NATIVE.stayAwake(enable);
+}
+
 /**
  * Garbage Collection
  */
