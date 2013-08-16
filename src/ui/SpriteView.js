@@ -59,10 +59,16 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 
 	var GROUPS = {};
 
+	this.tick = null;
+
 	this.init = function (opts) {
 		this._opts = opts = merge(opts, this.defaults);
 		opts.visible = false;
 		supr(this, 'init', [opts]);
+
+		// toggle this flag manually to optimize SpriteViews
+		this.onScreen = true;
+
 		this.resetAllAnimations(opts);
 	};
 
@@ -186,7 +192,7 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 		}
 
 		if (!this.isPlaying) {
-			GC.app.engine.subscribe('Tick', this, '_tickSprite');
+			this.tick = this._tickSprite;
 			GROUPS[this.groupID].add(this);
 			this.isPlaying = this.running = true;
 			this.style.visible = true;
@@ -200,7 +206,7 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 	this.stopAnimation = function () {
 		if (this.isPlaying) {
 			this.style.visible = false;
-			GC.app.engine.unsubscribe('Tick', this, '_tickSprite');
+			this.tick = null;
 			this.isPlaying = this.running = false;  //use isPlaying, this.running is deprecated
 			this.isPaused = this._isPaused = false; //use isPaused instead, _isPaused is deprecated
 			GROUPS[this.groupID].remove(this.uid);
@@ -260,8 +266,8 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 		if (this._currentFrame < 0) {
 			this._currentFrame += anim.frames.length;
 		}
-		
-		if (frameSteps !== 0 || dt === 0) {
+
+		if (this.onScreen && (frameSteps !== 0 || dt === 0)) {
 			var image = this._animations[this._currentAnimationName].frames[this._currentFrame];
 			this.setImage(image);
 
