@@ -469,7 +469,7 @@ exports = Class(ui.View, function (supr) {
 						cache.y = max(0, (h - dh) / 2);
 						cache.h = min(dh, h);
 						cache.sh = cache.h / scale;
-						cache.sy = max(0, (sh - cache.sh) / 2);
+						cache.sy = max(cache.sy, cache.sy + (sh - cache.sh) / 2);
 					}
 				} else if (fw > w) {
 					if (this._align == 'right') {
@@ -485,7 +485,7 @@ exports = Class(ui.View, function (supr) {
 						cache.x = max(0, (w - dw) / 2);
 						cache.w = min(dw, w);
 						cache.sw = cache.w / scale;
-						cache.sx = max(0, (sw - cache.sw) / 2);
+						cache.sx = max(cache.sx, cache.sx + (sw - cache.sw) / 2);
 					}
 				}
 			}
