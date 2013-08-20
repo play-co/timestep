@@ -288,6 +288,7 @@ exports = Class(ui.View, function (supr) {
 	};
 
 	this.setImage = function (img, opts) {
+		this._renderCacheKey = {};
 		var autoSized = false;
 		var sw, sh, iw, ih, bounds;
 		opts = merge(opts, this._opts);
