@@ -217,7 +217,10 @@ exports = Class(View, function (supr) {
 		if ('useLayoutBounds' in opts) {
 			if (opts.useLayoutBounds) {
 				this.subscribe('LayoutResize', this, '_updateLayoutBounds');
-				this._updateLayoutBounds();
+
+				if (this.style.layout == 'linear') {
+					this._updateLayoutBounds(this.__layout.getSize());
+				}
 			} else {
 				this.unsubscribe('LayoutResize', this, '_updateLayoutBounds');
 			}
@@ -226,31 +229,25 @@ exports = Class(View, function (supr) {
 		return opts;
 	};
 
-	this._updateLayoutBounds = function () {
-		if (!this.style.layout || !this._opts.useLayoutBounds) { return; }
+	this._updateLayoutBounds = function (size) {
+		if (size == undefined || this.style.layout != 'linear') { return; }
 
 		var bounds = this._scrollBounds;
-		bounds.minX = bounds.minY = bounds.maxX = bounds.maxY = 0;
-		this._contentView.getSubviews().forEach(function(sv) {
-			bounds.minX = Math.min(bounds.minX, sv.style.x);
-			bounds.minY = Math.min(bounds.minY, sv.style.y);
-			bounds.maxX = Math.max(bounds.maxX, sv.style.x + sv.style.width);
-			bounds.maxY = Math.max(bounds.maxY, sv.style.y + sv.style.height);
-		});
+		if (this.__layout.getDirection() == 'vertical') {
+			bounds.minY = 0;
+			bounds.maxY = size;
+		} else {
+			bounds.minX = 0;
+			bounds.maxX = size;
+		}
 	};
 
 	this.buildView = function () {
 		this._snapPixels = this._opts.snapPixels || 1 / this.getPosition().scale;
 	};
 
-	this.addSubview = function (view) {
-		this._contentView.addSubview(view);
-		this._updateLayoutBounds();
-	};
-	this.removeSubview = function (view) {
-		this._contentView.removeSubview(view);
-		this._updateLayoutBounds();
-	};
+	this.addSubview = function (view) { return this._contentView.addSubview(view); };
+	this.removeSubview = function (view) { return this._contentView.removeSubview(view); };
 
 	this.addFixedView = function (view) { return supr(this, 'addSubview', [view]); };
 	this.removeFixedView = function (view) { return supr(this, 'removeSubview', [view]); };
