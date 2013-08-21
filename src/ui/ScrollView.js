@@ -167,7 +167,7 @@ exports = Class(View, function (supr) {
 		inertia: true,
 		dragRadius: 10,
 		snapPixels: undefined,
-		useLayoutBounds: true,
+		useLayoutBounds: false,
 		layout: 'box'
 	};
 
