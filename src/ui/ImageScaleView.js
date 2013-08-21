@@ -206,32 +206,51 @@ exports = Class(ui.View, function (supr) {
 
 		var marginLeft = bounds.marginLeft,
 			origLeftSlice = sourceSlicesHor[0] + bounds.marginLeft;
-		if (origLeftSlice) {
+		if (origLeftSlice && destSlicesHor[0]) {
 			marginLeft *= destSlicesHor[0] / origLeftSlice;
 		}
 
 		var marginRight = bounds.marginRight,
 			origRightSlice = sourceSlicesHor[2] + bounds.marginRight;
-		if (origRightSlice) {
+		if (origRightSlice && destSlicesHor[2]) {
 			marginRight *= destSlicesHor[2] / origRightSlice;
 		}
 
 		var marginTop = bounds.marginTop,
 			origTopSlice = sourceSlicesVer[0] + bounds.marginTop;
-		if (origTopSlice) {
+		if (origTopSlice && destSlicesVer[0]) {
 			marginTop *= destSlicesVer[0] / origTopSlice;
 		}
 
 		var marginBottom = bounds.marginBottom,
 			origBottomSlice = sourceSlicesVer[2] + bounds.marginBottom;
-		if (origBottomSlice) {
+		if (origBottomSlice && destSlicesVer[2]) {
 			marginBottom *= destSlicesVer[2] / origBottomSlice;
 		}
 
-		destSlicesHor[0] -= marginLeft;
-		destSlicesVer[0] -= marginTop;
-		destSlicesHor[2] -= marginRight;
-		destSlicesVer[2] -= marginBottom;
+		if (destSlicesHor[0]) {
+			destSlicesHor[0] -= marginLeft;
+		} else {
+			destSlicesHor[1] -= marginLeft;
+		}
+
+		if (destSlicesVer[0]) {
+			destSlicesVer[0] -= marginTop;
+		} else {
+			destSlicesVer[1] -= marginTop;
+		}
+
+		if (destSlicesHor[2]) {
+			destSlicesHor[2] -= marginRight;
+		} else {
+			destSlicesHor[1] -= marginRight;
+		}
+
+		if (destSlicesVer[2]) {
+			destSlicesVer[2] -= marginBottom;
+		} else {
+			destSlicesVer[1] -= marginBottom;
+		}
 
 		var heightBalance = 0;
 		var sx, sw, sh;
