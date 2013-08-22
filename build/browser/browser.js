@@ -30,9 +30,9 @@ var STATIC_BOOTSTRAP_JS = path.join(__dirname, 'browser-static/bootstrap.js');
 var _builder;
 var _paths;
 var logger;
-exports.build = function (builder, project, subtarget, moreOpts, next) {
+exports.build = function (builder, project, subtarget, moreOpts, cb) {
 	var target = 'browser-' + subtarget;
-	var opts = builder.packager.getBuildOptions({
+	var buildOpts = builder.packager.getBuildOptions({
 		appID: project.manifest.appID,
 		version: Date.now(),
 
@@ -54,29 +54,29 @@ exports.build = function (builder, project, subtarget, moreOpts, next) {
 		compress: moreOpts.compress
 	});
 
-	exports.runBuild(builder, project, opts, next);
+	exports.runBuild(builder, project, buildOpts, function (err, res) {
+		cb(err, {
+			buildOpts: buildOpts,
+			res: res
+		});
+	});
 };
 
-exports.runBuild = function (builder, project, opts, next) {
+exports.runBuild = function (builder, project, buildOpts, cb) {
 	_builder = builder;
 	logger = new _builder.common.Formatter('build-browser');
 
 	var f = ff(function () {
-		_builder.packager.compileResources(project, opts, opts.target, INITIAL_IMPORT, f());
+		_builder.packager.compileResources(project, buildOpts, INITIAL_IMPORT, f());
 	}, function (pkg) {
-		compileHTML(project, opts, opts.target, pkg.files, pkg.jsSrc, f());
+		compileHTML(project, buildOpts, buildOpts.target, pkg.files, pkg.jsSrc, f());
 	}, function (resources) {
 		// Resources built, write out.
 		logger.log('Writing resources...');
-		exports.writeResources(opts, resources, f());
+		exports.writeResources(buildOpts, resources, f());
 	}, function () {
 		logger.log('Archive built.');
-		next();
-	});
-};
-
-exports.compileResources = function (project, opts, target, cb) {
-	_builder.packager.compileResources
+	}).cb(cb);
 };
 
 /**

@@ -50,7 +50,7 @@ var installAddons = function(builder, project, next) {
 }
 
 // takes a project, subtarget(android/ios), additional opts.
-exports.build = function (build, project, subtarget, moreOpts, next) {
+exports.build = function (build, project, subtarget, moreOpts, cb) {
 	var target = 'native-' + subtarget;
 
 	logger = new build.common.Formatter('build-native');
@@ -92,7 +92,7 @@ exports.build = function (build, project, subtarget, moreOpts, next) {
 	// doesn't build ios - builds the js that it would use, then you shim out NATIVE
 	if (opts.isTestApp) {
 		installAddons(build, project, function() {
-			exports.writeNativeResources(build, project, opts, next);
+			exports.writeNativeResources(build, project, opts, onBuildFinish);
 		});
 	} else if (opts.isSimulated) {
 		// Build simulated version
@@ -100,10 +100,17 @@ exports.build = function (build, project, subtarget, moreOpts, next) {
 		// When simulating, we build a native version which targets the native target
 		// but uses the browser HTML to host. A native shim is supplied to mimick native
 		// features, so that the code can be tested in the browser without modification.
-		require('../browser/browser').runBuild(build, project, opts, next);
+		require('../browser/browser').runBuild(build, project, opts, onBuildFinish);
 	} else {
 		// Use native target (android/ios)
-		require('./' + target).package(build, project, opts, next);
+		require('./' + target).package(build, project, opts, onBuildFinish);
+	}
+
+	function onBuildFinish (err, res) {
+		cb(err, {
+			buildOpts: opts,
+			res: res
+		});
 	}
 };
 
