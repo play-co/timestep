@@ -11,10 +11,6 @@ var hashFile = require("../../../../src/hashFile");
  * generic and include it here.
  */
 
-var _build;
-var _logger;
-var _paths;
-
 var INITIAL_IMPORT = 'gc.native.launchClient';
 
 var installAddons = function(builder, project, next) {
@@ -57,8 +53,6 @@ var installAddons = function(builder, project, next) {
 exports.build = function (build, project, subtarget, moreOpts, next) {
 	var target = 'native-' + subtarget;
 
-	_build = build;
-	_paths = _build.common.paths;
 	logger = new build.common.Formatter('build-native');
 
 	// Get domain from manifest under studio.domain
@@ -67,7 +61,7 @@ exports.build = function (build, project, subtarget, moreOpts, next) {
 	domain = domain || "gameclosure.com";
 
 	//define a bunch of build options
-	var opts = _build.packager.getBuildOptions({
+	var opts = build.packager.getBuildOptions({
 		appID: project.manifest.appID,
 
 		output: moreOpts.buildPath, // path is overriden by native if not the test app or simulate
@@ -98,7 +92,7 @@ exports.build = function (build, project, subtarget, moreOpts, next) {
 	// doesn't build ios - builds the js that it would use, then you shim out NATIVE
 	if (opts.isTestApp) {
 		installAddons(build, project, function() {
-			exports.writeNativeResources(project, opts, next);
+			exports.writeNativeResources(build, project, opts, next);
 		});
 	} else if (opts.isSimulated) {
 		// Build simulated version
@@ -106,10 +100,10 @@ exports.build = function (build, project, subtarget, moreOpts, next) {
 		// When simulating, we build a native version which targets the native target
 		// but uses the browser HTML to host. A native shim is supplied to mimick native
 		// features, so that the code can be tested in the browser without modification.
-		require('../browser/browser').runBuild(_build, project, opts, next);
+		require('../browser/browser').runBuild(build, project, opts, next);
 	} else {
 		// Use native target (android/ios)
-		require('./' + target).package(_build, project, opts, next);
+		require('./' + target).package(build, project, opts, next);
 	}
 };
 
@@ -117,7 +111,7 @@ exports.build = function (build, project, subtarget, moreOpts, next) {
 
 var NATIVE_ENV_JS = fs.readFileSync(path.join(__dirname, "env.js"), 'utf8');
 
-function wrapNativeJS (project, opts, target, resources, code) {
+function wrapNativeJS (build, project, opts, target, resources, code) {
 	var inlineCache = {};
 	resources.forEach(function (info) {
 		if (!fs.existsSync(info.fullPath)) {
@@ -142,7 +136,7 @@ function wrapNativeJS (project, opts, target, resources, code) {
 	});
 	
 	return [
-		_build.packager.getJSConfig(project, opts, target),
+		build.packager.getJSConfig(project, opts, target),
 		"window.CACHE = " + JSON.stringify(inlineCache) + ";",
 		code,
 		NATIVE_ENV_JS
@@ -175,7 +169,7 @@ function filterCopyFile(ios, file) {
 
 // Write out build resources to disk.
 //creates the js code which is the same on each native platform
-exports.writeNativeResources = function (project, opts, next) {
+exports.writeNativeResources = function (build, project, opts, next) {
 	logger.log("Writing resources for " + opts.appID + " with target " + opts.target);
 
 	var ios = opts.target.indexOf("ios") >= 0;
@@ -210,7 +204,7 @@ exports.writeNativeResources = function (project, opts, next) {
 	};
 
 	var f = ff(function () {
-		_build.packager.compileResources(project, opts, opts.target, INITIAL_IMPORT, f());
+		build.packager.compileResources(project, opts, opts.target, INITIAL_IMPORT, f());
 	}, function (pkg) {
 		var resources = pkg.files;
 
@@ -249,7 +243,7 @@ exports.writeNativeResources = function (project, opts, next) {
 		// be uncompressed. To avoid this, we suffix it with .mp3, a filetype that the
 		// Android system won't compress.
 		cache["native.js.mp3"] = {
-			contents: wrapNativeJS(project, opts, opts.target, resources.other, pkg.jsSrc)
+			contents: wrapNativeJS(build, project, opts, opts.target, resources.other, pkg.jsSrc)
 		};
 
 		logger.log('writing files to', opts.output);
@@ -280,7 +274,7 @@ exports.writeNativeResources = function (project, opts, next) {
 					} else if (cache[key].contents) {
 						fs.writeFile(out, cache[key].contents, f2());
 					} else if (cache[key].src) {
-						_build.common.child('cp', ['-p', cache[key].src, out], {cwd: opts.fullPath}, f2());
+						build.common.child('cp', ['-p', cache[key].src, out], {cwd: opts.fullPath}, f2());
 					}
 				}, function () {
 					// build a list of etags so the test app doesn't have to make a
