@@ -15,6 +15,8 @@
  */
 
 import std.uri
+import lib.Enum as Enum;
+import util.setProperty;
 
 import .BufferedCanvas;
 import device;
@@ -144,9 +146,7 @@ exports = Class(BufferedCanvas, function (supr) {
 
 	this.drawImage = function (img, x1, y1, w1, h1, x2, y2, w2, h2) {
 		if (!img || !img.complete) { return; }
-		var n = arguments.length,
-			op = this.getCompositeOperationID();
-
+		var n = arguments.length;
 		if (n == 3) {
 			this._ctx.drawImage(img.__gl_name, img._src, 0, 0, img.width, img.height, x1, y1, img.width, img.height, op);
 		} else if (n == 5) {
@@ -171,22 +171,16 @@ exports = Class(BufferedCanvas, function (supr) {
 		this._ctx.clearFilters();
 	}
 
-	//FIXME the getter seems to crash v8 on android	
-	this.__defineSetter__(
-		'globalAlpha',
-		function (alpha) {
-			this._ctx.setGlobalAlpha(alpha);
-		}
-	);
-
-	this.__defineGetter__(
-		'globalAlpha',
-		function () {
+	util.setProperty('globalAlpha', {
+		get: function () {
 			return this._ctx.getGlobalAlpha();
+		},
+		set: function (alpha) {
+			return this._ctx.setGlobalAlpha(alpha);
 		}
-	);
+	});
 
-	var compositeOps = {
+	var compositeOps = new Enum({
 		'source-atop': 1337,
 		'source-in': 1338,
 		'source-out': 1339,
@@ -198,13 +192,16 @@ exports = Class(BufferedCanvas, function (supr) {
 		'lighter': 1345,
 		'xor': 1346,
 		'copy': 1347
-	};
+	});
 
-	this._globalCompositeOperation = 'source-over';
-
-	this.getCompositeOperationID = function () {
-		return compositeOps[this.globalCompositeOperation] || 0;
-	};
+	util.setProperty('globalCompositeOperation', {
+		get: function () {
+			return compositeOps[this._ctx.getGlobalCompositeOperation()];
+		},
+		set: function (op) {
+			return this._ctx.setGlobalCompositeOperation(compositeOps[op.toLowerCase()]);
+		}
+	});
 
 	this.clearRect = function (x, y, width, height) {
 		this._ctx.clearRect(x, y, width, height); 
@@ -214,8 +211,8 @@ exports = Class(BufferedCanvas, function (supr) {
 		if (typeof this.fillStyle == 'object') {
 			var img = this.fillStyle.img,
 				w = img.width, h = img.height,
-				wMax, hMax, xx, yy,
-				op = this.getCompositeOperationID();
+				wMax, hMax, xx, yy;
+
 			switch (this.fillStyle.repeatPattern) {
 				case 'repeat':
 					for (xx = 0; xx < width; xx += w) {
@@ -246,12 +243,12 @@ exports = Class(BufferedCanvas, function (supr) {
 					break;
 			}
 		} else {
-			this._ctx.fillRect(x, y, width, height, this.fillStyle, this.getCompositeOperationID());
+			this._ctx.fillRect(x, y, width, height, this.fillStyle);
 		}
 	};
 
 	this.strokeRect = function (x, y, width, height) {
-		this._ctx.strokeRect(x, y, width, height, this.strokeStyle, this.lineWidth || 1, this.getCompositeOperationID());
+		this._ctx.strokeRect(x, y, width, height, this.strokeStyle, this.lineWidth || 1);
 	};
 
 	this.createPattern = function (img, repeatPattern) {
@@ -291,13 +288,13 @@ exports = Class(BufferedCanvas, function (supr) {
 
 	this.fill = function () {
 		if (this._checkPath()) {
-			this._ctx.fill(this._path, this._pathIndex, this.fillStyle, this.getCompositeOperationID());
+			this._ctx.fill(this._path, this._pathIndex, this.fillStyle);
 		}
 	};
 
 	this.stroke = function () {
 		if (this._checkPath()) {
-			this._ctx.stroke(this._path, this._pathIndex, this.strokeStyle, this.getCompositeOperationID());
+			this._ctx.stroke(this._path, this._pathIndex, this.strokeStyle);
 		}
 	};
 
@@ -314,9 +311,7 @@ exports = Class(BufferedCanvas, function (supr) {
             font.getSize(),
             /*font.getWeight() + ' ' + */fontName,
             this.textAlign,
-            this.textBaseline,
-            this.getCompositeOperationID()
-            );
+            this.textBaseline);
     });
 
     this.fill = function () {}
@@ -336,9 +331,7 @@ exports = Class(BufferedCanvas, function (supr) {
             fontName,
             this.textAlign,
             this.textBaseline,
-            this.getCompositeOperationID(),
-            this.lineWidth
-            );
+            this.lineWidth);
     });
 
     this.measureText = FontRenderer.wrapMeasureText(function (str) {
