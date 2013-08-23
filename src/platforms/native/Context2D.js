@@ -171,7 +171,7 @@ exports = Class(BufferedCanvas, function (supr) {
 		this._ctx.clearFilters();
 	}
 
-	util.setProperty('globalAlpha', {
+	util.setProperty(this, 'globalAlpha', {
 		get: function () {
 			return this._ctx.getGlobalAlpha();
 		},
@@ -194,7 +194,7 @@ exports = Class(BufferedCanvas, function (supr) {
 		'copy': 1347
 	});
 
-	util.setProperty('globalCompositeOperation', {
+	util.setProperty(this, 'globalCompositeOperation', {
 		get: function () {
 			return compositeOps[this._ctx.getGlobalCompositeOperation()];
 		},
