@@ -331,12 +331,14 @@ exports = Class(function () {
 					scaleX = destW / (map.marginLeft + map.width + map.marginRight);
 					scaleY = destH / (map.marginTop + map.height + map.marginBottom);
 
-					ctx.drawImage(this._srcImg,
-								  map.x, map.y, map.width, map.height,
-								  (destX || 0) + scaleX * map.marginLeft,
-								  (destY || 0) + scaleY * map.marginTop,
-								  scaleX * map.width,
-								  scaleY * map.height);
+					if (scaleX != Infinity && scaleY != Infinity) {
+						ctx.drawImage(this._srcImg,
+									  map.x, map.y, map.width, map.height,
+									  (destX || 0) + scaleX * map.marginLeft,
+									  (destY || 0) + scaleY * map.marginTop,
+									  scaleX * map.width,
+									  scaleY * map.height);
+					}
 				}
 			}
 
