@@ -139,7 +139,7 @@ var TextView = exports = Class(View, function (supr) {
 		this._textFlow.subscribe("ChangeWidth", this, "onChangeWidth");
 		this._textFlow.subscribe("ChangeHeight", this, "onChangeHeight");
 		this._textFlow.subscribe("ChangeSize", this, "onChangeSize");
-
+		
 		supr(this, 'init', [merge(opts, defaults)]);
 
 		this._id = textViewID++;
@@ -379,7 +379,7 @@ var TextView = exports = Class(View, function (supr) {
 	this.setText = function (textData) {
 		var text = (textData != undefined) ? textData.toString() : "";
 
-		if (this._opts.text != text) {
+		if (this._opts.text !== text) {
 			if (this._opts.buffer) {
 				fontBuffer.releaseBin(this.getHash());
 			}
