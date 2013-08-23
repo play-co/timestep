@@ -148,11 +148,11 @@ exports = Class(BufferedCanvas, function (supr) {
 		if (!img || !img.complete) { return; }
 		var n = arguments.length;
 		if (n == 3) {
-			this._ctx.drawImage(img.__gl_name, img._src, 0, 0, img.width, img.height, x1, y1, img.width, img.height, op);
+			this._ctx.drawImage(img.__gl_name, img._src, 0, 0, img.width, img.height, x1, y1, img.width, img.height);
 		} else if (n == 5) {
-			this._ctx.drawImage(img.__gl_name, img._src, 0, 0, img.width, img.height, x1, y1, w1, h1, op);
+			this._ctx.drawImage(img.__gl_name, img._src, 0, 0, img.width, img.height, x1, y1, w1, h1);
 		} else {
-			this._ctx.drawImage(img.__gl_name, img._src, x1, y1, w1, h1, x2, y2, w2, h2, op);
+			this._ctx.drawImage(img.__gl_name, img._src, x1, y1, w1, h1, x2, y2, w2, h2);
 		}
 	};
 
@@ -219,27 +219,27 @@ exports = Class(BufferedCanvas, function (supr) {
 						wMax = Math.min(w, width - xx);
 						for (yy = y; yy < height; yy += h) {
 							hMax = Math.min(h, height - yy);
-							this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x + xx, y + yy, wMax, hMax, op);
+							this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x + xx, y + yy, wMax, hMax);
 						}
 					}
 					break;
 				case 'repeat-x':
 					for (xx = 0; xx < width; xx += w) {
 						wMax = Math.min(w, width - xx);
-						this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x + xx, y, wMax, hMax, op);
+						this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x + xx, y, wMax, hMax);
 					}
 					break;
 				case 'repeat-y':
 					for (yy = 0; yy < height; yy += h) {
 						hMax = Math.min(h, height - yy);
-						this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x, y + yy, wMax, hMax, op);
+						this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x, y + yy, wMax, hMax);
 					}
 					break;
 				case 'no-repeat':
 				default:
 					wMax = Math.min(w, width);
 					hMax = Math.min(h, height);
-					this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x, y, wMax, hMax, op);
+					this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x, y, wMax, hMax);
 					break;
 			}
 		} else {
