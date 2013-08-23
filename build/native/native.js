@@ -211,7 +211,7 @@ exports.writeNativeResources = function (build, project, opts, next) {
 	};
 
 	var f = ff(function () {
-		build.packager.compileResources(project, opts, opts.target, INITIAL_IMPORT, f());
+		build.packager.compileResources(project, opts, INITIAL_IMPORT, f());
 	}, function (pkg) {
 		var resources = pkg.files;
 
