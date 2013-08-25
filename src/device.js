@@ -75,8 +75,6 @@ exports.screen.height = window.screen.height * devicePixelRatio;
 // This is stubbed out unless available on the current device.
 exports.hideAddressBar = function () {};
 
-exports.defaultFontFamily = 'Helvetica';
-
 if ('ontouchstart' in window && (!/BlackBerry/.test(ua))) {
 	exports.events = {
 		start: 'touchstart',
@@ -161,6 +159,12 @@ if (exports.isMobile) {
 		exports.name = 'browser';
 		exports.canResize = false;
 	}
+}
+
+if(exports.isAndroid || exports.isAndroidSimulator) {
+  exports.defaultFontFamily = 'Droid Sans';
+} else {
+  exports.defaultFontFamily = 'Helvetica';
 }
 
 exports.useDOM = false;
