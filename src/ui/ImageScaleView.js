@@ -600,7 +600,7 @@ exports = Class(ui.View, function (supr) {
 	};
 
 	this._drawSlice = function (ctx, sliceData, i) {
-		if (!sliceData.render) { return; }
+		if (!sliceData.render || (!this._opts.renderCenter && (i == 4))) { return; }
 		ctx.drawImage.apply(ctx, sliceData);
 		if (this.debug) {
 			ctx.strokeStyle = debugColors[i % 3];
