@@ -67,6 +67,9 @@ exports.runBuild = function (builder, project, buildOpts, cb) {
 	logger = new _builder.common.Formatter('build-browser');
 
 	var f = ff(function () {
+		// Exclude jsio in browser builds (we include it separately)
+		buildOpts.excludeJsio = true;
+
 		_builder.packager.compileResources(project, buildOpts, INITIAL_IMPORT, f());
 	}, function (pkg) {
 		compileHTML(project, buildOpts, buildOpts.target, pkg.files, pkg.jsSrc, f());
