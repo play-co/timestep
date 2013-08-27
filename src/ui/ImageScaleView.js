@@ -51,10 +51,11 @@ exports = Class(ui.View, function (supr) {
 			this._sliceCache.push(row);
 		}
 
+		opts.destSlices = opts.destSlices || opts.sourceSlices;
 		// {horizontal: {left: n, center: n, right: n}, vertical: {top: n, middle: n, bottom: n}}
 		this._sourceSlices = opts.sourceSlices;
 		// {horizontal: {left: n, right: n}, vertical: {top: n, bottom: n}}
-		this._destSlices = opts.destSlices || opts.sourceSlices;
+		this._destSlices = opts.destSlices;
 
 		this._imgScale = opts.imgScale || 1;
 
@@ -599,7 +600,7 @@ exports = Class(ui.View, function (supr) {
 	};
 
 	this._drawSlice = function (ctx, sliceData, i) {
-		if (!sliceData.render) { return; }
+		if (!sliceData.render || (!this._opts.renderCenter && (i == 4))) { return; }
 		ctx.drawImage.apply(ctx, sliceData);
 		if (this.debug) {
 			ctx.strokeStyle = debugColors[i % 3];
