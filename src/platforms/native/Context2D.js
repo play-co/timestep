@@ -77,9 +77,7 @@ exports = Class(BufferedCanvas, function (supr) {
 			this.canvas.__gl_name = -1;
 			this.canvas._src = 'onscreen';
 		} else {
-			var textureData = NATIVE.gl.newTexture(this.canvas.width, this.canvas.height);
-			this.canvas.__gl_name = textureData.__gl_name;
-			this.canvas._src = textureData._src;
+			this.resize(this.canvas.width, this.canvas.height);
 		}
 
 		this._ctx = new NATIVE.gl.Context2D(this.canvas, this.canvas._src, this.canvas.__gl_name);
@@ -88,6 +86,22 @@ exports = Class(BufferedCanvas, function (supr) {
 			this._stack[i] = this.updateState(this, {});
 		}
 	};
+
+	this.destroy = function () {
+		if (this.canvas._src) {
+			NATIVE.gl.deleteTexture(this.canvas._src);
+		}
+	}
+
+	this.resize = function (width, height) {
+		this.canvas._width = width;
+		this.canvas._height = height;
+		this.destroy();
+
+		var textureData = NATIVE.gl.newTexture(width, height);
+		this.canvas.__gl_name = textureData.__gl_name;
+		this.canvas._src = textureData._src;
+	}
 
 	this.getNativeCtx = function () { return this._ctx; }
 
@@ -101,10 +115,6 @@ exports = Class(BufferedCanvas, function (supr) {
 	this.textBaseline = 'alphabetic';
 	this.fillStyle = 'rgb(255,255,255)';
 	this.strokeStyle = 'rgb(0,0,0)';
-
-	this.destroy = function () {
-		this._ctx.destroy();
-	};
 
 	this.show = function () {
 		// TODO: NATIVE.gl.show();
