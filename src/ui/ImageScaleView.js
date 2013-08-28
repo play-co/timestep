@@ -51,10 +51,11 @@ exports = Class(ui.View, function (supr) {
 			this._sliceCache.push(row);
 		}
 
+		opts.destSlices = opts.destSlices || opts.sourceSlices;
 		// {horizontal: {left: n, center: n, right: n}, vertical: {top: n, middle: n, bottom: n}}
 		this._sourceSlices = opts.sourceSlices;
 		// {horizontal: {left: n, right: n}, vertical: {top: n, bottom: n}}
-		this._destSlices = opts.destSlices || opts.sourceSlices;
+		this._destSlices = opts.destSlices;
 
 		this._imgScale = opts.imgScale || 1;
 
@@ -329,9 +330,10 @@ exports = Class(ui.View, function (supr) {
 				img = new Image({url: img});
 			}
 
-			if (!img.isError()) {
-				return img.doOnLoad(this, 'setImage', img, opts);
-			} else {
+			if (img) {
+				if (!img.isError()) {
+					img.doOnLoad(this, 'setImage', img, opts);
+				}
 				return;
 			}
 		}
@@ -346,44 +348,44 @@ exports = Class(ui.View, function (supr) {
 			}
 		}
 
-		this._img = (typeof img == 'string') ? new Image({url: img}) : img;
-
-		if (this._isSlice) {
-			this.updateSlices({
-				scaleMethod: this._opts.scaleMethod,
-				sourceSlices: this._opts.sourceSlices,
-				destSlices: this._opts.destSlices
-			});
-
-			var sourceSlicesHor = this._sourceSlicesHor;
-			var sourceSlicesVer = this._sourceSlicesVer;
-			if (sourceSlicesHor) {
-				sw = sourceSlicesHor[0] + sourceSlicesHor[1] + sourceSlicesHor[2];
-				var sourceScaleX = iw / sw;
-				sourceSlicesHor[0] = sourceSlicesHor[0] * sourceScaleX - bounds.marginLeft;
-				sourceSlicesHor[1] *= sourceScaleX;
-				sourceSlicesHor[2] = sourceSlicesHor[2] * sourceScaleX - bounds.marginRight;
-			}
-			if (sourceSlicesVer) {
-				sh = sourceSlicesVer[0] + sourceSlicesVer[1] + sourceSlicesVer[2];
-				var sourceScaleY = ih / sh;
-				sourceSlicesVer[0] = sourceSlicesVer[0] * sourceScaleY - bounds.marginTop;
-				sourceSlicesVer[1] *= sourceScaleY;
-				sourceSlicesVer[2] = sourceSlicesVer[2] * sourceScaleY - bounds.marginBottom;
-			}
-			[0, 2].forEach(function(num) {
-				if (sourceSlicesHor && sourceSlicesHor[num] < 0) {
-					sourceSlicesHor[1] += sourceSlicesHor[num];
-					sourceSlicesHor[num] = 0;
-				}
-				if (sourceSlicesVer && sourceSlicesVer[num] < 0) {
-					sourceSlicesVer[1] += sourceSlicesVer[num];
-					sourceSlicesVer[num] = 0;
-				}
-			});
-		}
+		this._opts.image = this._img = (typeof img == 'string') ? new Image({url: img}) : img;
 
 		if (this._img) {
+			if (this._isSlice) {
+				this.updateSlices({
+					scaleMethod: this._opts.scaleMethod,
+					sourceSlices: this._opts.sourceSlices,
+					destSlices: this._opts.destSlices
+				});
+
+				var sourceSlicesHor = this._sourceSlicesHor;
+				var sourceSlicesVer = this._sourceSlicesVer;
+				if (sourceSlicesHor) {
+					sw = sourceSlicesHor[0] + sourceSlicesHor[1] + sourceSlicesHor[2];
+					var sourceScaleX = iw / sw;
+					sourceSlicesHor[0] = sourceSlicesHor[0] * sourceScaleX - bounds.marginLeft;
+					sourceSlicesHor[1] *= sourceScaleX;
+					sourceSlicesHor[2] = sourceSlicesHor[2] * sourceScaleX - bounds.marginRight;
+				}
+				if (sourceSlicesVer) {
+					sh = sourceSlicesVer[0] + sourceSlicesVer[1] + sourceSlicesVer[2];
+					var sourceScaleY = ih / sh;
+					sourceSlicesVer[0] = sourceSlicesVer[0] * sourceScaleY - bounds.marginTop;
+					sourceSlicesVer[1] *= sourceScaleY;
+					sourceSlicesVer[2] = sourceSlicesVer[2] * sourceScaleY - bounds.marginBottom;
+				}
+				[0, 2].forEach(function(num) {
+					if (sourceSlicesHor && sourceSlicesHor[num] < 0) {
+						sourceSlicesHor[1] += sourceSlicesHor[num];
+						sourceSlicesHor[num] = 0;
+					}
+					if (sourceSlicesVer && sourceSlicesVer[num] < 0) {
+						sourceSlicesVer[1] += sourceSlicesVer[num];
+						sourceSlicesVer[num] = 0;
+					}
+				});
+			}
+
 			if (opts && opts.autoSize && !autoSized) {
 				this._img.doOnLoad(this, 'autoSize');
 			}
@@ -598,7 +600,7 @@ exports = Class(ui.View, function (supr) {
 	};
 
 	this._drawSlice = function (ctx, sliceData, i) {
-		if (!sliceData.render) { return; }
+		if (!sliceData.render || (!this._opts.renderCenter && (i == 4))) { return; }
 		ctx.drawImage.apply(ctx, sliceData);
 		if (this.debug) {
 			ctx.strokeStyle = debugColors[i % 3];

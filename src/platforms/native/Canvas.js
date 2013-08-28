@@ -14,11 +14,10 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-jsio('import .Context2D');
+import .Context2D;
+import util.setProperty;
 
-// mock canvas object for IOS
-
-logger.log('setting up the canvas object');
+// mock canvas object
 var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
 	this.init = function (opts) {
 		opts = merge(opts, {
@@ -38,23 +37,7 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
 		this._context2D = null;
 		this.complete = true;
 	}
-	
-	this.__defineSetter__('width', function (width) {
-		this._width = width;
-		if (this._context2D) { this._resize(); }
-	});
-	
-	this.__defineGetter__('width', function () { return this._width; });
-	
-	this.__defineSetter__('height', function (height) {
-		this._height = height;
-		if (this._context2D) { this._resize(); }
-	});
-	
-	this.__defineGetter__('height', function () { return this._height; });
-	
-	this._resize = function () { throw 'resizing a rendered canvas is not yet implemented!'; }
-	
+
 	this.getContext = function (which) {
 		if (which.toUpperCase() == '2D') {
 			this.complete = true;
@@ -65,13 +48,49 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
 		}
 	}
 
+	this.destroy = function () {
+		if (this._context2D) {
+			this._context2D.destroy();
+		}
+	}
+
+	this.resize = function (width, height) {
+		if (this._context2D) {
+			// this will set our own _width/_height
+			this._context2D.resize(width, height);
+		}
+	}
+	
+	util.setProperty(this, 'width', {
+		set: function (width) {
+			this.resize(width, this._height);
+		},
+		get: function () {
+			return this._width;
+		}
+	});
+
+	util.setProperty(this, 'height', {
+		set: function (height) {
+			this.resize(this._width, height);
+		},
+		get: function () {
+			return this._height;
+		}
+	});
+
+	util.setProperty(this, 'src', {
+		set: function (src) {},
+		get: function () {
+			return this._src;
+		}
+	});
+
 	this.toFileURI = function (filename) {
 		return NATIVE.gl.saveBufferToFile(this._context2D, filename)
 	}
 });
 
-logger.log('set it up')
-logger.log(GLOBAL.HTMLCanvasElement)
 document.__registerCreateElementHandler('CANVAS', function () {
 	return new Canvas();
 });
