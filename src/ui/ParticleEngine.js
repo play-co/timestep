@@ -82,7 +82,7 @@ exports = Class(View, function (supr) {
 		onStart: null,
 		onDeath: null,
 		external: false,
-		triggers: undefined // NOT ok to use array here, assign later
+		triggers: null // NOT ok to use array here, assign later
 	};
 
 	// class-wide image cache
@@ -102,6 +102,9 @@ exports = Class(View, function (supr) {
 
 		// particle data array passed to user
 		this.particleDataArray = [];
+
+		// particle view array passed to user for external view animation only
+		this.externalViewArray = [];
 
 		// recycled particle data objects
 		this.freeParticleObjects = [];
@@ -269,7 +272,7 @@ exports = Class(View, function (supr) {
 	/**
 	 * treat an external view as if it were a particle (don't recycle it internally)
 	 */
-	this.addExternalParticle = function (particle, data) {
+	this._addExternalParticle = function (particle, data) {
 		data.external = true;
 		for (var index in data.triggers) {
 			var trig = data.triggers[index];
@@ -289,6 +292,29 @@ exports = Class(View, function (supr) {
 	};
 
 
+
+	/**
+	 * takes an array of external views (don't recycle it internally)
+	 * and an array of particle objects obtained from the engine
+	 * and animates the views accordingly
+	 */
+	this.addExternalParticles = function (views, data) {
+		var view, obj,
+			count = data.length;
+
+		for (var i = 0; i < count; i++) {
+			view = views.pop();
+			obj = data.pop();
+
+			if (view && obj) {
+				this._addExternalParticle(view, obj);
+			}
+		}
+	};
+
+	this.obtainExternalViewArray = function() {
+		return this.externalViewArray;
+	};
 
 	/**
 	 * after obtaining the particle array full of particle objects
