@@ -249,7 +249,7 @@ exports.writeNativeResources = function (build, project, opts, next) {
 		// If native.js is > 1mb, it won't be read properly by android because it must
 		// be uncompressed. To avoid this, we suffix it with .mp3, a filetype that the
 		// Android system won't compress.
-		cache["native.js.mp3"] = {
+		cache["native.js"] = {
 			contents: wrapNativeJS(build, project, opts, opts.target, resources.other, pkg.jsSrc)
 		};
 
