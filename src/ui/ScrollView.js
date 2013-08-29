@@ -348,7 +348,6 @@ exports = Class(View, function (supr) {
 	this.onInputStart = function (evt, pt) {
 		if (!this._touchIDs.length) {
 			if (this._opts.drag) {
-				console.log('start drag');
 				this.startDrag({radius: this._opts.dragRadius * this._snapPixels});
 
 				if (this._anim && this._anim.hasFrames()) {
