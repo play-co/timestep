@@ -559,6 +559,7 @@ exports = Class(ui.View, function (supr) {
 						x += targetWidth;
 					}
 					y += targetHeight;
+					x = 0;
 				}
 			}
 			else if (this.columns) {
@@ -575,6 +576,7 @@ exports = Class(ui.View, function (supr) {
 						y += targetHeight;
 					}
 					x += targetWidth;
+					y = 0;
 				}
 			}
 		},
