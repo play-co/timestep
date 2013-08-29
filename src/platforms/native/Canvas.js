@@ -65,9 +65,10 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
 		}
 	}
 
-	this.toFileURI = function (filename) {
-		return NATIVE.gl.saveBufferToFile(this._context2D, filename)
+	this.toDataURL = function() {
+		return NATIVE.gl.toDataURL(this._context2D)
 	}
+
 });
 
 logger.log('set it up')
