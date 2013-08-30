@@ -196,7 +196,7 @@ exports = Class(View, function (supr) {
 			x: opts.offsetX,
 			y: opts.offsetY,
 			infinite: true,
-			tag: "ContentView",
+			tag: 'ContentView',
 			layout: 'box',
 			layoutWidth: '100%',
 			layoutHeight: '100%'
@@ -204,6 +204,9 @@ exports = Class(View, function (supr) {
 
 		this._viewport = new Rect();
 		this._viewport.src = this._contentView;
+
+		this._touch = {};
+		this._touchIDs = [];
 
 		supr(this, 'init', [opts]);
 		supr(this, 'addSubview', [this._contentView]);
@@ -343,14 +346,25 @@ exports = Class(View, function (supr) {
 	};
 
 	this.onInputStart = function (evt, pt) {
-		if (this._opts.drag) {
-			this.startDrag({radius: this._opts.dragRadius * this._snapPixels});
+		if (!this._touchIDs.length) {
+			if (this._opts.drag) {
+				this.startDrag({radius: this._opts.dragRadius * this._snapPixels});
 
-			if (this._anim && this._anim.hasFrames()) {
-				this._anim.clear();
+				if (this._anim && this._anim.hasFrames()) {
+					this._anim.clear();
+				}
+
+				evt.cancel();
 			}
+		}
+		this._touch['_' + evt.id] = true;
+		this._touchIDs = Object.keys(this._touch);
+	};
 
-			evt.cancel();
+	this.onInputSelect = this.onInputOut = function (evt) {
+		if ('id' in evt) {
+			delete this._touch['_' + evt.id];
+			this._touchIDs = Object.keys(this._touch);
 		}
 	};
 
@@ -377,6 +391,15 @@ exports = Class(View, function (supr) {
 
 	this.onDragStop = function (dragEvt, selectEvt) {
 		this._contentView.getInput().blockEvents = false;
+
+		if ('id' in dragEvt) {
+			delete this._touch['_' + dragEvt.id];
+			this._touchIDs = Object.keys(this._touch);
+		}
+		if ('id' in selectEvt) {
+			delete this._touch['_' + selectEvt.id];
+			this._touchIDs = Object.keys(this._touch);
+		}
 
 		if (this._opts.inertia) {
 			var delta = new Point(this._animState.lastDelta).scale(this._acceleration);
