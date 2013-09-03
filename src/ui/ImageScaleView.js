@@ -159,8 +159,18 @@ exports = Class(ui.View, function (supr) {
 			this._align = opts.align || opts.horizontalAlign;
 		}
 
-		this.rows = opts.rows;
-		this.columns = opts.columns;
+		// tile mode
+		if ('rows' in opts) {
+			this.rows = opts.rows;
+		}
+		if ('columns' in opts) {
+			this.columns = opts.columns;
+		}
+		var r = this.rows;
+		var c = this.columns;
+		if (this._scaleMethod == 'tile' && (!(r || c) || (r && c))) {
+			throw new Error('tile views must define either rows or columns');
+		}
 
 		return opts;
 	};
@@ -559,6 +569,7 @@ exports = Class(ui.View, function (supr) {
 						x += targetWidth;
 					}
 					y += targetHeight;
+					x = 0;
 				}
 			}
 			else if (this.columns) {
@@ -575,6 +586,7 @@ exports = Class(ui.View, function (supr) {
 						y += targetHeight;
 					}
 					x += targetWidth;
+					y = 0;
 				}
 			}
 		},

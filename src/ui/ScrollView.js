@@ -167,7 +167,7 @@ exports = Class(View, function (supr) {
 		inertia: true,
 		dragRadius: 10,
 		snapPixels: undefined,
-		useLayoutBounds: true,
+		useLayoutBounds: false,
 		layout: 'box'
 	};
 
@@ -196,7 +196,7 @@ exports = Class(View, function (supr) {
 			x: opts.offsetX,
 			y: opts.offsetY,
 			infinite: true,
-			tag: "ContentView",
+			tag: 'ContentView',
 			layout: 'box',
 			layoutWidth: '100%',
 			layoutHeight: '100%'
@@ -204,6 +204,9 @@ exports = Class(View, function (supr) {
 
 		this._viewport = new Rect();
 		this._viewport.src = this._contentView;
+
+		this._touch = {};
+		this._touchIDs = [];
 
 		supr(this, 'init', [opts]);
 		supr(this, 'addSubview', [this._contentView]);
@@ -217,10 +220,7 @@ exports = Class(View, function (supr) {
 		if ('useLayoutBounds' in opts) {
 			if (opts.useLayoutBounds) {
 				this.subscribe('LayoutResize', this, '_updateLayoutBounds');
-
-				if (this.style.layout == 'linear') {
-					this._updateLayoutBounds(this.__layout.getSize());
-				}
+				this._updateLayoutBounds();
 			} else {
 				this.unsubscribe('LayoutResize', this, '_updateLayoutBounds');
 			}
@@ -229,25 +229,31 @@ exports = Class(View, function (supr) {
 		return opts;
 	};
 
-	this._updateLayoutBounds = function (size) {
-		if (size == undefined || this.style.layout != 'linear') { return; }
+	this._updateLayoutBounds = function () {
+		if (!this.style.layout || !this._opts.useLayoutBounds) { return; }
 
 		var bounds = this._scrollBounds;
-		if (this.__layout.getDirection() == 'vertical') {
-			bounds.minY = 0;
-			bounds.maxY = size;
-		} else {
-			bounds.minX = 0;
-			bounds.maxX = size;
-		}
+		bounds.minX = bounds.minY = bounds.maxX = bounds.maxY = 0;
+		this._contentView.getSubviews().forEach(function(sv) {
+			bounds.minX = Math.min(bounds.minX, sv.style.x);
+			bounds.minY = Math.min(bounds.minY, sv.style.y);
+			bounds.maxX = Math.max(bounds.maxX, sv.style.x + sv.style.width);
+			bounds.maxY = Math.max(bounds.maxY, sv.style.y + sv.style.height);
+		});
 	};
 
 	this.buildView = function () {
 		this._snapPixels = this._opts.snapPixels || 1 / this.getPosition().scale;
 	};
 
-	this.addSubview = function (view) { return this._contentView.addSubview(view); };
-	this.removeSubview = function (view) { return this._contentView.removeSubview(view); };
+	this.addSubview = function (view) {
+		this._contentView.addSubview(view);
+		this._updateLayoutBounds();
+	};
+	this.removeSubview = function (view) {
+		this._contentView.removeSubview(view);
+		this._updateLayoutBounds();
+	};
 
 	this.addFixedView = function (view) { return supr(this, 'addSubview', [view]); };
 	this.removeFixedView = function (view) { return supr(this, 'removeSubview', [view]); };
@@ -340,14 +346,25 @@ exports = Class(View, function (supr) {
 	};
 
 	this.onInputStart = function (evt, pt) {
-		if (this._opts.drag) {
-			this.startDrag({radius: this._opts.dragRadius * this._snapPixels});
+		if (!this._touchIDs.length) {
+			if (this._opts.drag) {
+				this.startDrag({radius: this._opts.dragRadius * this._snapPixels});
 
-			if (this._anim && this._anim.hasFrames()) {
-				this._anim.clear();
+				if (this._anim && this._anim.hasFrames()) {
+					this._anim.clear();
+				}
+
+				evt.cancel();
 			}
+		}
+		this._touch['_' + evt.id] = true;
+		this._touchIDs = Object.keys(this._touch);
+	};
 
-			evt.cancel();
+	this.onInputSelect = this.onInputOut = function (evt) {
+		if ('id' in evt) {
+			delete this._touch['_' + evt.id];
+			this._touchIDs = Object.keys(this._touch);
 		}
 	};
 
@@ -374,6 +391,15 @@ exports = Class(View, function (supr) {
 
 	this.onDragStop = function (dragEvt, selectEvt) {
 		this._contentView.getInput().blockEvents = false;
+
+		if ('id' in dragEvt) {
+			delete this._touch['_' + dragEvt.id];
+			this._touchIDs = Object.keys(this._touch);
+		}
+		if ('id' in selectEvt) {
+			delete this._touch['_' + selectEvt.id];
+			this._touchIDs = Object.keys(this._touch);
+		}
 
 		if (this._opts.inertia) {
 			var delta = new Point(this._animState.lastDelta).scale(this._acceleration);

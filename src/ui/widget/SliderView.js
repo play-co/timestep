@@ -64,9 +64,8 @@ exports = Class(ImageScaleView, function (supr) {
 		if (!track.inactive) {
 			track.inactive = track.active;
 		}
-
-		this._activeImage = new Image({url: track.active || ""});
-		this._inactiveImage = new Image({url: track.inactive || ""});
+		this._activeImage = (track.active instanceof Image) ? track.active : new Image({url: track.active || ""});
+		this._inactiveImage = (track.inactive instanceof Image) ? track.inactive : new Image({url: track.inactive || ""});
 
 		this._initThumb(opts);
 		this._updateStyle();
