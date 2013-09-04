@@ -38,20 +38,6 @@ var ImageView = exports = Class(View, function (supr) {
 	 *   autoSize - See .setImage()
 	 */
 
-	this.init = function (opts) {
-		supr(this, 'init', arguments);
-		opts = merge(opts, {
-			image: null,
-			autoSize: false
-		});
-		
-		this._autoSize = opts.autoSize;
-		
-		if (opts.image) {
-			this.setImage(opts.image);
-		}
-	};
-
 	/**
 	 * Return this view's Image object.
 	 */
