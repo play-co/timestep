@@ -302,6 +302,7 @@ exports.writeNativeResources = function (project, opts, next) {
 	}, function (list) {
 		logger.log("Writing file list to " + path.join(opts.output, 'resource_list.json'));
 		fs.writeFile(path.join(opts.output, 'resource_list.json'), JSON.stringify(list), f());
+		_build.packager.removeTempFiles(project.paths.root);
 	}).cb(function (err) {
 		if (err) {
 			logger.error(err);
