@@ -68,7 +68,7 @@ exports.runBuild = function (builder, project, buildOpts, cb) {
 
 	var f = ff(function () {
 		// Exclude jsio in browser builds (we include it separately)
-		buildOpts.excludeJsio = true;
+		buildOpts.excludeJsio = !buildOpts.isSimulated;
 
 		_builder.packager.compileResources(project, buildOpts, INITIAL_IMPORT, f());
 	}, function (pkg) {
