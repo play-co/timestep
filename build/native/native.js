@@ -118,7 +118,7 @@ exports.build = function (build, project, subtarget, moreOpts, cb) {
 
 var NATIVE_ENV_JS = fs.readFileSync(path.join(__dirname, "env.js"), 'utf8');
 
-function wrapNativeJS (build, project, opts, target, resources, code) {
+function wrapNativeJS (build, project, opts, target, resources, code, cb) {
 	var inlineCache = {};
 	resources.forEach(function (info) {
 		if (!fs.existsSync(info.fullPath)) {
@@ -142,12 +142,13 @@ function wrapNativeJS (build, project, opts, target, resources, code) {
 		}
 	});
 	
-	return [
-		build.packager.getJSConfig(project, opts, target),
-		"window.CACHE = " + JSON.stringify(inlineCache) + ";",
-		code,
-		NATIVE_ENV_JS
-	].join('');
+
+	build.packager.getJSConfig(project, opts, target, function(jsConfig) {
+		cb([jsConfig,
+			"window.CACHE = " + JSON.stringify(inlineCache) + ";",
+			code,
+			NATIVE_ENV_JS].join(''));
+	});
 }
 
 function filterCopyFile(ios, file) {
@@ -180,6 +181,7 @@ exports.writeNativeResources = function (build, project, opts, next) {
 	logger.log("Writing resources for " + opts.appID + " with target " + opts.target);
 
 	var ios = opts.target.indexOf("ios") >= 0;
+	var cache = {};
 
 	opts.mapMutator = function(keys) {
 		var deleteList = [], renameList = [];
@@ -221,7 +223,6 @@ exports.writeNativeResources = function (build, project, opts, next) {
 		files.push('icon.png', open(icons[-1]).read())
 		*/
 
-		var cache = {};
 
 		function embedFile (info) {
 			switch (filterCopyFile(ios, info.relative)) {
@@ -249,8 +250,12 @@ exports.writeNativeResources = function (build, project, opts, next) {
 		// If native.js is > 1mb, it won't be read properly by android because it must
 		// be uncompressed. To avoid this, we suffix it with .mp3, a filetype that the
 		// Android system won't compress.
+		wrapNativeJS(build, project, opts, opts.target, resources.other, pkg.jsSrc, f.slotPlain())
+
+	}, function(contents) {
+
 		cache["native.js"] = {
-			contents: wrapNativeJS(build, project, opts, opts.target, resources.other, pkg.jsSrc)
+			contents: contents
 		};
 
 		logger.log('writing files to', opts.output);
