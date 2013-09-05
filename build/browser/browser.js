@@ -370,6 +370,7 @@ function compileHTML (project, opts, target, resources, code, cb) {
 
 		f(cache);
 		f(fontList);
+		_builder.packager.getJSConfig(project, opts, target, f.slotPlain());
 
 		// Iterate file resources.
 		resources.other.forEach(function (info) {
@@ -406,7 +407,7 @@ function compileHTML (project, opts, target, resources, code, cb) {
 					logger.error(e);
 				});
 		});
-	}, function (preloadJS, bootstrapCSS, bootstrapJS, cache, fontList) {
+	}, function (preloadJS, bootstrapCSS, bootstrapJS, cache, fontList, jsConfig) {
 		logger.log('built cache.');
 
 		// HTML resources we will generate as a result of this function.
@@ -434,7 +435,7 @@ function compileHTML (project, opts, target, resources, code, cb) {
 
 		// JavaScript
 		var preloader = [
-			_builder.packager.getJSConfig(project, opts, target),
+			jsConfig,
 			bootstrapJS,
 			util.format('bootstrap("%s", "%s")', INITIAL_IMPORT, target)
 		];
