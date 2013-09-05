@@ -31,7 +31,7 @@ exports.package = function(builder, project, opts, next) {
 		.alias('clean', 'c').describe('clean', 'Clean build before compilation').boolean('clean').default('clean', opts.template !== "debug")
 		.alias('ipa', 'i').describe('ipa', 'Generate appName.ipa file as output for TestFlight').boolean('ipa').default('ipa', false)
 		.alias('provision', 'p').describe('provision', '(required for --ipa) Path to .mobileprovision profile file').string('provision')
-		.alias('name', 'n').describe('name', '(required for --ipa) Name of developer').string('name')
+		.alias('developer', 'v').describe('developer', '(required for --ipa) Name of developer').string('developer')
 		.alias('open', 'o').describe('open', '(ignored when --ipa is specified) Open the XCode project after building').boolean('open').default('open', true);
 	var argv = argParser.argv;
 
