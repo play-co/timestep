@@ -25,7 +25,7 @@ function getTealeafIOSPath(builder, next) {
 }
 
 exports.package = function(builder, project, opts, next) {
-	var argParser = require('optimist')
+	var argParser = require('optimist')(process.argv)
 		.alias('help', 'h').describe('help', 'Display this help menu')
 		.alias('debug', 'd').describe('debug', 'Create debug build').boolean('debug').default('debug', opts.template === "debug")
 		.alias('clean', 'c').describe('clean', 'Clean build before compilation').boolean('clean').default('clean', opts.template !== "debug")
