@@ -69,6 +69,8 @@ var ImageView = exports = Class(View, function (supr) {
 
 		if (opts.image) {
 			this.setImage(opts.image);
+		} else {
+			this.needsReflow();
 		}
 
 		return opts;
@@ -81,6 +83,7 @@ var ImageView = exports = Class(View, function (supr) {
 	 */
 
 	this.setImage = function (img, opts) {
+		this.needsReflow();
 		var forceReload = opts && opts.forceReload;
 		if (typeof img == 'string') {
 			img = this.getImageFromCache(img, forceReload);
