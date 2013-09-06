@@ -26,7 +26,7 @@ var KeyboardTypes = {
 	DecimalPad: 8
 }
 
-NATIVE.input.subscribe('Submit', function (evt) {
+NATIVE.input.subscribe('InputPromptSubmit', function (evt) {
 	var input = activeInputs[evt.id];
 
 	if (input) {
