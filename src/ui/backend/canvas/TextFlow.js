@@ -145,7 +145,6 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 					line.push(word);
 				}
 			}
-
 			line.length && lines.push(line);
 		} else {
 			while (currentWord < wordCount) {
@@ -257,10 +256,12 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 	};
 
 	this._horizontalAlign = function (ctx) {
-		var paddingLeft = this.getPaddingLeft();
-		var spaceWidth = ctx.measureText(" ").width;
-		var div = {left: -1, center: 2, right: 1, justify: 3}[this._opts.horizontalAlign];
 		var cache = this._cache;
+		var spaceWidth = ctx.measureText(" ").width;
+		var lastLineSpaceWidth = spaceWidth;
+		var lastLine = cache[cache.length - 1].line;
+		var paddingLeft = this.getPaddingLeft();
+		var div = {left: -1, center: 2, right: 1, justify: 3}[this._opts.horizontalAlign];
 		var actualWidth = this.getActualWidth();
 		var width;
 		var offset;
@@ -295,6 +296,9 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 				while (firstWordOnLine < currentWord) {
 					cache[firstWordOnLine].x = x;
 					x += cache[firstWordOnLine].width + offset;
+					if (line === lastLine) {
+						x += lastLineSpaceWidth;
+					}
 					firstWordOnLine++;
 				}
 			} else {
