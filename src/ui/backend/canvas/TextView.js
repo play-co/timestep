@@ -314,6 +314,12 @@ var TextView = exports = Class(View, function (supr) {
 			ctx.fillStyle = color;
 			ctx.fillText(word, x + lineOffset, y + lineOffset, maxWidth);
 		}
+		if (this._opts.debug) {
+			ctx.strokeStyle = 'black';
+			ctx.strokeRect(x, y, item.width, this.style.height - 2 * y);
+			ctx.strokeStyle = 'red';
+			ctx.strokeRect(0, 0, this.style.width, this.style.height);
+		}
 	};
 
 	this._renderBuffer = function (ctx) {
