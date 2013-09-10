@@ -117,6 +117,14 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 			ViewBacking.absScale *= this.scale;
 		}
 
+		// scale dimensions individually
+		if (this.scaleX != 1) {
+			ctx.scale(this.scaleX, 1);
+		}
+		if (this.scaleY != 1) {
+			ctx.scale(1, this.scaleY);
+		}
+
 		this.absScale = ViewBacking.absScale;
 		
 		if (this.opacity != 1) { ctx.globalAlpha *= this.opacity; }
