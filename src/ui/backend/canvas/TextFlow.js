@@ -51,10 +51,15 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 
 	// Split the text into a list containing the word and the width of the word...
 	this._lineSplit = function (ctx) {
-		var spaceWidth = ctx.measureText(" ").width;
 		var opts = this._opts;
+		var spaceWidth = opts.wrapCharacter ? 0 : ctx.measureText(" ").width;
 		var text = opts.text || "";
-		var words = (opts.wrap || (opts.horizontalAlign === "justify")) ? (text.replace(/\t/g, " ").match(/\S+|[\n]| +(?= )/g) || []) : text.split("\n");
+		var words = 
+				opts.wrapCharacter
+					? text.replace(/\t/g, " ").match(/\S[。，]?|[\n]/g) || []
+					: (opts.wrap || (opts.horizontalAlign === "justify")) 
+						? (text.replace(/\t/g, " ").match(/\S+|[\n]| +(?= )/g) || [])
+						: text.split("\n");
 		var word;
 		var currentWord = 0;
 		var wordCount = words.length;
@@ -96,7 +101,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 	};
 
 	this._measureWords = function (ctx) {
-		var spaceWidth = ctx.measureText(" ").width;
+		var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(" ").width;
 		var currentWord = 0;
 		var wordCount = this._line.length;
 
@@ -116,7 +121,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 
 	// Split the single line into multiple lines which fit into the available width...
 	this._wrap = function (ctx, width) {
-		var spaceWidth = ctx.measureText(" ").width;
+		var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(" ").width;
 		var word;
 		var currentWidth = 0;
 		var lines = [];
@@ -148,24 +153,72 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 
 			line.length && lines.push(line);
 		} else {
+			// Note: this algorithm isn't 100% accurate because we are going
+			// to use the cumulative width of the line (sum up widths of all
+			// measured words plus space widths), which on some platforms will
+			// actually be slightly longer than the actual line length.  Usually
+			// we're only off by a few pixels, so it doesn't matter.  However,
+			// if we remeasured each line after computing the full line length,
+			// we'd end up with a shorter line than we expected, and if we then
+			// resize our view to fit the width and try to wrap text again, we'd
+			// find that the width of the line is now longer than the width of 
+			// the view, resulting in the line wrapping shorter than the previous
+			// time (unnecessarily).  Additionally, this extra measure is 
+			// expensive, so we'll just use our rough approximation. 
 			while (currentWord < wordCount) {
 				word = this._line[currentWord++];
-				currentWidth = ctx.measureText(s).width;
+				// currentWidth = ctx.measureText(s).width;
 				if (word.word === "\n") {
 					lines.push([{word: s, width: currentWidth, line: lines.length}]);
 					s = "";
 				} else {
-					if (currentWidth + word.width + spaceWidth > width) {
-						(s !== "") && lines.push([{word: s, width: currentWidth, line: lines.length}]);
-						s = word.word;
+					var isLineEmpty = !s.length;
+					var hasSpace = !isLineEmpty && !this._opts.wrapCharacter;
+					var offset = hasSpace ? spaceWidth : 0;
+					if (currentWidth + word.width + offset > width) {
+						var wordWidth = word.width;
+
+						// if word is longer than the entire line width
+						if (wordWidth > width) {
+							var current = word.word;
+
+							// split word into lines
+							var wordPiece = "";
+							for (var i = 0, n = current.length; i < n; ++i) {
+								if ((isLineEmpty && !wordPiece) || ctx.measureText(wordPiece + current[i]).width + offset + currentWidth <= width) {
+									wordPiece += current[i];
+								} else {
+									var line = s + (hasSpace ? " " : "") + wordPiece;
+									currentWidth = ctx.measureText(line).width;
+									lines.push([{word: line, width: currentWidth, line: lines.length}]);
+									currentWidth = 0;
+									offset = 0;
+									s = "";
+									isLineEmpty = true;
+									hasSpace = false;
+									wordPiece = "";
+								}
+							}
+
+							if (wordPiece) {
+								var line = s + (hasSpace ? " " : "") + wordPiece;
+								currentWidth = ctx.measureText(line).width;
+								lines.push([{word: line, width: currentWidth, line: lines.length}]);
+							}
+						} else {
+							(!isLineEmpty) && lines.push([{word: s, width: currentWidth, line: lines.length}]);
+							s = word.word;
+							currentWidth = word.width;
+						}
 					} else {
-						s += (s !== "" ? " " : "") + word.word;
+						s += (hasSpace ? " " : "") + word.word;
+						currentWidth += word.width + offset;
 					}
 				}
 			}
 
 			if (s !== "") {
-				lines.push([{word: s, width: ctx.measureText(s).width, line: lines.length}]);
+				lines.push([{word: s, width: currentWidth, line: lines.length}]);
 			}
 		}
 	};
@@ -177,7 +230,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 
 	// Calculate the position of each word on the line...
 	this._wordFlow = function (ctx) {
-		var spaceWidth = ctx.measureText(" ").width;
+		var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(" ").width;
 		var lines = this._lines;
 
 		this._cache = [];
@@ -258,7 +311,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 
 	this._horizontalAlign = function (ctx) {
 		var paddingLeft = this.getPaddingLeft();
-		var spaceWidth = ctx.measureText(" ").width;
+		var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(" ").width;
 		var div = {left: -1, center: 2, right: 1, justify: 3}[this._opts.horizontalAlign];
 		var cache = this._cache;
 		var actualWidth = this.getActualWidth();
@@ -354,16 +407,27 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 				this._lines = [this._line];
 				this._wordFlow(ctx);
 
-				(actualWidth < this._maxWidth) && this.publish("ChangeWidth", this._maxWidth + this.getHorizontalPadding());
-				(actualHeight < this._maxHeight) && this.publish("ChangeHeight", this._maxHeight + this.getVerticalPadding());
+				if (this._opts.fitWidth || actualWidth < this._maxWidth) {
+					this.publish("ChangeWidth", this._maxWidth + this.getHorizontalPadding());
+				}
+
+				if (this._opts.fitHeight || actualHeight < this._maxHeight) {
+					this.publish("ChangeHeight", this._maxHeight + this.getVerticalPadding());
+				}
 				break;
 
 			case textFlowMode.AUTOSIZE_WRAP:
 				this._wrap(ctx, actualWidth);
 				this._wordFlow(ctx);
 
-				(actualWidth < this._maxWidth) && this.publish("ChangeWidth", this._maxWidth + this.getHorizontalPadding());
-				(actualHeight < this._maxHeight) && this.publish("ChangeHeight", this._maxHeight + this.getVerticalPadding());
+				if (this._opts.fitWidth || actualWidth < this._maxWidth) {
+					this.publish("ChangeWidth", this._maxWidth + this.getHorizontalPadding());
+				}
+				
+				if (this._opts.fitHeight  || actualHeight < this._maxHeight) {
+					this.publish("ChangeHeight", this._maxHeight + this.getVerticalPadding());
+				}
+
 				break;
 
 			case textFlowMode.AUTOFONTSIZE:

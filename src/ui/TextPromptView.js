@@ -44,13 +44,19 @@ exports = Class(TextView, function (supr) {
 			prompt: this._opts.prompt,
 			autoShowKeyboard: this._opts.autoShowKeyboard,
 			isPassword: this._opts.isPassword,
-			onChange: bind(this, 'onChange')
+			onChange: bind(this, 'onChange'),
+			onSubmit: bind(this, 'onSubmit'),
+			keyboardType: this._opts.keyboardType
 		});
 	};
 
 	this.onInputSelect = function () {
 		this._prompt.show();
 	};
+
+	this.onSubmit = function (value) {
+		this.publish('Submit', value);
+	}
 
 	this.onChange = function (changeValue) {
 		if (changeValue === null) {
@@ -64,11 +70,29 @@ exports = Class(TextView, function (supr) {
 		}
 	};
 
+	this.setOkButton = function (value) {
+		this._prompt.setOkButton(value);
+		return this;
+	}
+
+	this.setCancelButton = function (value) {
+		this._prompt.setCancelButton(value);
+		return this;
+	}
+
 	this.setPrompt = function (prompt) {
 		this._prompt.setMessage(prompt);
+		return this;
 	};
 
 	this.showPrompt = function () {
 		this._prompt.show();
 	};
+
+	this.setKeyboardType = function(keyboardType) {
+		this._prompt.setKeyboardType(keyboardType);
+		return this;
+	};
 });
+
+exports.KeyboardTypes = InputPrompt.KeyboardTypes;

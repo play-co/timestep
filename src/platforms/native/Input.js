@@ -27,7 +27,7 @@ exports = Class(function () {
 		}
 	} else {
 		this.getEvents = function () {
-			var raw = NATIVE.input.get(),
+			var raw = NATIVE.input.getTouchEvents(),
 				evts = [];
 			
 			var j = 0;

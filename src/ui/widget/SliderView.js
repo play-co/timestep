@@ -35,7 +35,9 @@ exports = Class(ImageScaleView, function (supr) {
 	};
 
 	this._initThumb = function (opts) {
-		var thumb = opts.thumb;
+		var thumb = merge({
+				superview: this
+			}, opts.thumb);
 
 		if (!thumb.pressed) {
 			thumb.pressed = thumb.active;
@@ -48,7 +50,6 @@ exports = Class(ImageScaleView, function (supr) {
 		this._thumbPressedImage = (thumb.pressed instanceof Image) ? thumb.pressed : new Image({url: thumb.pressed || ""});
 		this._thumbInactiveImage = (thumb.inactive instanceof Image) ? thumb.inactive : new Image({url: thumb.inactive || ""});
 
-		thumb.superview = this;
 		thumb.inactive = thumb.inactive || thumb.active;
 
 		this._thumb = new ImageScaleView(thumb);
@@ -59,7 +60,7 @@ exports = Class(ImageScaleView, function (supr) {
 
 		supr(this, "updateOpts", [opts]);
 
-		var track = opts.track;
+		var track = opts.track || {};
 		if (!track.inactive) {
 			track.inactive = track.active;
 		}

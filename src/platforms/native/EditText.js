@@ -13,17 +13,19 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
+
 import device;
 
 var focused;
 
-NATIVE.InputPrompt.subscribe('KeyUp', function(evt) {
-	if (focused != null) {
-        focused.onChange(evt.text);    
+NATIVE.input.subscribe('KeyUp', function(evt) {
+    if (focused != null) {
+        focused._value = evt.text;
+        focused.onChange(evt.text, evt.prevText, evt.cursorPos);
     }
 });
 
-NATIVE.InputPrompt.subscribe('Move', function(evt) {
+NATIVE.input.subscribe('FocusNext', function(evt) {
     if (evt.next && focused && focused._textEditView && focused._textEditView._forwardTextEditView) {
         focused._textEditView._forwardTextEditView.requestFocus();
     } else if (!evt.next && focused && focused._textEditView && focused._textEditView._backTextEditView) {
@@ -31,25 +33,44 @@ NATIVE.InputPrompt.subscribe('Move', function(evt) {
     }
 });
 
-exports = device.isIOS ? device.get('InputPrompt') : Class(function() {
+NATIVE.input.subscribe('Submit', function(evt) {
+    focused && focused.closeEditField();
+});
+
+exports = Class(function() {
 
     var defaults = {
         hint: '',
         inputType: 'default', // default | number | phone | password | capital
-        maxLength: -1
+        maxLength: -1,
+        inputReturnButton: 'default' // default (return) | go | google | join | next | route | search | send | yahoo | done | emergencycall,
     }
 
     this.init = function(opts) {
         console.log('instantiate EditText with hint: ' + opts.hint);
         this._opts = merge(opts, defaults);
         this._textEditView = opts.textEditView;
-        this.onChange = opts.onChange;
         this.onFocusChange = opts.onFocusChange || function() {};
+        this.onSubmit = opts.onSubmit || function () {}
     };
+
+    this.onChange = function (value, prevValue, cursorPos) {
+        this._value = value;
+        if (this._opts.onChange) {
+            this._opts.onChange(value, prevValue, cursorPos);
+        }
+    }
+
+    this.getValue = function () { return this._value; }
+
+    this.setValue = function (value) {
+        this._value = value;
+        this.onChange(value);
+    }
 
     this.requestFocus = function() {
         if (focused !== this) {
-            if (focused != null) focused.removeFocus(); 
+            if (focused != null) focused.removeFocus();
             this.onFocusChange(true);
         }
 
@@ -58,25 +79,38 @@ exports = device.isIOS ? device.get('InputPrompt') : Class(function() {
 
     this.closeEditField = function() {
         console.log("TextEditView editText removeFocus");
-        NATIVE.inputPrompt.hideSoftKeyboard(); 
+        if (focused != null) {
+            focused.removeFocus();
+        }
+
+        NATIVE.input.hideKeyboard();
      }
 
-    this.refresh = function(currentVal, hasBack, hasForward) {
-        console.log("TextEditView refresh with: " + currentVal);
-        NATIVE.inputPrompt.showSoftKeyboard(currentVal || "", 
-                                            this._opts.hint, 
-                                            hasBack, 
-                                            hasForward, 
-                                            this._opts.inputType, 
-                                            this._opts.maxLength);
+    this.refresh = function(currentVal, hasBack, hasForward, cursorPos) {
+        NATIVE.input.showKeyboard(currentVal || "",
+                                            this._opts.hint,
+                                            hasBack,
+                                            hasForward,
+                                            this._opts.inputType,
+                                            this._opts.inputReturnButton,
+                                            this._opts.maxLength,
+                                            cursorPos);
     }
 
     this.hasFocus = function() {
-        return focused = this; 
+        return focused == this;
     }
 
     this.removeFocus = function() {
-        this.onFocusChange(false); 
+        this.onFocusChange(false);
+        this.onSubmit(this._value);
+        if (focused == this) {
+            focused = null;
+        }
+    }
+
+    this.setHint = function(hint) {
+        this._opts.hint = hint;
     }
 
 });

@@ -308,7 +308,6 @@ var Application = exports = Class(Emitter, function (supr) {
 			}
 		}
 
-		this._needsRepaint = false;
 		if (this._ctx) {
 			var el = this._ctx.getElement();
 			var s = this._view.style;
@@ -380,6 +379,7 @@ var Application = exports = Class(Emitter, function (supr) {
 			this.render(dt);
 		}
 
+		this._needsRepaint = false;
 		this._reflowManager && this._reflowManager.setInRender(false);
 	};
 
@@ -388,6 +388,7 @@ var Application = exports = Class(Emitter, function (supr) {
 			this._ctx && this._ctx.clear();
 		}
 
+		this._view.__view.constructor.absScale = 1;
 		this._view.__view.wrapRender(this._ctx, {});
 		this.publish('Render', this._ctx);
 

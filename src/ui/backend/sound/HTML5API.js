@@ -98,6 +98,16 @@ var MultiSound = Class(function () {
 		var loop = opts.loop !== undefined ? opts.loop : opts.background;
 		var volume = opts.volume !== undefined ? opts.volume : 1.0;
 
+		var isPaused = bind(this, 'isPaused');
+
+		// html5 hack for web browsers
+		var _checkPauseOnPlay = function (src) {
+				this.removeEventListener(arguments.callee);
+				if (isPaused()) {
+					this.pause();
+				}
+			};
+
 		for (var i = 0, src; src = srcList[i]; ++i) {
 
 			// file paths are relative to the base path
@@ -114,6 +124,14 @@ var MultiSound = Class(function () {
 			audio.isBackgroundMusic = opts.background;
 			audio.src = fullPath;
 			audio.preload = ((audio.readyState != 4) || (soundManager._preload && !opts.background)) ? "auto" : "none";
+
+			// If you pause or mute an html5 audio object in the browser
+			// before the sound is ready, it will play anyway.  Here, we
+			// check the pause status when the audio starts playing.
+			if (audio.addEventListener) {
+				audio.addEventListener('playing', _checkPauseOnPlay);
+			}
+
 			sources.push(audio);
 			if (audio.isBackgroundMusic && window.NATIVE) {
 				NATIVE.sound.registerMusic(fullPath, audio);
@@ -313,7 +331,7 @@ exports = Class(Emitter, function (supr) {
 	};
 
 	this.setMusicMuted = function (isMusicMuted) {
-		if (isMusicMuted == this._isMusicMuted) { return; }
+		// if (isMusicMuted == this._isMusicMuted) { return; }
 		this._isMusicMuted = isMusicMuted;
 		this._persist();
 

@@ -36,20 +36,21 @@ import ui.resource.loader as resourceLoader;
 
 var ImageCache = {};
 
+// `imageOnLoad` is called when a DOM image object fires a `load` or `error`
+// event.  Fire the internal `cb` with the error status.
 function imageOnLoad(success, evt, failCount) {
-	// Some browsers report onLoad before the image width is available.
 	if (success && !this.width) {
-		if (failCount > 3) {
-			this.onLoad = this.onError = null;
-			return this.__cb.fire(false);
+		// Some browsers fire the load event before the image width is
+		// available.  Wait up to 3 frames for the width.  Note that an image
+		// with zero-width will be considered an error.
+		if (failCount <= 3) {
+			setTimeout(bind(this, imageOnLoad, success, evt, (failCount || 0) + 1), 0);
+		} else {
+			this.__cb.fire(false);
 		}
-
-		return setTimeout(bind(this, imageOnLoad, success, evt, (failCount || 0) + 1), 0);
+	} else {
+		this.__cb.fire(!success);
 	}
-
-	this.__cb.fire(success);
-	this.isError = !success;
-	this.onLoad = this.onError = null;
 }
 
 /**
@@ -123,15 +124,21 @@ exports = Class(function () {
 			}
 		}
 
-		// if it's already loaded...
-		if (img && img.complete) {
-			this._srcImg = img;
-			this._onLoad(!img.isError);
-		} else {
-			// add a callback and wait for it
+		// create an image if we don't have one
+		if (!img) {
+			img = new Image();
+		}
 
-			// create an image if we don't have one
-			this._srcImg = img = img || new Image();
+		this._srcImg = img;
+
+		if (img instanceof HTMLCanvasElement) {
+			this._onLoad(false); // no error
+		} else {
+			// if it's already loaded, we call _onLoad immediately. Note that
+			// we don't use `.complete` here intentionally since web browsers
+			// set `.complete = true` before firing on the load/error
+			// callbacks, so we can't actually detect whether there's an error
+			// in some cases.
 
 			if (!img.__cb) {
 				img.__cb = new Callback();
@@ -140,7 +147,7 @@ exports = Class(function () {
 
 				if (url) { ImageCache[url] = img; }
 				if (!img.src && url) {
-					this._srcImg.src = this._map.url = url;
+					img.src = this._map.url = url;
 				}
 			}
 
@@ -245,8 +252,8 @@ exports = Class(function () {
 	this.doOnLoad = function () { this._cb.forward(arguments); return this; };
 
 	// internal onload handler for actual Image object
-	this._onLoad = function (didLoad) {
-		if (!didLoad) {
+	this._onLoad = function (err) {
+		if (err) {
 			// TODO: something better?
 			logger.error('Image failed to load:', this._map.url);
 			this._isError = true;
@@ -331,12 +338,14 @@ exports = Class(function () {
 					scaleX = destW / (map.marginLeft + map.width + map.marginRight);
 					scaleY = destH / (map.marginTop + map.height + map.marginBottom);
 
-					ctx.drawImage(this._srcImg,
-								  map.x, map.y, map.width, map.height,
-								  (destX || 0) + scaleX * map.marginLeft,
-								  (destY || 0) + scaleY * map.marginTop,
-								  scaleX * map.width,
-								  scaleY * map.height);
+					if (scaleX != Infinity && scaleY != Infinity) {
+						ctx.drawImage(this._srcImg,
+									  map.x, map.y, map.width, map.height,
+									  (destX || 0) + scaleX * map.marginLeft,
+									  (destY || 0) + scaleY * map.marginTop,
+									  scaleX * map.width,
+									  scaleY * map.height);
+					}
 				}
 			}
 
