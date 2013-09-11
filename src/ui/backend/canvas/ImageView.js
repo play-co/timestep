@@ -38,18 +38,6 @@ var ImageView = exports = Class(View, function (supr) {
 	 *   autoSize - See .setImage()
 	 */
 
-	this.init = function (opts) {
-		supr(this, 'init', arguments);
-		opts = merge(opts, {
-			image: null,
-			autoSize: false
-		});
-		
-		if (opts.image) {
-			this.setImage(opts.image);
-		}
-	};
-
 	/**
 	 * Return this view's Image object.
 	 */
@@ -58,13 +46,35 @@ var ImageView = exports = Class(View, function (supr) {
 		return this._img;
 	};
 
-	this.getImageFromCache = function(url) {
-		var img = imageCache[url];
+	this.getImageFromCache = function(url, forceReload) {
+		var img;
+		if (!forceReload) {
+			img = imageCache[url];
+		}
 		if (!img) {
-			imageCache[url] = img = new Image({ url: url });
+			imageCache[url] = img = new Image({
+				url: url,
+				forceReload: !!forceReload
+			});
 		}
 		return img;
 	};
+
+	this.updateOpts = function (opts) {
+		var opts = supr(this, 'updateOpts', arguments);
+		
+		if ('autoSize' in opts) {
+			this._autoSize = !!opts.autoSize;
+		}
+
+		if (opts.image) {
+			this.setImage(opts.image);
+		} else {
+			this.needsReflow();
+		}
+
+		return opts;
+	}
 
 	/**
 	 * Set the image of the view from an Image object or string.
@@ -73,14 +83,17 @@ var ImageView = exports = Class(View, function (supr) {
 	 */
 
 	this.setImage = function (img, opts) {
+		this.needsReflow();
+		var forceReload = opts && opts.forceReload;
 		if (typeof img == 'string') {
-			img = this.getImageFromCache(img);
+			img = this.getImageFromCache(img, forceReload);
 		}
 
 		this._img = img;
 
 		if (this._img) {
-			if (this._opts.autoSize || (opts && opts.autoSize)) {
+			this._autoSize = opts && ('autoSize' in opts) ? opts.autoSize : this._autoSize;
+			if (this._autoSize) {
 				// sprited resources will know their dimensions immediately
 				if (this._img.getWidth() > 0 && this._img.getHeight() > 0) {
 					this.autoSize();

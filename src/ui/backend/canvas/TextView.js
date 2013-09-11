@@ -67,7 +67,7 @@ var TextView = exports = Class(View, function (supr) {
 		horizontalAlign: "center",
 
 		// misc properties...
-		buffer: GLOBAL.NATIVE && !device.simulatingMobileNative,
+		buffer: false, // GLOBAL.NATIVE && !device.simulatingMobileNative,
 		backgroundColor: null
 	};
 
@@ -139,7 +139,7 @@ var TextView = exports = Class(View, function (supr) {
 		this._textFlow.subscribe("ChangeWidth", this, "onChangeWidth");
 		this._textFlow.subscribe("ChangeHeight", this, "onChangeHeight");
 		this._textFlow.subscribe("ChangeSize", this, "onChangeSize");
-
+		
 		supr(this, 'init', [merge(opts, defaults)]);
 
 		this._id = textViewID++;
@@ -299,6 +299,7 @@ var TextView = exports = Class(View, function (supr) {
 		while (i) {
 			item = cache[--i];
 			word = item.word;
+
 			x = offsetX + item.x;
 			y = offsetY + item.y;
 
@@ -312,6 +313,12 @@ var TextView = exports = Class(View, function (supr) {
 
 			ctx.fillStyle = color;
 			ctx.fillText(word, x + lineOffset, y + lineOffset, maxWidth);
+		}
+		if (this._opts.debug) {
+			ctx.strokeStyle = 'black';
+			ctx.strokeRect(x, y, item.width, this.style.height - 2 * y);
+			ctx.strokeStyle = 'red';
+			ctx.strokeRect(0, 0, this.style.width, this.style.height);
 		}
 	};
 
@@ -342,13 +349,16 @@ var TextView = exports = Class(View, function (supr) {
 		}
 	};
 
-	this.render = function (ctx) {
-		var opts = this._opts;
-
+	this.computeSize = function (ctx) {
 		if (this._cacheUpdate) {
 			this._updateCtx(ctx);
+			var opts = this._opts;
 			this._textFlow.reflow(ctx, 1 + (opts.autoFontSize ? 4 : 0) + (opts.autoSize ? 2 : 0) + (opts.wrap ? 1 : 0));
 		}
+	}
+
+	this.render = function (ctx) {
+		this.computeSize(ctx);
 		if (!this._textFlow.getCache().length) {
 			this._cacheUpdate = false;
 			return;
@@ -372,15 +382,19 @@ var TextView = exports = Class(View, function (supr) {
 		return fontBuffer;
 	};
 
-	this.setText = function (text) {
-		if (this._opts.buffer) {
-			fontBuffer.releaseBin(this.getHash());
-		}
+	this.setText = function (textData) {
+		var text = (textData != undefined) ? textData.toString() : "";
 
-		this._restoreOpts();
-		this._opts.text = (text != undefined) ? text.toString() : "";
-		this.updateCache();
-		this.needsRepaint();
+		if (this._opts.text !== text) {
+			if (this._opts.buffer) {
+				fontBuffer.releaseBin(this.getHash());
+			}
+
+			this._restoreOpts();
+			this._opts.text = text;
+			this.updateCache();
+			this.needsRepaint();
+		}
 	};
 
 	this.getStrokeWidth = function () {

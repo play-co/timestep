@@ -11,22 +11,16 @@ var hashFile = require("../../../../src/hashFile");
  * generic and include it here.
  */
 
-var _build;
-var _logger;
-var _paths;
-
 var INITIAL_IMPORT = 'gc.native.launchClient';
 
 var installAddons = function(builder, project, next) {
 	var paths = builder.common.paths;
-	var addons = project && project.manifest && project.manifest.addons;
+	var addons = project.getAddonConfig();
 
 	var f = ff(this, function() {
 		// For each addon,
 		if (addons) {
-			for (var ii = 0; ii < addons.length; ++ii) {
-				var addon = addons[ii];
-
+			Object.keys(addons).forEach(function (addon) {
 				// Prefer paths in this order:
 				var addon_js_ios = paths.addons(addon, 'js', 'ios');
 				var addon_js_android = paths.addons(addon, 'js', 'android');
@@ -48,7 +42,7 @@ var installAddons = function(builder, project, next) {
 				} else {
 					logger.warn("Installing addon:", addon, "-- No js directory so no JavaScript will be installed");
 				}
-			}
+			});
 		}
 	}).error(function(err) {
 		logger.error("Failure installing addon javascript:", err);
@@ -56,11 +50,9 @@ var installAddons = function(builder, project, next) {
 }
 
 // takes a project, subtarget(android/ios), additional opts.
-exports.build = function (build, project, subtarget, moreOpts, next) {
+exports.build = function (build, project, subtarget, moreOpts, cb) {
 	var target = 'native-' + subtarget;
 
-	_build = build;
-	_paths = _build.common.paths;
 	logger = new build.common.Formatter('build-native');
 
 	// Get domain from manifest under studio.domain
@@ -69,7 +61,7 @@ exports.build = function (build, project, subtarget, moreOpts, next) {
 	domain = domain || "gameclosure.com";
 
 	//define a bunch of build options
-	var opts = _build.packager.getBuildOptions({
+	var opts = build.packager.getBuildOptions({
 		appID: project.manifest.appID,
 
 		output: moreOpts.buildPath, // path is overriden by native if not the test app or simulate
@@ -100,7 +92,7 @@ exports.build = function (build, project, subtarget, moreOpts, next) {
 	// doesn't build ios - builds the js that it would use, then you shim out NATIVE
 	if (opts.isTestApp) {
 		installAddons(build, project, function() {
-			exports.writeNativeResources(project, opts, next);
+			exports.writeNativeResources(build, project, opts, onBuildFinish);
 		});
 	} else if (opts.isSimulated) {
 		// Build simulated version
@@ -108,10 +100,17 @@ exports.build = function (build, project, subtarget, moreOpts, next) {
 		// When simulating, we build a native version which targets the native target
 		// but uses the browser HTML to host. A native shim is supplied to mimick native
 		// features, so that the code can be tested in the browser without modification.
-		require('../browser/browser').runBuild(_build, project, opts, next);
+		require('../browser/browser').runBuild(build, project, opts, onBuildFinish);
 	} else {
 		// Use native target (android/ios)
-		require('./' + target).package(_build, project, opts, next);
+		require('./' + target).package(build, project, opts, onBuildFinish);
+	}
+
+	function onBuildFinish (err, res) {
+		cb(err, {
+			buildOpts: opts,
+			res: res
+		});
 	}
 };
 
@@ -119,7 +118,7 @@ exports.build = function (build, project, subtarget, moreOpts, next) {
 
 var NATIVE_ENV_JS = fs.readFileSync(path.join(__dirname, "env.js"), 'utf8');
 
-function wrapNativeJS (project, opts, target, resources, code) {
+function wrapNativeJS (build, project, opts, target, resources, code, cb) {
 	var inlineCache = {};
 	resources.forEach(function (info) {
 		if (!fs.existsSync(info.fullPath)) {
@@ -143,12 +142,13 @@ function wrapNativeJS (project, opts, target, resources, code) {
 		}
 	});
 	
-	return [
-		_build.packager.getJSConfig(project, opts, target),
-		"window.CACHE = " + JSON.stringify(inlineCache) + ";",
-		code,
-		NATIVE_ENV_JS
-	].join('');
+
+	build.packager.getJSConfig(project, opts, target, function(jsConfig) {
+		cb([jsConfig,
+			"window.CACHE = " + JSON.stringify(inlineCache) + ";",
+			code,
+			NATIVE_ENV_JS].join(''));
+	});
 }
 
 function filterCopyFile(ios, file) {
@@ -177,10 +177,11 @@ function filterCopyFile(ios, file) {
 
 // Write out build resources to disk.
 //creates the js code which is the same on each native platform
-exports.writeNativeResources = function (project, opts, next) {
+exports.writeNativeResources = function (build, project, opts, next) {
 	logger.log("Writing resources for " + opts.appID + " with target " + opts.target);
 
 	var ios = opts.target.indexOf("ios") >= 0;
+	var cache = {};
 
 	opts.mapMutator = function(keys) {
 		var deleteList = [], renameList = [];
@@ -212,9 +213,9 @@ exports.writeNativeResources = function (project, opts, next) {
 	};
 
 	var f = ff(function () {
-		_build.packager.compileResources(project, opts, opts.target, INITIAL_IMPORT, f());
+		build.packager.compileResources(project, opts, INITIAL_IMPORT, f());
 	}, function (pkg) {
-		var files = pkg.files;
+		var resources = pkg.files;
 
 		/*
 		icons = manifest.get("icons", {}).values()
@@ -222,7 +223,6 @@ exports.writeNativeResources = function (project, opts, next) {
 		files.push('icon.png', open(icons[-1]).read())
 		*/
 
-		var cache = {};
 
 		function embedFile (info) {
 			switch (filterCopyFile(ios, info.relative)) {
@@ -240,8 +240,8 @@ exports.writeNativeResources = function (project, opts, next) {
 			}
 		}
 
-		files.sprites.forEach(embedFile);
-		files.resources.forEach(embedFile);
+		resources.images.forEach(embedFile);
+		resources.other.forEach(embedFile);
 
 		cache["manifest.json"] = {
 			contents: JSON.stringify(project.manifest)
@@ -250,8 +250,12 @@ exports.writeNativeResources = function (project, opts, next) {
 		// If native.js is > 1mb, it won't be read properly by android because it must
 		// be uncompressed. To avoid this, we suffix it with .mp3, a filetype that the
 		// Android system won't compress.
-		cache["native.js.mp3"] = {
-			contents: wrapNativeJS(project, opts, opts.target, files.resources, pkg.jsSrc)
+		wrapNativeJS(build, project, opts, opts.target, resources.other, pkg.jsSrc, f.slotPlain())
+
+	}, function(contents) {
+
+		cache["native.js"] = {
+			contents: contents
 		};
 
 		logger.log('writing files to', opts.output);
@@ -282,7 +286,7 @@ exports.writeNativeResources = function (project, opts, next) {
 					} else if (cache[key].contents) {
 						fs.writeFile(out, cache[key].contents, f2());
 					} else if (cache[key].src) {
-						_build.common.child('cp', ['-p', cache[key].src, out], {cwd: opts.fullPath}, f2());
+						build.common.child('cp', ['-p', cache[key].src, out], {cwd: opts.fullPath}, f2());
 					}
 				}, function () {
 					// build a list of etags so the test app doesn't have to make a

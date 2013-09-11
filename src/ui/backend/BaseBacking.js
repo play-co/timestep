@@ -48,6 +48,8 @@ var BaseBacking = exports = Class(function () {
 		// 	}
 		// },
 		'scale': {value: 1},
+		'scaleX': {value: 1},
+		'scaleY': {value: 1},
 		'flipX': {value: false},
 		'flipY': {value: false},
 		'visible': {value: true},

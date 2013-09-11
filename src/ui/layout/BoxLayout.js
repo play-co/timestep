@@ -31,7 +31,7 @@ var BoxLayout = exports = Class(function () {
 		var sv = view.getSuperview();
 		var style = view.style;
 
-		if (sv && (force || !style.inLayout || !sv.style.layout || !sv.__layout.reflowsChildren)) {
+		if (sv && (force || !style.inLayout || !sv.style.layout || sv.__layout && !sv.__layout.reflowsChildren)) {
 			cls.reflowX(view, sv.style.width);
 			cls.reflowY(view, sv.style.height);
 		}

@@ -31,6 +31,7 @@
  */
 
 import event.Emitter as Emitter;
+import util.setProperty;
 
 if (typeof navigator == 'undefined' || !navigator.userAgent) {
 	logger.warn('> Timestep was unable to determine your device! Please check that navigator.userAgent is defined.');
@@ -75,7 +76,13 @@ exports.screen.height = window.screen.height * devicePixelRatio;
 // This is stubbed out unless available on the current device.
 exports.hideAddressBar = function () {};
 
-exports.defaultFontFamily = 'Helvetica';
+util.setProperty(exports, 'defaultFontFamily', {
+	cb: function (value) {
+		import ui.resource.Font;
+		ui.resource.Font.setDefaultFontFamily(value);
+	},
+	value: 'Helvetica'
+});
 
 if ('ontouchstart' in window && (!/BlackBerry/.test(ua))) {
 	exports.events = {

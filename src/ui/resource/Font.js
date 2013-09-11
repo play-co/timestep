@@ -23,8 +23,6 @@
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/text.md
  */
 
-import device;
-
 var _cache = {},
 	weights = 'normal|bold|bolder|lighter|[1-9]00',
 	styles = 'normal|italic|oblique',
@@ -103,8 +101,13 @@ function parseFont(fontStr) {
 
 var Font = exports = Class(function () {
 	
+	var _defaultFontFamily = null;
+	this.constructor.setDefaultFontFamily = function (fontFamily) {
+		_defaultFontFamily = fontFamily;
+	}
+
 	var defaults = {
-		name: device.defaultFontFamily,
+		name: _defaultFontFamily,
 		size: 20,
 		unit: 'px',
 		style: '',

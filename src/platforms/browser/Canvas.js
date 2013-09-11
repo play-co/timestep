@@ -14,8 +14,6 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-"use import";
-
 /**
  * @package timestep.env.browser.Canvas;
  *

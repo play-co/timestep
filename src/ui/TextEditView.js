@@ -24,15 +24,15 @@ exports = Class(ImageScaleView, function(supr) {
 
     var defaults = {
         color: 'black',
-        hintColor: '#979797',
+        hintColor: "#979797",
         paddingLeft: 20,
         paddingRight: 20,
         paddingTop: 0,
         paddingBottom: 0
     };
 
-    this.init = function (opts) {
-        this._opts = merge(opts || {}, defaults);
+    this.init = function(opts) {
+        this._opts = merge(opts || {}, defaults); 
         supr(this, 'init', [this._opts]);
 
         this._textBox = new TextView(merge({
@@ -41,45 +41,53 @@ exports = Class(ImageScaleView, function(supr) {
             width: opts.width - this._opts.paddingLeft - this._opts.paddingRight,
             height: opts.height
         }, opts));
+
         this.addSubview(this._textBox);
         this._focused = false;
         this._textFilter = null;
+        this._textCursorFilter = null;
         this._backTextEditView = null;
         this._forwardTextEditView = null;
         this._hint = this._opts.hintJs || this._opts.hint;
         this._hintSet = false;
+        this._cursorPos = -1;
         this._normalColor = this._opts.color;
         this._hintColor = this._opts.hintColor;
         this._editText = new EditText(merge({}, // avoid side effects
             merge(opts, {
+                title: this._hint,
                 textEditView: this,
-                onChange: bind(this, this.onChange),
+                onChange: bind(this, 'onChange'),
+                onSubmit: bind(this, 'onSubmit'),
                 onFocusChange: bind(this, this.onFocusChange)
             })
         ));
 
-        this.setText(this._opts.text);
+        this.setText(this._opts.text || "");
     };
 
-    this.onInputSelect = function () {
+    this.onSubmit = function () {};
+
+    this.onInputSelect = function() {
         this.requestFocus();
     };
 
-    this.requestFocus = function () {
+    this.requestFocus = function() {
         this._focused = true;
         this._editText.requestFocus();
         this.refresh();
-    }
+    };
 
-    this.removeFocus = function () {
+    this.removeFocus = function() {
         this._editText.closeEditField();
-    }
+    };
 
-    this.refresh = function () {
+    this.refresh = function() {
         this._editText.refresh(this.getText(),
-           this._backTextEditView != null,
-           this._forwardTextEditView != null);
-    }
+                               this._backTextEditView != null,
+                               this._forwardTextEditView != null,
+                               this._cursorPos);
+    };
 
     this.onFocusChange = function (focused) {
         if (focused) {
@@ -87,32 +95,39 @@ exports = Class(ImageScaleView, function(supr) {
         } else {
             this.emit('focusRemove');
         }
-    }
+    };
 
-    this.onChange = function (value) {
+    this.onChange = function(value, prevValue, cursorPos) {
         var isProcessed;
+        var isCursorSet;
+
         if (value !== this._textBox.getText()) {
             isProcessed = typeof this._textFilter === 'function';
+            isCursorSet = typeof this._textCursorFilter === 'function';
             
             if (isProcessed) {
-                value = this._textFilter(value); 
+                if (isCursorSet) {
+                    this._cursorPos = this._textCursorFilter(value || '', prevValue || '', cursorPos || 0);
+                }
+
+                value = this._textFilter(value || '', prevValue || '');
             } 
 
             this.setText(value);
 
             if (isProcessed) {
-                this.refresh(); // update native EditText with processed values 
+                this.refresh(); // update native EditText with processed values
             }
 
-            this.emit('Change', value);
+            this.emit('onChange', value);
         }
-    }
+    };
 
-    this.setBackward = function (view) {
+    this.setBackward = function(view) {
         this._backTextEditView = view;
-    }
+    };
 
-    this.setForward = function (view) {
+    this.setForward = function(view) {
         this._forwardTextEditView = view;
     }
 
@@ -121,15 +136,16 @@ exports = Class(ImageScaleView, function(supr) {
      * and returns a string. This can be used to process text
      * entered into the EditText.
      */
-    this.registerTextFilter = function (fn) {
+    this.registerTextFilter = function(fn, fn2) {
         this._textFilter = fn; 
+        this._textCursorFilter = fn2;
     }
 
     this.getText = function() {
         var result;
 
         if (this._hintSet) {
-            result = ''; 
+            result = ""; 
         } else {
             result = this._textBox.getText();
         }
@@ -137,7 +153,19 @@ exports = Class(ImageScaleView, function(supr) {
         return result;
     }
 
-    this.setText = function (text) {
+    this.getValue = function () {
+        return this._editText.getValue();
+    }
+
+    this.setValue = function (value) {
+        this.setText(value);
+
+        if (this._editText.setValue) {
+            this._editText.setValue(value);
+        }
+    }
+
+    this.setText = function(text) {
         if ((text == null || (text != null && text.length == 0)) && this._hint != null) {
             this._hintSet = true;
             text = this._hint;
@@ -148,5 +176,11 @@ exports = Class(ImageScaleView, function(supr) {
         }
 
         this._textBox.setText(text);
+    }
+
+    this.setHint = function(hint) {
+        this._hint = hint; 
+        this._editText.setHint(hint);
+        this.setText(this.getText());
     }
 });
