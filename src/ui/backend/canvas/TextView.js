@@ -307,8 +307,9 @@ var TextView = exports = Class(View, function (supr) {
 				ctx.strokeText(word, x + lineOffset, y + lineOffset, maxWidth);
 			}
 			if (shadowColor) {
+				var shadowOffset = this._opts.strokeWidth || 0;
 				ctx.fillStyle = shadowColor;
-				ctx.fillText(word, x + lineOffset, y + lineOffset, maxWidth);
+				ctx.fillText(word, x + lineOffset + shadowOffset, y + lineOffset + shadowOffset, maxWidth);
 			}
 
 			ctx.fillStyle = color;
