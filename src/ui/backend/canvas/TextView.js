@@ -59,6 +59,7 @@ var TextView = exports = Class(View, function (supr) {
 		fontWeight: "",
 		size: 128,
 		strokeWidth: 2,
+		shadowWidth: 2,
 		strokeColor: null,
 		shadowColor: null,
 
@@ -89,6 +90,7 @@ var TextView = exports = Class(View, function (supr) {
 		fontWeight: true,
 		size: true,
 		strokeWidth: true,
+		shadowWidth: true,
 		strokeColor: false,
 		shadowColor: false,
 
@@ -109,6 +111,7 @@ var TextView = exports = Class(View, function (supr) {
 		fontWeight: true,
 		size: true,
 		strokeWidth: true,
+		shadowWidth: true,
 		strokeColor: false,
 		shadowColor: false,
 
@@ -307,7 +310,7 @@ var TextView = exports = Class(View, function (supr) {
 				ctx.strokeText(word, x + lineOffset, y + lineOffset, maxWidth);
 			}
 			if (shadowColor) {
-				var shadowOffset = this._opts.strokeWidth || 0;
+				var shadowOffset = this._opts.shadowWidth || 0;
 				ctx.fillStyle = shadowColor;
 				ctx.fillText(word, x + lineOffset + shadowOffset, y + lineOffset + shadowOffset, maxWidth);
 			}
