@@ -83,7 +83,6 @@ var ImageView = exports = Class(View, function (supr) {
 	 */
 
 	this.setImage = function (img, opts) {
-		this.needsReflow();
 		var forceReload = opts && opts.forceReload;
 		if (typeof img == 'string') {
 			img = this.getImageFromCache(img, forceReload);
@@ -92,7 +91,7 @@ var ImageView = exports = Class(View, function (supr) {
 		this._img = img;
 
 		if (this._img) {
-			this._autoSize = opts && ('autoSize' in opts) ? opts.autoSize : this._autoSize;
+			this._autoSize = (opts && ('autoSize' in opts)) ? opts.autoSize : this._autoSize;
 			if (this._autoSize) {
 				// sprited resources will know their dimensions immediately
 				if (this._img.getWidth() > 0 && this._img.getHeight() > 0) {
