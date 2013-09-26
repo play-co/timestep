@@ -34,7 +34,12 @@ NATIVE.input.subscribe('FocusNext', function(evt) {
 });
 
 NATIVE.input.subscribe('Submit', function(evt) {
-    focused && focused.closeEditField();
+    focused && focused.submit();
+});
+
+
+NATIVE.events.registerHandler('editText.onFinishEditing', function (evt) {
+    focused && focused.finishEditing();
 });
 
 exports = Class(function() {
@@ -77,24 +82,46 @@ exports = Class(function() {
         focused = this; 
     }
 
-    this.closeEditField = function() {
-        console.log("TextEditView editText removeFocus");
+	this.finishEditing = function() {
+		this._textEditView.onFinishEditing();
         if (focused != null) {
             focused.removeFocus();
         }
+	}
 
-        NATIVE.input.hideKeyboard();
+    this.submit = function() {
+		this.onSubmit(this._value);
+        if (focused != null) {
+            focused.removeFocus();
+        }
      }
 
     this.refresh = function(currentVal, hasBack, hasForward, cursorPos) {
-        NATIVE.input.showKeyboard(currentVal || "",
-                                            this._opts.hint,
-                                            hasBack,
-                                            hasForward,
-                                            this._opts.inputType,
-                                            this._opts.inputReturnButton,
-                                            this._opts.maxLength,
-                                            cursorPos);
+		var textBox = this._textEditView._textBox;
+		textBox.style.visible = false;
+		var pos = this._textEditView.getPosition();
+		var scale = pos.width / this._textEditView.style.width;
+
+		NATIVE.call('editText.focus', {
+				id: this._id,
+				paddingLeft: this._opts.paddingLeft * scale,
+				paddingRight: this._opts.paddingRight * scale,
+				x: pos.x,
+				y: pos.y, 
+				width: pos.width,
+				height: pos.height, 
+				text: currentVal || "" ,
+				hint: this._opts.hint,
+				hintColor: this._opts.hintColor,
+				inputType: this._opts.inputType,
+				maxLength: this._opts.maxLength,
+				fontColor: this._opts.color,
+				fontSize: textBox._opts.size * scale,
+				font: textBox._opts.fontFamily,
+				cursorPos: cursorPos
+		});
+
+		//cursorPos);
     }
 
     this.hasFocus = function() {
@@ -103,10 +130,13 @@ exports = Class(function() {
 
     this.removeFocus = function() {
         this.onFocusChange(false);
-        this.onSubmit(this._value);
         if (focused == this) {
             focused = null;
+			var textBox = this._textEditView._textBox;
+			textBox.style.visible = true;
+			NATIVE.call('editText.clearFocus', {});
         }
+		
     }
 
     this.setHint = function(hint) {

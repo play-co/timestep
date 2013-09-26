@@ -16,6 +16,7 @@
 
 import device;
 import ui.TextView as TextView;
+import ui.View as View;
 import ui.ImageScaleView as ImageScaleView;
 
 var EditText = device.get('EditText');
@@ -35,14 +36,27 @@ exports = Class(ImageScaleView, function(supr) {
         this._opts = merge(opts || {}, defaults); 
         supr(this, 'init', [this._opts]);
 
+
+		this._clipper = new View({
+				x: 0,
+				y: 0,
+				width: this._opts.width - this._opts.paddingLeft,
+				height: this._opts.height,
+				clip: true
+		});
+
         this._textBox = new TextView(merge({
             x: this._opts.paddingLeft,
             y: this._opts.paddingTop,
+			autoFontSize: false,
+			size: opts.size || 32,
+			horizontalAlign: opts.horizontalAlign || 'left',
             width: opts.width - this._opts.paddingLeft - this._opts.paddingRight,
             height: opts.height
         }, opts));
 
-        this.addSubview(this._textBox);
+		this._clipper.addSubview(this._textBox);
+        this.addSubview(this._clipper);
         this._focused = false;
         this._textFilter = null;
         this._textCursorFilter = null;
@@ -59,6 +73,7 @@ exports = Class(ImageScaleView, function(supr) {
                 textEditView: this,
                 onChange: bind(this, 'onChange'),
                 onSubmit: bind(this, 'onSubmit'),
+                onFinishEditing: bind(this, 'onFinishEditing'),
                 onFocusChange: bind(this, this.onFocusChange)
             })
         ));
@@ -67,6 +82,7 @@ exports = Class(ImageScaleView, function(supr) {
     };
 
     this.onSubmit = function () {};
+    this.onFinishEditing = function () {};
 
     this.onInputSelect = function() {
         this.requestFocus();
