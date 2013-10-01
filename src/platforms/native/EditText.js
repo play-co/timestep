@@ -34,7 +34,7 @@ NATIVE.input.subscribe('FocusNext', function(evt) {
 });
 
 NATIVE.input.subscribe('Submit', function(evt) {
-    focused && focused.submit();
+    focused && focused.submit(evt.close);
 });
 
 
@@ -71,6 +71,7 @@ exports = Class(function() {
     this.setValue = function (value) {
         this._value = value;
         this.onChange(value);
+		NATIVE.call('editText.setText', {text: value});
     }
 
     this.requestFocus = function() {
@@ -89,9 +90,9 @@ exports = Class(function() {
         }
 	}
 
-    this.submit = function() {
+    this.submit = function(close) {
 		this.onSubmit(this._value);
-        if (focused != null) {
+        if (focused != null && close) {
             focused.removeFocus();
         }
      }
@@ -114,11 +115,14 @@ exports = Class(function() {
 				hint: this._opts.hint,
 				hintColor: this._opts.hintColor,
 				inputType: this._opts.inputType,
+				inputReturnButton: this._opts.inputReturnButton,
 				maxLength: this._opts.maxLength,
 				fontColor: this._opts.color,
 				fontSize: textBox._opts.size * scale,
 				font: textBox._opts.fontFamily,
-				cursorPos: cursorPos
+				cursorPos: cursorPos,
+				hasBack: hasBack,
+				hasForward: hasForward
 		});
 
 		//cursorPos);
