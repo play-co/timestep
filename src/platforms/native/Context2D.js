@@ -24,8 +24,7 @@ import .FontRenderer;
 
 import ui.resource.Font as Font;
 
-var createdOnscreenCanvas = false,
-	__globalScissor = false;
+var _createdOnscreenCanvas = false;
 
 exports = Class(BufferedCanvas, function (supr) {
 
@@ -63,8 +62,8 @@ exports = Class(BufferedCanvas, function (supr) {
 			offscreen: true
 		});
 
-		if (!opts.offscreen && createdOnscreenCanvas) {
-			throw 'IOS only supports one on-screen canvas at the moment.  You can create multiple off-screen canvases and draw them to the on-screen canvas.';
+		if (_createdOnscreenCanvas) {
+			opts.offscreen = true;
 		}
 
 		this.canvas = opts.canvas || {
@@ -72,15 +71,12 @@ exports = Class(BufferedCanvas, function (supr) {
 			height: opts.height
 		};
 
-		if (!opts.offscreen) {
-			createdOnscreenCanvas = true;
-			this.canvas.__gl_name = -1;
-			this.canvas._src = 'onscreen';
-		} else {
-			this.resize(this.canvas.width, this.canvas.height);
+		this._isOffscreen = opts.offscreen;
+		if (!this._isOffscreen) {
+			_createdOnscreenCanvas = true;
 		}
 
-		this._ctx = new NATIVE.gl.Context2D(this.canvas, this.canvas._src, this.canvas.__gl_name);
+		this.resize(this.canvas.width, this.canvas.height);
 
 		for (var i = 0; i < 64; i++) {
 			this._stack[i] = this.updateState(this, {});
@@ -88,19 +84,31 @@ exports = Class(BufferedCanvas, function (supr) {
 	};
 
 	this.destroy = function () {
-		if (this.canvas._src) {
+		if (this._isOffscreen && this.canvas._src) {
+			this._ctx = null;
 			NATIVE.gl.deleteTexture(this.canvas._src);
 		}
 	}
 
 	this.resize = function (width, height) {
-		this.canvas._width = width;
-		this.canvas._height = height;
+
 		this.destroy();
 
-		var textureData = NATIVE.gl.newTexture(width, height);
-		this.canvas.__gl_name = textureData.__gl_name;
-		this.canvas._src = textureData._src;
+		// set the internal private properties (the public ones have setters that 
+		// would call this method again)
+		this.canvas._width = width;
+		this.canvas._height = height;
+
+		if (this._isOffscreen) {
+			var textureData = NATIVE.gl.newTexture(width, height);
+			this.canvas.__gl_name = textureData.__gl_name;
+			this.canvas._src = textureData._src;
+		} else {
+			this.canvas.__gl_name = -1;
+			this.canvas._src = 'onscreen';
+		}
+
+		this._ctx = new NATIVE.gl.Context2D(this.canvas, this.canvas._src, this.canvas.__gl_name);
 	}
 
 	this.getNativeCtx = function () { return this._ctx; }
