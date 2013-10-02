@@ -177,8 +177,12 @@ exports = Class(function () {
 				this._srcImg.addEventListener('reload', onReload, false);
 				this._srcImg.reload();
 			} else if (cb) {
-				// always wait a frame before calling the callback
-				setTimeout(cb, 0);
+				if (this._cb.fired()) {
+					// always wait a frame before calling the callback
+					setTimeout(cb, 0);
+				} else {
+					this._cb.run(cb);
+				}
 			}
 		}
 	};
