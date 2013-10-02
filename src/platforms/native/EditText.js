@@ -103,6 +103,11 @@ exports = Class(function() {
 		var pos = this._textEditView.getPosition();
 		var scale = pos.width / this._textEditView.style.width;
 
+		var closeOnDone = true;
+		if (this._opts.closeOnDone === false) {
+			closeOnDone = false;
+		} 
+
 		NATIVE.call('editText.focus', {
 				id: this._id,
 				paddingLeft: this._opts.paddingLeft * scale,
@@ -122,7 +127,8 @@ exports = Class(function() {
 				font: textBox._opts.fontFamily,
 				cursorPos: cursorPos,
 				hasBack: hasBack,
-				hasForward: hasForward
+				hasForward: hasForward,
+				closeOnDone: closeOnDone
 		});
 
 		//cursorPos);
