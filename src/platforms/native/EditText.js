@@ -85,10 +85,9 @@ exports = Class(function() {
 
 	this.finishEditing = function() {
 		this._textEditView.onFinishEditing();
-        if (focused != null) {
-            focused.removeFocus();
-        }
-	}
+		var textBox = this._textEditView._textBox;
+		textBox.style.visible = true;
+   	}
 
     this.submit = function(close) {
 		this.onSubmit(this._value);
