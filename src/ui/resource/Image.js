@@ -159,16 +159,27 @@ exports = Class(function () {
 		this._setSrcImg(srcImg);
 	};
 
-	this.__reload__ = function (cb) {
+	this.reload = function (cb) {
 		if (this._srcImg) {
-			var chainedCb = cb.chain();
 
-			var onReload = bind(this, function () {
-				this._srcImg.removeEventListener('reload', onReload, false);
-				chainedCb();
-			});
+			// if passed a lib.Callback, chain it
+			if (cb && cb.chain) {
+				cb = cb.chain();
+			}
 
-			this._srcImg.addEventListener('reload', onReload, false);
+			// GC native has a reload method to force reload
+			if (this._srcImg.reload) {
+				var onReload = bind(this, function () {
+					this._srcImg.removeEventListener('reload', onReload, false);
+					cb && cb();
+				});
+
+				this._srcImg.addEventListener('reload', onReload, false);
+				this._srcImg.reload();
+			} else if (cb) {
+				// always wait a frame before calling the callback
+				setTimeout(cb, 0);
+			}
 		}
 	};
 
