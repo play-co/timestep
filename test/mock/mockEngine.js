@@ -14,8 +14,8 @@
  */
 
 exports.setup = function() {
-	jsio('import _api.client.init');
-	GC.__init__({ui: false, overlay: false});
+	jsio('import gc.API');
+	// GC.__init__({ui: false, overlay: false});
 
 	jsio('import ui.Engine as Application');
 	global.app = new Application();
