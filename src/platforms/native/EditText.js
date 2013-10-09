@@ -20,6 +20,7 @@ var focused;
 
 NATIVE.input.subscribe('KeyUp', function(evt) {
     if (focused != null) {
+	logger.log("JARED KEY UP", evt.text);
         focused._value = evt.text;
         focused.onChange(evt.text, evt.prevText, evt.cursorPos);
     }
@@ -47,7 +48,7 @@ exports = Class(function() {
     var defaults = {
         hint: '',
         inputType: 'default', // default | number | phone | password | capital
-        maxLength: -1,
+        maxLength: 1000,
         inputReturnButton: 'default' // default (return) | go | google | join | next | route | search | send | yahoo | done | emergencycall,
     }
 
@@ -84,9 +85,13 @@ exports = Class(function() {
     }
 
 	this.finishEditing = function() {
-		this._textEditView.onFinishEditing();
-		var textBox = this._textEditView._textBox;
-		textBox.style.visible = true;
+        this.onFocusChange(false);
+		if (focused == this) {
+			focused = null;
+			this._textEditView.onFinishEditing();
+			var textBox = this._textEditView._textBox;
+			textBox.style.visible = true;
+		}
    	}
 
     this.submit = function(close) {
@@ -120,7 +125,7 @@ exports = Class(function() {
 				hintColor: this._opts.hintColor,
 				inputType: this._opts.inputType,
 				inputReturnButton: this._opts.inputReturnButton,
-				maxLength: this._opts.maxLength,
+				maxLength: this._opts.maxLength, 
 				fontColor: this._opts.color,
 				fontSize: textBox._opts.size * scale,
 				font: textBox._opts.fontFamily,
