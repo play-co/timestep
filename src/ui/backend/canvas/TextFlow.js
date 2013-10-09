@@ -457,10 +457,6 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 
 			case textFlowMode.AUTOFONTSIZE_WRAP:
 				this._wrap(ctx, actualWidth);
-				if (this._checkWidth(ctx, this._maxWordWidth)) {
-					this._lineSplit(ctx);
-					this._wrap(ctx, actualWidth);
-				}
 				this._wordFlow(ctx);
 
 				var lineCount = this._lines.length;
@@ -484,10 +480,6 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 
 			case textFlowMode.AUTOFONTSIZE_WRAP_AUTOSIZE:
 				this._wrap(ctx, actualWidth);
-				if (this._checkWidth(ctx, this._maxWordWidth)) {
-					this._lineSplit(ctx);
-					this._wrap(ctx, actualWidth);
-				}
 				this._wordFlow(ctx);
 
 				(actualHeight < this._maxHeight) && this.publish("ChangeHeight", this._maxHeight + this.getVerticalPadding());
