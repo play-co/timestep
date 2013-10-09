@@ -30,6 +30,8 @@ exports.setup = function() {
 	global.Audio = mockAudio.Audio;
 	global.document = jsdom("<html><head></head><body></body></html>");
 
+	global.HTMLCanvasElement = function () {};
+
 	var createElement = document.createElement;
 	document.createElement = function(element) {
 		if (element === 'canvas') {
