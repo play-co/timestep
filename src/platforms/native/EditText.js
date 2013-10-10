@@ -83,6 +83,12 @@ exports = Class(function() {
         focused = this; 
     }
 
+	this.closeEditField = function () {
+        if (focused == this) {
+            this.removeFocus();
+        }
+	};
+
 	this.finishEditing = function() {
 		this._textEditView.onFinishEditing();
 		var textBox = this._textEditView._textBox;

@@ -161,13 +161,15 @@ if (exports.isMobile) {
 		};
 	} else {
 		// All other browsers
-		exports.width = window.innerWidth;
-		exports.height = window.innerHeight;
 		exports.screen.width = window.innerWidth;
 		exports.screen.height = window.innerHeight;
 		exports.name = 'browser';
 		exports.canResize = false;
 	}
+
+	// Set up device.width and device.height for browser case
+	exports.width = exports.screen.width;
+	exports.height = exports.screen.height;
 }
 
 exports.useDOM = false;
