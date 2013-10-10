@@ -328,13 +328,13 @@ var View = exports = Class(Emitter, function () {
 
 	/**
 	 * Renamed to setHandleEvents, canHandleEvents is deprecated.
-	 * @param {boolean} ignoreEvents Pass events through. Default is true.
-	 * @param {boolean=} ignoreSubviews Optional, defaults to false in InputHandler. Ignore events in childen as well.
+	 * @param {boolean} handleEvents Pass events through.
+	 * @param {boolean} ignoreSubviews Optional, defaults to false in InputHandler. Ignore events in childen as well.
 	 */
 	this.setHandleEvents = this.canHandleEvents = function (handleEvents, ignoreSubviews) {
 		this.__input.canHandleEvents = handleEvents;
 		
-		if (typeof ignoreEvents === 'boolean') {
+		if (typeof ignoreSubviews === 'boolean') {
 			this.__input.blockEvents = ignoreSubviews;
 		}
 	};
