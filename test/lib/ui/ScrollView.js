@@ -14,13 +14,13 @@
  */
 
 jsio("import ui.ScrollView as ScrollView");
-jsio("import ui.layout.LinearView as LinearView");
+// jsio("import ui.layout.LinearView as LinearView");
 
 describe(
 	"ui.ScrollView",
 	function() {
 		var view1;
-		var view2;
+		// var view2;
 
 		beforeEach(
 			function() {
@@ -37,11 +37,11 @@ describe(
 						maxY: 250
 					}
 				});
-				view2 = new LinearView({
-					superview: view1,
-					width: 200,
-					height: 250
-				});
+				// view2 = new LinearView({
+				// 	superview: view1,
+				// 	width: 200,
+				// 	height: 250
+				// });
 			}
 		);
 

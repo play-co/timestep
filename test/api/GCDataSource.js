@@ -13,16 +13,16 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-jsio("import GCDataSource as GCDataSource");
+jsio("import squill.models.DataSource as DataSource");
 
 describe(
-	"GCDataSource",
+	"DataSource",
 	function() {
 		var dataSource;
 
 		beforeEach(
 			function() {
-				dataSource = new GCDataSource({key: "id"});
+				dataSource = new DataSource({key: "id"});
 			}
 		);
 
@@ -30,9 +30,9 @@ describe(
 			"#constructor()",
 			function() {
 				it(
-					"creates an instance of GCDataSource",
+					"creates an instance of DataSource",
 					function() {
-						assert(dataSource instanceof GCDataSource, "dataSource is an instance of GCDataSource");
+						assert(dataSource instanceof DataSource, "dataSource is an instance of DataSource");
 					}
 				);
 			}

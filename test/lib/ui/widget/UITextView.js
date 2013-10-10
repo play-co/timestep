@@ -13,16 +13,16 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-jsio('import ui.widget.UITextView as UITextView');
+jsio('import ui.TextView as TextView');
 
 describe(
-	"ui.widget.UITextView",
+	"ui.TextView",
 	function() {
 		var view;
 
 		beforeEach(
 			function() {
-				view = new UITextView({
+				view = new TextView({
 					fontSize: 12,
 					fontFamily: "Verdana"
 				});
@@ -33,9 +33,9 @@ describe(
 			"#constructor()",
 			function() {
 				it(
-					"creates an instance of UITextView",
+					"creates an instance of TextView",
 					function() {
-						assert(view instanceof UITextView, "view is an instance of ui.widget.UITextView");
+						assert(view instanceof TextView, "view is an instance of ui.TextView");
 					}
 				);
 			}
@@ -45,7 +45,7 @@ describe(
 			"#updateOpts(opts)",
 			function() {
 				it(
-					"updates the UITextView options",
+					"updates the TextView options",
 					function() {
 						view.updateOpts({
 							color: "red",

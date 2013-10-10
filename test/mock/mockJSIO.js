@@ -48,15 +48,14 @@ exports.setup = function() {
 	}
 
 	var path = require('path');
-	var libPath = path.join(__dirname, '../../../');
+	var sdkPath = path.join(__dirname, '../../../../sdk');
 
-	global.jsio = require(path.join(libPath, 'js.io'));
+	global.jsio = require(path.join(sdkPath, 'jsio'));
 	jsio.__env.name = 'browser';
 
-	jsio.path.add(libPath);
-	jsio.path.add(path.join(libPath, './js-api'));
-	jsio.path.add(path.join(libPath, './js-api/api'));
-	jsio.path.add(path.join(libPath, './timestep/src'));
+	jsio.path.add(sdkPath);
+	// jsio.path.add(path.join(libPath, './gc-api/api'));
+	jsio.path.add(path.join(sdkPath, 'timestep'));
 
 	var paths = scanAddons();
 	var i = paths.length;
