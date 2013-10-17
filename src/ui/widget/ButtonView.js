@@ -53,6 +53,7 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 				canHandleEvents: false
 			}
 		);
+		this._reflowText = (textOpts.width == this.style.width) && (textOpts.height == this.style.height);
 		this._text = new TextView(textOpts);
 
 		var iconOpts = merge(
@@ -176,8 +177,10 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 	};
 
 	this.reflow = function () {
-		this._text.style.width = this.style.width;
-		this._text.style.height = this.style.height;
+		if (this._reflowText) {
+			this._text.style.width = this.style.width;
+			this._text.style.height = this.style.height;
+		}
 	};
 
 	this.getText = function () {
