@@ -36,13 +36,13 @@ exports = Class(ImageScaleView, function(supr) {
         supr(this, 'init', [this._opts]);
 
         this._textBox = new TextView(merge({
+            superview: this,
             x: this._opts.paddingLeft,
             y: this._opts.paddingTop,
             width: opts.width - this._opts.paddingLeft - this._opts.paddingRight,
             height: opts.height
         }, opts));
 
-        this.addSubview(this._textBox);
         this._focused = false;
         this._textFilter = null;
         this._textCursorFilter = null;
