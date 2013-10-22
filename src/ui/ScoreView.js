@@ -122,13 +122,13 @@ exports = Class(View, function(supr) {
 		}
 		offsetX = Math.max(0, offsetX * this._container.style.scale);
 
-		var scaledHeight = this._srcHeight * scale * this._container.style.scale;
+		var scaledHeight = height * this._container.style.scale;
 		if (this._verticalAlign == 'middle') {
 			offsetY = (height - scaledHeight) / 2;
 		} else if (this._verticalAlign == 'bottom') {
 			offsetY = height - scaledHeight;
 		}
-		offsetY = Math.max(0, offsetY);
+		offsetY = Math.max(0, offsetY / this._container.style.scale);
 
 		while (text.length > this._imageViews.length) {
 			var newView = new ImageView({
