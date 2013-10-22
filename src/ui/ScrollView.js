@@ -387,25 +387,24 @@ exports = Class(View, function (supr) {
 			var delta = new Point(this._animState.lastDelta).scale(this._acceleration);
 			var offset = this._animState.offset;
 			var distance = delta.getMagnitude();
-			var bounceDistance = this._bounceRadius * this._contentView.style.scale;
 
 			// if we overshot the bounds, don't waste time animating the acceleration.
 			var bounds = this.getStyleBounds();
 			var target = new Point(offset).add(delta);
-			if (target.y < bounds.minY - bounceDistance) {
+			if (target.y < bounds.minY - this._bounceRadius) {
 				if (offset.y < bounds.minY) {
 					distance = 0;
 				} else {
-					delta.y += (bounds.minY - bounceDistance - target.y);
+					delta.y += (bounds.minY - this._bounceRadius - target.y);
 					distance = delta.getMagnitude();
 				}
 			}
 
-			if (target.y > bounds.maxY + bounceDistance) {
+			if (target.y > bounds.maxY + this._bounceRadius) {
 				if (offset.y > bounds.maxY) {
 					distance = 0;
 				} else {
-					delta.y -= (target.y - (bounds.maxY - bounceDistance));
+					delta.y -= (target.y - (bounds.maxY - this._bounceRadius));
 					distance = delta.getMagnitude();
 				}
 			}
@@ -415,7 +414,7 @@ exports = Class(View, function (supr) {
 					this.setOffset(
 						offset.x + delta.x * tt,
 						offset.y + delta.y * tt);
-				}), 100 /** Math.log((distance + 1) * 100)*/, animate.easeOut).then(bind(this, function () {
+				}), Math.log((distance + 1) * 100), animate.easeOut).then(bind(this, function () {
 					this._endBounce(offset);
 				}));
 			} else {
@@ -462,19 +461,19 @@ exports = Class(View, function (supr) {
 			this.setOffset(
 				offset.x + dx * tt,
 				offset.y + dy * tt);
-		}), 200, animate.easeInOut).then(bind(this, function () {
+		}), 500, animate.easeInOut).then(bind(this, function () {
 			this._canBounce = false;
 			this._isBouncing = false;
 		}));
 	};
 
 	this.setScrollBounds = function (bounds) {
-		this._contentView.style.x = Math.min(this._contentView.style.x, -bounds.minX);
-		this._contentView.style.y = Math.min(this._contentView.style.y, -bounds.minY);
+//		this._contentView.style.x = Math.min(this._contentView.style.x, -bounds.minX);
+//		this._contentView.style.y = Math.min(this._contentView.style.y, -bounds.minY);
 		this._scrollBounds = bounds;
-		if (this._bounceWithBounds) {
-			this._bounceRadius = Math.max(bounds.minX, bounds.minY);
-		}
+//		if (this._bounceWithBounds) {
+//			this._bounceRadius = Math.max(bounds.minX, bounds.minY);
+//		}
 	};
 
 	this.getScrollBounds = function () { return this._scrollBounds; }
