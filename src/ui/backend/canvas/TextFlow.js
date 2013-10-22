@@ -170,6 +170,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 				if (word.word === "\n") {
 					lines.push([{word: s, width: currentWidth, line: lines.length}]);
 					s = "";
+					currentWidth = 0;
 				} else {
 					var isLineEmpty = !s.length;
 					var hasSpace = !isLineEmpty && !this._opts.wrapCharacter;
