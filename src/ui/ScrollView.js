@@ -36,7 +36,6 @@ import ui.backend.ReflowManager as ReflowManager;
 
 var _reflowMgr = ReflowManager.get();
 
-var BOUNCE_DEFAULT = 50;
 var DEBUG = true;
 var USE_CLIPPING = false;
 // var USE_CLIPPING = !device.useDOM && !device.isMobile;
@@ -164,6 +163,7 @@ exports = Class(View, function (supr) {
 		scrollX: true,
 		clip: true,
 		bounce: true,
+		bounceRadius: 50, // [number] or 'bounds'
 		drag: true,
 		inertia: true,
 		dragRadius: 10,
@@ -185,13 +185,6 @@ exports = Class(View, function (supr) {
 
 		this._snapPixels = 1;
 
-		this._scrollBounds = merge(opts.scrollBounds, {
-			minX: -Number.MAX_VALUE,
-			minY: -Number.MAX_VALUE,
-			maxX: Number.MAX_VALUE,
-			maxY: Number.MAX_VALUE
-		});
-
 		this._contentView = new View({
 			x: opts.offsetX,
 			y: opts.offsetY,
@@ -201,6 +194,15 @@ exports = Class(View, function (supr) {
 			layoutWidth: '100%',
 			layoutHeight: '100%'
 		});
+
+		this._bounceRadius = opts.bounceRadius;
+		this._bounceWithBounds = opts.bounceRadius == 'bounds';
+		this.setScrollBounds(merge(opts.scrollBounds, {
+			minX: -Number.MAX_VALUE,
+			minY: -Number.MAX_VALUE,
+			maxX: Number.MAX_VALUE,
+			maxY: Number.MAX_VALUE
+		}));
 
 		this._viewport = new Rect();
 		this._viewport.src = this._contentView;
@@ -287,22 +289,19 @@ exports = Class(View, function (supr) {
 			};
 
 		var bounds = this.getStyleBounds();
-		var scrollBounds = this.getScrollBounds();
-		var bounceX = scrollBounds.minX || BOUNCE_DEFAULT;
-		var bounceY = scrollBounds.minY || BOUNCE_DEFAULT;
 
 		if (typeof x == 'number') {
 			if (this._isBouncing) {
 				// do nothing
 			} else if (this._canBounce) {
 				if (x < bounds.minX) {
-					var delta = (bounds.minX - x) / bounceX;
-					x = bounds.minX - Math.atan(delta) * bounceX / PI_2;
+					var delta = (bounds.minX - x) / this._bounceRadius;
+					x = bounds.minX - Math.atan(delta) * this._bounceRadius / PI_2;
 				}
 
 				if (x > bounds.maxX) {
-					var delta = (x - bounds.maxX) / bounceX;
-					x = bounds.maxX + Math.atan(delta) * bounceX / PI_2;
+					var delta = (x - bounds.maxX) / this._bounceRadius;
+					x = bounds.maxX + Math.atan(delta) * this._bounceRadius / PI_2;
 				}
 			} else {
 				if (x < bounds.minX) { x = bounds.minX; }
@@ -320,13 +319,13 @@ exports = Class(View, function (supr) {
 				// do nothing
 			} else if (this._canBounce) {
 				if (y < bounds.minY) {
-					var delta = (bounds.minY - y) / bounceY;
-					y = bounds.minY - Math.atan(delta) * bounceY / PI_2;
+					var delta = (bounds.minY - y) / this._bounceRadius;
+					y = bounds.minY - Math.atan(delta) * this._bounceRadius / PI_2;
 				}
 
 				if (y > bounds.maxY) {
-					var delta = (y - bounds.maxY) / bounceY;
-					y = bounds.maxY + Math.atan(delta) * bounceY / PI_2;
+					var delta = (y - bounds.maxY) / this._bounceRadius;
+					y = bounds.maxY + Math.atan(delta) * this._bounceRadius / PI_2;
 				}
 			} else {
 				if (y < bounds.minY) { y = bounds.minY; }
@@ -388,7 +387,7 @@ exports = Class(View, function (supr) {
 			var delta = new Point(this._animState.lastDelta).scale(this._acceleration);
 			var offset = this._animState.offset;
 			var distance = delta.getMagnitude();
-			var bounceDistance = (this.getScrollBounds().minX || BOUNCE_DEFAULT) * this._contentView.style.scale;
+			var bounceDistance = this._bounceRadius * this._contentView.style.scale;
 
 			// if we overshot the bounds, don't waste time animating the acceleration.
 			var bounds = this.getStyleBounds();
@@ -473,6 +472,9 @@ exports = Class(View, function (supr) {
 		this._contentView.style.x = Math.min(this._contentView.style.x, -bounds.minX);
 		this._contentView.style.y = Math.min(this._contentView.style.y, -bounds.minY);
 		this._scrollBounds = bounds;
+		if (this._bounceWithBounds) {
+			this._bounceRadius = Math.max(bounds.minX, bounds.minY);
+		}
 	};
 
 	this.getScrollBounds = function () { return this._scrollBounds; }
