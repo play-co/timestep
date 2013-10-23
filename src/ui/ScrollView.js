@@ -414,7 +414,7 @@ exports = Class(View, function (supr) {
 					this.setOffset(
 						offset.x + delta.x * tt,
 						offset.y + delta.y * tt);
-				}), Math.log((distance + 1) * 100), animate.easeOut).then(bind(this, function () {
+				}), 100 * Math.log((distance + 1) * 100), animate.easeOut).then(bind(this, function () {
 					this._endBounce(offset);
 				}));
 			} else {
@@ -468,12 +468,12 @@ exports = Class(View, function (supr) {
 	};
 
 	this.setScrollBounds = function (bounds) {
-//		this._contentView.style.x = Math.min(this._contentView.style.x, -bounds.minX);
-//		this._contentView.style.y = Math.min(this._contentView.style.y, -bounds.minY);
+		this._contentView.style.x = Math.min(this._contentView.style.x, -bounds.minX);
+		this._contentView.style.y = Math.min(this._contentView.style.y, -bounds.minY);
 		this._scrollBounds = bounds;
-//		if (this._bounceWithBounds) {
-//			this._bounceRadius = Math.max(bounds.minX, bounds.minY);
-//		}
+		if (this._bounceWithBounds) {
+			this._bounceRadius = Math.max(bounds.minX, bounds.minY);
+		}
 	};
 
 	this.getScrollBounds = function () { return this._scrollBounds; }
