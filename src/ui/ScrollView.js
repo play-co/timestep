@@ -468,10 +468,16 @@ exports = Class(View, function (supr) {
 	};
 
 	this.setScrollBounds = function (bounds) {
-		this._contentView.style.x = Math.min(this._contentView.style.x, -bounds.minX);
-		this._contentView.style.y = Math.min(this._contentView.style.y, -bounds.minY);
+		var hasMinX = (bounds.minX != undefined && bounds.minX != null);
+		var hasMinY = (bounds.minY != undefined && bounds.minY != null);
+		if (hasMinX) {
+			this._contentView.style.x = Math.min(this._contentView.style.x, -bounds.minX);
+		}
+		if (hasMinY) {
+			this._contentView.style.y = Math.min(this._contentView.style.y, -bounds.minY);
+		}
 		this._scrollBounds = bounds;
-		if (this._bounceWithBounds) {
+		if (this._bounceWithBounds && hasMinX && hasMinY) {
 			this._bounceRadius = Math.max(bounds.minX, bounds.minY);
 		}
 	};
