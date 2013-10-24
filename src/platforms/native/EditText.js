@@ -20,7 +20,6 @@ var focused;
 
 NATIVE.input.subscribe('KeyUp', function(evt) {
     if (focused != null) {
-	logger.log("JARED KEY UP", evt.text);
         focused._value = evt.text;
         focused.onChange(evt.text, evt.prevText, evt.cursorPos);
     }
