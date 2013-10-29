@@ -81,6 +81,7 @@ exports = Class(View, function (supr) {
 		transition: TRANSITION_LINEAR,
 		onStart: null,
 		onDeath: null,
+		onTick: null,
 		external: false,
 		triggers: null // NOT ok to use array here, assign later
 	};
@@ -179,6 +180,7 @@ exports = Class(View, function (supr) {
 					transition: TRANSITION_LINEAR,
 					onStart: null,
 					onDeath: null,
+					onTick: null,
 					external: false,
 					triggers: [] // OK to use an array here
 				});
@@ -243,6 +245,7 @@ exports = Class(View, function (supr) {
 					transition: TRANSITION_LINEAR,
 					onStart: null,
 					onDeath: null,
+					onTick: null,
 					external: false,
 					triggers: [] // OK to use an array here
 				};
@@ -485,6 +488,8 @@ exports = Class(View, function (supr) {
 			} else {
 				pct = dt / 1000;
 			}
+
+			data.onTick && data.onTick(particle, pct, dt);
 
 			// translation
 			if (data.polar) {
