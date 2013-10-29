@@ -83,6 +83,7 @@ util.setProperty(exports, 'defaultFontFamily', {
 	},
 	value: 'Helvetica'
 });
+exports.defaultFontWeight = "";
 
 if ('ontouchstart' in window && (!/BlackBerry/.test(ua))) {
 	exports.events = {

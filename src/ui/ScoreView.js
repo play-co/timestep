@@ -46,7 +46,8 @@ exports = Class(View, function(supr) {
 		});
 
 		// text options
-		this._textAlign = opts.horizontalAlign || opts.textAlign || 'center';
+		this._horizontalAlign = opts.horizontalAlign || opts.textAlign || 'center';
+		this._verticalAlign = opts.verticalAlign || 'middle';
 		this._spacing = opts.spacing || 0;
 		this._reflowWaitCount = 0;
 		this._text = opts.text;
@@ -78,10 +79,6 @@ exports = Class(View, function(supr) {
 	this.setText = function(text) {
 		this._text = text = (text === undefined) ? '' : (text + '');
 
-		if (!text) {
-			return;
-		}
-
 		var size = this.getBoundingShape(true),
 			width = size.width, height = size.height;
 		if (this._opts.layout && (!width || !height) && this._reflowWaitCount < REFLOW_WAIT_MAX_COUNT) {
@@ -90,7 +87,7 @@ exports = Class(View, function(supr) {
 		}
 		this._reflowWaitCount = 0;
 
-		var textWidth = 0, offset = 0,
+		var textWidth = 0, offsetX = 0, offsetY = 0,
 			scale = height / this._srcHeight,
 			spacing = this._spacing * scale,
 			i = 0, c = 0, data, character;
@@ -118,12 +115,20 @@ exports = Class(View, function(supr) {
 			this._container.style.scale = 1;
 		}
 
-		if (this._textAlign == 'center') {
-			offset = (width - textWidth) / 2;
-		} else if (this._textAlign == 'right') {
-			offset = width - textWidth;
+		if (this._horizontalAlign == 'center') {
+			offsetX = (width - textWidth) / 2;
+		} else if (this._horizontalAlign == 'right') {
+			offsetX = width - textWidth;
 		}
-		offset = Math.max(0, offset * this._container.style.scale);
+		offsetX = Math.max(0, offsetX * this._container.style.scale);
+
+		var scaledHeight = height * this._container.style.scale;
+		if (this._verticalAlign == 'middle') {
+			offsetY = (height - scaledHeight) / 2;
+		} else if (this._verticalAlign == 'bottom') {
+			offsetY = height - scaledHeight;
+		}
+		offsetY = Math.max(0, offsetY / this._container.style.scale);
 
 		while (text.length > this._imageViews.length) {
 			var newView = new ImageView({
@@ -142,7 +147,7 @@ exports = Class(View, function(supr) {
 		// trim excess characters
 		this._activeCharacters.length = c;
 
-		var x = offset, y = 0;
+		var x = offsetX, y = offsetY;
 		for (i = 0; i < this._activeCharacters.length; i++) {
 			var data = this._activeCharacters[i];
 			var view = this._imageViews[i];

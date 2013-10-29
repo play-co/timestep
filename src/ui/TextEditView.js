@@ -36,7 +36,6 @@ exports = Class(ImageScaleView, function(supr) {
         this._opts = merge(opts || {}, defaults); 
         supr(this, 'init', [this._opts]);
 
-
 		this._clipper = new View({
 				x: 0,
 				y: 0,

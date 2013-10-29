@@ -163,6 +163,7 @@ exports = Class(View, function (supr) {
 		scrollX: true,
 		clip: true,
 		bounce: true,
+		bounceRadius: 50, // [number] or 'bounds'
 		drag: true,
 		inertia: true,
 		dragRadius: 10,
@@ -178,19 +179,11 @@ exports = Class(View, function (supr) {
 		this._acceleration = 15;
 
 		this._animState = {
-			offset: 0,
 			lastDelta: 0,
 			offset: 0
 		};
 
 		this._snapPixels = 1;
-
-		this._scrollBounds = merge(opts.scrollBounds, {
-			minX: -Number.MAX_VALUE,
-			minY: -Number.MAX_VALUE,
-			maxX: Number.MAX_VALUE,
-			maxY: Number.MAX_VALUE
-		});
 
 		this._contentView = new View({
 			x: opts.offsetX,
@@ -201,6 +194,15 @@ exports = Class(View, function (supr) {
 			layoutWidth: '100%',
 			layoutHeight: '100%'
 		});
+
+		this._bounceRadius = opts.bounceRadius;
+		this._bounceWithBounds = opts.bounceRadius == 'bounds';
+		this.setScrollBounds(merge(opts.scrollBounds, {
+			minX: -Number.MAX_VALUE,
+			minY: -Number.MAX_VALUE,
+			maxX: Number.MAX_VALUE,
+			maxY: Number.MAX_VALUE
+		}));
 
 		this._viewport = new Rect();
 		this._viewport.src = this._contentView;
@@ -252,14 +254,17 @@ exports = Class(View, function (supr) {
 		this._updateLayoutBounds();
 	};
 
+	this.removeAllSubviews = function () {
+		this._contentView.removeAllSubviews();
+	};
+
 	this.addFixedView = function (view) { return supr(this, 'addSubview', [view]); };
 	this.removeFixedView = function (view) { return supr(this, 'removeSubview', [view]); };
 
-	var BOUNCE_MAX_DIST = 50;
 	var PI_2 = Math.PI / 2;
 
 	this.getStyleBounds = function () {
-		var bounds = bounds = this._scrollBounds;
+		var bounds = this._scrollBounds;
 		var minY = -bounds.maxY;
 		var maxY = -bounds.minY < minY ? minY : -bounds.minY;
 		var minX = -bounds.maxX;
@@ -290,13 +295,13 @@ exports = Class(View, function (supr) {
 				// do nothing
 			} else if (this._canBounce) {
 				if (x < bounds.minX) {
-					var delta = (bounds.minX - x) / BOUNCE_MAX_DIST;
-					x = bounds.minX - Math.atan(delta) * BOUNCE_MAX_DIST / PI_2;
+					var delta = (bounds.minX - x) / this._bounceRadius;
+					x = bounds.minX - Math.atan(delta) * this._bounceRadius / PI_2;
 				}
 
 				if (x > bounds.maxX) {
-					var delta = (x - bounds.maxX) / BOUNCE_MAX_DIST;
-					x = bounds.maxX + Math.atan(delta) * BOUNCE_MAX_DIST / PI_2;
+					var delta = (x - bounds.maxX) / this._bounceRadius;
+					x = bounds.maxX + Math.atan(delta) * this._bounceRadius / PI_2;
 				}
 			} else {
 				if (x < bounds.minX) { x = bounds.minX; }
@@ -314,13 +319,13 @@ exports = Class(View, function (supr) {
 				// do nothing
 			} else if (this._canBounce) {
 				if (y < bounds.minY) {
-					var delta = (bounds.minY - y) / BOUNCE_MAX_DIST;
-					y = bounds.minY - Math.atan(delta) * BOUNCE_MAX_DIST / PI_2;
+					var delta = (bounds.minY - y) / this._bounceRadius;
+					y = bounds.minY - Math.atan(delta) * this._bounceRadius / PI_2;
 				}
 
 				if (y > bounds.maxY) {
-					var delta = (y - bounds.maxY) / BOUNCE_MAX_DIST;
-					y = bounds.maxY + Math.atan(delta) * BOUNCE_MAX_DIST / PI_2;
+					var delta = (y - bounds.maxY) / this._bounceRadius;
+					y = bounds.maxY + Math.atan(delta) * this._bounceRadius / PI_2;
 				}
 			} else {
 				if (y < bounds.minY) { y = bounds.minY; }
@@ -386,20 +391,20 @@ exports = Class(View, function (supr) {
 			// if we overshot the bounds, don't waste time animating the acceleration.
 			var bounds = this.getStyleBounds();
 			var target = new Point(offset).add(delta);
-			if (target.y < bounds.minY - BOUNCE_MAX_DIST) {
+			if (target.y < bounds.minY - this._bounceRadius) {
 				if (offset.y < bounds.minY) {
 					distance = 0;
 				} else {
-					delta.y += (bounds.minY - BOUNCE_MAX_DIST - target.y);
+					delta.y += (bounds.minY - this._bounceRadius - target.y);
 					distance = delta.getMagnitude();
 				}
 			}
 
-			if (target.y > bounds.maxY + BOUNCE_MAX_DIST) {
+			if (target.y > bounds.maxY + this._bounceRadius) {
 				if (offset.y > bounds.maxY) {
 					distance = 0;
 				} else {
-					delta.y -= (target.y - (bounds.maxY - BOUNCE_MAX_DIST));
+					delta.y -= (target.y - (bounds.maxY - this._bounceRadius));
 					distance = delta.getMagnitude();
 				}
 			}
@@ -462,7 +467,21 @@ exports = Class(View, function (supr) {
 		}));
 	};
 
-	this.setScrollBounds = function (bounds) { this._scrollBounds = bounds; }
+	this.setScrollBounds = function (bounds) {
+		var hasMinX = (bounds.minX != undefined && bounds.minX != null);
+		var hasMinY = (bounds.minY != undefined && bounds.minY != null);
+		if (hasMinX) {
+			this._contentView.style.x = Math.min(this._contentView.style.x, -bounds.minX);
+		}
+		if (hasMinY) {
+			this._contentView.style.y = Math.min(this._contentView.style.y, -bounds.minY);
+		}
+		this._scrollBounds = bounds;
+		if (this._bounceWithBounds && hasMinX && hasMinY) {
+			this._bounceRadius = Math.max(bounds.minX, bounds.minY);
+		}
+	};
+
 	this.getScrollBounds = function () { return this._scrollBounds; }
 
 	this.addOffset = function (x, y) {
