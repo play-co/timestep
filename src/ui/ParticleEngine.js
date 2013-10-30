@@ -414,15 +414,15 @@ exports = Class(View, function (supr) {
 			spliced = active.splice(index, 1);
 
 		particle.pData = null;
-		data.onDeath && data.onDeath(particle, data);
+		data && data.onDeath && data.onDeath(particle, data);
 
 		// external particles must handle their own clean-up, but we still handle the data object
-		if (data.external) {
+		if (data && data.external) {
 			this.freeParticleObjects.push(this.cleanObject(data));
 		} else {
 			s.visible = false;
 			this.freeParticles.push(spliced[0]);
-			this.freeParticleObjects.push(this.cleanObject(data));
+			data && this.freeParticleObjects.push(this.cleanObject(data));
 		}
 	};
 
