@@ -104,19 +104,77 @@ exports.getGroup = function (i) {
 };
 
 var TRANSITIONS = [
-	transitions.easeInOut, // 0: default
-	transitions.linear,    // 1
-	transitions.easeIn,    // 2
-	transitions.easeOut,   // 3
-	transitions.easeInOut, // 4
-	transitions.bounce     // 5
+	transitions.easeInOut,         // 0: default
+	transitions.linear,            // 1
+	transitions.easeIn,            // 2
+	transitions.easeOut,           // 3
+	transitions.easeInOut,         // 4
+	transitions.easeInQuad,        // 5: this was previously "bounce" but that appeared unfinished
+	transitions.easeOutQuad,       // 6
+	transitions.easeInOutQuad,     // 7
+	transitions.easeInCubic,       // 8
+	transitions.easeOutCubic,      // 9
+	transitions.easeInOutCubic,    // 10
+	transitions.easeInQuart,       // 11
+	transitions.easeOutQuart,      // 12
+	transitions.easeInOutQuart,    // 13
+	transitions.easeInQuint,       // 14
+	transitions.easeOutQuint,      // 15
+	transitions.easeInOutQuint,    // 16
+	transitions.easeInSine,        // 17
+	transitions.easeOutSine,       // 18
+	transitions.easeInOutSine,     // 19
+	transitions.easeInExpo,        // 20
+	transitions.easeOutExpo,       // 21
+	transitions.easeInOutExpo,     // 22
+	transitions.easeInCirc,        // 23
+	transitions.easeOutCirc,       // 24
+	transitions.easeInOutCirc,     // 25
+	transitions.easeInElastic,     // 26
+	transitions.easeOutElastic,    // 27
+	transitions.easeInOutElastic,  // 28
+	transitions.easeInBack,        // 29
+	transitions.easeOutBack,       // 30
+	transitions.easeInOutBack,     // 31
+	transitions.easeInBounce,      // 32
+	transitions.easeOutBounce,     // 33
+	transitions.easeInOutBounce    // 34
 ];
 
-exports.linear = 1;
-exports.easeIn = 2;
-exports.easeOut = 3;
-exports.easeInOut = 4;
-exports.bounce = 5;
+exports.linear            = 1;
+exports.easeIn            = 2;
+exports.easeOut           = 3;
+exports.easeInOut         = 4;
+exports.easeInQuad        = 5; // this was previously "bounce" but that appeared unfinished
+exports.easeOutQuad       = 6;
+exports.easeInOutQuad     = 7;
+exports.easeInCubic       = 8;
+exports.easeOutCubic      = 9;
+exports.easeInOutCubic    = 10;
+exports.easeInQuart       = 11;
+exports.easeOutQuart      = 12;
+exports.easeInOutQuart    = 13;
+exports.easeInQuint       = 14;
+exports.easeOutQuint      = 15;
+exports.easeInOutQuint    = 16;
+exports.easeInSine        = 17;
+exports.easeOutSine       = 18;
+exports.easeInOutSine     = 19;
+exports.easeInExpo        = 20;
+exports.easeOutExpo       = 21;
+exports.easeInOutExpo     = 22;
+exports.easeInCirc        = 23;
+exports.easeOutCirc       = 24;
+exports.easeInOutCirc     = 25;
+exports.easeInElastic     = 26;
+exports.easeOutElastic    = 27;
+exports.easeInOutElastic  = 28;
+exports.easeInBack        = 29;
+exports.easeOutBack       = 30;
+exports.easeInOutBack     = 31;
+exports.easeInBounce      = 32;
+exports.easeOutBounce     = 33;
+exports.easeInOutBounce   = 34;
 
 function getTransition(n) {
 	return (typeof n == 'function' ? n : TRANSITIONS[n | 0]);
