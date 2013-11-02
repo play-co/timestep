@@ -99,12 +99,18 @@ function bootstrap(initialImport, target) {
 				+ ',minimum-scale=' + scale
 				+ ',width=device-width'
 			+ '" />');
+
+		// detect ios operating system version
+		var match = ua.match(/iPhone OS ([0-9]+)/);
+		var iosVersion = match && parseInt(match[1]);
 	}
 	
 	if (!Image.get) {
 		Image.set = function(url, img) { CACHE[url] = img; };
 		Image.get = function(url) { return CACHE[url]; };
 	}
+
+	var canHideAddressBar = !(iosVersion && iosVersion >= 7);
 	
 	w.hideAddressBar = function() {
 		if (!mobile) { return; }
@@ -132,6 +138,25 @@ function bootstrap(initialImport, target) {
 		}
 	};
 
+	var fontsLoaded;
+	if (CONFIG.embeddedFonts) {
+		var defaultWidth = 0;
+		var fontNodes = [];
+		for (var i = 0, n = CONFIG.embeddedFonts.length; i < n; ++i) {
+			var font = CONFIG.embeddedFonts[i];
+			var el = d.body.appendChild(d.createElement('span'));
+			el.innerHTML = 'giItT1WQy@!-/#';
+			el.style.cssText = 'position:absolute;left:-9999px;font-size:100px;visibility:hidden;';
+			if (!defaultWidth) {
+				defaultWidth = el.offsetWidth;
+			}
+			el.style.fontFamily = font;
+			fontNodes.push(el);
+		}
+	} else {
+		fontsLoaded = true;
+	}
+
 	// after load, we poll for the correct document height
 	w.onload = function() {
 		var now = +new Date();
@@ -139,10 +164,23 @@ function bootstrap(initialImport, target) {
 		var poll = setInterval(function() {
 			hideAddressBar();
 			var h = w.innerHeight;
+			if (fontNodes) {
+				var isLoaded = true;
+				for (var i = 0, n = fontNodes.length; i < n; ++i) {
+					if (fontNodes[i].offsetWidth == defaultWidth) {
+						isLoaded = false;
+						break;
+					}
+				}
+
+				if (isLoaded) {
+					fontsLoaded = true;
+				}
+			}
 			
-			// timeout after 100ms and assume we have the right height, or 
+			// timeout after 1 second and assume we have the right height, or 
 			// note when the height increases (we scrolled) and launch the app
-			if (h == min && increased || +new Date() - now > 1000) {
+			if (h == min && increased && fontsLoaded || +new Date() - now > 5000 || !canHideAddressBar) {
 				if (mobile == 'android') {
 					w.scrollTo(0, -1);
 				}

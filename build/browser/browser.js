@@ -336,29 +336,33 @@ function compileHTML (project, opts, target, resources, code, cb) {
 		if (/^native/.test(target)) {
 			f('jsio=function(){window._continueLoad()}');
 		} else {
-			var compiler = _builder.packager.createCompiler(project, opts);
-			compiler.inferOptsFromEnv('browser');
+			var next = f();
+			_builder.packager.createCompiler(project, opts, function (compiler) {
+				compiler.inferOptsFromEnv('browser');
 
-			var onImgCacheComplete = f.wait();
-			var imgTest = /^[^?*:;{}\'"]+\.(png|jpg|jpeg|gif)$/i;
-			compiler.preCompress = function (srcTable) {
-				for (var key in srcTable) {
-					Object.keys(_builder.strings.getStrings(srcTable[key].src)).forEach(function (str) {
-						try {
-							var match = str.match(imgTest);
-							if (match) {
-								imgCache[str] = toDataURI(fs.readFileSync(path.resolve(opts.fullPath, str)), mime.lookup(str, 'image/png'));
+				var onImgCacheComplete = f.wait();
+				var imgTest = /^[^?*:;{}\'"]+\.(png|jpg|jpeg|gif)$/i;
+				compiler.preCompress = function (srcTable) {
+					for (var key in srcTable) {
+						Object.keys(_builder.strings.getStrings(srcTable[key].src)).forEach(function (str) {
+							try {
+								var match = str.match(imgTest);
+								if (match) {
+									// console.log("skipping image cache:", str);
+									// imgCache[str] = toDataURI(fs.readFileSync(path.resolve(opts.fullPath, str)), mime.lookup(str, 'image/png'));
+								}
+							} catch (e) {
+								logger.error(e);
 							}
-						} catch (e) {
-							logger.error(e);
-						}
-					});
-				}
+						});
+					}
 
-				onImgCacheComplete();
-			};
+					onImgCacheComplete();
+				};
 
-			compiler.compile('gc.browser.bootstrap.launchBrowser', f());
+				compiler.compile('gc.browser.bootstrap.launchBrowser', next);
+			});
+
 		}
 
 		fs.readFile(STATIC_BOOTSTRAP_CSS, 'utf8', f());
@@ -370,7 +374,6 @@ function compileHTML (project, opts, target, resources, code, cb) {
 
 		f(cache);
 		f(fontList);
-		_builder.packager.getJSConfig(project, opts, target, f.slotPlain());
 
 		// Iterate file resources.
 		resources.other.forEach(function (info) {
@@ -402,11 +405,16 @@ function compileHTML (project, opts, target, resources, code, cb) {
 				}
 
 				cache[info.relative] = contents;
-			}).cb(f())
+			}).cb(f.wait())
 				.error(function (e) {
 					logger.error(e);
 				});
 		});
+	}, function (preloadJS, bootstrapCSS, bootstrapJS, cache, fontList) {
+		f(preloadJS, bootstrapCSS, bootstrapJS, cache, fontList);
+
+		opts.embeddedFonts = fontList.map(function (font) { return font.name; });
+		_builder.packager.getJSConfig(project, opts, target, f.slotPlain());
 	}, function (preloadJS, bootstrapCSS, bootstrapJS, cache, fontList, jsConfig) {
 		logger.log('built cache.');
 
@@ -451,7 +459,7 @@ function compileHTML (project, opts, target, resources, code, cb) {
 		fontList.forEach(function (font) {
 			css.push(font.getCSS(target));
 		});
-		
+
 		// Google Analytics for release.
 		if(!opts.debug && project.manifest.googleAnalyticsAccount) {
 			var formattedGACode = util.format(STATIC_GA_JS, project.manifest.googleAnalyticsAccount, project.manifest.studio.domain);
@@ -465,13 +473,13 @@ function compileHTML (project, opts, target, resources, code, cb) {
 		if (opts.compress) {
 			_builder.packager.compressCSS(cssSrc, f());
 
-			var compiler = _builder.packager.createCompiler(project, opts);
-			compiler.inferOptsFromEnv('browser');
-
 			var onCompress = f();
-			compiler.compress('[bootstrap]', preloadSrc, function (err, src) {
-				compiler.strip(src, function (err, src) {
-					onCompress(null, src + ';' + preloadJS);
+			var compiler = _builder.packager.createCompiler(project, opts, function (compiler) {
+				compiler.inferOptsFromEnv('browser');
+				compiler.compress('[bootstrap]', preloadSrc, function (err, src) {
+					compiler.strip(src, function (err, src) {
+						onCompress(null, src + ';' + preloadJS);
+					});
 				});
 			});
 		} else {

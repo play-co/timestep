@@ -22,6 +22,7 @@
 
 import device;
 import .FontRenderer;
+from .webgl2d import WebGL2D;
 
 function setter(name) {
 	return (function (val) {

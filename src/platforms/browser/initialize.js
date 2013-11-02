@@ -77,14 +77,27 @@ exports.init = function () {
 			
 			var totalW = (isPortrait ? screen.width : screen.height);
 			var totalH = (isPortrait ? screen.height : screen.width);
-	//		document.body.style.height = Math.max(screen.width, screen.height) + 'px';
-	//		device.hideAddressBar();
 
-			var innerWidth = window.innerWidth;
-			var innerHeight = window.innerHeight;
-			if (device.width != innerWidth || device.height != innerHeight || device.orientation != o) {
-				device.width = innerWidth;
-				device.height = innerHeight;
+			// in iOS 7 landscape, use full-screen dimensions?
+			// TODO: this is actually a bad idea because any tap on the screen
+			// will bring up the bottom bar
+			if (device.iosVersion >= 7 && (o == 90 || o == -90)) {
+				// screen width/height is not always rotated, so swap for landscape
+				w = screen.width;
+				h = screen.height;
+				if (w < h) {
+					w = h;
+					h = screen.width;
+				}
+			} else {
+				// otherwise use available width/height
+				w = window.innerWidth;
+				h = window.innerHeight;
+			}
+
+			if (device.width != w || device.height != h || device.orientation != o) {
+				device.width = w;
+				device.height = h;
 				device.orientation = o;
 				device.screen.publish('Resize', device.width, device.height, device.orientation);
 			}

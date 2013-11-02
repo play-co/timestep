@@ -139,6 +139,9 @@ if (exports.isMobile) {
 		exports.name = 'browser';
 		exports.isMobileBrowser = true;
 		exports.isIOS = true;
+
+		var match = ua.match(/iPhone OS ([0-9]+)/);
+		exports.iosVersion = match && parseInt(match[1]);
 		exports.isUIWebView = !exports.isSafari;
 
 		exports.screen.defaultOrientation = 'portrait';
@@ -175,13 +178,13 @@ if (exports.isMobile) {
 
 exports.useDOM = false;
 exports.setUseDOM = function (useDOM) {
-	if (exports.useDOM != useDOM) {
-		exports.useDOM = useDOM;
+	// if (exports.useDOM != useDOM) {
+	// 	exports.useDOM = useDOM;
 
-		import ui.View as View;
-		var backing = exports.importUI('ViewBacking');
-		View.setDefaultViewBacking(backing);
-	}
+	// 	import ui.View as View;
+	// 	var backing = exports.importUI('ViewBacking');
+	// 	View.setDefaultViewBacking(backing);
+	// }
 }
 
 exports.getDimensions = function (isLandscape) {

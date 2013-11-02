@@ -40,9 +40,9 @@ if (GLOBAL.ONACCESSIBLE) {
 }
 
 // Determine which API to include.
-if (device.isMobileBrowser && !device.simulatingMobileBrowser) {
-	import platforms.browser.MobileBrowserAPI;
-	exports = platforms.browser.MobileBrowserAPI;
-} else {
-	exports = jsio('import ui.backend.sound.HTML5API');
-}
+// if (device.isMobileBrowser && !device.simulatingMobileBrowser) {
+// 	import platforms.browser.MobileBrowserAPI;
+// 	exports = platforms.browser.MobileBrowserAPI;
+// } else {
+exports = jsio('import ui.backend.sound.HTML5API');
+// }
