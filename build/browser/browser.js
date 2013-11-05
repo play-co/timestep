@@ -66,6 +66,15 @@ exports.runBuild = function (builder, project, buildOpts, cb) {
 	_builder = builder;
 	logger = new _builder.common.Formatter('build-browser');
 
+	// The following build opts are used for normal builds, but also simulated
+	// native builds that require an html file so we can't add them in the
+	// exports.build function
+
+	// html to insert
+	buildOpts.headHTML = [];
+	buildOpts.bodyHTML = [];
+	buildOpts.footerHTML = [];
+
 	var f = ff(function () {
 		// Exclude jsio in browser builds (we include it separately)
 		buildOpts.excludeJsio = !buildOpts.isSimulated;
@@ -289,9 +298,12 @@ function generateGameHTML (opts, project, target, imgCache, js, css) {
 	// Finish writing HTML file.
 	html.push(
 		'<style>' + css + '</style>',
+		opts.headHTML.join('\n') || '',
 		'</head>',
 		'<body>',
+		opts.bodyHTML.join('\n') || '',
 		'</body>',
+		opts.footerHTML.join('\n') || '',
 		'<script>IMG_CACHE=' + JSON.stringify(imgCache) + ';' + js + '</script>',
 		'</html>'
 	);
