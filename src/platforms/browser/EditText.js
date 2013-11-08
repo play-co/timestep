@@ -17,6 +17,8 @@
 from util.browser import $;
 import squill.Widget;
 
+var __keyboardIsOpen = false;
+
 var InputField = Class(squill.Widget, function (supr) {
 
     this._def = {
@@ -72,6 +74,12 @@ var InputField = Class(squill.Widget, function (supr) {
 
     this.onBlur = function (evt) {
         this.hide();
+		if (__keyboardIsOpen) {
+			__keyboardIsOpen = false;
+			window.dispatchEvent(new CustomEvent('keyboardClosed', {
+				height: 0
+			}));
+		}
         _focused = null;
         //_focused && _focused.closeEditField();
     }
@@ -119,7 +127,7 @@ exports = Class(function () {
         if (_focused !== this) {
             if (_focused != null) {
                 _focused.removeFocus(); 
-            }
+			}
 
             this.onFocusChange(true);
         }
@@ -135,6 +143,13 @@ exports = Class(function () {
 
         _input.hide();
         // NATIVE.inputPrompt.hideSoftKeyboard(); 
+
+		if (__keyboardIsOpen) {
+			__keyboardIsOpen = false;
+			window.dispatchEvent(new CustomEvent('keyboardClosed', {
+				height: 0
+			}));
+		}
      }
 
     this.refresh = function(value, hasBack, hasForward, cursorPos) {
@@ -144,6 +159,13 @@ exports = Class(function () {
         _input.setPlaceholder(this._opts.hint);
         _input.setMaxLength(this._opts.maxLength);
         _input.show();
+
+		if (!__keyboardIsOpen) {
+			__keyboardIsOpen = true;
+			window.dispatchEvent(new CustomEvent('keyboardOpened', {
+				height: 300
+			}));
+		}
 
     	/*
     	if (hasBack) {
