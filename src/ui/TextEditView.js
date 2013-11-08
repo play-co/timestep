@@ -83,7 +83,7 @@ exports = Class(ImageScaleView, function(supr) {
     this.onSubmit = function () {};
     this.onFinishEditing = function () {};
 
-    this.onInputSelect = function() {
+    this.onInputStart = function() {
         this.requestFocus();
     };
 
