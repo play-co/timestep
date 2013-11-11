@@ -49,6 +49,17 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 		this._offsetRect = {x: 0, y: 0, width: 0, height: 0};
 	};
 
+	this.measureText = function (ctx, text) {
+		var opts = this._opts;
+		
+		var emoticonData = (text[0] == '(') && opts.emoticonData && opts.emoticonData.data[text];
+		if (emoticonData) {
+			return opts.size;
+		} else {
+			return ctx.measureText(text).width;
+		}
+	};
+
 	// Split the text into a list containing the word and the width of the word...
 	this._lineSplit = function (ctx) {
 		var opts = this._opts;
@@ -60,7 +71,31 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 					: (opts.wrap || (opts.horizontalAlign === "justify")) 
 						? (text.replace(/\t/g, " ").match(/\S+|[\n]| +(?= )/g) || [])
 						: text.split("\n");
+
 		var word;
+		var splitWords = [];
+		for (i in words) {
+			word = words[i];
+			var eStart = -1;
+			var lastSplit = 0;
+			for (var index = 0; index < word.length; index++) {
+				var c = word[index];
+				if (c == '(') {
+					eStart = index;
+				} else if (c == ')') {
+					if (eStart > -1) {
+						(eStart - lastSplit > 0) && splitWords.push(word.substring(lastSplit, eStart));
+						splitWords.push(word.substring(eStart, index + 1));
+						lastSplit = index + 1;
+						eStart = -1;
+					}
+				}
+			}
+			if (lastSplit < word.length) {
+				splitWords.push(word.substring(lastSplit));
+			}
+		}
+		words = splitWords;
 		var currentWord = 0;
 		var wordCount = words.length;
 
@@ -68,7 +103,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 		this._lineWidth = 0;
 		this._maxWordWidth = 0;
 
-		if ((opts.hardWrap || exports.hardWrap) && (words.length === 1) && (ctx.measureText(text).width > this.getActualWidth())) {
+		if ((opts.hardWrap || exports.hardWrap) && (words.length === 1) && (this.measureText(ctx, text) > this.getActualWidth())) {
 			words = [];
 
 			var actualWidth = this.getActualWidth();
@@ -91,7 +126,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 		}
 
 		while (currentWord < wordCount) {
-			word = {word: words[currentWord], width: ctx.measureText(words[currentWord]).width, line: 1};
+			word = {word: words[currentWord], width: this.measureText(ctx, words[currentWord]), line: 1};
 			this._line.push(word);
 			this._lineWidth += word.width + spaceWidth;
 			this._maxWordWidth = Math.max(this._maxWordWidth, word.width);
@@ -111,7 +146,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 		while (currentWord < wordCount) {
 			word = this._line[currentWord];
 			word.line = 1;
-			word.width = ctx.measureText(word.word).width;
+			word.width = this.measureText(ctx, word.word);
 			this._lineWidth += word.width + spaceWidth;
 			this._maxWordWidth = Math.max(this._maxWordWidth, word.width);
 			currentWord++;
@@ -168,11 +203,13 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 				word = this._line[currentWord++];
 				// currentWidth = ctx.measureText(s).width;
 				if (word.word === "\n") {
-					lines.push([{word: s, width: currentWidth, line: lines.length}]);
-					s = "";
+					//lines.push([{word: s, width: currentWidth, line: lines.length}]);
+					//s = "";
+					lines.push(line);
 					currentWidth = 0;
 				} else {
-					var isLineEmpty = !s.length;
+					var isLineEmpty = !line.length;
+					//var isLineEmpty = !s.length;
 					var hasSpace = !isLineEmpty && !this._opts.wrapCharacter;
 					var offset = hasSpace ? spaceWidth : 0;
 					if (currentWidth + word.width + offset > width) {
@@ -185,40 +222,57 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 							// split word into lines
 							var wordPiece = "";
 							for (var i = 0, n = current.length; i < n; ++i) {
-								if ((isLineEmpty && !wordPiece) || ctx.measureText(wordPiece + current[i]).width + offset + currentWidth <= width) {
+								if ((isLineEmpty && !wordPiece) || this.measureText(ctx, wordPiece + current[i]) + offset + currentWidth <= width) {
 									wordPiece += current[i];
 								} else {
+									/*
 									var line = s + (hasSpace ? " " : "") + wordPiece;
 									currentWidth = ctx.measureText(line).width;
 									lines.push([{word: line, width: currentWidth, line: lines.length}]);
+									*/
+									currentWidth = this.measureText(ctx, wordPiece);
+									line.push({word: wordPiece, width: currentWidth, line: lines.length});
+									lines.push(line);
+									line = [];
 									currentWidth = 0;
 									offset = 0;
-									s = "";
+									//s = "";
 									isLineEmpty = true;
 									hasSpace = false;
-									wordPiece = "";
+									wordPiece = current[i];
 								}
 							}
 
 							if (wordPiece) {
+								/*
 								var line = s + (hasSpace ? " " : "") + wordPiece;
 								currentWidth = ctx.measureText(line).width;
 								lines.push([{word: line, width: currentWidth, line: lines.length}]);
+								*/
+								currentWidth = this.measureText(ctx, wordPiece);
+								line.push({word: wordPiece, width: currentWidth, line: lines.length});
+								//lines.push(line);
+		
 							}
 						} else {
-							(!isLineEmpty) && lines.push([{word: s, width: currentWidth, line: lines.length}]);
-							s = word.word;
+							//(!isLineEmpty) && lines.push([{word: s, width: currentWidth, line: lines.length}]);
+							(!isLineEmpty) && lines.push(line);
+							//s = word.word;
+							line = [word];
 							currentWidth = word.width;
 						}
 					} else {
-						s += (hasSpace ? " " : "") + word.word;
+						line.push(word);
+						//s += (hasSpace ? " " : "") + word.word;
 						currentWidth += word.width + offset;
 					}
 				}
 			}
 
-			if (s !== "") {
-				lines.push([{word: s, width: currentWidth, line: lines.length}]);
+			//if (s !== "") {
+			if (line.length > 0) {
+				//lines.push([{word: s, width: currentWidth, line: lines.length}]);
+				lines.push(line);
 			}
 		}
 	};
