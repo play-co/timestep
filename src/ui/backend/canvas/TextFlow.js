@@ -194,9 +194,9 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 									currentWidth = 0;
 									offset = 0;
 									s = "";
-									isLineEmpty = true;
+									isLineEmpty = false;
 									hasSpace = false;
-									wordPiece = "";
+									wordPiece = current[i];
 								}
 							}
 
