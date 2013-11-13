@@ -16,6 +16,7 @@
 
 from util.browser import $;
 import squill.Widget;
+import device;
 
 var __keyboardIsOpen = false;
 
@@ -77,7 +78,7 @@ var InputField = Class(squill.Widget, function (supr) {
 		if (__keyboardIsOpen) {
 			__keyboardIsOpen = false;
 			var ev = new Event('keyboardClosed');
-			ev.height = 0;
+			ev.height = device.screen.height;
 			window.dispatchEvent(ev);
 		}
         _focused = null;
@@ -147,7 +148,7 @@ exports = Class(function () {
 		if (__keyboardIsOpen) {
 			__keyboardIsOpen = false;
 			var ev = new Event('keyboardClosed');
-			ev.height = 0;
+			ev.height = device.screen.height;
 			window.dispatchEvent(ev);
 		}
      }
@@ -163,7 +164,7 @@ exports = Class(function () {
 		if (!__keyboardIsOpen) {
 			__keyboardIsOpen = true;
 			var ev = new Event('keyboardOpened');
-			ev.height = 300;
+			ev.height = device.screen.height * .6;
 			window.dispatchEvent(ev);
 		}
 
