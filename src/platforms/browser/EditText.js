@@ -76,9 +76,9 @@ var InputField = Class(squill.Widget, function (supr) {
         this.hide();
 		if (__keyboardIsOpen) {
 			__keyboardIsOpen = false;
-			window.dispatchEvent(new CustomEvent('keyboardClosed', {
-				height: 0
-			}));
+			var ev = new Event('keyboardClosed');
+			ev.height = 0;
+			window.dispatchEvent(ev);
 		}
         _focused = null;
         //_focused && _focused.closeEditField();
@@ -146,9 +146,9 @@ exports = Class(function () {
 
 		if (__keyboardIsOpen) {
 			__keyboardIsOpen = false;
-			window.dispatchEvent(new CustomEvent('keyboardClosed', {
-				height: 0
-			}));
+			var ev = new Event('keyboardClosed');
+			ev.height = 0;
+			window.dispatchEvent(ev);
 		}
      }
 
@@ -162,9 +162,9 @@ exports = Class(function () {
 
 		if (!__keyboardIsOpen) {
 			__keyboardIsOpen = true;
-			window.dispatchEvent(new CustomEvent('keyboardOpened', {
-				height: 300
-			}));
+			var ev = new Event('keyboardOpened');
+			ev.height = 300;
+			window.dispatchEvent(ev);
 		}
 
     	/*
