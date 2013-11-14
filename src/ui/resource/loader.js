@@ -130,7 +130,7 @@ var Loader = Class(function () {
 			return callback;
 		}
 	};
-	
+
 	var soundLoader = null;
 	this.getSound = function (src) {
 		if (!soundLoader) {
@@ -145,6 +145,18 @@ var Loader = Class(function () {
 			//HACK to make the preloader continue in the browser
 			return { complete: true };
 		}
+	}
+
+	this.getImagePaths = function (prefix) {
+		prefix = prefix.replace(/^\//, ''); // remove leading slash
+		var images = [];
+		var map = this._map;
+		for (var uri in map) {
+			if (uri.indexOf(prefix) == 0) {
+				images.push(uri);
+			}
+		}
+		return images;
 	}
 
 	this.getImage = function (src, noWarn) {
