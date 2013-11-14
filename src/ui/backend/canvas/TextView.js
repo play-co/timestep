@@ -70,19 +70,8 @@ var TextView = exports = Class(View, function (supr) {
 
 		// misc properties...
 		buffer: false, // GLOBAL.NATIVE && !device.simulatingMobileNative,
-		backgroundColor: null,
+		backgroundColor: null
 
-
-		emoticonData: {
-			data: {
-				"(happy)": {
-					url: "http://upload.wikimedia.org/wikipedia/commons/e/ec/Happy_smiley_face.png"
-				}
-			},
-			map: {
-				":)": "(happy)"
-			}
-		}
 
 	};
 
