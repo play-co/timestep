@@ -57,6 +57,7 @@ exports = Class(ImageScaleView, function(supr) {
 		this._clipper.addSubview(this._textBox);
         this.addSubview(this._clipper);
         this._focused = false;
+        this._validInputStart = false;
         this._textFilter = null;
         this._textCursorFilter = null;
         this._backTextEditView = null;
@@ -83,8 +84,15 @@ exports = Class(ImageScaleView, function(supr) {
     this.onSubmit = function () {};
     this.onFinishEditing = function () {};
 
+    this.onInputStart = function() {
+        this._validInputStart = true;
+    };
+
     this.onInputSelect = function() {
-        this.requestFocus();
+        if (this._validInputStart) {
+            this.requestFocus();
+            this._validInputStart = false;
+        }
     };
 
     this.requestFocus = function() {

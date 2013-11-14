@@ -16,6 +16,9 @@
 
 from util.browser import $;
 import squill.Widget;
+import device;
+
+var __keyboardIsOpen = false;
 
 var InputField = Class(squill.Widget, function (supr) {
 
@@ -72,6 +75,12 @@ var InputField = Class(squill.Widget, function (supr) {
 
     this.onBlur = function (evt) {
         this.hide();
+		if (__keyboardIsOpen) {
+			__keyboardIsOpen = false;
+			var ev = new Event('keyboardClosed');
+			ev.height = device.screen.height;
+			window.dispatchEvent(ev);
+		}
         _focused = null;
         //_focused && _focused.closeEditField();
     }
@@ -119,7 +128,7 @@ exports = Class(function () {
         if (_focused !== this) {
             if (_focused != null) {
                 _focused.removeFocus(); 
-            }
+			}
 
             this.onFocusChange(true);
         }
@@ -135,6 +144,13 @@ exports = Class(function () {
 
         _input.hide();
         // NATIVE.inputPrompt.hideSoftKeyboard(); 
+
+		if (__keyboardIsOpen) {
+			__keyboardIsOpen = false;
+			var ev = new Event('keyboardClosed');
+			ev.height = device.screen.height;
+			window.dispatchEvent(ev);
+		}
      }
 
     this.refresh = function(value, hasBack, hasForward, cursorPos) {
@@ -144,6 +160,13 @@ exports = Class(function () {
         _input.setPlaceholder(this._opts.hint);
         _input.setMaxLength(this._opts.maxLength);
         _input.show();
+
+		if (!__keyboardIsOpen) {
+			__keyboardIsOpen = true;
+			var ev = new Event('keyboardOpened');
+			ev.height = device.screen.height * .6;
+			window.dispatchEvent(ev);
+		}
 
     	/*
     	if (hasBack) {

@@ -41,7 +41,8 @@ exports = Class(function (supr) {
 		if (device.simulatingMobileNative || device.simulatingMobileBrowser) { this._simulateMobile = true; }
 		
 		this._evtQueue = [];
-		
+		this._rootView = opts.rootView;
+
 		if (opts.el) {
 			if (device.isMobileBrowser) {
 				this._toggleNode = $({parent:document.body});
@@ -144,7 +145,8 @@ exports = Class(function (supr) {
 	this.onMouseDown = function () { this._isMouseDown = true; }
 	this.onMouseUp = function () { this._isMouseUp = true; }
 	
-	this.getEvents = function () { return this._evtQueue.splice(0, this._evtQueue.length); }
+	// for native-compatibility, always returns an empty array in the browser
+	this.getEvents = function () { return this._evtQueue; }
 	
 	this.allowScrollEvents = function (allowScrollEvents) { this._allowScrollEvents = allowScrollEvents; }
 	
@@ -275,7 +277,8 @@ exports = Class(function (supr) {
 					var e = inputEvent.clone();
 					e.scrollDelta = evt.wheelDeltaX / 120;
 					e.scrollAxis = input.HORIZONTAL_AXIS;
-					this._evtQueue.push(e);
+
+					input.dispatchEvent(this._rootView, e);
 				} else if (evt.wheelDeltaX) {
 					// we only have one of (X, Y) and it's X, so use X
 					inputEvent.scrollDelta = evt.wheelDeltaX / 120;
@@ -291,7 +294,7 @@ exports = Class(function (supr) {
 			}
 		}
 
-		this._evtQueue.push(inputEvent);
+		input.dispatchEvent(this._rootView, inputEvent);
 	}
 	
 });
