@@ -573,8 +573,8 @@ var View = exports = Class(Emitter, function () {
 
 			// If this view is the head of the sibling list
 			// then set the next sibling to be the head
-			if (this.__children == view) {
-				this.__children = view._rightSibling;
+			if (view.__parent.__children == view) {
+				view.__parent.__children = view.__rightSibling;
 			}
 
 			view.__leftSibling = null;
