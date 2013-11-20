@@ -196,13 +196,12 @@ exports = Class(View, function (supr) {
 		});
 
 		this._bounceRadius = opts.bounceRadius;
-		this._bounceWithBounds = opts.bounceRadius == 'bounds';
-		this.setScrollBounds(merge(opts.scrollBounds, {
+		this._scrollBounds = {
 			minX: -Number.MAX_VALUE,
 			minY: -Number.MAX_VALUE,
 			maxX: Number.MAX_VALUE,
 			maxY: Number.MAX_VALUE
-		}));
+		};
 
 		this._viewport = new Rect();
 		this._viewport.src = this._contentView;
@@ -223,6 +222,10 @@ exports = Class(View, function (supr) {
 			} else {
 				this.unsubscribe('LayoutResize', this, '_updateLayoutBounds');
 			}
+		}
+
+		if ('scrollBounds' in opts) {
+			this.setScrollBounds(opts.scrollBounds);
 		}
 
 		return opts;
@@ -468,18 +471,17 @@ exports = Class(View, function (supr) {
 	};
 
 	this.setScrollBounds = function (bounds) {
-		var hasMinX = (bounds.minX != undefined && bounds.minX != null);
-		var hasMinY = (bounds.minY != undefined && bounds.minY != null);
-		if (hasMinX) {
-			this._contentView.style.x = Math.min(this._contentView.style.x, -bounds.minX);
+		if (bounds) {
+			if ('minX' in bounds) { this._scrollBounds.minX = bounds.minX || 0; }
+			if ('minY' in bounds) { this._scrollBounds.minY = bounds.minY || 0; }
+			if ('maxX' in bounds) { this._scrollBounds.maxX = bounds.maxX || 0; }
+			if ('maxY' in bounds) { this._scrollBounds.maxY = bounds.maxY || 0; }
 		}
-		if (hasMinY) {
-			this._contentView.style.y = Math.min(this._contentView.style.y, -bounds.minY);
-		}
-		this._scrollBounds = bounds;
-		if (this._bounceWithBounds && hasMinX && hasMinY) {
-			this._bounceRadius = Math.max(bounds.minX, bounds.minY);
-		}
+
+		// Scroll to current position with duration 0. If the bounds have
+		// changed, this will move the scroll position immediately to a valid
+		// position.
+		this.scrollTo(undefined, undefined, 0);
 	};
 
 	this.getScrollBounds = function () { return this._scrollBounds; }
