@@ -605,8 +605,7 @@ exports = Class(View, function (supr) {
 		evt.cancel();
 	};
 
-	this.scrollTo = function (x, y, duration, cb) {
-		duration = (duration == null ? 500 : duration);
+	this.scrollTo = function (x, y, opts, cb) {
 		var bounds = this.getStyleBounds();
 		var cvs = this._contentView.style;
 
@@ -617,6 +616,27 @@ exports = Class(View, function (supr) {
 		x = x > bounds.maxX ? bounds.maxX : x;
 		y = y < bounds.minY ? bounds.minY : y;
 		y = y > bounds.maxY ? bounds.maxY : y;
+
+		var duration;
+		if (typeof opts == 'number') {
+			// legacy api
+			duration = opts;
+		} else {
+			if (opts.duration) {
+				duration = opts.duration;
+			} else if (opts.speed) {
+				var dx = x - cvs.x;
+				var dy = y - cvs.y;
+				var distance = Math.sqrt(dx * dx + dy * dy);
+				duration = distance / opts.speed * 1000;
+			} else {
+				duration = 500;
+			}
+
+			if (opts.maxDuration) {
+				duration = Math.min(duration, opts.maxDuration);
+			}
+		}
 
 		if (duration) {
 			var anim = animate(this._contentView).now({ x: x, y: y }, duration, animate.easeOut);
