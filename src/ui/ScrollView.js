@@ -412,6 +412,24 @@ exports = Class(View, function (supr) {
 				}
 			}
 
+			if (target.x < bounds.minX - this._bounceRadius) {
+				if (offset.x < bounds.minX) {
+					distance = 0;
+				} else {
+					delta.x += (bounds.minX - this._bounceRadius - target.x);
+					distance = delta.getMagnitude();
+				}
+			}
+
+			if (target.x > bounds.maxX + this._bounceRadius) {
+				if (offset.x > bounds.maxX) {
+					distance = 0;
+				} else {
+					delta.x -= (target.x - (bounds.maxY - this._bounceRadius));
+					distance = delta.getMagnitude();
+				}
+			}
+
 			if (distance) {
 				this._anim.now(bind(this, function (tt, t) {
 					this.setOffset(
