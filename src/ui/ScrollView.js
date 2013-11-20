@@ -600,7 +600,7 @@ exports = Class(View, function (supr) {
 		y = y < bounds.minY ? bounds.minY : y;
 		y = y > bounds.maxY ? bounds.maxY : y;
 
-		if (!duration) {
+		if (duration) {
 			var anim = animate(this._contentView).now({ x: x, y: y }, duration, animate.easeOut);
 			if (cb) {
 				anim.then(cb);
