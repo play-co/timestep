@@ -588,19 +588,25 @@ exports = Class(View, function (supr) {
 	this.scrollTo = function (x, y, duration, cb) {
 		duration = (duration == null ? 500 : duration);
 		var bounds = this.getStyleBounds();
+		var cvs = this._contentView.style;
 
-		x = -x;
-		y = -y;
+		x = (x == null) ? cvs.x : -x;
+		y = (y == null) ? cvs.y : -y;
 
 		x = x < bounds.minX ? bounds.minX : x;
 		x = x > bounds.maxX ? bounds.maxX : x;
 		y = y < bounds.minY ? bounds.minY : y;
 		y = y > bounds.maxY ? bounds.maxY : y;
 
-		var anim = animate(this._contentView).now({ x: x, y: y }, duration, animate.easeOut);
-
-		if (cb) {
-			anim.then(cb);
+		if (!duration) {
+			var anim = animate(this._contentView).now({ x: x, y: y }, duration, animate.easeOut);
+			if (cb) {
+				anim.then(cb);
+			}
+		} else {
+			cvs.x = x;
+			cvs.y = y;
+			cb && cb();
 		}
 	};
 });
