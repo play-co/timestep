@@ -95,8 +95,10 @@ exports = Class(ScrollView, function (supr) {
 		}
 
 		var bounds = this._scrollBounds;
-		bounds.minX = bounds.maxX = 0;
-		bounds.minY = 0;
+		var scrollBuffer = opts.scrollBuffer;
+		bounds.minX = (scrollBuffer && scrollBuffer.minX || 0);
+		bounds.maxX = (scrollBuffer && scrollBuffer.maxX || 0);
+		bounds.minY = (scrollBuffer && scrollBuffer.minY || 0);
 
 		return opts;
 	};
@@ -227,21 +229,11 @@ exports = Class(ScrollView, function (supr) {
 		// TODO: stop publishing HeightChanged when we move to timestep ui
 		// because this is done by ScrollView
 
-		var bounds = this._scrollBounds;
-		var oldMaxY = bounds.maxY;
-		var newMaxY = Math.max(0, maxY);
-		bounds.maxY = newMaxY;
-
 		var scrollBuffer = this._opts.scrollBuffer;
-		if (scrollBuffer) {
-			bounds.minY += scrollBuffer.minY;
-			bounds.maxY += scrollBuffer.maxY;
-		}
 
-		// Scroll to current position with duration 0. If the bounds have
-		// changed, this will move the scroll position immediately to a valid
-		// position.
-		this.scrollTo(undefined, undefined, 0);
+		var oldMaxY = this._scrollBounds.maxY;
+		var newMaxY = Math.max(0, maxY) + (scrollBuffer && scrollBuffer.maxY || 0);
+		this.setScrollBounds({maxY: newMaxY});
 
 		if (oldMaxY != newMaxY) {
 			this.publish("HeightChanged", maxY);
