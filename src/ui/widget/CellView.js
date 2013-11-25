@@ -61,7 +61,6 @@ exports = Class(View, function (supr) {
 	this.getHeight = function () { return this.style.height; }
 	this.getWidth = function () { return this.style.width; }
 	this.setData = function (data) { this._data = data; }
-	this.setPosition = function (pos) { this.style.update(pos); }
 
 	this.setController = function (controller) {
 		this.controller = controller;

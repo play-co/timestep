@@ -196,13 +196,12 @@ exports = Class(View, function (supr) {
 		});
 
 		this._bounceRadius = opts.bounceRadius;
-		this._bounceWithBounds = opts.bounceRadius == 'bounds';
-		this.setScrollBounds(merge(opts.scrollBounds, {
+		this._scrollBounds = {
 			minX: -Number.MAX_VALUE,
 			minY: -Number.MAX_VALUE,
 			maxX: Number.MAX_VALUE,
 			maxY: Number.MAX_VALUE
-		}));
+		};
 
 		this._viewport = new Rect();
 		this._viewport.src = this._contentView;
@@ -223,6 +222,10 @@ exports = Class(View, function (supr) {
 			} else {
 				this.unsubscribe('LayoutResize', this, '_updateLayoutBounds');
 			}
+		}
+
+		if ('scrollBounds' in opts) {
+			this.setScrollBounds(opts.scrollBounds);
 		}
 
 		return opts;
@@ -422,11 +425,10 @@ exports = Class(View, function (supr) {
 				if (offset.x > bounds.maxX) {
 					distance = 0;
 				} else {
-					delta.x -= (target.x - (bounds.maxX - this._bounceRadius));
+					delta.x -= (target.x - (bounds.maxY - this._bounceRadius));
 					distance = delta.getMagnitude();
 				}
 			}
-
 
 			if (distance) {
 				this._anim.now(bind(this, function (tt, t) {
@@ -487,18 +489,17 @@ exports = Class(View, function (supr) {
 	};
 
 	this.setScrollBounds = function (bounds) {
-		var hasMinX = (bounds.minX != undefined && bounds.minX != null);
-		var hasMinY = (bounds.minY != undefined && bounds.minY != null);
-		if (hasMinX) {
-			this._contentView.style.x = Math.min(this._contentView.style.x, -bounds.minX);
+		if (bounds) {
+			if ('minX' in bounds) { this._scrollBounds.minX = bounds.minX || 0; }
+			if ('minY' in bounds) { this._scrollBounds.minY = bounds.minY || 0; }
+			if ('maxX' in bounds) { this._scrollBounds.maxX = bounds.maxX || 0; }
+			if ('maxY' in bounds) { this._scrollBounds.maxY = bounds.maxY || 0; }
 		}
-		if (hasMinY) {
-			this._contentView.style.y = Math.min(this._contentView.style.y, -bounds.minY);
-		}
-		this._scrollBounds = bounds;
-		if (this._bounceWithBounds && hasMinX && hasMinY) {
-			this._bounceRadius = Math.max(bounds.minX, bounds.minY);
-		}
+
+		// Scroll to current position with duration 0. If the bounds have
+		// changed, this will move the scroll position immediately to a valid
+		// position.
+		this.scrollTo(undefined, undefined, 0);
 	};
 
 	this.getScrollBounds = function () { return this._scrollBounds; }
@@ -604,22 +605,48 @@ exports = Class(View, function (supr) {
 		evt.cancel();
 	};
 
-	this.scrollTo = function (x, y, duration, cb) {
-		duration = (duration == null ? 500 : duration);
+	this.scrollTo = function (x, y, opts, cb) {
 		var bounds = this.getStyleBounds();
+		var cvs = this._contentView.style;
 
-		x = -x;
-		y = -y;
+		x = (x == null) ? cvs.x : -x;
+		y = (y == null) ? cvs.y : -y;
 
 		x = x < bounds.minX ? bounds.minX : x;
 		x = x > bounds.maxX ? bounds.maxX : x;
 		y = y < bounds.minY ? bounds.minY : y;
 		y = y > bounds.maxY ? bounds.maxY : y;
 
-		var anim = animate(this._contentView).now({ x: x, y: y }, duration, animate.easeOut);
+		var duration;
+		if (typeof opts == 'number') {
+			// legacy api
+			duration = opts;
+		} else {
+			if (opts.duration) {
+				duration = opts.duration;
+			} else if (opts.speed) {
+				var dx = x - cvs.x;
+				var dy = y - cvs.y;
+				var distance = Math.sqrt(dx * dx + dy * dy);
+				duration = distance / opts.speed * 1000;
+			} else {
+				duration = 500;
+			}
 
-		if (cb) {
-			anim.then(cb);
+			if (opts.maxDuration) {
+				duration = Math.min(duration, opts.maxDuration);
+			}
+		}
+
+		if (duration) {
+			var anim = animate(this._contentView).now({ x: x, y: y }, duration, animate.easeOut);
+			if (cb) {
+				anim.then(cb);
+			}
+		} else {
+			cvs.x = x;
+			cvs.y = y;
+			cb && cb();
 		}
 	};
 });
