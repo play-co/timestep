@@ -298,13 +298,13 @@ exports = Class(View, function (supr) {
 				// do nothing
 			} else if (this._canBounce) {
 				if (x < bounds.minX) {
-					var delta = (bounds.minX - x) / this._bounceRadius;
-					x = bounds.minX - Math.atan(delta) * this._bounceRadius / PI_2;
+					var temp = (bounds.minX - x) / this._bounceRadius;
+					x = bounds.minX - Math.atan(temp) * this._bounceRadius / PI_2;
 				}
 
 				if (x > bounds.maxX) {
-					var delta = (x - bounds.maxX) / this._bounceRadius;
-					x = bounds.maxX + Math.atan(delta) * this._bounceRadius / PI_2;
+					var temp = (x - bounds.maxX) / this._bounceRadius;
+					x = bounds.maxX + Math.atan(temp) * this._bounceRadius / PI_2;
 				}
 			} else {
 				if (x < bounds.minX) { x = bounds.minX; }
@@ -322,13 +322,13 @@ exports = Class(View, function (supr) {
 				// do nothing
 			} else if (this._canBounce) {
 				if (y < bounds.minY) {
-					var delta = (bounds.minY - y) / this._bounceRadius;
-					y = bounds.minY - Math.atan(delta) * this._bounceRadius / PI_2;
+					var temp = (bounds.minY - y) / this._bounceRadius;
+					y = bounds.minY - Math.atan(temp) * this._bounceRadius / PI_2;
 				}
 
 				if (y > bounds.maxY) {
-					var delta = (y - bounds.maxY) / this._bounceRadius;
-					y = bounds.maxY + Math.atan(delta) * this._bounceRadius / PI_2;
+					var temp = (y - bounds.maxY) / this._bounceRadius;
+					y = bounds.maxY + Math.atan(temp) * this._bounceRadius / PI_2;
 				}
 			} else {
 				if (y < bounds.minY) { y = bounds.minY; }
@@ -485,6 +485,10 @@ exports = Class(View, function (supr) {
 		}), 500, animate.easeInOut).then(bind(this, function () {
 			this._canBounce = false;
 			this._isBouncing = false;
+
+			// Ensure that after the bounce an update to the bounds has not
+			// been ignored.
+			this.scrollTo(undefined, undefined, 0);
 		}));
 	};
 
@@ -494,12 +498,15 @@ exports = Class(View, function (supr) {
 			if ('minY' in bounds) { this._scrollBounds.minY = bounds.minY || 0; }
 			if ('maxX' in bounds) { this._scrollBounds.maxX = bounds.maxX || 0; }
 			if ('maxY' in bounds) { this._scrollBounds.maxY = bounds.maxY || 0; }
-		}
 
-		// Scroll to current position with duration 0. If the bounds have
-		// changed, this will move the scroll position immediately to a valid
-		// position.
-		this.scrollTo(undefined, undefined, 0);
+			// If not in the middle of a bounce animation,
+			if (!this._canBounce) {
+				// Scroll to current position with duration 0. If the bounds have
+				// changed, this will move the scroll position immediately to a valid
+				// position.
+				this.scrollTo(undefined, undefined, 0);
+			}
+		}
 	};
 
 	this.getScrollBounds = function () { return this._scrollBounds; }
