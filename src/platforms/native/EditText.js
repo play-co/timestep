@@ -68,10 +68,10 @@ exports = Class(function() {
 
     this.getValue = function () { return this._value; }
 
-    this.setValue = function (value) {
+    this.setValue = function (value, cursorPos) {
         this._value = value;
         this.onChange(value);
-		NATIVE.call('editText.setText', {text: value});
+		NATIVE.call('editText.setText', {text: value, cursorPos: cursorPos });
     }
 
     this.requestFocus = function() {

@@ -139,7 +139,7 @@ exports = Class(ImageScaleView, function(supr) {
             this.setText(value);
 
             if (isProcessed) {
-                this.refresh(); // update native EditText with processed values
+                this.setValue(value, this._cursorPos); // update native EditText with processed values
             }
 
             this.emit('onChange', value);
@@ -184,7 +184,7 @@ exports = Class(ImageScaleView, function(supr) {
         this.setText(value);
 
         if (this._editText.setValue) {
-            this._editText.setValue(value);
+            this._editText.setValue(value, this._cursorPos);
         }
     }
 
