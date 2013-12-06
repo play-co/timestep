@@ -62,6 +62,8 @@ exports = Class(BufferedCanvas, function (supr) {
 			offscreen: true
 		});
 
+		this.unloadListener = opts.unloadListener;
+
 		if (_createdOnscreenCanvas) {
 			opts.offscreen = true;
 		}
@@ -91,7 +93,6 @@ exports = Class(BufferedCanvas, function (supr) {
 	}
 
 	this.resize = function (width, height) {
-
 		this.destroy();
 
 		// set the internal private properties (the public ones have setters that 
@@ -100,7 +101,7 @@ exports = Class(BufferedCanvas, function (supr) {
 		this.canvas._height = height;
 
 		if (this._isOffscreen) {
-			var textureData = NATIVE.gl.newTexture(width, height);
+			var textureData = NATIVE.gl.makeCanvas(width, height, this.unloadListener);
 			this.canvas.__gl_name = textureData.__gl_name;
 			this.canvas._src = textureData._src;
 		} else {

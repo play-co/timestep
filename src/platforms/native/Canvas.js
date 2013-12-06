@@ -38,12 +38,13 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
 		this.complete = true;
 	}
 
-	this.getContext = function (which) {
+	this.getContext = function (which, unloadListener) {
 		if (which.toUpperCase() == '2D') {
 			this.complete = true;
 			return this._context2D || (this._context2D = new Context2D({
 				canvas: this,
-				offscreen: this._offscreen
+				offscreen: this._offscreen,
+				unloadListener: unloadListener
 			}));
 		}
 	}
