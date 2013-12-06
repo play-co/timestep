@@ -86,9 +86,13 @@ exports = Class(BufferedCanvas, function (supr) {
 	};
 
 	this.destroy = function () {
-		if (this._isOffscreen && this.canvas._src) {
-			this._ctx = null;
-			NATIVE.gl.deleteTexture(this.canvas._src);
+		if (this.canvas._src) {
+			NATIVE.gl.forgetCanvas(this.canvas._src);
+
+			if (this._isOffscreen) {
+				this._ctx = null;
+				NATIVE.gl.deleteTexture(this.canvas._src);
+			}
 		}
 	}
 

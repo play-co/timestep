@@ -44,7 +44,14 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
 			return this._context2D || (this._context2D = new Context2D({
 				canvas: this,
 				offscreen: this._offscreen,
-				unloadListener: unloadListener
+				unloadListener: bind(this, function() {
+					logger.log("{canvas-registry} Canvas class reacting to canvas loss by setting context to null");
+
+					this._context2D = null;
+					if (typeof unloadListener == "function") {
+						unloadListener();
+					}
+				})
 			}));
 		}
 	}
