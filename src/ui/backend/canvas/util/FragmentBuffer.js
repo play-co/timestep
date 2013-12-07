@@ -34,7 +34,12 @@ var FragmentBuffer = exports = Class(function () {
 	this._build = function () {
 	    var Canvas = device.get('Canvas');
         this._canvas = new Canvas({width: 1024, height: 1024});
-        this._ctx = this.getCanvas().getContext('2d');
+        this._ctx = this.getCanvas().getContext('2d', bind(this, function() {
+			logger.log("{fragment-buffer} Reacting to lost canvas by clearing text buffer");
+			// On canvas loss:
+			this._canvas = null;
+			this.clearBuffer();
+		}));
 		this._ctx.clearRect(0, 0, 1024, 1024);
 		this._ctx.textAlign = 'left';
 		this._ctx.textBaseline = 'middle';
