@@ -225,6 +225,14 @@ exports = Class(View, function (supr) {
 			}
 		}
 
+		if ('scrollBounds' in opts) {
+			this.setScrollBounds(opts.scrollBounds);
+		}
+
+		if ('bounceRadius' in opts) {
+			this._bounceRadius = opts.bounceRadius;
+		}
+
 		return opts;
 	};
 
