@@ -94,8 +94,22 @@ exports = Class(ScrollView, function (supr) {
 			this.unsubscribe('Scrolled', this, '_onScroll');
 		}
 
+		var bounds = this._scrollBounds;
+		var scrollBuffer = opts.scrollBuffer;
+		bounds.minX = (scrollBuffer && scrollBuffer.minX || 0);
+		bounds.maxX = (scrollBuffer && scrollBuffer.maxX || 0);
+		bounds.minY = (scrollBuffer && scrollBuffer.minY || 0);
+
 		return opts;
 	};
+
+	this.positionCell = function (cell, pos) {
+		if (this._headerView) {
+			pos.y += this._headerView.style.height;
+		}
+
+		cell.style.update(pos);
+	}
 
 	// This function returns a DataSource
 	this.getSelections = function () {
@@ -131,6 +145,24 @@ exports = Class(ScrollView, function (supr) {
 		this.needsRepaint(true);
 	};
 
+	this.setHeaderView = function (headerView) {
+		if (this._headerView) {
+			this._headerView.removeFromSuperview();
+		}
+
+		this._headerView = headerView;
+		if (this._headerView) {
+			this.addSubview(headerView);
+			headerView.style.y = 0;
+
+			// all views need to shift down
+			this.reflow();
+
+			// update the scroll bounds to account for the footer
+			this.setMaxY();
+		}
+	}
+
 	this.setFooterView = function (footerView) {
 		if (this._footerView) {
 			this._footerView.removeFromSuperview();
@@ -140,11 +172,8 @@ exports = Class(ScrollView, function (supr) {
 		if (this._footerView) {
 			this.addSubview(footerView);
 
-			// position the footer at the bottom of the list
-			footerView.style.y = this._heightWithoutFooter || 0;
-
 			// update the scroll bounds to account for the footer
-			this.setMaxY(this._heightWithoutFooter);
+			this.setMaxY();
 		}
 	}
 
@@ -177,16 +206,20 @@ exports = Class(ScrollView, function (supr) {
 		}
 	};
 
-	this.setMaxY = function (maxY) {
+	this.setMaxY = function (contentHeight) {
 
-		var footerHeight = 0;
-		if (this._footerView) {
-			footerHeight = this._footerView.style.height || 0;
-			this._footerView.style.y = maxY;
+		var additionalHeight = 0;
+		if (this._headerView) {
+			additionalHeight += this._headerView.style.height || 0;
 		}
 
-		this._heightWithoutFooter = maxY;
-		maxY = maxY + footerHeight;
+		if (this._footerView) {
+			this._footerView.style.y = contentHeight + additionalHeight;
+			additionalHeight += this._footerView.style.height || 0;
+		}
+
+		this._contentHeight = contentHeight;
+		var maxY = contentHeight + additionalHeight;
 
 		if (this._autoSize && this.style.height != maxY) {
 			this.style.height = maxY;
@@ -196,19 +229,11 @@ exports = Class(ScrollView, function (supr) {
 		// TODO: stop publishing HeightChanged when we move to timestep ui
 		// because this is done by ScrollView
 
-		var bounds = this._scrollBounds;
-		var oldMaxY = bounds.maxY;
-		var newMaxY = Math.max(0, maxY);
-
-		bounds.minX = bounds.maxX = 0;
-		bounds.minY = 0;
-		bounds.maxY = newMaxY;
-
 		var scrollBuffer = this._opts.scrollBuffer;
-		if (scrollBuffer) {
-			bounds.minY += scrollBuffer.minY;
-			bounds.maxY += scrollBuffer.maxY;
-		}
+
+		var oldMaxY = this._scrollBounds.maxY;
+		var newMaxY = Math.max(0, maxY) + (scrollBuffer && scrollBuffer.maxY || 0);
+		this.setScrollBounds({maxY: newMaxY});
 
 		if (oldMaxY != newMaxY) {
 			this.publish("HeightChanged", maxY);

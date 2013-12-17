@@ -130,6 +130,13 @@ var View = exports = Class(Emitter, function () {
 		if (!opts) { opts = {}; }
 
 		this.uid = ++UID;
+
+		// Maintain pointers to children to keep native views from being garbage collected
+		this.__parent = null;
+		this.__children = null;
+		this.__leftSibling = null;
+		this.__rightSibling = null;
+
 		this.__input = new InputHandler(this, opts);
 
 		// set with View.setDefaultViewBacking();
@@ -512,6 +519,8 @@ var View = exports = Class(Emitter, function () {
 			view.needsRepaint();
 			this._reflowManager && view.needsReflow();
 
+			this._linkView(view);
+
 			// if successful, clear any residual input over count
 			view.__input.resetOver();
 
@@ -533,11 +542,53 @@ var View = exports = Class(Emitter, function () {
 		return view;
 	};
 
+	// link the input view to the current view to prevent native views from being
+	// garbage collected
+	this._linkView = function (view) {
+		// remove any current connections
+		this._unlinkView(view);
+
+		// Insert this view as the head of the sibling list
+		if (this.__children) {
+			this.__children.__leftSibling = view;
+		}
+		view.__leftSibling = null;
+		view.__rightSibling = this.__children;
+		this.__children = view;
+		view.__parent = this;
+
+
+	};
+
+	this._unlinkView = function (view) {
+		if (view.__parent) {
+			// When removing a subview, remove the view from its sibling list
+			if (view.__leftSibling) {
+				view.__leftSibling.__rightSibling = view.__rightSibling;
+			}
+
+			if (view.__rightSibling) {
+				view.__rightSibling.__leftSibling = view.__leftSibling;
+			}
+
+			// If this view is the head of the sibling list
+			// then set the next sibling to be the head
+			if (view.__parent.__children == view) {
+				view.__parent.__children = view.__rightSibling;
+			}
+
+			view.__leftSibling = null;
+			view.__rightSibling = null;
+			view.__parent = null;
+		}
+	};
+
 	/**
 	 * Removes a subview.
 	 */
 	this.removeSubview = function (view) {
 		if (this.__view.removeSubview(view)) {
+			this._unlinkView(view);	
 			this.publish('SubviewRemoved', view);
 			if (view.__root) {
 				scheduler.add(bind(this, function recurse(view) {

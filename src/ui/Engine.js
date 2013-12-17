@@ -122,6 +122,7 @@ var Application = exports = Class(Emitter, function (supr) {
 		}
 
 		this._inputListener = new dispatch.InputListener({
+			rootView: this._view,
 			el: this._rootElement,
 			keyListener: this._keyListener
 		});

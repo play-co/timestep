@@ -26,6 +26,7 @@
 
 import event.Callback as Callback;
 import math.geom.Rect as Rect;
+import lib.PubSub;
 import device;
 import ui.resource.loader as resourceLoader;
 
@@ -75,7 +76,7 @@ if (!ImageMap) {
 	});
 }
 
-exports = Class(function () {
+exports = Class(lib.PubSub, function () {
 	this.init = function (opts) {
 		if (!opts) { opts = {}; }
 

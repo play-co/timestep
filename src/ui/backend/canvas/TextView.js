@@ -21,6 +21,7 @@
  */
 
 import ui.View as View;
+import ui.resource.Image as Image;
 import ui.layout.Padding as Padding;
 import device;
 import .util.FragmentBuffer as FragmentBuffer;
@@ -70,6 +71,8 @@ var TextView = exports = Class(View, function (supr) {
 		// misc properties...
 		buffer: false, // GLOBAL.NATIVE && !device.simulatingMobileNative,
 		backgroundColor: null
+
+
 	};
 
 	var clearCache = {
@@ -236,6 +239,16 @@ var TextView = exports = Class(View, function (supr) {
 	};
 
 	this.updateOpts = function (opts, dontCheck) {
+		// update emoticon data
+		if (opts.emoticonData) {
+			for (var key in opts.emoticonData.data) {
+				var data = opts.emoticonData.data[key];
+				if (!data.image) {
+					data.image = new Image({url: data.url});
+				}
+			}
+		}
+
 		if (this._opts.buffer) {
 			fontBuffer.releaseBin(this.getHash());
 		}
@@ -305,18 +318,28 @@ var TextView = exports = Class(View, function (supr) {
 
 			x = offsetX + item.x;
 			y = offsetY + item.y;
+			
+			var emoticonData = (word[0] == '(') && opts.emoticonData && opts.emoticonData.data[word];
+			if (emoticonData) {
+				//ctx.fillStyle = color;
+				//ctx.fillRect(x + lineOffset, y + lineOffset, opts.size, opts.size);
+				if (emoticonData.image) {
+					emoticonData.image.render(ctx, x + lineOffset, y + lineOffset, opts.size, opts.size);
+				}
+				
+			} else {
+				if (strokeColor) {
+					ctx.strokeText(word, x + lineOffset, y + lineOffset, maxWidth);
+				}
+				if (shadowColor) {
+					var shadowOffset = this._opts.shadowWidth || 0;
+					ctx.fillStyle = shadowColor;
+					ctx.fillText(word, x + lineOffset + shadowOffset, y + lineOffset + shadowOffset, maxWidth);
+				}
 
-			if (strokeColor) {
-				ctx.strokeText(word, x + lineOffset, y + lineOffset, maxWidth);
+				ctx.fillStyle = color;
+				ctx.fillText(word, x + lineOffset, y + lineOffset, maxWidth);
 			}
-			if (shadowColor) {
-				var shadowOffset = this._opts.shadowWidth || 0;
-				ctx.fillStyle = shadowColor;
-				ctx.fillText(word, x + lineOffset + shadowOffset, y + lineOffset + shadowOffset, maxWidth);
-			}
-
-			ctx.fillStyle = color;
-			ctx.fillText(word, x + lineOffset, y + lineOffset, maxWidth);
 		}
 		if (this._opts.debug) {
 			ctx.strokeStyle = 'black';
@@ -388,6 +411,14 @@ var TextView = exports = Class(View, function (supr) {
 
 	this.setText = function (textData) {
 		var text = (textData != undefined) ? textData.toString() : "";
+
+		var emoticonData = this._opts.emoticonData;
+		if (emoticonData) {
+			for (var key in emoticonData.map) {
+				var re = new RegExp(key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
+				text = text.replace(re, emoticonData.map[key]);
+			}
+		}
 
 		if (this._opts.text !== text) {
 			if (this._opts.buffer) {
