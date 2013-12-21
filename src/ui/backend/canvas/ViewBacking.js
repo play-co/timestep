@@ -171,6 +171,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		} finally {
 			ctx.clearFilters();
 			ctx.restore();
+			ViewBacking.absScale /= this.scale;
 		}
 	}
 
