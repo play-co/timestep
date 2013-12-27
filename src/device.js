@@ -178,13 +178,13 @@ if (exports.isMobile) {
 
 exports.useDOM = false;
 exports.setUseDOM = function (useDOM) {
-	// if (exports.useDOM != useDOM) {
-	// 	exports.useDOM = useDOM;
+	if (exports.useDOM != useDOM) {
+		exports.useDOM = useDOM;
 
-	// 	import ui.View as View;
-	// 	var backing = exports.importUI('ViewBacking');
-	// 	View.setDefaultViewBacking(backing);
-	// }
+		import ui.View as View;
+		var backing = exports.importUI('ViewBacking');
+		View.setDefaultViewBacking(backing);
+	}
 }
 
 exports.getDimensions = function (isLandscape) {
@@ -211,18 +211,18 @@ exports.init = function () {
  * Event handlers
  */
 exports.setBackButtonHandler = function (handler) {
-	NATIVE.onBackButton = handler;
+	NATIVE && NATIVE.onBackButton = handler;
 }
 
 exports.setRotationHandler = function (handler) {
-	NATIVE.onRotation = handler;
+	NATIVE && NATIVE.onRotation = handler;
 }
 
 /*
  * Stay awake
  */
 exports.stayAwake = function(enable) {
-	NATIVE.stayAwake && NATIVE.stayAwake(enable);
+	NATIVE && NATIVE.stayAwake && NATIVE.stayAwake(enable);
 }
 
 /**
@@ -230,7 +230,7 @@ exports.stayAwake = function(enable) {
  */
 exports.collectGarbage = function () {
 	logger.log('collecting garbage');
-	NATIVE.gc && NATIVE.gc.runGC();
+	NATIVE && NATIVE.gc && NATIVE.gc.runGC();
 }
 
 /**
