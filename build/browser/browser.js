@@ -143,6 +143,10 @@ function buildFontString(name, css, formats) {
 
 			str += '; ';
 		}
+
+		if (format && format.url) {
+			str += util.format('src:url("%s");', format.url);
+		}
 	}
 
 	str += '}';
@@ -151,6 +155,14 @@ function buildFontString(name, css, formats) {
 
 // Model a CSS font that we can convert into a CSS file.
 var CSSFont = Class(function () {
+
+	var exts = {
+		'.svg': 'svg', // IOS < 4.2
+		'.eot': '', // IE
+		'.ttf': 'truetype', // Everything else?
+		'.woff': 'woff',
+	};
+
 	this.init = function (file) {
 		this.file = file;
 		this.fileBase = path.basename(file, path.extname(file));
@@ -177,39 +189,55 @@ var CSSFont = Class(function () {
 		}
 	}
 
-	this.getCSS = function (target) {
-		var svg = getFontDataURI(path.join(path.dirname(this.file), this.fileBase + '.svg')); // IOS < 4.2
-		var eot = getFontDataURI(path.join(path.dirname(this.file), this.fileBase + '.eot')); // IE
-		var ttf = getFontDataURI(path.join(path.dirname(this.file), this.fileBase + '.ttf')); // Everything else?
-		var woff = getFontDataURI(path.join(path.dirname(this.file), this.fileBase + '.woff'));
+	this.getCSS = function (opts, target) {
+		var fileBase = this.fileBase;
+		var dirname = path.dirname(this.file);
+
+		var fontData = {};
+		Object.keys(exts).forEach(function (ext) {
+			fontData[ext] = getFontDataURI(path.join(dirname, fileBase + ext));
+		}, this);
 
 		var css = '';
 		if (this.weight != null) {
-				css += 'font-weight:' + this.weight + ';';
+			css += 'font-weight:' + this.weight + ';';
 		}
 		if (this.style != null) {
 			css += 'font-style:' + this.style + ';';
 		}
 		
+		// target.startsWith('native') -- for simulated native builds
 		if (target == 'browser-desktop' || target.startsWith('native')) {
-			logger.log(util.format('embedding eot and woff font %s -- %s', this.name, this.fileBase));
-			return buildFontString(this.name, css, [
-				{src: ttf, type: 'truetype'}, 
-				{src: eot}, 
-				{src: woff, type: 'woff'}
-			]);
-
-			return util.format('\n@font-face{font-family:"%s";%ssrc:url("%s") format("truetype");src:url("%s");src:url("%s") format("woff");}', 
-				this.name, css, ttf, eot, woff);
+			logger.log(util.format('embedding ttf, eot, and woff font %s -- %s', this.name, this.fileBase));
+			var formats = [];
+			addFormat(formats, '.ttf');
+			addFormat(formats, '.eot');
+			addFormat(formats, '.woff');
+			return buildFontString(this.name, css, formats);
 		}
 		
 		if (target == 'browser-mobile') {
 			logger.log(util.format('embedding ttf and svg font %s -- %s', this.name, this.fileBase));
-			
-			return buildFontString(this.name, css, [
-				{src: ttf, type: 'truetype'},
-				{svg: svg, type: 'svg'}
-			]);
+
+			var formats = [];
+			addFormat(formats, '.ttf');
+			addFormat(formats, '.svg');
+			return buildFontString(this.name, css, formats);
+		}
+
+		function addFormat(formats, ext) {
+			if (fontData[ext]) {
+				if (opts.embedFonts) {
+					var def = {src: fontData[ext]};
+					if (exts[ext]) {
+						def.type = exts[ext];
+					}
+
+					formats.push(def);
+				} else {
+					formats.push({url: 'resources/fonts/' + fileBase + ext});
+				}
+			}
 		}
 		
 		return '';
@@ -469,7 +497,7 @@ function compileHTML (project, opts, target, resources, code, cb) {
 			return a.sortOrder - b.sortOrder;
 		});
 		fontList.forEach(function (font) {
-			css.push(font.getCSS(target));
+			css.push(font.getCSS(opts, target));
 		});
 
 		// Google Analytics for release.
