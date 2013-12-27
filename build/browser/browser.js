@@ -512,7 +512,7 @@ function compileHTML (project, opts, target, resources, code, cb) {
 			resourceMap[indexName] = {contents: generateGameHTML(opts, project, target, imgCache, js, css)};
 		}
 
-		resourceMap[jsName] = {contents: 'CACHE=' + JSON.stringify(cache) + ';\n' + code + '; jsio("import ' + INITIAL_IMPORT + '");'};
+		resourceMap[jsName] = {contents: 'NATIVE=false;CACHE=' + JSON.stringify(cache) + ';\n' + code + '; jsio("import ' + INITIAL_IMPORT + '");'};
 		resourceMap[manifestName] = {contents: generateOfflineManifest(resourceMap, project.manifest.appID, opts.version)};
 		
 		// Pass compiled resources to callback.
