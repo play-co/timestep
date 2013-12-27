@@ -87,29 +87,33 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 	this.init = function (view, opts) {
 		this._view = view;
 		this._subviews = [];
+		this._noCanvas = opts['dom:noCanvas'];
 
-		var n = this._node = document.createElement(opts.elementType || 'div');
+		var n = this._node = document.createElement(opts['dom:elementType'] || 'div');
 
 		// used to identify dom nodes
 		n._view = view;
 		n.addEventListener("webkitTransitionEnd", bind(this, "_transitionEnd"), false);
-		n.className = "view" + " " + opts.className;
-
-		var s = n.style;
-		s.fontSize = '1px';
-		s.position = "absolute";
-		
-		this.position(0, 0);
-		
-		if (!device.isAndroid) {
-			s.webkitBackfaceVisibility = 'hidden';
+		n.className = 'view';
+		if (opts['dom:className']) {
+			n.className += ' ' + opts['dom:className'];
 		}
 
-		s.webkitTransformOrigin = '0px 0px';
+		var cssText = 'fontSize:1px;position:absolute;top:0px;left:0px;-webkit-transform-origin:0px 0px;';
+		if (!device.isAndroid) {
+			cssText += '-webkit-backface-visibility:hidden;';
+		}
+
+		var s = n.style;
+		s.cssText = cssText;
+
+		this.position(0, 0);
 
 		// add any custom CSS style
-		for (var name in opts.styles) {
-			s[name] = opts.styles[name];
+		var domStyles = opts['dom:styles'];
+		
+		for (var name in domStyles) {
+			s[name] = domStyles[name];
 		}
 
 		// store for the computed styles
@@ -131,6 +135,11 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		this._animating = false;
 		this._animationQueue = [];
 		this._animationCallback = null;
+
+		// put the initial view tag into the view tree for easier debugging
+		if (DEBUG) {
+			n.setAttribute("TAG:", view.getTag());
+		}
 	}
 
 	this.getElement = function () { return this._node; }
@@ -145,11 +154,11 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		} else {
 			if (superview) { superview.__view.removeSubview(view); }
 			var n = this._subviews.length;
-			this._subviews[n] = view;
+			this._subviews[n] = backing;
 			this._node.appendChild(node);
 
 			backing._setAddedAt(++ADD_COUNTER);
-			if (n && backing.__sortKey < this._subviews[n - 1].__view.__sortKey) {
+			if (n && backing.__sortKey < this._subviews[n - 1].__sortKey) {
 				this._needsSort = true;
 			}
 
@@ -158,7 +167,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 	}
 
 	this.removeSubview = function (targetView) {
-		var index = this._subviews.indexOf(targetView);
+		var index = this._subviews.indexOf(targetView.__view);
 		if (index != -1) {
 			this._subviews.splice(index, 1);
 			this._node.removeChild(targetView.__view._node);
@@ -179,14 +188,19 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 
 	this.getSubviews = function () {
 		if (this._needsSort) { this._needsSort = false; this._subviews.sort(); }
-		return this._subviews;
+		var subviews = [];
+		var n = this._subviews.length;
+		for (var i = 0; i < n; ++i) {
+			subviews[i] = this._subviews[i]._view;
+		}
+		return subviews;
 	}
 
 	this.wrapTick = function (dt, app) {
 		this._view.tick && this._view.tick(dt, app);
 
 		for (var i = 0, view; view = this._subviews[i]; ++i) {
-			view.__view.wrapTick(dt, app);
+			view.wrapTick(dt, app);
 		}
 	}
 
@@ -207,33 +221,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		try {
 			var render = this._view.render;
 			if (render && !render.isFake) {
-				if (!this._canvas) {
-					var canvas = new Canvas();
-					this._canvas = canvas;
-					this._node.insertBefore(this._canvas, this._node.firstChild);
-					this.ctx = this._canvas.getContext('2d');
-				}
-
-				var needsRepaint = this._view._needsRepaint;
-
-				// clear the canvas
-				if ((width | 0) != this._canvas.width || (height | 0) != this._canvas.height) {
-					needsRepaint = true;
-					this._canvas.width = width;
-					this._canvas.height = height;
-				}
-
-				if (needsRepaint) {
-					this._view._needsRepaint = false;
-					this._canvas.style.display = 'none';
-					this.ctx.clear();
-					// this.ctx.fillStyle = 'red';
-					// this.ctx.fillRect(0, 0, 1000, 1000);
-					this.ctx.save();
-					render.call(this._view, this.ctx, opts);
-					this.ctx.restore();
-					this._canvas.style.display = 'block';
-				}
+				this._render(render, width, height, opts);
 			}
 
 			this._renderSubviews(ctx, opts);
@@ -242,12 +230,46 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		}
 	}
 
+	this._render = function (render, width, height, opts) {
+		if (this._noCanvas) {
+			render.call(this._view, null, opts);
+		} else {
+			if (!this._canvas) {
+				var canvas = new Canvas();
+				this._canvas = canvas;
+				this._node.insertBefore(this._canvas, this._node.firstChild);
+				this.ctx = this._canvas.getContext('2d');
+			}
+
+			var needsRepaint = this._view._needsRepaint;
+
+			// clear the canvas
+			if ((width | 0) != this._canvas.width || (height | 0) != this._canvas.height) {
+				needsRepaint = true;
+				this._canvas.width = width;
+				this._canvas.height = height;
+			}
+
+			if (needsRepaint) {
+				this._view._needsRepaint = false;
+				this._canvas.style.display = 'none';
+				this.ctx.clear();
+				// this.ctx.fillStyle = 'red';
+				// this.ctx.fillRect(0, 0, 1000, 1000);
+				this.ctx.save();
+				render.call(this._view, this.ctx, opts);
+				this.ctx.restore();
+				this._canvas.style.display = 'block';
+			}
+		}
+	}
+
 	this._renderSubviews = function (ctx, opts) {
 		var i = 0;
 		var view;
 		var subviews = this._subviews;
 		while (view = subviews[i++]) {
-			view.__view.wrapRender(ctx, opts);
+			view.wrapRender(ctx, opts);
 		}
 	}
 
@@ -518,9 +540,8 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		this._setSortKey();
 	}
 
-	this._setSortKey = function () {
-		this.__sortKey = this._sortIndex + this._addedAt;
-	}
+	this._setSortKey = function () { this.__sortKey = this._sortIndex + this._addedAt; }
+	this.toString = function () { return this.__sortKey; }
 
 	// ----- ANIMATION -----
 

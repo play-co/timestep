@@ -41,6 +41,7 @@
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/spriteview.md
  */
 
+import device;
 import ui.ImageView as ImageView;
 import ui.resource.Image as Image;
 import ui.resource.loader;
@@ -142,7 +143,11 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 		}
 		var frameImages = [];
 		for (var i = 0, frame; frame = frameData[i]; i++) {
-			frameImages.push(this.getImageFromCache(frame.url));
+			if (!device.useDOM) {
+				frameImages.push(this.getImageFromCache(frame.url));
+			} else {
+				frameImages.push(frame.url);
+			}
 		}
 		this._animations[animName] = {
 			frames: frameImages

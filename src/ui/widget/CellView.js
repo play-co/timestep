@@ -80,8 +80,6 @@ exports = Class(View, function (supr) {
 		}
 	};
 
-	this.render = function (ctx) {};
-
 	this.onClick = this.onInputSelect = function () {
 		if (!this.controller.selection) { return; }
 

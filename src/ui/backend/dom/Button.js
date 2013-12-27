@@ -27,7 +27,7 @@ exports = Class(TextView, function (supr) {
 			text: "CHANGE ME",
 			color: 'white',
 			shadow: true,
-			className: "button"
+			'dom:className': "button"
 		});
 
 		supr(this, "init", [opts]);

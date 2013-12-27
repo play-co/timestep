@@ -176,6 +176,8 @@ exports = Class(View, function (supr) {
 
 		opts = merge(opts, defaults);
 
+		opts['dom:noCanvas'] = true;
+
 		this._acceleration = 15;
 
 		this._animState = {
