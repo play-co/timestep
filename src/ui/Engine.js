@@ -54,7 +54,7 @@ var __instance = null;
 /**
  * @extends event.Emitter
  */
-var Application = exports = Class(Emitter, function (supr) {
+var Engine = exports = Class(Emitter, function (supr) {
 	this.init = function (opts) {
 		if (!__instance) {
 			import .StackView;
