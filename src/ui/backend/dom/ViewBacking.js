@@ -61,7 +61,7 @@ var SUPPORTS_TRANSLATE3D = CHECK_TRANSLATE3D();
 
 var ViewBacking = exports = Class(BaseBacking, function () {
 
-	var arr = ['x', 'y', 'r', 'width', 'height', 'visible', 'anchorX', 'anchorY',
+	var arr = ['x', 'y', 'r', 'width', 'height', 'visible', 'anchorX', 'anchorY', 'offsetX', 'offsetY',
 			   'opacity', 'scale', 'zIndex', 'scrollLeft', 'scrollTop', 'flipX', 'flipY'];
 
 	var CUSTOM_KEYS = {};
@@ -125,6 +125,8 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 			height: undefined,
 			anchorX: 0,
 			anchorY: 0,
+			offsetX: 0,
+			offsetY: 0,
 			opacity: 1,
 			visible: true,
 			zIndex: 0,
@@ -275,8 +277,8 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 
 	this.localizePoint = function (pt) {
 		var s = this._computed;
-		pt.x -= s.x + s.anchorX;
-		pt.y -= s.y + s.anchorY;
+		pt.x -= s.x + s.anchorX + s.offsetX;
+		pt.y -= s.y + s.anchorY + s.offsetY;
 		if (s.r) { pt.rotate(-s.r); }
 		pt.scale(1 / s.scale);
 		pt.x += s.anchorX;
@@ -328,23 +330,6 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		this._node.style.webkitTransformOrigin = (this._computed.anchorX || 0) + 'px ' + (this._computed.anchorY || 0) + 'px';
 	}
 
-	// {
-	// 	'x': {value: 0, cb: '_onPosition'},
-	// 	'y': {value: 0, cb: '_onPosition'},
-	// }
-
-	this._onPosition = function (key, value) {
-		value = Math.floor(value);
-		this._setMatrix();
-	}
-
-	this._onResize = function () {
-		// order matters
-		this._setMatrix();
-		this._setCenter();
-		this._view.needsReflow();
-	}
-
 	this._setProps = function (props, anim) {
 		var setMatrix = false;
 		var s = this._node.style;
@@ -374,9 +359,10 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 						this._onZIndex(value);
 					}
 					break;
+				case "offsetX":
+				case "offsetY":
 				case "x":
 				case "y":
-					value = Math.floor(value);
 				case "r":
 				case "scale":
 					if (this._computed[key] != value) {
@@ -415,101 +401,82 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		}
 		if (setMatrix) {
 			++animCount;
+
+			var c = this._computed;
+			var x = (this._center ? -c.width / 2 | 0 : 0) + c.x + c.offsetX;
+			var y = (this._center ? -c.height / 2 | 0 : 0) + c.y + c.offsetY;
+
 			if (AVOID_CSS_ANIM) {
 				var obj = {
-					scale: previous.scale || this._computed.scale,
-					r: previous.r || this._computed.r
+					scale: previous.scale || c.scale,
+					r: previous.r || c.r
 				};
+
 				// because of android bugs,
 				// we must never animate -webkit-transform.
 				// http://code.google.com/p/android/issues/detail?id=12451
-				if (anim && ((obj.scale != this._computed.scale) ||
-							 (obj.r != this._computed.r))) {
-					// logger.log('set transform animated', obj.scale, this._computed.scale, obj.r, this._computed.r);
+				// TODO: is this fixed in Android > 2.2? Chrome?
+				if (anim && ((obj.scale != c.scale) ||
+							 (obj.r != c.r))) {
+					// logger.log('set transform animated', obj.scale, c.scale, obj.r, c.r);
 					animate(obj).now({
-						scale: this._computed.scale,
-						r: this._computed.r
+						scale: c.scale,
+						r: c.r
 					}, anim.duration, anim.easing, bind(this, function () {
-						s.WebkitTransform = ('scale(' + (this._computed.flipX ? obj.scale * -1 : obj.scale) +
-											 ',' + (this._computed.flipY ? obj.scale * -1 : obj.scale) + ') ' +
+						s.WebkitTransform = ('scale(' + (c.flipX ? obj.scale * -1 : obj.scale) +
+											 ',' + (c.flipY ? obj.scale * -1 : obj.scale) + ') ' +
 											 'rotate(' + obj.r + 'rad)');
 					})).then(bind(this, function () {
-						s.WebkitTransform = ('scale(' + (this._computed.flipX ? obj.scale * -1 : obj.scale) +
-											 ',' + (this._computed.flipY ? obj.scale * -1 : obj.scale) + ') '  +
-											 'rotate(' + this._computed.r + 'rad)');
+						s.WebkitTransform = ('scale(' + (c.flipX ? obj.scale * -1 : obj.scale) +
+											 ',' + (c.flipY ? obj.scale * -1 : obj.scale) + ') '  +
+											 'rotate(' + c.r + 'rad)');
 					}));
 
-				} else if ((obj.scale != this._computed.scale) ||
-						   (obj.r != this._computed.r)) {
-					// logger.log('set transform', this._computed.scale, this._computed.r);
-					s.WebkitTransform = ('scale(' + (this._computed.flipX ? this._computed.scale * -1 : this._computed.scale) +
-											',' + (this._computed.flipY ? this._computed.scale * -1 : this._computed.scale) + ') ' +
-										 'rotate(' + this._computed.r + 'rad)');
+				} else if ((obj.scale != c.scale) ||
+						   (obj.r != c.r)) {
+					// logger.log('set transform', c.scale, c.r);
+					s.WebkitTransform = ('scale(' + (c.flipX ? c.scale * -1 : c.scale) +
+											',' + (c.flipY ? c.scale * -1 : c.scale) + ') ' +
+										 'rotate(' + c.r + 'rad)');
 				}
+
 				// use CSS animations for left and top though, since
 				// those can still be taken out of javascript.
-			        var computed = {
-                    			x: (this._center ? -this.width / 2 | 0 : 0) + this._computed.x,
-                    			y: (this._center ? -this.height / 2 | 0 : 0) + this._computed.y
-                		};
-				
-				this.position(computed.x, computed.y);
+				this.position(x, y);
 			} else {
 				var matrix = new WebKitCSSMatrix();
-				matrix = matrix.translate(
-					this._computed.x,
-					this._computed.y
-				);
+				matrix = matrix.translate(x, y);
+				matrix = matrix.rotate(c.r * 180 / 3.14159);
+				matrix = matrix.scale(c.scale);
 
-				matrix = matrix.rotate(this._computed.r * 180 / 3.14159);
-				matrix = matrix.scale(this._computed.scale);
-
-				if(this._computed.flipX || this._computed.flipY) {
+				if (c.flipX || c.flipY) {
 					matrix = matrix.translate(
-						this._computed.flipX ? -this._computed.width : 0,
-						this._computed.flipY ? this._computed.height / 2 : 0
+						c.flipX ? -c.width : 0,
+						c.flipY ? c.height / 2 : 0
 					);
 					matrix = matrix.scale(
-						this._computed.flipX ? -1 : 1,
-						this._computed.flipY ? -1 : 1
+						c.flipX ? -1 : 1,
+						c.flipY ? -1 : 1
 					);
 					matrix = matrix.translate(
-						this._computed.flipX ? this._computed.width : 0,
-						this._computed.flipY ? -this._computed.height / 2 : 0
+						c.flipX ? c.width : 0,
+						c.flipY ? -c.height / 2 : 0
 					);
 				}
+
 				// on iOS, forcing a 3D matrix provides huge performance gains.
 				// Rotate it about the y axis 360 degrees to achieve this.
 				matrix = matrix.rotate(0, 360, 0);
 				s.WebkitTransform = matrix;
 			}
-
 		}
+
 		if (resized) {
-			this._onSizeChanged && this._onSizeChanged();
+			this._view.needsReflow();
 		}
 
 		return animCount;
 	};
-
-	this._setCenter = function () {
-		var s = this._node.style;
-		var origin = {
-			x: 0,
-			y: 0
-		};
-		if (AVOID_CSS_ANIM) {
-			origin.x += this._computed.x;
-			origin.y += this._computed.y;
-		}
-		
-		this.position(origin.x, origin.y);
-	}
-
-	this._onSizeChanged = function () {
-		this._setCenter();
-		this._view.needsReflow();
-	}
 
 	// ----- zIndex -----
 
