@@ -23,14 +23,6 @@
 import ui.View as View;
 import ui.resource.Image as Image;
 
-function getImageURL(image) {
-	if (image.getSource) {
-		return image.getSource().src;
-	} else {
-		return image;
-	}
-}
-
 /**
  * @extends timestep.View
  */
@@ -43,6 +35,9 @@ exports = Class(View, function (supr) {
 		});
 
 		supr(this, "init", [opts]);
+
+		var s = this.__view._node.style;
+		s.webkitBackgroundClip = s.backgroundClip = 'content-box';
 
 		if (opts.image) {
 			this.setImage(opts.image, opts); 
@@ -72,16 +67,6 @@ exports = Class(View, function (supr) {
 
 			if (this.style.fixedAspectRatio) {
 				this.style.updateAspectRatio();
-			}
-		}
-	}
-
-	this.tick = function () {
-		if (this._img) {
-			var boundsHash = JSON.stringify(this._img.getBounds());
-			if (this._cachedBounds != boundsHash) {
-				this._cachedBounds = boundsHash;
-				this.updateImage();
 			}
 		}
 	}
@@ -131,71 +116,102 @@ exports = Class(View, function (supr) {
 		this.updateImage();
 	}
 
+	this._getBackgroundNode = function (imageURL) {
+		// When a css background-image is set that has an etag and no max-age
+		// (as when developing using the browser simulator in debug mode),
+		// Chrome sends an HTTP request for images to check for a 304
+		// response, causing the background image to flicker.  When using a
+		// sprite-view updating every frame, this causes tons of http requests
+		// and flickering.  To get around this, we add a separate DOM node for
+		// each unique sprite sheet that an image can show
+		// (opts['dom:multipleImageNodes'] == true).  The SpriteView (subclass
+		// of ImageView) enables this option by default when we're in debug
+		// mode.
+		if (!this._bgNodes) {
+			this._bgNodes = {};
+		}
+
+		var el = this._bgNodes[imageURL];
+		if (!el) {
+			// create a background node for this URL if we don't
+			// already have one
+			this._bgNodes[imageURL] = el = document.createElement('div');
+			el.style.cssText = 
+				  '-webkit-background-clip:content-box;'
+				+ 'background-clip:content-box;'
+				+ 'z-index:-1;'
+				+ 'position:absolute;'
+				+ 'top:0;'
+				+ 'left:0;'
+				+ 'bottom:0;'
+				+ 'right:0;'
+				+ 'background-image:' + imageURL + ';';
+
+			this.__view._node.appendChild(el);
+		}
+
+		if (el != this._currentBgNode) {
+			// hide the previous background node
+			if (this._currentBgNode) {
+				this._currentBgNode.style.visibility = 'hidden';
+			}
+
+			// show the current background node
+			this._currentBgNode = el;
+			el.style.visibility = 'visible';
+		}
+
+		return el;
+	}
+
+	this._canvasRender = function (ctx, opts) {
+		var canvas = this._img.getSource();
+		ctx.drawImage(canvas,
+				0, 0, canvas.width, canvas.height,
+				0, 0, this.style.width, this.style.height);
+	}
+
+	// sets the CSS background-image for this node
 	this.updateImage = function () {
-		if (!this._img || !this._img.isReady()) {
-			this.__view._node.style.backgroundImage = 'none';
-			return;
-		}
-
 		var img = this._img;
-		var imageURL = 'url("' + getImageURL(img) + '")';
-		var imageURLChanged = false;
-		if (this._cacheImageURL != imageURL) {
-			this._cacheImageURL = imageURL;
-			imageURLChanged = true;
-		}
+		var multipleImageNodes = this._opts['dom:multipleImageNodes'];
 
-		var el = this.__view._node;
-		if (this._opts['dom:multipleImageNodes']) {
-			if (!this._bgs) {
-				this._bgs = {};
-			}
+		if (img && img.getSource() instanceof HTMLCanvasElement) {
+			this.render = this._canvasRender;
+			this.needsRepaint();
+		} else {
+			// clear the background image if necessary
+			if (!img || !img.isReady()) {
+				if (multipleImageNodes && this._currentBgNode) {
+					this._currentBgNode.style.visibility = 'hidden';
+				} else {
+					this.__view._node.style.backgroundImage = 'none';
+				}
+			} else {
+				var imageURL = 'url("' + img.getSource().src + '")';
+				var sheetWidth = img.getSourceWidth();
+				var sheetHeight = img.getSourceHeight();
+				var scaleX = this.style.width / img.getWidth();
+				var scaleY = this.style.height / img.getHeight();
 
-			el = this._bgs[imageURL];
-			if (!el) {
-				this._bgs[imageURL] = el = document.createElement('div');
-				var s = el.style;
-				s.webkitBackgroundClip = s.backgroundClip = 'content-box';
-				s.zIndex = -1;
-				s.position = 'absolute';
-				s.top = s.left = s.bottom = s.right = 0;
-				s.backgroundImage = imageURL;
-				this.__view._node.appendChild(el);
-			}
-
-			if (imageURLChanged) {
-				imageURLChanged = false;
-				if (this._currentBg) {
-					this._currentBg.style.visibility = 'hidden';
+				var s;
+				if (multipleImageNodes) {
+					s = this._getBackgroundNode(imageURL).style;
+				} else {
+					s = this.__view._node.style;
+					if (this._cacheImageURL != imageURL) {
+						this._cacheImageURL = imageURL;
+						s.backgroundImage = imageURL;
+					}
 				}
 
-				this._currentBg = el;
-				el.style.visibility = 'visible';
+				var bounds = img.getBounds();
+				s.padding = bounds.marginTop + 'px ' + bounds.marginRight + 'px ' + bounds.marginBottom + 'px ' + bounds.marginLeft + 'px';
+				s.backgroundPositionX = scaleX * (-bounds.x + bounds.marginLeft) + 'px';
+				s.backgroundPositionY = scaleY * (-bounds.y + bounds.marginTop) + 'px';
+				s.backgroundSize = sheetWidth * scaleX + 'px ' + sheetHeight * scaleY + 'px';
 			}
 		}
-
-		var s = el.style;
-		var bounds = img.getBounds();
-
-		var sheetWidth = img.getOrigW();
-		var sheetHeight = img.getOrigH();
-		var imgWidth = bounds.width + bounds.marginLeft + bounds.marginRight;
-		var imgHeight = bounds.height + bounds.marginTop + bounds.marginBottom;
-
-		s.padding = bounds.marginTop + 'px ' + bounds.marginRight + 'px ' + bounds.marginBottom + 'px ' + bounds.marginLeft + 'px';
-
-		var scaleX = this.style.width / imgWidth;
-		var scaleY = this.style.height / imgHeight;
-
-		//s.overflow = 'hidden';
-
-		if (imageURLChanged) {
-			s.backgroundImage = imageURL;
-		}
-
-		s.backgroundPositionX = scaleX * (-bounds.x + bounds.marginLeft) + 'px';
-		s.backgroundPositionY = scaleY * (-bounds.y + bounds.marginTop) + 'px';
-		s.backgroundSize = sheetWidth * scaleX + 'px ' + sheetHeight * scaleY + 'px';
 	}
 
 	this.getOrigWidth = this.getOrigW = function () { return this._img.getOrigW(); }
