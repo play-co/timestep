@@ -65,6 +65,11 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 	this.init = function (opts) {
 		this._opts = opts = merge(opts, this.defaults);
 		opts.visible = false;
+
+		if (DEBUG && device.useDOM) {
+			opts['dom:multipleImageNodes'] = true;
+		}
+
 		supr(this, 'init', [opts]);
 
 		// toggle this flag manually to optimize SpriteViews

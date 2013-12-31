@@ -108,13 +108,49 @@ exports = Class(View, function (supr) {
 	}
 
 	this.updateImage = function () {
-		var s = this.__view._node.style;
 		if (!this._img || !this._img.isReady()) {
-			s.backgroundImage = 'none';
+			this.__view._node.style.backgroundImage = 'none';
 			return;
 		}
 
 		var img = this._img;
+		var imageURL = 'url("' + getImageURL(img) + '")';
+		var imageURLChanged = false;
+		if (this._cacheImageURL != imageURL) {
+			this._cacheImageURL = imageURL;
+			imageURLChanged = true;
+		}
+
+		var el = this.__view._node;
+		if (this._opts['dom:multipleImageNodes']) {
+			if (!this._bgs) {
+				this._bgs = {};
+			}
+
+			el = this._bgs[imageURL];
+			if (!el) {
+				this._bgs[imageURL] = el = document.createElement('div');
+				var s = el.style;
+				s.webkitBackgroundClip = s.backgroundClip = 'content-box';
+				s.zIndex = -1;
+				s.position = 'absolute';
+				s.top = s.left = s.bottom = s.right = 0;
+				s.backgroundImage = imageURL;
+				this.__view._node.appendChild(el);
+			}
+
+			if (imageURLChanged) {
+				imageURLChanged = false;
+				if (this._currentBg) {
+					this._currentBg.style.visibility = 'hidden';
+				}
+
+				this._currentBg = el;
+				el.style.visibility = 'visible';
+			}
+		}
+
+		var s = el.style;
 		var bounds = img.getBounds();
 
 		var sheetWidth = img.getOrigW();
@@ -128,8 +164,11 @@ exports = Class(View, function (supr) {
 		var scaleY = this.style.height / imgHeight;
 
 		//s.overflow = 'hidden';
-		s.webkitBackgroundClip = s.backgroundClip = 'content-box';
-		s.backgroundImage = 'url("' + getImageURL(img) + '")';
+
+		if (imageURLChanged) {
+			s.backgroundImage = imageURL;
+		}
+
 		s.backgroundPositionX = scaleX * (-bounds.x + bounds.marginLeft) + 'px';
 		s.backgroundPositionY = scaleY * (-bounds.y + bounds.marginTop) + 'px';
 		s.backgroundSize = sheetWidth * scaleX + 'px ' + sheetHeight * scaleY + 'px';
