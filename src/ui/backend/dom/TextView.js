@@ -86,7 +86,7 @@ exports = Class(View, function (supr) {
 		}
 
 		if (opts.color)           { s.color = opts.color; }
-		if (opts.size)            { s.fontSize = opts.size + "px"; }
+		if (opts.size)            { this._fontSize = opts.size; }
 		if (opts.fontFamily)      { s.fontFamily = opts.fontFamily; }
 		if (opts.horizontalAlign) { s.textAlign = opts.horizontalAlign; }
 		if (opts.fontWeight)      { s.fontWeight = opts.fontWeight; }
@@ -103,11 +103,45 @@ exports = Class(View, function (supr) {
 		return this.__view.getElement().getElementsByTagName("span")[0].innerHTML;
 	}
 
+	var TOLERANCE = 1;
+
 	this.reflow = function () {
-		if (this._textNode && this._opts.autoSize) {
-			var idealHeight = this._textNode.scrollHeight;
-			if (!this.style.height || this.style.height < idealHeight) {
-				this.style.height = idealHeight;
+		var opts = this._opts;
+		var node = this._textNode;
+		if (node) {
+			if (opts.autoSize) {
+				var idealHeight = node.scrollHeight;
+				if (!this.style.height || this.style.height < idealHeight) {
+					this.style.height = idealHeight;
+				}
+			}
+
+			// use binary-search to fit text into dom node
+			if (opts.autoFontSize) {
+				var step, size;
+				if (opts.wrap) {
+					step = size = this._fontSize;
+					do {
+						var currentHeight = node.scrollHeight;
+						var diff = currentHeight - this.style.height;
+						if (Math.abs(diff) > TOLERANCE) {
+							size += (diff < 0 ? 1 : -1) * (step /= 2);
+							node.style.fontSize = size + 'px';
+							continue;
+						}
+					} while (false);
+				} else {
+					step = size = this._fontSize;
+					do {
+						var currentWidth = node.scrollWidth;
+						var diff = currentWidth - this.style.width;
+						if (Math.abs(diff) > TOLERANCE) {
+							size += (diff < 0 ? 1 : -1) * (step /= 2);
+							node.style.fontSize = size + 'px';
+							continue;
+						}
+					} while (false);
+				}
 			}
 		}
 	};
@@ -127,7 +161,8 @@ exports = Class(View, function (supr) {
 				n.style.display = "table-cell";
 				n.style.verticalAlign = this._opts.verticalAlign || "middle";
 			}
-			this._textNode.innerText = text || "";
+			n.innerText = text || "";
+			n.style.fontSize = this._fontSize + 'px';
 			this.needsReflow();
 		}
 	};
