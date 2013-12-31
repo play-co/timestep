@@ -259,6 +259,8 @@ exports = Class(lib.PubSub, function () {
 		map.marginRight = marginRight || 0;
 		map.marginBottom = marginBottom || 0;
 		map.marginLeft = marginLeft || 0;
+
+		this.emit('changeBounds');
 	};
 
 	/* @deprecated */

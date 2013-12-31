@@ -49,6 +49,22 @@ exports = Class(View, function (supr) {
 		}
 	};
 
+	this.updateOpts = function (opts) {
+		var opts = supr(this, 'updateOpts', arguments);
+		
+		if ('autoSize' in opts) {
+			this._autoSize = !!opts.autoSize;
+		}
+
+		if (opts.image) {
+			this.setImage(opts.image);
+		} else {
+			this.needsReflow();
+		}
+
+		return opts;
+	}
+
 	this.autoSize = function () {
 		if (this._img) {
 			this.style.width = this._img.getWidth();
@@ -80,26 +96,34 @@ exports = Class(View, function (supr) {
 			var name = img;
 			img = this._imgCache[name];
 			if (!img) {
-				this._imgCache[img] = img = new Image({url: name});
+				this._imgCache[name] = img = new Image({url: name});
 			}
 		}
 
-		this._img = img;
-
-		if (this._img) {
-			if (opts && opts.autoSize) {
-				// sprited resources will know their dimensions immediately
-				if (this._img.getWidth() > 0 && this._img.getHeight() > 0) {
-					this.autoSize();
-				} else {
-					// non-sprited resources need to load first
-					this._img.doOnLoad(this, 'autoSize');
-				}
+		if (img != this._img) {
+			if (this._img) {
+				this._img.removeListener('changeBounds');
 			}
 
-			this._img.doOnLoad(this, 'updateImage');
-		} else {
-			this.updateImage();
+			this._img = img;
+
+			if (img) {
+				img.on('changeBounds', bind(this, 'updateImage'));
+				this._autoSize = (opts && ('autoSize' in opts)) ? opts.autoSize : this._autoSize;
+				if (this._autoSize) {
+					// sprited resources will know their dimensions immediately
+					if (img.getWidth() > 0 && img.getHeight() > 0) {
+						this.autoSize();
+					} else {
+						// non-sprited resources need to load first
+						img.doOnLoad(this, 'autoSize');
+					}
+				}
+
+				img.doOnLoad(this, 'updateImage');
+			} else {
+				this.updateImage();
+			}
 		}
 	}
 
