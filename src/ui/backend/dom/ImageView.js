@@ -206,7 +206,10 @@ exports = Class(View, function (supr) {
 				}
 
 				var bounds = img.getBounds();
-				s.padding = bounds.marginTop + 'px ' + bounds.marginRight + 'px ' + bounds.marginBottom + 'px ' + bounds.marginLeft + 'px';
+				s.padding = scaleY * bounds.marginTop + 'px '
+					+ scaleX * bounds.marginRight + 'px '
+					+ scaleY * bounds.marginBottom + 'px '
+					+ scaleX * bounds.marginLeft + 'px';
 				s.backgroundPositionX = scaleX * (-bounds.x + bounds.marginLeft) + 'px';
 				s.backgroundPositionY = scaleY * (-bounds.y + bounds.marginTop) + 'px';
 				s.backgroundSize = sheetWidth * scaleX + 'px ' + sheetHeight * scaleY + 'px';
