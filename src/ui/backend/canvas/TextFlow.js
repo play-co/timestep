@@ -37,8 +37,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 		this._line = [];
 		this._lines = [];
 
-		this._cache = [];
-		this._cacheSize = 0;
+		this._words = [];
 
 		this._maxWordWidth = 0;
 		this._maxWidth = 0;
@@ -51,7 +50,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 
 	this.measureText = function (ctx, text) {
 		var opts = this._opts;
-		
+
 		var emoticonData = (text[0] == '(') && opts.emoticonData && opts.emoticonData.data[text];
 		if (emoticonData) {
 			return opts.size;
@@ -65,10 +64,10 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 		var opts = this._opts;
 		var spaceWidth = opts.wrapCharacter ? 0 : ctx.measureText(" ").width;
 		var text = opts.text || "";
-		var words = 
+		var words =
 				opts.wrapCharacter
 					? text.replace(/\t/g, " ").match(/\S[。，]?|[\n]/g) || []
-					: (opts.wrap || (opts.horizontalAlign === "justify")) 
+					: (opts.wrap || (opts.horizontalAlign === "justify"))
 						? (text.replace(/\t/g, " ").match(/\S+|[\n]| +(?= )/g) || [])
 						: text.split("\n");
 
@@ -103,16 +102,16 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 		this._lineWidth = 0;
 		this._maxWordWidth = 0;
 
-		if ((opts.hardWrap || exports.hardWrap) && (words.length === 1) && (this.measureText(ctx, text) > this.getActualWidth())) {
+		var availableWidth = this.getAvailableWidth();
+		if ((opts.hardWrap || exports.hardWrap) && words.length && this.measureText(ctx, text) > availableWidth) {
 			words = [];
 
-			var actualWidth = this.getActualWidth();
 			var s = "";
 			var i = 0;
 
 			while (i < text.length) {
 				var c = text[i++];
-				if (ctx.measureText(s + c).width >= actualWidth) {
+				if (ctx.measureText(s + c).width >= availableWidth) {
 					words.push(s);
 					s = c;
 				} else {
@@ -195,10 +194,10 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 			// if we remeasured each line after computing the full line length,
 			// we'd end up with a shorter line than we expected, and if we then
 			// resize our view to fit the width and try to wrap text again, we'd
-			// find that the width of the line is now longer than the width of 
+			// find that the width of the line is now longer than the width of
 			// the view, resulting in the line wrapping shorter than the previous
-			// time (unnecessarily).  Additionally, this extra measure is 
-			// expensive, so we'll just use our rough approximation. 
+			// time (unnecessarily).  Additionally, this extra measure is
+			// expensive, so we'll just use our rough approximation.
 			while (currentWord < wordCount) {
 				word = this._line[currentWord++];
 				// currentWidth = ctx.measureText(s).width;
@@ -252,7 +251,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 								currentWidth = this.measureText(ctx, wordPiece);
 								line.push({word: wordPiece, width: currentWidth, line: lines.length});
 								//lines.push(line);
-		
+
 							}
 						} else {
 							//(!isLineEmpty) && lines.push([{word: s, width: currentWidth, line: lines.length}]);
@@ -287,8 +286,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 		var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(" ").width;
 		var lines = this._lines;
 
-		this._cache = [];
-		this._cacheSize = 0;
+		this._words = [];
 
 		this._maxWidth = 0;
 		this._maxHeight = 0;
@@ -310,7 +308,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 				word.x = x;
 				word.y = y;
 				word.line = currentLine;
-				this._cache[this._cacheSize++] = word;
+				this._words.push(word);
 
 				x += word.width + spaceWidth;
 			}
@@ -330,7 +328,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 		}
 		var opts = this._opts;
 
-		if (width > this.getActualWidth()) {
+		if (width > this.getAvailableWidth()) {
 			var size = (opts.size * this._target.style.width / width) | 0;
 			(opts.size !== size) && this.publish("ChangeSize", size, ctx);
 			return true;
@@ -355,7 +353,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 
 		var opts = this._opts;
 		var lineSize = this._getLineSize(this._lines.length);
-		if ((this._lines.length * lineSize > this.getActualHeight())) {
+		if ((this._lines.length * lineSize > this.getAvailableHeight())) {
 			this._checkHeight(ctx, loSize, pivot, cb);
 		} else {
 			this._heightFound = opts.size;
@@ -364,55 +362,51 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 	};
 
 	this._horizontalAlign = function (ctx) {
-		var cache = this._cache;
-		var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(" ").width;
-		var lastLineSpaceWidth = spaceWidth;
-		var lastLine = cache[cache.length - 1].line;
-		var paddingLeft = this.getPaddingLeft();
-		var div = {left: -1, center: 2, right: 1, justify: 3}[this._opts.horizontalAlign];
-		var actualWidth = this.getActualWidth();
-		var width;
-		var offset;
-		var line;
-		var x;
+		var words = this._words;
+		if (words.length) {
+			var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(" ").width;
+			var lastLineSpaceWidth = spaceWidth;
+			var lastLine = words[words.length - 1].line;
+			var paddingLeft = this.getPaddingLeft();
+			var div = {left: -1, center: 2, right: 1, justify: 3}[this._opts.horizontalAlign] || -1;
+			var availableWidth = this.getAvailableWidth();
 
-		if (!cache.length) {
-			return;
-		}
-		if (div === 3) {
-			spaceWidth = 0;
-		}
-
-		var firstWordOnLine;
-		var currentWord = 0;
-		var wordCount = cache.length;
-		while (currentWord < wordCount) {
-			firstWordOnLine = currentWord;
-			line = cache[currentWord].line;
-			width = 0;
-			while ((currentWord < wordCount) && (line === cache[currentWord].line)) {
-				width += cache[currentWord].width + spaceWidth;
-				currentWord++;
+			if (div === 3) {
+				spaceWidth = 0;
 			}
-			if (div === -1) { // left...
-				while (firstWordOnLine < currentWord) {
-					cache[firstWordOnLine++].x += paddingLeft;
+
+			var endWordIndex = 0;
+			var wordCount = words.length;
+			// for each line
+			while (endWordIndex < wordCount) {
+
+				// compute length of line
+				var wordIndex = endWordIndex;
+				var line = words[endWordIndex].line;
+				var lineWidth = 0;
+				while ((endWordIndex < wordCount) && (line === words[endWordIndex].line)) {
+					lineWidth += words[endWordIndex].width + spaceWidth;
+					endWordIndex++;
 				}
-			} else if (div === 3) { // justify...
-				offset = (line < cache[cache.length - 1].line) ? (actualWidth - width) / (currentWord - firstWordOnLine - 1) : spaceWidth;
-				x = paddingLeft;
-				while (firstWordOnLine < currentWord) {
-					cache[firstWordOnLine].x = x;
-					x += cache[firstWordOnLine].width + offset;
-					if (line === lastLine) {
-						x += lastLineSpaceWidth;
+
+				// align words in line
+				if (div === -1) { // left
+					while (wordIndex < endWordIndex) {
+						words[wordIndex++].x += paddingLeft;
 					}
-					firstWordOnLine++;
-				}
-			} else {
-				offset = (actualWidth - width + spaceWidth) / div + paddingLeft;
-				while (firstWordOnLine < currentWord) {
-					cache[firstWordOnLine++].x += offset;
+				} else if (div === 3) { // justify
+					var wordSpacing = (line < lastLine ? (availableWidth - lineWidth) / (endWordIndex - wordIndex - 1) : lastLineSpaceWidth);
+					var x = paddingLeft;
+					while (wordIndex < endWordIndex) {
+						words[wordIndex].x = x;
+						x += words[wordIndex].width + wordSpacing;
+						wordIndex++;
+					}
+				} else { // center|right
+					var offset = (availableWidth - lineWidth + spaceWidth) / div + paddingLeft;
+					while (wordIndex < endWordIndex) {
+						words[wordIndex++].x += offset;
+					}
 				}
 			}
 		}
@@ -420,33 +414,32 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 
 	this._verticalAlign = function () {
 		var lineCount = this._lines.length;
-		var div = {top: -1, middle: 2, bottom: 1}[this._opts.verticalAlign];
-		var cache = this._cache;
-		var actualHeight = this.getActualHeight();
-		var offset;
-		var i = cache.length;
+		var verticalAlign = this._opts.verticalAlign;
+		var words = this._words;
+		var availableHeight = this.getAvailableHeight();
+		var i = words.length;
+		if (i) {
+			var offset;
+			if (verticalAlign == 'top') {
+				offset = this.getPaddingTop();
+			} else {
+				var div = verticalAlign == 'middle' ? 2 : 1;
+				var lineSize = this._getLineSize(lineCount);
+				offset = (availableHeight - lineCount * lineSize) / div + this.getPaddingTop();
+			}
 
-		if (!cache.length) {
-			return;
-		}
+			while (i) {
+				words[--i].y += offset;
+			}
 
-		if (div === -1) {
-			offset = this.getPaddingTop();
-		} else {
-			var lineSize = this._getLineSize(lineCount);
-			offset = (actualHeight - lineCount * lineSize) / div + this.getPaddingTop();
+			this._offsetRect.y += offset;
 		}
-		while (i) {
-			cache[--i].y += offset;
-		}
-
-		this._offsetRect.y += offset;
 	};
 
 	this.reflow = function (ctx, mode) {
 		var opts = this._opts;
-		var actualWidth = this.getActualWidth();
-		var actualHeight = this.getActualHeight();
+		var availableWidth = this.getAvailableWidth();
+		var availableHeight = this.getAvailableHeight();
 
 		this._lineSplit(ctx);
 
@@ -457,7 +450,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 				break;
 
 			case textFlowMode.WRAP:
-				this._wrap(ctx, actualWidth);
+				this._wrap(ctx, availableWidth);
 				this._wordFlow(ctx);
 				break;
 
@@ -466,24 +459,24 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 				this._lines = [this._line];
 				this._wordFlow(ctx);
 
-				if (this._opts.fitWidth || actualWidth < this._maxWidth) {
+				if (this._opts.fitWidth || availableWidth < this._maxWidth) {
 					this.publish("ChangeWidth", this._maxWidth + this.getHorizontalPadding());
 				}
 
-				if (this._opts.fitHeight || actualHeight < this._maxHeight) {
+				if (this._opts.fitHeight || availableHeight < this._maxHeight) {
 					this.publish("ChangeHeight", this._maxHeight + this.getVerticalPadding());
 				}
 				break;
 
 			case textFlowMode.AUTOSIZE_WRAP:
-				this._wrap(ctx, actualWidth);
+				this._wrap(ctx, availableWidth);
 				this._wordFlow(ctx);
 
-				if (this._opts.fitWidth || actualWidth < this._maxWidth) {
+				if (this._opts.fitWidth || availableWidth < this._maxWidth) {
 					this.publish("ChangeWidth", this._maxWidth + this.getHorizontalPadding());
 				}
-				
-				if (this._opts.fitHeight  || actualHeight < this._maxHeight) {
+
+				if (this._opts.fitHeight  || availableHeight < this._maxHeight) {
 					this.publish("ChangeHeight", this._maxHeight + this.getVerticalPadding());
 				}
 
@@ -493,7 +486,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 				this._checkWidth(ctx, this._lineWidth) && this._lineSplit(ctx);
 				this._lines = [this._line];
 				// Don't use the lineHeight here because it's a single line
-				if (opts.allowVerticalSizing && opts.size > this.getActualHeight()) {
+				if (opts.allowVerticalSizing && opts.size > availableHeight) {
 					var cb = bind(
 						this,
 						function () {
@@ -511,17 +504,17 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 				break;
 
 			case textFlowMode.AUTOFONTSIZE_WRAP:
-				this._wrap(ctx, actualWidth);
+				this._wrap(ctx, availableWidth);
 				this._wordFlow(ctx);
 
 				var lineCount = this._lines.length;
 				var lineSize = this._getLineSize(lineCount);
-				if (opts.allowVerticalSizing && lineCount * lineSize > this.getActualHeight()) {
+				if (opts.allowVerticalSizing && lineCount * lineSize > availableHeight) {
 					var cb = bind(
 						this,
 						function () {
 							this._measureWords(ctx);
-							this._wrap(ctx, actualWidth);
+							this._wrap(ctx, availableWidth);
 							this._wordFlow(ctx);
 						}
 					);
@@ -534,44 +527,42 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 				break;
 
 			case textFlowMode.AUTOFONTSIZE_WRAP_AUTOSIZE:
-				this._wrap(ctx, actualWidth);
+				this._wrap(ctx, availableWidth);
 				this._wordFlow(ctx);
 
-				(actualHeight < this._maxHeight) && this.publish("ChangeHeight", this._maxHeight + this.getVerticalPadding());
+				(availableHeight < this._maxHeight) && this.publish("ChangeHeight", this._maxHeight + this.getVerticalPadding());
 				break;
 		}
 
-		var cache = this._cache;
-		var lastCacheItem = cache[cache.length - 1];
+		var words = this._words;
+		var lastWord = words[words.length - 1];
 
-		if (!cache.length) {
-			return;
+		if (words.length) {
+			var strokeWidth = this._target.getStrokeWidth();
+			var lineSize = Math.ceil(opts.size * opts.lineHeight + strokeWidth);
+			this._offsetRect.x = this.getPaddingLeft();
+			this._offsetRect.y = this.getPaddingTop();
+			this._offsetRect.width = availableWidth;
+			this._offsetRect.height = lastWord.line * lineSize;
+
+			this._horizontalAlign(ctx);
+			this._verticalAlign();
+
+			if (lastWord.line === 1) {
+				this._offsetRect.x = words[0].x;
+				this._offsetRect.width = lastWord.x + lastWord.width - words[0].x;
+			}
+
+			this._offsetRect.width += strokeWidth;
 		}
-
-		var strokeWidth = this._target.getStrokeWidth();
-		var lineSize = Math.ceil(opts.size * opts.lineHeight + strokeWidth);
-		this._offsetRect.x = this.getPaddingLeft();
-		this._offsetRect.y = this.getPaddingTop();
-		this._offsetRect.width = this.getActualWidth();
-		this._offsetRect.height = lastCacheItem.line * lineSize;
-
-		this._horizontalAlign(ctx);
-		this._verticalAlign();
-
-		if (lastCacheItem.line === 1) {
-			this._offsetRect.x = cache[0].x;
-			this._offsetRect.width = lastCacheItem.x + lastCacheItem.width - cache[0].x;
-		}
-
-		this._offsetRect.width += strokeWidth;
 	};
 
 	this.setOpts = function (opts) {
 		this._opts = opts;
 	};
 
-	this.getCache = function () {
-		return this._cache;
+	this.getWords = function () {
+		return this._words;
 	};
 
 	this.getHorizontalPadding = function () {
@@ -584,7 +575,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 		return this._target.style.padding.left;
 	};
 
-	this.getActualWidth = function () {
+	this.getAvailableWidth = function () {
 		return this._target.style.width - this.getHorizontalPadding();
 	};
 
@@ -598,7 +589,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 		return this._target.style.padding.top;
 	};
 
-	this.getActualHeight = function () {
+	this.getAvailableHeight = function () {
 		return this._target.style.height - this.getVerticalPadding();
 	};
 

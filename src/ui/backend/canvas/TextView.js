@@ -145,7 +145,7 @@ var TextView = exports = Class(View, function (supr) {
 		this._textFlow.subscribe("ChangeWidth", this, "onChangeWidth");
 		this._textFlow.subscribe("ChangeHeight", this, "onChangeHeight");
 		this._textFlow.subscribe("ChangeSize", this, "onChangeSize");
-		
+
 		supr(this, 'init', [merge(opts, defaults)]);
 
 		this._id = textViewID++;
@@ -291,16 +291,16 @@ var TextView = exports = Class(View, function (supr) {
 
 	this._renderToCtx = function (ctx, offsetX, offsetY) {
 		var opts = this._opts;
-		var cache = this._textFlow.getCache();
-		var maxWidth = opts.autoFontSize ? this._textFlow.getActualWidth() : 1000000;
+		var words = this._textFlow.getWords();
+		var maxWidth = opts.autoFontSize ? this._textFlow.getAvailableWidth() : 1000000;
 		var item;
 		var word;
 		var color = opts.color;
 		var strokeColor = opts.strokeColor;
 		var shadowColor = opts.shadowColor;
-		var lineOffset = this.getStrokeWidth() * 0.5;
+		var lineOffset = this.getStrokeWidth() / 2;
 		var x, y;
-		var i = cache.length;
+		var i = words.length;
 
 		if (legacySettings.textViewColor && this.color) {
 			color = this.color;
@@ -313,12 +313,12 @@ var TextView = exports = Class(View, function (supr) {
 		}
 
 		while (i) {
-			item = cache[--i];
+			item = words[--i];
 			word = item.word;
 
 			x = offsetX + item.x;
 			y = offsetY + item.y;
-			
+
 			var emoticonData = (word[0] == '(') && opts.emoticonData && opts.emoticonData.data[word];
 			if (emoticonData) {
 				//ctx.fillStyle = color;
@@ -326,7 +326,7 @@ var TextView = exports = Class(View, function (supr) {
 				if (emoticonData.image) {
 					emoticonData.image.render(ctx, x + lineOffset, y + lineOffset, opts.size, opts.size);
 				}
-				
+
 			} else {
 				if (strokeColor) {
 					ctx.strokeText(word, x + lineOffset, y + lineOffset, maxWidth);
@@ -354,11 +354,11 @@ var TextView = exports = Class(View, function (supr) {
 		var offsetRect = this._textFlow.getOffsetRect();
 		var width = offsetRect.width;
 		var height = offsetRect.height;
-		var cache = this._textFlow.getCache();
+		var words = this._textFlow.getWords();
 		var desc;
 
 		if (width && height) {
-			this._opts.lineCount = cache[cache.length - 1].line;
+			this._opts.lineCount = words[words.length - 1].line;
 			offsetRect.text = this._opts.text;
 			offsetRect.textView = this;
 			// When we support clearing offscreen buffers then this line can be activated instead of the next one...
@@ -386,7 +386,7 @@ var TextView = exports = Class(View, function (supr) {
 
 	this.render = function (ctx) {
 		this.computeSize(ctx);
-		if (!this._textFlow.getCache().length) {
+		if (!this._textFlow.getWords().length) {
 			this._cacheUpdate = false;
 			return;
 		}
