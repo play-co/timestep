@@ -32,8 +32,8 @@ exports = Class(View, function (supr) {
 
 	var defaults = {
 		// layout properties...
-		wrap: true,
-		autoSize: true,
+		wrap: false,
+		autoSize: false,
 		autoFontSize: true,
 		verticalPadding: 0,
 		horizontalPadding: 0,
@@ -45,7 +45,7 @@ exports = Class(View, function (supr) {
 		fontWeight: "",
 		size: 12,
 		lineWidth: 2,
-		outlineColor: null,
+		strokeColor: null,
 		shadowColor: null,
 
 		// alignment properties...
@@ -57,7 +57,13 @@ exports = Class(View, function (supr) {
 	};
 
 	this.init = function (opts) {
+		var el = this._textNode = document.createElement("div");
+		el.className = 'view text';
+		// el.style.position = 'relative';
+
 		supr(this, "init", [merge(opts, defaults)]);
+
+		this.__view.getElement().appendChild(el);
 	};
 
 	this.updateOpts = function (opts) {
@@ -89,19 +95,19 @@ exports = Class(View, function (supr) {
 		if (opts.size)            { this._fontSize = opts.size; }
 		if (opts.fontFamily)      { s.fontFamily = opts.fontFamily; }
 		if (opts.horizontalAlign) { s.textAlign = opts.horizontalAlign; }
+		if (opts.verticalAlign)   { this._verticalAlign = opts.verticalAlign; }
 		if (opts.fontWeight)      { s.fontWeight = opts.fontWeight; }
 		if (opts.shadowColor)     { s.textShadow = opts.shadowColor + " 2px 2px 1px"; }
-		if (opts.outlineColor)    { s.webkitTextStroke = opts.lineWidth + "px " + opts.outlineColor; }
+		if (opts.lineHeight)      { s.lineHeight = opts.lineHeight * opts.size + 'px'; }
+		if (opts.strokeColor)     { this._updateStroke(); }
 		if (!opts.wrap)           { s.whiteSpace = "nowrap"; }
 
-		s.display = "table";
+		// s.display = 'table';
 
 		if ("text" in opts) this.setText(opts.text);
 	};
 
-	this.getText = function () {
-		return this.__view.getElement().getElementsByTagName("span")[0].innerHTML;
-	}
+	this.getText = function () { return this._opts.text; }
 
 	var TOLERANCE = 1;
 
@@ -119,29 +125,40 @@ exports = Class(View, function (supr) {
 			// use binary-search to fit text into dom node
 			if (opts.autoFontSize) {
 				var step, size;
-				if (opts.wrap) {
-					step = size = this._fontSize;
-					do {
-						var currentHeight = node.scrollHeight;
-						var diff = currentHeight - this.style.height;
-						if (Math.abs(diff) > TOLERANCE) {
-							size += (diff < 0 ? 1 : -1) * (step /= 2);
-							node.style.fontSize = size + 'px';
-							continue;
-						}
-					} while (false);
-				} else {
-					step = size = this._fontSize;
+				step = size = this._fontSize;
+
+				if (!opts.wrap) {
+					// fit width
 					do {
 						var currentWidth = node.scrollWidth;
 						var diff = currentWidth - this.style.width;
-						if (Math.abs(diff) > TOLERANCE) {
-							size += (diff < 0 ? 1 : -1) * (step /= 2);
+						if (diff > TOLERANCE) {
+							size -= (step /= 2);
 							node.style.fontSize = size + 'px';
 							continue;
 						}
 					} while (false);
 				}
+
+				// fit height
+				do {
+					var currentHeight = node.scrollHeight;
+					var diff = currentHeight - this.style.height;
+					if (diff > TOLERANCE) {
+						size -= (step /= 2);
+						node.style.fontSize = size + 'px';
+						continue;
+					}
+				} while (false);
+
+				this._computedFontSize = size;
+				node.style.lineHeight = opts.lineHeight * size + 'px';
+			}
+
+			this._computeVerticalAlign();
+
+			if (this._strokeNode) {
+				this._strokeNode.style.width = this._fillNode.offsetWidth + 'px';
 			}
 		}
 	};
@@ -151,19 +168,59 @@ exports = Class(View, function (supr) {
 			return text(this);
 		}
 
+		text = text || '';
+
 		if (this._text != text) {
 			this._text = text;
-			var n = this._textNode || document.createElement("span");
-			if (!this._textNode) {
-				this._textNode = n;
-				this.__view.getElement().appendChild(n);
-				n.className = "text";
-				n.style.display = "table-cell";
-				n.style.verticalAlign = this._opts.verticalAlign || "middle";
+
+			if (this._strokeNode) {
+				this._fillNode.innerText = text;
+				this._strokeNode.innerText = text;
+			} else {
+				this._textNode.innerText = text;
 			}
-			n.innerText = text || "";
-			n.style.fontSize = this._fontSize + 'px';
+
+			this._textNode.style.fontSize = this._fontSize + 'px';
 			this.needsReflow();
 		}
 	};
+
+	this._computeVerticalAlign = function () {
+		var s = this._textNode.style;
+		var opts = this._opts;
+		var fontSize = this._computedFontSize || this._fontSize;
+		var lineSize = opts.lineHeight * fontSize;
+		var numLines = Math.round(this._textNode.offsetHeight / lineSize);
+
+		var padding = this.style.padding;
+		var offset = padding.top;
+		if (opts.verticalAlign == 'middle') {
+			offset += (this.style.height
+						- padding.top
+						- padding.bottom
+						- (numLines > 1 ? opts.lineHeight * numLines : 1) * fontSize) / 2;
+		}
+
+		if (this._text == 'Play') debugger;
+		this._textNode.style.marginTop = offset + 'px';
+	};
+
+	this._updateStroke = function () {
+		var opts = this._opts;
+		if (opts.strokeColor && opts.strokeWidth) {
+			if (!this._strokeNode) {
+				this._textNode.innerHTML = '<span style="position:relative"><span></span><span style="position:absolute;left:0;top:1px;right:0px;z-index:-1"></span></span>';
+				this._fillNode = this._textNode.childNodes[0].childNodes[0];
+				this._strokeNode = this._textNode.childNodes[0].childNodes[1];
+			}
+
+			// this._strokeNode.style.left = -opts.strokeWidth / 2 + 'px';
+			this._strokeNode.style.webkitTextStroke = (opts.strokeWidth * 1) + "px " + opts.strokeColor;
+			this.needsReflow();
+		} else if (this._strokeNode) {
+			this._strokeNode = null;
+			this._fillNode = null;
+			this.setText(this._text);
+		}
+	}
 });
