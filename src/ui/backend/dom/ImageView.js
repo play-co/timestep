@@ -40,13 +40,13 @@ exports = Class(View, function (supr) {
 		s.webkitBackgroundClip = s.backgroundClip = 'content-box';
 
 		if (opts.image) {
-			this.setImage(opts.image, opts); 
+			this.setImage(opts.image, opts);
 		}
 	};
 
 	this.updateOpts = function (opts) {
 		var opts = supr(this, 'updateOpts', arguments);
-		
+
 		if ('autoSize' in opts) {
 			this._autoSize = !!opts.autoSize;
 		}
@@ -87,13 +87,14 @@ exports = Class(View, function (supr) {
 
 		if (img != this._img) {
 			if (this._img) {
-				this._img.removeListener('changeBounds');
+				this._img.unsubscribe('changeBounds', this);
 			}
 
 			this._img = img;
 
 			if (img) {
-				img.on('changeBounds', bind(this, 'updateImage'));
+				// use subscribe/unsubscribe to avoid warnings about 'possible memory leak detected' in EventEmitter API
+				img.subscribe('changeBounds', this, 'updateImage');
 				this._autoSize = (opts && ('autoSize' in opts)) ? opts.autoSize : this._autoSize;
 				if (this._autoSize) {
 					// sprited resources will know their dimensions immediately
@@ -136,7 +137,7 @@ exports = Class(View, function (supr) {
 			// create a background node for this URL if we don't
 			// already have one
 			this._bgNodes[imageURL] = el = document.createElement('div');
-			el.style.cssText = 
+			el.style.cssText =
 				  '-webkit-background-clip:content-box;'
 				+ 'background-clip:content-box;'
 				+ 'z-index:-1;'
