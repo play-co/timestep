@@ -43,7 +43,7 @@ exports = Class(View, function (supr) {
 		color: "#000000",
 		fontFamily: device.defaultFontFamily,
 		fontWeight: "",
-		size: 12,
+		size: 128,
 		lineWidth: 2,
 		strokeColor: null,
 		shadowColor: null,
@@ -168,7 +168,7 @@ exports = Class(View, function (supr) {
 			return text(this);
 		}
 
-		text = text || '';
+		text = text != undefined ? text.toString() : '';
 
 		if (this._text != text) {
 			this._text = text;
