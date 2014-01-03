@@ -17,7 +17,6 @@
 import device;
 import event.Callback as Callback;
 import animate;
-import animate.transitions as transitions;
 import event.input.InputEvent as InputEvent;
 import math.geom.Point as Point;
 from util.browser import $;
@@ -56,7 +55,7 @@ function CHECK_TRANSLATE3D() {
     return (has3d !== undefined && has3d.length > 0 && has3d !== "none");
 }
 
-var SUPPORTS_TRANSLATE3D = CHECK_TRANSLATE3D();
+var SUPPORTS_TRANSLATE3D = false;//CHECK_TRANSLATE3D();
 
 
 var ViewBacking = exports = Class(BaseBacking, function () {
@@ -111,7 +110,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 
 		// add any custom CSS style
 		var domStyles = opts['dom:styles'];
-		
+
 		for (var name in domStyles) {
 			s[name] = domStyles[name];
 		}
@@ -134,6 +133,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		};
 
 		// animation
+		this._view.getAnimation = function () { return this.__view; }
 		this._animating = false;
 		this._animationQueue = [];
 		this._animationCallback = null;
@@ -292,7 +292,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 	}
 
 	this.update = function (style) { this._setProps(style); }
-	
+
 	this.position = function (x, y) {
 		var s = this._node.style;
 
@@ -319,10 +319,10 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 
 	function getEasing(fn) {
 		if (typeof fn == 'string') { return fn; }
-		if (fn == transitions.easeIn) { return 'ease-in'; }
-		if (fn == transitions.easeOut) { return 'ease-out'; }
-		if (fn == transitions.easeInOut) { return 'ease-in-out'; }
-		if (fn == transitions.linear) { return 'linear'; }
+		if (fn == animate.easeIn) { return 'ease-in'; }
+		if (fn == animate.easeOut) { return 'ease-out'; }
+		if (fn == animate.easeInOut) { return 'ease-in-out'; }
+		if (fn == animate.linear) { return 'linear'; }
 		return 'ease';
 	};
 
@@ -389,7 +389,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 							s[key] = value;
 						} else {
 							s[key] = value;
-							
+
 							if (!CUSTOM_KEYS[key]) {
 								this[key] = value;
 							}
@@ -624,10 +624,24 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		return this;
 	};
 
-	this.finishNow = function () {
+	this.commit = function () {
 		this._node.style.webkitTransition = 'none';
-		// TODO: this isn't really right; you need to actually finish the queue
-
+		var queue = this._animationQueue;
+		this._animationQueue = [];
+		var n = queue.length;
+		for (var i = 0; i < n; ++i) {
+			var anim = queue[i];
+			switch (anim.type) {
+				case "animate":
+					this._setProps(anim.props);
+					break;
+				case "wait":
+					break;
+				case "callback":
+					anim.callback();
+					break;
+			}
+		}
 		return this;
 	}
 
