@@ -32,6 +32,11 @@ exports = function (subject, groupId) {
 	if (typeof Engine == 'undefined') {
 		import ui.Engine as Engine;
 		import ui.View as View;
+		import device;
+	}
+
+	if (device.useDOM && subject instanceof View && !groupId) {
+		return subject.getAnimation();
 	}
 
 	var groupId = groupId || 0,
@@ -201,7 +206,7 @@ var ViewStyleFrame = Class(Frame, function () {
 			}
 		}
 
-		this.subject.needsRepaint();
+		// this.subject.needsRepaint();
 
 		if (debug) {
 			var changed = {};
