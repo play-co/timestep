@@ -296,7 +296,9 @@ exports = Class(View, function (supr) {
 			};
 
 		var bounds = this.getStyleBounds();
-
+		//threshold for which if the current bounce radius minus the current
+		//bounced amount is under, the bounce will be ended
+		var BOUNCE_THRESHOLD = 1;
 		if (typeof x == 'number') {
 			if (this._isBouncing) {
 				// do nothing
@@ -304,11 +306,19 @@ exports = Class(View, function (supr) {
 				if (x < bounds.minX) {
 					var temp = (bounds.minX - x) / this._bounceRadius;
 					x = bounds.minX - Math.atan(temp) * this._bounceRadius / PI_2;
+					if (this._bounceRadius - (bounds.minX - x) < BOUNCE_THRESHOLD) {
+						this._endBounce();
+					}
+
 				}
 
 				if (x > bounds.maxX) {
 					var temp = (x - bounds.maxX) / this._bounceRadius;
 					x = bounds.maxX + Math.atan(temp) * this._bounceRadius / PI_2;
+					if (this._bounceRadius - x < BOUNCE_THRESHOLD) {
+						this._endBounce();
+					}
+
 				}
 			} else {
 				if (x < bounds.minX) { x = bounds.minX; }
@@ -328,11 +338,17 @@ exports = Class(View, function (supr) {
 				if (y < bounds.minY) {
 					var temp = (bounds.minY - y) / this._bounceRadius;
 					y = bounds.minY - Math.atan(temp) * this._bounceRadius / PI_2;
+					if (this._bounceRadius - (bounds.minY - y) < BOUNCE_THRESHOLD) {
+						this._endBounce();
+					}
 				}
 
 				if (y > bounds.maxY) {
 					var temp = (y - bounds.maxY) / this._bounceRadius;
 					y = bounds.maxY + Math.atan(temp) * this._bounceRadius / PI_2;
+					if (this._bounceRadius - y < BOUNCE_THRESHOLD) {
+						this._endBounce();
+					}
 				}
 			} else {
 				if (y < bounds.minY) { y = bounds.minY; }
@@ -403,7 +419,7 @@ exports = Class(View, function (supr) {
 			var ACCEL = -.45;
 			//multiplier for mapping the calculated time to
 			//a more reasonable real time for scrolling
-			var TIME_MULTIPLIER = 10;
+			var TIME_MULTIPLIER = 8;
 
 			var avgDelta = new Point(0, 0);
 			for (var i in this.scrollData) {
@@ -429,7 +445,6 @@ exports = Class(View, function (supr) {
 			delta.x = tempDelta.x * distance;
 			delta.y = tempDelta.y * distance;
 
-			var delta = new Point(this._animState.lastDelta).scale(this._acceleration);
 			var offset = this._animState.offset;
 			var distance = delta.getMagnitude();
 
@@ -440,7 +455,6 @@ exports = Class(View, function (supr) {
 				if (offset.y < bounds.minY) {
 					distance = 0;
 				} else {
-					delta.y += (bounds.minY - this._bounceRadius - target.y);
 					distance = delta.getMagnitude();
 				}
 			}
@@ -449,7 +463,6 @@ exports = Class(View, function (supr) {
 				if (offset.y > bounds.maxY) {
 					distance = 0;
 				} else {
-					delta.y -= (target.y - (bounds.maxY - this._bounceRadius));
 					distance = delta.getMagnitude();
 				}
 			}
@@ -458,7 +471,6 @@ exports = Class(View, function (supr) {
 				if (offset.x < bounds.minX) {
 					distance = 0;
 				} else {
-					delta.x += (bounds.minX - this._bounceRadius - target.x);
 					distance = delta.getMagnitude();
 				}
 			}
@@ -467,7 +479,6 @@ exports = Class(View, function (supr) {
 				if (offset.x > bounds.maxX) {
 					distance = 0;
 				} else {
-					delta.x -= (target.x - (bounds.maxY - this._bounceRadius));
 					distance = delta.getMagnitude();
 				}
 			}
@@ -477,7 +488,7 @@ exports = Class(View, function (supr) {
 					this.setOffset(
 						offset.x + delta.x * tt,
 						offset.y + delta.y * tt);
-				}), 100 * Math.log((distance + 1) * 100), animate.easeOut).then(bind(this, function () {
+				}), time * TIME_MULTIPLIER, animate.easeOut).then(bind(this, function () {
 					this._endBounce(offset);
 				}));
 			} else {
