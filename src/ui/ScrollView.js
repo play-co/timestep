@@ -375,11 +375,13 @@ exports = Class(View, function (supr) {
 		this._anim = animate(this._animState).clear();
 	};
 
+	this.scrollData = [];
 	this.onDrag = function (dragEvt, moveEvt, delta) {
 		var state = this._animState;
 		state.dt = delta.t;
 		state.lastDelta = delta;
 
+		this.scrollData.push(delta);
 		if (!this._opts.scrollY) { delta.y = 0; }
 		if (!this._opts.scrollX) { delta.x = 0; }
 
@@ -391,6 +393,42 @@ exports = Class(View, function (supr) {
 		this._contentView.getInput().blockEvents = false;
 
 		if (this._opts.inertia) {
+			
+			//how much of the current event
+			//should be favored over older events in the running
+			//weighted average being computed
+			var WEIGHT = .5;
+			//how much to deccelerate when
+			//scrolling
+			var ACCEL = -.45;
+			//multiplier for mapping the calculated time to
+			//a more reasonable real time for scrolling
+			var TIME_MULTIPLIER = 10;
+
+			var avgDelta = new Point(0, 0);
+			for (var i in this.scrollData) {
+				avgDelta.x = (avgDelta.x * (1 - WEIGHT)) + (this.scrollData[i].x * WEIGHT);
+				avgDelta.y = (avgDelta.y * (1 - WEIGHT)) + (this.scrollData[i].y * WEIGHT);
+			}
+			 
+			this.scrollData = [];
+
+			var delta = new Point(avgDelta).scale(.7);
+			var offset = this._animState.offset;
+
+			var velocity = delta.getMagnitude();
+			//calculate the travel time of the scroll
+			//vf = vi + at -> t = vf - vi / a 
+			var time = - velocity / ACCEL;
+			//vf^2 = vi^2 + 2ax -> x = - (vi^2) / (2 *a)
+			var distance = .5 * - (velocity * velocity) / ACCEL;
+			var tempDelta = delta;
+			tempDelta = tempDelta.normalize();
+			//distance to travel from start to finish
+			//in the x and y directions
+			delta.x = tempDelta.x * distance;
+			delta.y = tempDelta.y * distance;
+
 			var delta = new Point(this._animState.lastDelta).scale(this._acceleration);
 			var offset = this._animState.offset;
 			var distance = delta.getMagnitude();
