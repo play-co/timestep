@@ -110,7 +110,7 @@ exports.isSimulator = !!(uri.query('device') || uri.hash('device'));
 if (exports.isSimulator) {
 	var urlStr = window.location.href.toLowerCase();
 	exports.isIOSSimulator = urlStr.indexOf('ipad') !== -1 || urlStr.indexOf('iphone') !== -1;
-	
+
 	// Until we support more platforms, if it's not
 	// iOS then it's assumed to be an Android device
 	exports.isAndroidSimulator = !exports.isIOSSimulator;
@@ -211,11 +211,11 @@ exports.init = function () {
  * Event handlers
  */
 exports.setBackButtonHandler = function (handler) {
-	NATIVE && NATIVE.onBackButton = handler;
+	NATIVE && (NATIVE.onBackButton = handler);
 }
 
 exports.setRotationHandler = function (handler) {
-	NATIVE && NATIVE.onRotation = handler;
+	NATIVE && (NATIVE.onRotation = handler);
 }
 
 /*
