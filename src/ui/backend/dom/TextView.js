@@ -104,10 +104,10 @@ exports = Class(View, function (supr) {
 
 		// s.display = 'table';
 
-		if ("text" in opts) this.setText(opts.text);
+		this.setText(opts.text || "");
 	};
 
-	this.getText = function () { return this._opts.text; }
+	this.getText = function () { return this._text; }
 
 	var TOLERANCE = 1;
 
