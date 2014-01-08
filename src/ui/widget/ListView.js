@@ -64,6 +64,10 @@ exports = Class(ScrollView, function (supr) {
 			listOpts.recycle = opts.recycle;
 		}
 
+		if ('autoSize' in opts) {
+			this._autoSize = opts.autoSize;
+		}
+
 		if ('isFixedSize' in opts) {
 			listOpts.isFixedSize = opts.isFixedSize;
 		}
@@ -80,8 +84,6 @@ exports = Class(ScrollView, function (supr) {
 		if (this._onDeselect) {
 			this.model.subscribe('Deselect', this, this._onDeselect);
 		}
-
-		this._autoSize = opts.autoSize;
 
 		// make sure the height is not undefined for compatibility with the layouts
 		if (this._autoSize && !this.style.height) { this.style.height = 0; }
@@ -167,7 +169,7 @@ exports = Class(ScrollView, function (supr) {
 		if (this._footerView) {
 			this._footerView.removeFromSuperview();
 		}
-		
+
 		this._footerView = footerView;
 		if (this._footerView) {
 			this.addSubview(footerView);
@@ -208,6 +210,8 @@ exports = Class(ScrollView, function (supr) {
 
 	this.setMaxY = function (contentHeight) {
 
+		if (!contentHeight) { contentHeight = 0; }
+
 		var additionalHeight = 0;
 		if (this._headerView) {
 			additionalHeight += this._headerView.style.height || 0;
@@ -222,6 +226,7 @@ exports = Class(ScrollView, function (supr) {
 		var maxY = contentHeight + additionalHeight;
 
 		if (this._autoSize && this.style.height != maxY) {
+
 			this.style.height = maxY;
 			this._needsModelRender = true;
 		}
@@ -243,7 +248,7 @@ exports = Class(ScrollView, function (supr) {
 	this.render = function (ctx, opts) {
 		var viewportChanged = supr(this, 'render', arguments);
 
-		if (viewportChanged || this._needsModelRender || this.model._needsSort) {
+		if (viewportChanged && !this._autoSize || this._needsModelRender || this.model._needsSort) {
 			this._needsModelRender = false;
 			this.model.render(opts.viewport);
 		}
