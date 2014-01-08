@@ -357,7 +357,7 @@ exports = Class(View, function (supr) {
 	};
 
 	this.onInputStart = function (evt, pt) {
-		if (this._opts.drag) {
+		if (this._opts.drag && (this._opts.scrollX || this._opts.scrollY)) {
 			this.startDrag({radius: this._opts.dragRadius * this._snapPixels});
 
 			if (this._anim && this._anim.hasFrames()) {
@@ -450,7 +450,7 @@ exports = Class(View, function (supr) {
 		}
 	};
 
-	
+
 	this._startBounce = function () {
 		this._isBouncing = false;
 		if (this._opts.inertia && this._opts.bounce) {
@@ -523,14 +523,14 @@ exports = Class(View, function (supr) {
 				y != undefined && y != null && (this._contentView.style.y + y)
 			);
 	}
-	
+
 	this.getContentView = function () { return this._contentView; }
 
 	/* @deprecated */
 	this.getFullWidth = function () { return this._contentView.style.width; }
 	/* @deprecated */
 	this.getFullHeight= function () { return this._contentView.style.height; }
-	
+
 	function getBoundingRectangle(pos) {
 		if (!pos.r) { return; }
 
