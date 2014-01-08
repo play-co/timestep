@@ -27,7 +27,7 @@ import util.setProperty as setProperty;
 var _styleKeys = {};
 
 var ViewBacking = exports = Class(BaseBacking, function () {
-	
+
 	this.constructor.absScale = 1;
 
 	this.init = function (view) {
@@ -52,7 +52,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 	this.addSubview = function (view) {
 		var backing = view.__view;
 		var superview = backing._superview;
-		if (superview == this._view) { return false; }
+		if (superview == this._view || this == backing) { return false; }
 		if (superview) { superview.__view.removeSubview(view); }
 
 		var n = this._subviews.length;
@@ -97,20 +97,20 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 
 	this.wrapRender = function (ctx, opts) {
 		if (!this.visible) { return; }
-		
+
 		if (!this.__firstRender) { this._view.needsReflow(true); }
 		if (this._needsSort) { this._needsSort = false; this._subviews.sort(); }
-		
+
 		var width = this._width;
 		var height = this._height;
 		if (width < 0 || height < 0) { return; }
 
 		ctx.save();
-		
+
 		ctx.translate(this.x + this.anchorX + this.offsetX, this.y + this.anchorY + this.offsetY);
-		
+
 		if (this.r) { ctx.rotate(this.r); }
-		
+
 		// clip this render to be within its view;
 		if (this.scale != 1) {
 			ctx.scale(this.scale, this.scale);
@@ -126,13 +126,13 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		}
 
 		this.absScale = ViewBacking.absScale;
-		
+
 		if (this.opacity != 1) { ctx.globalAlpha *= this.opacity; }
 
 		ctx.translate(-this.anchorX, -this.anchorY);
 
 		if (this.clip) { ctx.clipRect(0, 0, width, height); }
-		
+
 		var filters = {};
 		var filter = this._view.getFilter();
 		if (filter) {
@@ -185,23 +185,23 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 	}
 
 	// this._clearCache = function () { this._cache = null; }
-	
+
 	// this.updateRadius = function () {
 	// 	var w = this.width * 0.5,
 	// 		h = this.height * 0.5;
-		
+
 	// 	if (!this._cache) { this._cache = {}; }
 	// 	return (this._cache.radius = Math.sqrt(w * w + h * h));
 	// }
-	
+
 	this._onResize = function (prop, value, prevValue) {
 		// local properties are invalidated
 		// this._cache = null;
-		
+
 		// child view properties might be invalidated
 		this._view.needsReflow();
 	}
-	
+
 	this._sortIndex = strPad.initialValue;
 	this._onZIndex = function (_, zIndex) {
 		this._sortIndex = strPad.pad(zIndex);
@@ -231,6 +231,6 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 	this._onOffsetY = function (n) {
 		this.offsetY = n * this.height / 100;
 	};
-	
+
 	this.toString = function () { return this.__sortKey; }
 });
