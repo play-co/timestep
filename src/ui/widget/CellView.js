@@ -81,7 +81,7 @@ exports = Class(View, function (supr) {
 	};
 
 	this.onClick = this.onInputSelect = function () {
-		if (!this.controller.selection) { return; }
+		if (!this.controller || !this.controller.selection) { return; }
 
 		var type = this.controller.selection.getType();
 		if (type == 'toggle' || type == 'multi') {
