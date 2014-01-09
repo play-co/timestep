@@ -46,34 +46,24 @@ exports = Class(ScrollView, function (supr) {
 
 	this.tag = 'ListView';
 
+	var FORWARD_KEYS = {
+			getCell: 1, sorter: 1, selectable: 1, selections: 1,
+			maxSelections: 1, dataSource: 1, recycle: 1, renderMargin: 1,
+			isFixedSize: 1, isTiled: 1
+		};
+
 	this.updateOpts = function () {
 		var opts = supr(this, 'updateOpts', arguments);
 
-		var listOpts = {
-			view: this,
-			getCell: opts.getCell,
-			sorter: opts.sorter,
-			selectable: opts.selectable,
-			selections: opts.selections,
-			maxSelections: opts.maxSelections,
-			dataSource: opts.dataSource,
-			margin: opts.renderMargin
-		};
-
-		if ('recycle' in opts) {
-			listOpts.recycle = opts.recycle;
+		var listOpts = {view: this};
+		for (var key in FORWARD_KEYS) {
+			if (key in opts) {
+				listOpts[key] = opts[key];
+			}
 		}
 
 		if ('autoSize' in opts) {
 			this._autoSize = opts.autoSize;
-		}
-
-		if ('isFixedSize' in opts) {
-			listOpts.isFixedSize = opts.isFixedSize;
-		}
-
-		if ('isTiled' in opts) {
-			listOpts.isTiled = opts.isTiled;
 		}
 
 		this.model.updateOpts(listOpts);
@@ -248,7 +238,7 @@ exports = Class(ScrollView, function (supr) {
 	this.render = function (ctx, opts) {
 		var viewportChanged = supr(this, 'render', arguments);
 
-		if (viewportChanged && !this._autoSize || this._needsModelRender || this.model._needsSort) {
+		if (viewportChanged || this._needsModelRender || this.model._needsSort) {
 			this._needsModelRender = false;
 			this.model.render(opts.viewport);
 		}
