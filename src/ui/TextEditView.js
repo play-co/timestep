@@ -95,14 +95,14 @@ exports = Class(ImageScaleView, function(supr) {
         }
     };
 
-    this.requestFocus = function() {
+    this.requestFocus = function(noSubmit) {
         this._focused = true;
-        this._editText.requestFocus();
+        this._editText.requestFocus(noSubmit);
         this.refresh();
     };
 
-    this.removeFocus = function() {
-        this._editText.closeEditField();
+    this.removeFocus = function(noSubmit) {
+        this._editText.closeEditField(noSubmit);
     };
 
     this.refresh = function() {

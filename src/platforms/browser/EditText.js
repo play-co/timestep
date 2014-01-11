@@ -124,10 +124,10 @@ exports = Class(function () {
         this.onChange(value);
     }
 
-    this.requestFocus = function() {
+    this.requestFocus = function(noSubmit) {
         if (_focused !== this) {
             if (_focused != null) {
-                _focused.removeFocus(); 
+                _focused.removeFocus(noSubmit);
 			}
 
             this.onFocusChange(true);
@@ -136,14 +136,14 @@ exports = Class(function () {
         _focused = this; 
     }
 
-    this.closeEditField = function() {
+    this.closeEditField = function(noSubmit) {
         console.log("TextEditView editText removeFocus");
         if (_focused != null) {
-            _focused.removeFocus();
+            _focused.removeFocus(noSubmit);
         }
 
         _input.hide();
-        // NATIVE.inputPrompt.hideSoftKeyboard(); 
+        // NATIVE.inputPrompt.hideSoftKeyboard();
 
 		if (__keyboardIsOpen) {
 			__keyboardIsOpen = false;
@@ -194,9 +194,11 @@ exports = Class(function () {
         return this == _focused;
     }
 
-    this.removeFocus = function() {
+    this.removeFocus = function(noSubmit) {
         this.onFocusChange(false);
-        this.onSubmit(_input.getValue());
+	    if(!noSubmit) {
+		    this.onSubmit(_input.getValue());
+	    }
         if (_focused == this) {
             _focused = null;    
         }
