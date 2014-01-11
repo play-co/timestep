@@ -49,7 +49,7 @@ exports = Class(ScrollView, function (supr) {
 	var FORWARD_KEYS = {
 			getCell: 1, sorter: 1, selectable: 1, selections: 1,
 			maxSelections: 1, dataSource: 1, recycle: 1, renderMargin: 1,
-			isFixedSize: 1, isTiled: 1
+			isFixedSize: 1, isTiled: 1, margin: 1
 		};
 
 	this.updateOpts = function () {
