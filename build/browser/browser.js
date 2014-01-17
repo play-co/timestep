@@ -26,12 +26,58 @@ var INITIAL_IMPORT = 'gc.browser.launchClient';
 var STATIC_GA_JS = fs.readFileSync(path.join(__dirname, 'browser-static/ga.js'), 'utf8');
 var STATIC_BOOTSTRAP_CSS = path.join(__dirname, 'browser-static/bootstrap.css');
 var STATIC_BOOTSTRAP_JS = path.join(__dirname, 'browser-static/bootstrap.js');
+var STATIC_SPINNER_HTML = path.join(__dirname, 'browser-static/spinner.html');
+
+function merge(base, extra) {
+	base = base || {};
+
+	for (var i = 1, len = arguments.length; i < len; ++i) {
+		var copyFrom = arguments[i];
+		for (var key in copyFrom) {
+			if (copyFrom.hasOwnProperty(key) && !base.hasOwnProperty(key)) {
+				base[key] = copyFrom[key];
+			}
+		}
+	}
+}
+
+function extract(obj, keys) {
+	var ret = {};
+	keys.forEach(function (key) {
+		ret[key] = obj[key];
+	});
+	return ret;
+}
 
 var _builder;
 var _paths;
 var logger;
 exports.build = function (builder, project, subtarget, moreOpts, cb) {
 	var target = 'browser-' + subtarget;
+	var browserOpts = project.manifest.browser || {};
+
+	merge(browserOpts, {
+		// include a base64-inline image for the apple-touch-icon meta tag (if webpage is saved to homescreen)
+		appleTouchIcon: true,
+		appleTouchStartupImage: true,
+
+		// embed a base64 splash screen (background-size: cover)
+		embedSplash: true
+	});
+
+	if (browserOpts.spinner) {
+		merge(browserOpts.spinner, {x: '50%', y: '50%', width: '120px', height: '120px', color0: 'rgba(255, 255, 255, 0.2)', color1: '#FFF'});
+
+		// convert numbers to numbers with units
+		['width', 'height'].forEach(function (key) {
+			var match = browserOpts.spinner[key].match(/^-?[0-9.]+(.*)$/);
+			browserOpts.spinner[key] = {
+				value: parseFloat(browserOpts.spinner[key]),
+				unit: match && match[1] || 'px'
+			};
+		});
+	}
+
 	var buildOpts = builder.packager.getBuildOptions({
 		appID: project.manifest.appID,
 		version: Date.now(),
@@ -51,12 +97,10 @@ exports.build = function (builder, project, subtarget, moreOpts, cb) {
 		target: target,
 		subtarget: subtarget,
 
-		compress: moreOpts.compress,
-
-		// include a base64-inline image for the apple-touch-icon meta tag (if webpage is saved to homescreen)
-		appleTouchIcon: true,
-		appleTouchStartupImage: true
+		compress: moreOpts.compress
 	});
+
+	merge(buildOpts, extract(browserOpts, ['appleTouchIcon', 'appleTouchStartupImage', 'embedSplash', 'spinner']));
 
 	exports.runBuild(builder, project, buildOpts, function (err, res) {
 		cb(err, {
@@ -269,13 +313,32 @@ function generateOfflineManifest (man, appID, version) {
 }
 
 function generateGameHTML (opts, project, target, imgCache, js, css) {
+
+	function getBase64Image(filename) {
+		return toDataURI(fs.readFileSync(path.resolve(project.paths.root, filename)), mime.lookup(filename));
+	}
+
+	// Apple Touch startup image
+
+	// browser splash
+	var browserSplash = project.manifest.browser && project.manifest.browser.splash;
+	if (!browserSplash) {
+		var splashOpts = project.manifest.splash;
+		var splashPaths = ['landscape1536', 'landscape768', 'portrait2048', 'portrait1136', 'portrait1024', 'portrait960', 'portrait480'];
+		var i = splashPaths.length;
+		browserSplash = splashOpts[splashPaths[--i]];
+		while (i && !browserSplash) {
+			browserSplash = splashOpts[splashPaths[--i]];
+		}
+	}
+
 	// Create HTML document.
 	var html = [];
 
 	// Check if there is a manifest.
 	html.push(
 		'<!DOCTYPE html>',
-		'<html>',
+		'<html manifest="' + opts.target + '.manifest">',
 		'<head>',
 		'<title>' + project.manifest.title + '</title>'
 	);
@@ -303,24 +366,13 @@ function generateGameHTML (opts, project, target, imgCache, js, css) {
 					}
 				}
 				if (largest > 0) {
-					html.push('<link rel="apple-touch-icon" href="' + toDataURI(fs.readFileSync(path.join(project.paths.root, iosIcons[largest.toString()])), 'image/png') + '">');
+					html.push('<link rel="apple-touch-icon" href="' + getBase64Image(iosIcons[largest.toString()]) + '">');
 				}
 			}
 		}
 
-		if (opts.appleTouchStartupImage) {
-			// Apple Touch startup image
-			var splash = project.manifest.splash;
-			var splashPaths = ['landscape1536', 'landscape768', 'portrait2048', 'portrait1136', 'portrait1024', 'portrait960', 'portrait480'];
-			var i = splashPaths.length;
-			var splashPath = splash[splashPaths[--i]];
-
-			while (i && !splashPath) {
-				splashPath = splash[splashPaths[--i]];
-			}
-			if (splashPath) {
-				html.push('<link rel="apple-touch-startup-image" href="' + toDataURI(fs.readFileSync(path.join(project.paths.root, splashPath)), 'image/png') + '">');
-			}
+		if (opts.appleTouchStartupImage && browserSplash) {
+			html.push('<link rel="apple-touch-startup-image" href="' + getBase64Image(browserSplash) + '">');
 		}
 	}
 
@@ -337,7 +389,29 @@ function generateGameHTML (opts, project, target, imgCache, js, css) {
 		opts.headHTML.join('\n') || '',
 		'</head>',
 		'<body>',
-		opts.bodyHTML.join('\n') || '',
+		opts.bodyHTML.join('\n') || ''
+	);
+
+	if (opts.embedSplash) {
+		html.push('<div id="_GCSplash" style="-webkit-transition:opacity 1s;position:absolute;top:0px;left:0px;width:100%;height:100%;z-index:1;background:#000 url(\'' + getBase64Image(browserSplash) + '\') no-repeat;background-size:cover">');
+		if (opts.spinner) {
+			html.push(
+				fs.readFileSync(STATIC_SPINNER_HTML, 'utf8')
+					.replace(/\[\[x\]\]/g, opts.spinner.x)
+					.replace(/\[\[y\]\]/g, opts.spinner.y)
+					.replace(/\[\[width\]\]/g, opts.spinner.width.value + opts.spinner.width.unit)
+					.replace(/\[\[height\]\]/g, opts.spinner.height.value + opts.spinner.height.unit)
+					.replace(/\[\[offsetX\]\]/g, -opts.spinner.width.value / 2 + opts.spinner.width.unit)
+					.replace(/\[\[offsetY\]\]/g, -opts.spinner.height.value / 2 + opts.spinner.height.unit)
+					.replace(/\[\[color0\]\]/g, opts.spinner.color0)
+					.replace(/\[\[color1\]\]/g, opts.spinner.color1)
+			);
+		}
+
+		html.push('</div>');
+	}
+
+	html.push(
 		'</body>',
 		opts.footerHTML.join('\n') || '',
 		'<script>IMG_CACHE=' + JSON.stringify(imgCache) + ';' + js + '</script>',

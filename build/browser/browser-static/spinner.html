@@ -1,0 +1,41 @@
+<style>
+#GCSpinner {
+position: absolute;
+top: [[y]];
+left: [[x]];
+width: [[width]];
+height: [[height]];
+margin-left: [[offsetY]];
+margin-top: [[offsetX]];
+display: inline-block;
+}
+
+#GCSpinner div {
+width: 10%;
+height: 28%;
+background: #000;
+position: absolute;
+left: 44.5%;
+top: 37%;
+-webkit-animation: fade 1s linear infinite;
+-webkit-border-radius: 50px;
+-webkit-box-shadow: 0 0 3px rgba(0,0,0,0.2);
+}
+
+#GCSpinner .GCBar1 {-webkit-transform:rotate(0deg) translate(0, -142%); -webkit-animation-delay: 0s}
+#GCSpinner .GCBar2 {-webkit-transform:rotate(30deg) translate(0, -142%); -webkit-animation-delay: -0.9167s}
+#GCSpinner .GCBar3 {-webkit-transform:rotate(60deg) translate(0, -142%); -webkit-animation-delay: -0.833s}
+#GCSpinner .GCBar4 {-webkit-transform:rotate(90deg) translate(0, -142%); -webkit-animation-delay: -0.75s}
+#GCSpinner .GCBar5 {-webkit-transform:rotate(120deg) translate(0, -142%); -webkit-animation-delay: -0.667s}
+#GCSpinner .GCBar6 {-webkit-transform:rotate(150deg) translate(0, -142%); -webkit-animation-delay: -0.5833s}
+#GCSpinner .GCBar7 {-webkit-transform:rotate(180deg) translate(0, -142%); -webkit-animation-delay: -0.5s}
+#GCSpinner .GCBar8 {-webkit-transform:rotate(210deg) translate(0, -142%); -webkit-animation-delay: -0.41667s}
+#GCSpinner .GCBar9 {-webkit-transform:rotate(240deg) translate(0, -142%); -webkit-animation-delay: -0.333s}
+#GCSpinner .GCBar10 {-webkit-transform:rotate(270deg) translate(0, -142%); -webkit-animation-delay: -0.25s}
+#GCSpinner .GCBar11 {-webkit-transform:rotate(300deg) translate(0, -142%); -webkit-animation-delay: -0.1667s}
+#GCSpinner .GCBar12 {-webkit-transform:rotate(330deg) translate(0, -142%); -webkit-animation-delay: -0.0833s}
+@-webkit-keyframes fade {
+0% {background-color:[[color1]]}
+100% {background-color:[[color0]]}
+}
+</style><div id="GCSpinner"><div class="GCBar1"></div><div class="GCBar2"></div><div class="GCBar3"></div><div class="GCBar4"></div><div class="GCBar5"></div><div class="GCBar6"></div><div class="GCBar7"></div><div class="GCBar8"></div><div class="GCBar9"></div><div class="GCBar10"></div><div class="GCBar11"></div><div class="GCBar12"></div></div>
