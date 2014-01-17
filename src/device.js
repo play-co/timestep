@@ -178,6 +178,7 @@ if (exports.isMobile) {
 
 exports.useDOM = false;
 exports.setUseDOM = function (useDOM) {
+	return;
 	if (exports.useDOM != useDOM) {
 		exports.useDOM = useDOM;
 
