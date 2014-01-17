@@ -37,7 +37,7 @@ exports.build = function (builder, project, subtarget, moreOpts, cb) {
 		version: Date.now(),
 
 		fullPath: project.paths.root,
-		localBuildPath: path.relative(project.paths.root, moreOpts.buildPath), 
+		localBuildPath: path.relative(project.paths.root, moreOpts.buildPath),
 		output: moreOpts.buildPath,
 
 		debug: !!moreOpts.debug,
@@ -51,7 +51,11 @@ exports.build = function (builder, project, subtarget, moreOpts, cb) {
 		target: target,
 		subtarget: subtarget,
 
-		compress: moreOpts.compress
+		compress: moreOpts.compress,
+
+		// include a base64-inline image for the apple-touch-icon meta tag (if webpage is saved to homescreen)
+		appleTouchIcon: true,
+		appleTouchStartupImage: true
 	});
 
 	exports.runBuild(builder, project, buildOpts, function (err, res) {
@@ -94,7 +98,7 @@ exports.runBuild = function (builder, project, buildOpts, cb) {
 /**
  * Utilities
  */
- 
+
 function toDataURI (data, mime) {
 	return 'data:' + mime + ';base64,' + new Buffer(data).toString('base64');
 }
@@ -168,13 +172,13 @@ var CSSFont = Class(function () {
 		this.fileBase = path.basename(file, path.extname(file));
 
 		this.name = this.fileBase.trim();
-		
+
 		var split = this.name.split(/\-/g);
 		if (split.length > 1) {
 			this.name = split[0];
 
 			var suffix = normalizeFontType(split[1].toLowerCase());
-			
+
 			if (suffix == 'bold') {
 				this.weight = 'bold';
 				this.sortOrder = 1;
@@ -205,7 +209,7 @@ var CSSFont = Class(function () {
 		if (this.style != null) {
 			css += 'font-style:' + this.style + ';';
 		}
-		
+
 		// target.startsWith('native') -- for simulated native builds
 		if (target == 'browser-desktop' || target.startsWith('native')) {
 			logger.log(util.format('embedding ttf, eot, and woff font %s -- %s', this.name, this.fileBase));
@@ -215,7 +219,7 @@ var CSSFont = Class(function () {
 			addFormat(formats, '.woff');
 			return buildFontString(this.name, css, formats);
 		}
-		
+
 		if (target == 'browser-mobile') {
 			logger.log(util.format('embedding ttf and svg font %s -- %s', this.name, this.fileBase));
 
@@ -239,7 +243,7 @@ var CSSFont = Class(function () {
 				}
 			}
 		}
-		
+
 		return '';
 	}
 });
@@ -267,7 +271,7 @@ function generateOfflineManifest (man, appID, version) {
 function generateGameHTML (opts, project, target, imgCache, js, css) {
 	// Create HTML document.
 	var html = [];
-	
+
 	// Check if there is a manifest.
 	html.push(
 		'<!DOCTYPE html>',
@@ -287,32 +291,36 @@ function generateGameHTML (opts, project, target, imgCache, js, css) {
 		// Various iOS mobile settings for installing as a top application.
 		html.push('<meta name="apple-mobile-web-app-capable" content="yes"/>')
 
-		// Apple Touch icons
-		var iosIcons = project.manifest.ios && project.manifest.ios.icons;
-		if (iosIcons) {
-			var largest = 0;
-			for (var size in iosIcons) {
-				var intSize = parseInt(size);
-				if (intSize > largest) {
-					largest = intSize;
+		if (opts.appleTouchIcon) {
+			// Apple Touch icons
+			var iosIcons = project.manifest.ios && project.manifest.ios.icons;
+			if (iosIcons) {
+				var largest = 0;
+				for (var size in iosIcons) {
+					var intSize = parseInt(size);
+					if (intSize > largest) {
+						largest = intSize;
+					}
+				}
+				if (largest > 0) {
+					html.push('<link rel="apple-touch-icon" href="' + toDataURI(fs.readFileSync(path.join(project.paths.root, iosIcons[largest.toString()])), 'image/png') + '">');
 				}
 			}
-			if (largest > 0) {
-				html.push('<link rel="apple-touch-icon" href="' + toDataURI(fs.readFileSync(path.join(project.paths.root, iosIcons[largest.toString()])), 'image/png') + '">');
+		}
+
+		if (opts.appleTouchStartupImage) {
+			// Apple Touch startup image
+			var splash = project.manifest.splash;
+			var splashPaths = ['landscape1536', 'landscape768', 'portrait2048', 'portrait1136', 'portrait1024', 'portrait960', 'portrait480'];
+			var i = splashPaths.length;
+			var splashPath = splash[splashPaths[--i]];
+
+			while (i && !splashPath) {
+				splashPath = splash[splashPaths[--i]];
 			}
-		}
-
-		// Apple Touch startup image
-		var splash = project.manifest.splash;
-		var splashPaths = ['landscape1536', 'landscape768', 'portrait2048', 'portrait1136', 'portrait1024', 'portrait960', 'portrait480'];
-		var i = splashPaths.length;
-		var splashPath = splash[splashPaths[--i]];
-
-		while (i && !splashPath) {
-			splashPath = splash[splashPaths[--i]];
-		}
-		if (splashPath) {
-			html.push('<link rel="apple-touch-startup-image" href="' + toDataURI(fs.readFileSync(path.join(project.paths.root, splashPath)), 'image/png') + '">');
+			if (splashPath) {
+				html.push('<link rel="apple-touch-startup-image" href="' + toDataURI(fs.readFileSync(path.join(project.paths.root, splashPath)), 'image/png') + '">');
+			}
 		}
 	}
 
@@ -349,7 +357,7 @@ function generateIndexHTML(opts, project) {
 		'<title>' + project.manifest.title + '</title>'
 	);
 
-	var size = (project.manifest && project.manifest.supportedOrientations && 
+	var size = (project.manifest && project.manifest.supportedOrientations &&
 					(project.manifest.supportedOrientations[0] === 'portrait')) ?
 					{width: 320, height: 480} : {width: 480, height: 320};
 
@@ -487,7 +495,7 @@ function compileHTML (project, opts, target, resources, code, cb) {
 			bootstrapJS,
 			util.format('bootstrap("%s", "%s")', INITIAL_IMPORT, target)
 		];
-	
+
 		// Font CSS has to be sorted in proper order: bold and italic
 		// version must come *after* the regular version. A standard
 		// string sort will take care of this, assuming names like
@@ -505,7 +513,7 @@ function compileHTML (project, opts, target, resources, code, cb) {
 			var formattedGACode = util.format(STATIC_GA_JS, project.manifest.googleAnalyticsAccount, project.manifest.studio.domain);
 			preloader.push(formattedGACode);
 		}
-		
+
 		// Condense resources.
 		var cssSrc = css.join('\n');
 		var preloadSrc = preloader.join(';');
@@ -542,7 +550,7 @@ function compileHTML (project, opts, target, resources, code, cb) {
 
 		resourceMap[jsName] = {contents: 'NATIVE=false;CACHE=' + JSON.stringify(cache) + ';\n' + code + '; jsio("import ' + INITIAL_IMPORT + '");'};
 		resourceMap[manifestName] = {contents: generateOfflineManifest(resourceMap, project.manifest.appID, opts.version)};
-		
+
 		// Pass compiled resources to callback.
 		f.succeed(resourceMap);
 	}).error(function (err) {
