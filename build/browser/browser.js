@@ -53,6 +53,12 @@ var _builder;
 var _paths;
 var logger;
 exports.build = function (builder, project, subtarget, moreOpts, cb) {
+
+	var argParser = require('optimist')(process.argv)
+		.alias('baseURL', 'u').describe('baseURL', 'all relative resources except for index should be loaded from this URL')
+
+	var argv = argParser.argv;
+
 	var target = 'browser-' + subtarget;
 	var browserOpts = project.manifest.browser || {};
 
@@ -62,7 +68,9 @@ exports.build = function (builder, project, subtarget, moreOpts, cb) {
 		appleTouchStartupImage: true,
 
 		// embed a base64 splash screen (background-size: cover)
-		embedSplash: true
+		embedSplash: true,
+		cache: [],
+		baseURL: argv.baseURL || ''
 	});
 
 	if (browserOpts.spinner) {
@@ -97,7 +105,10 @@ exports.build = function (builder, project, subtarget, moreOpts, cb) {
 		target: target,
 		subtarget: subtarget,
 
-		compress: moreOpts.compress
+		compress: moreOpts.compress,
+
+		cache: browserOpts.cache,
+		baseURL: browserOpts.baseURL
 	});
 
 	merge(buildOpts, extract(browserOpts, ['appleTouchIcon', 'appleTouchStartupImage', 'embedSplash', 'spinner']));
@@ -298,18 +309,26 @@ var CSSFont = Class(function () {
 
 // Manifest file.
 // (not our manifest.json, it's a html5 manifest for caching)
-function generateOfflineManifest (man, appID, version) {
+function generateOfflineManifest (opts, man, appID, version) {
+	var url = require('url');
 	return util.format('CACHE MANIFEST\n' +
 		'\n' +
 		'#%s version %s\n' +
 		'\n' +
 		'CACHE:\n' +
+		(opts.cache ? opts.cache.join('\n') + '\n' : '') +
 		'%s\n' +
 		'\n' +
 		'FALLBACK:\n' +
 		'\n' +
 		'NETWORK:\n' +
-		'*\n', appID, version, Object.keys(man).join('\n'));
+		'*\n', appID, version, Object.keys(man).map(function (line) {
+			if (opts.baseURL) {
+				return url.resolve(opts.baseURL, line);
+			} else {
+				return line;
+			}
+		}).join('\n'));
 }
 
 function generateGameHTML (opts, project, target, imgCache, js, css) {
@@ -340,6 +359,7 @@ function generateGameHTML (opts, project, target, imgCache, js, css) {
 		'<!DOCTYPE html>',
 		'<html manifest="' + opts.target + '.manifest">',
 		'<head>',
+		opts.baseURL ? '<base href="' + opts.baseURL + '">' : '',
 		'<title>' + project.manifest.title + '</title>'
 	);
 
@@ -623,7 +643,7 @@ function compileHTML (project, opts, target, resources, code, cb) {
 		}
 
 		resourceMap[jsName] = {contents: 'NATIVE=false;CACHE=' + JSON.stringify(cache) + ';\n' + code + '; jsio("import ' + INITIAL_IMPORT + '");'};
-		resourceMap[manifestName] = {contents: generateOfflineManifest(resourceMap, project.manifest.appID, opts.version)};
+		resourceMap[manifestName] = {contents: generateOfflineManifest(opts, resourceMap, project.manifest.appID, opts.version)};
 
 		// Pass compiled resources to callback.
 		f.succeed(resourceMap);
