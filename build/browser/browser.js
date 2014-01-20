@@ -134,6 +134,10 @@ exports.runBuild = function (builder, project, buildOpts, cb) {
 	buildOpts.bodyHTML = [];
 	buildOpts.footerHTML = [];
 
+	if (buildOpts.debug) {
+		buildOpts.version = Date.now() + '&' + Math.random();
+	}
+
 	var f = ff(function () {
 		// Exclude jsio in browser builds (we include it separately)
 		buildOpts.excludeJsio = !buildOpts.isSimulated;
@@ -355,9 +359,15 @@ function generateGameHTML (opts, project, target, imgCache, js, css) {
 	var html = [];
 
 	// Check if there is a manifest.
+	html.push('<!DOCTYPE html>');
+
+	if (opts.debug) {
+		html.push('<html>');
+	} else {
+		html.push('<html manifest="' + opts.target + '.manifest">');
+	}
+
 	html.push(
-		'<!DOCTYPE html>',
-		'<html manifest="' + opts.target + '.manifest">',
 		'<head>',
 		opts.baseURL ? '<base href="' + opts.baseURL + '">' : '',
 		'<title>' + project.manifest.title + '</title>'
