@@ -658,9 +658,12 @@ function compileHTML (project, opts, target, resources, code, cb) {
 		resourceMap[jsName] = {contents: 'NATIVE=false;CACHE=' + JSON.stringify(cache) + ';\n' + code + '; jsio("import ' + INITIAL_IMPORT + '");'};
 		resourceMap[manifestName] = {contents: generateOfflineManifest(opts, resourceMap, project.manifest.appID, opts.version)};
 
-		opts.copy.forEach(function (resource) {
-			resourceMap[resource] = {src: path.join(opts.fullPath, resource)};
-		});
+		// If copy step is requested,
+		if (opts && opts.copy) {
+			opts.copy.forEach(function (resource) {
+				resourceMap[resource] = {src: path.join(opts.fullPath, resource)};
+			});
+		}
 
 		// Pass compiled resources to callback.
 		f.succeed(resourceMap);
