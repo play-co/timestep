@@ -70,6 +70,7 @@ exports.build = function (builder, project, subtarget, moreOpts, cb) {
 		// embed a base64 splash screen (background-size: cover)
 		embedSplash: true,
 		cache: [],
+		copy: [],
 		baseURL: argv.baseURL || ''
 	});
 
@@ -108,6 +109,8 @@ exports.build = function (builder, project, subtarget, moreOpts, cb) {
 		compress: moreOpts.compress,
 
 		cache: browserOpts.cache,
+		copy: browserOpts.copy,
+
 		baseURL: browserOpts.baseURL
 	});
 
@@ -654,6 +657,10 @@ function compileHTML (project, opts, target, resources, code, cb) {
 
 		resourceMap[jsName] = {contents: 'NATIVE=false;CACHE=' + JSON.stringify(cache) + ';\n' + code + '; jsio("import ' + INITIAL_IMPORT + '");'};
 		resourceMap[manifestName] = {contents: generateOfflineManifest(opts, resourceMap, project.manifest.appID, opts.version)};
+
+		opts.copy.forEach(function (resource) {
+			resourceMap[resource] = {src: path.join(opts.fullPath, resource)};
+		});
 
 		// Pass compiled resources to callback.
 		f.succeed(resourceMap);
