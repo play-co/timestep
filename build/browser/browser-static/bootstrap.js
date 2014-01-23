@@ -5,35 +5,35 @@ function bootstrap(initialImport, target) {
 	var q = loc.search + loc.hash;
 
 	// check to see if we need chrome frame
-	if (target && (target=="desktop" || target=="facebook") && /MSIE/i.test(navigator.userAgent) && !d.createElement('canvas').getContext) {
-		var chromeframe_url = 'chromeframe.html' + (loc.search ? loc.search + "&" : "?") + "target="+ target;
-		bootstrap = function() {};
-		try {
-			var obj = new ActiveXObject('ChromeTab.ChromeFrame');
-			if (!obj) {
-				throw "bad object";
-			}
-			loc.replace(chromeframe_url);
-		} catch(e) {
-			w.onload = function() {
-				var e = d.createElement('script'); 
-				e.async = true;
-			    e.src = "http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js";
-				e.onreadystatechange= function () {
-					if (this.readyState == 'loaded') {
-						CFInstall.check({
-							mode: "overlay",
-							oninstall: function() { loc.replace(chromeframe_url) },
-							url: "http://www.google.com/chromeframe/eula.html?user=true"
-						});
-					}
-				}
-				d.getElementsByTagName('head')[0].appendChild(e);
-			}
-		}
-		return;
-	}
-	
+	// if (target && (target=="desktop" || target=="facebook") && /MSIE/i.test(navigator.userAgent) && !d.createElement('canvas').getContext) {
+	// 	var chromeframe_url = 'chromeframe.html' + (loc.search ? loc.search + "&" : "?") + "target="+ target;
+	// 	bootstrap = function() {};
+	// 	try {
+	// 		var obj = new ActiveXObject('ChromeTab.ChromeFrame');
+	// 		if (!obj) {
+	// 			throw "bad object";
+	// 		}
+	// 		loc.replace(chromeframe_url);
+	// 	} catch(e) {
+	// 		w.onload = function() {
+	// 			var e = d.createElement('script');
+	// 			e.async = true;
+	// 		    e.src = "http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js";
+	// 			e.onreadystatechange= function () {
+	// 				if (this.readyState == 'loaded') {
+	// 					CFInstall.check({
+	// 						mode: "overlay",
+	// 						oninstall: function() { loc.replace(chromeframe_url) },
+	// 						url: "http://www.google.com/chromeframe/eula.html?user=true"
+	// 					});
+	// 				}
+	// 			}
+	// 			d.getElementsByTagName('head')[0].appendChild(e);
+	// 		}
+	// 	}
+	// 	return;
+	// }
+
 	// for tracking when the page started loading
 	w.__initialTime = +new Date();
 
@@ -56,13 +56,13 @@ function bootstrap(initialImport, target) {
 			}
 		}
 	} catch(e) {
-		
+
 	}
-	
+
 	if (w.CONFIG.CDNURL) {
 		d.write('<base href="' + w.CONFIG.CDNURL + '">');
 	}
-	
+
 	// figure out the dpr
 	if (w.CONFIG.scaleDPR === false) {
 		var scale = 1;
@@ -73,19 +73,20 @@ function bootstrap(initialImport, target) {
 	// figure out the device type
 	var ua = navigator.userAgent;
 	var mobile = (/(iPod|iPhone|iPad)/i.test(ua) ? 'ios' : /BlackBerry/.test(ua) ? 'blackberry' : /Mobile Safari/.test(ua) ? 'android' : '');
+	var isKik = /Kik\/\d/.test(ua);
 
-	if (loc.search.match(/exportSettings=true/)) {
-		// just export localStorage
-		exportSettings();
-	} else if (mobile != 'blackberry' && !w.CONFIG.noRedirect) {
-		// redirect based on device
-		if (mobile && target != 'browser-mobile') {
-			return loc.replace('//' + loc.host + '/browser-mobile/' + loc.hash);
-		} else if (!mobile && target == 'browser-mobile') {
-			return loc.replace('//' + loc.host + '/browser-desktop/' + loc.hash);
-		}
-	}
-	
+	// if (loc.search.match(/exportSettings=true/)) {
+	// 	// just export localStorage
+	// 	exportSettings();
+	// } else if (mobile != 'blackberry' && !w.CONFIG.noRedirect) {
+	// 	// redirect based on device
+	// 	if (mobile && target != 'browser-mobile') {
+	// 		return loc.replace('//' + loc.host + '/browser-mobile/' + loc.hash);
+	// 	} else if (!mobile && target == 'browser-mobile') {
+	// 		return loc.replace('//' + loc.host + '/browser-desktop/' + loc.hash);
+	// 	}
+	// }
+
 	// set the viewport
 	if (mobile == 'ios') {
 		// Using initial-scale on android makes everything blurry! I think only IOS
@@ -104,17 +105,17 @@ function bootstrap(initialImport, target) {
 		var match = ua.match(/iPhone OS ([0-9]+)/);
 		var iosVersion = match && parseInt(match[1]);
 	}
-	
+
 	if (!Image.get) {
 		Image.set = function(url, img) { CACHE[url] = img; };
 		Image.get = function(url) { return CACHE[url]; };
 	}
 
-	var canHideAddressBar = !(iosVersion && iosVersion >= 7);
-	
+	var canHideAddressBar = !(iosVersion && iosVersion >= 7) && !isKik && mobile;
+
 	w.hideAddressBar = function() {
 		if (!mobile) { return; }
-		
+
 		d.body.style.height = 2 * screen.height + 'px';
 		if (mobile == 'ios') {
 			w.scrollTo(0, 1);
@@ -157,45 +158,144 @@ function bootstrap(initialImport, target) {
 		fontsLoaded = true;
 	}
 
+	var orientationOk = true;
+	var supportedOrientations = CONFIG.supportedOrientations;
+	function checkOrientation() {
+		var ow = w.outerWidth;
+		var oh = w.outerHeight;
+		var isPortrait = oh > ow;
+		orientationOk = isPortrait && supportedOrientations.indexOf('portrait') != -1
+			|| !isPortrait && supportedOrientations.indexOf('landscape') != -1;
+	}
+
+	if (mobile && supportedOrientations) {
+		checkOrientation();
+		// if (!orientationOk) {
+		// 	var el = d.body.appendChild(d.createElement('div'));
+		// 	el.innerHTML = 'please rotate your phone<br><span style="font-size:200%">\u21bb</span>';
+		// 	var width = d.body.offsetWidth;
+		// 	el.style.cssText = 'opacity:0;z-index:9000;color:#FFF;background:rgba(40,40,40,0.8);border-radius:25px;text-align:center;padding:' + width / 10 + 'px;font-size:' + width / 20 + 'px;position:absolute;left:50%;width:' + width * 5 / 8 + 'px;margin-left:-' + width * 5 / 16 + 'px;margin-top:80px;pointer-events:none';
+		// 	w.addEventListener('resize', function () {
+		// 		checkOrientation();
+		// 		el.style.display = orientationOk ? 'none': 'block';
+		// 	});
+		// }
+	}
+
+	var appCache = window.applicationCache;
+	['cached', 'checking', 'downloading', 'error', 'noupdate', 'obsolete', 'progress', 'updateready'].forEach(function (evt) {
+		appCache.addEventListener(evt, handleCacheEvent, false);
+	});
+
+	// status 0 == UNCACHED
+	// if (appCache.status) {
+
+	// 	appCache.update(); // Attempt to update the user's cache.
+	// }
+
+	function handleCacheEvent(evt) {
+		if (evt.type == 'progress') {
+			setAppCacheProgress(evt.loaded / evt.total);
+		} else if (evt.type == 'updateready') {
+
+			var el = getAppCacheProgress();
+			el.innerText = 'game updated! tap here';
+			el.style.width = 'auto';
+			el.style.left = (d.body.offsetWidth - el.offsetWidth) / 2 + 'px';
+			el.addEventListener('click', reload);
+			el.addEventListener('touchstart', reload);
+
+			// reload immediately if app-cache is online
+			if (document.getElementById('_GCSplash').parentNode) {
+				reload();
+			}
+
+			function reload() {
+				el.style.top = '-20px';
+				el.style.opacity = '0';
+				try { appCache.swapCache(); } catch (e) {}
+				setTimeout(function () { location.reload(); }, 50);
+			}
+		}
+	}
+
+	var _appCacheEl;
+	var _appCacheProgress;
+	function getAppCacheProgress() {
+		if (!_appCacheEl) {
+			_appCacheEl = d.body.appendChild(d.createElement('div'));
+			_appCacheEl.style.cssText = 'opacity:0;position:absolute;z-index:100000;top:-20px;margin:0px auto'
+				+ 'height:20px;width:200px;'
+				+ '-webkit-border-radius:0px 0px 5px 5px;'
+				+ '-webkit-transition:all 0.7s ease-in-out;'
+				+ '-webkit-box-shadow:0px 2px 3px rgba(0, 0, 0, 0.4);'
+				+ 'background:rgba(0,0,0,0.7);color:#FFF;'
+				+ 'padding:10px 15px;'
+				+ 'font-size: 15px;';
+				+ 'cursor:pointer;';
+
+			if (CONFIG.embeddedFonts && CONFIG.embeddedFonts.length) {
+				_appCacheEl.style.fontFamily = CONFIG.embeddedFonts[0];
+			}
+
+			_appCacheProgress = _appCacheEl.appendChild(d.createElement('div'));
+			_appCacheProgress.style.cssText = '-webkit-transition:all 0.3s ease-in-out;background:#FFF;height:10px;-webkit-border-radius:5px;width:10px;opacity:0.7;';
+			_appCacheEl.style.left = (d.body.offsetWidth - 200) / 2 + 'px';
+			setTimeout(function () {
+				_appCacheEl.style.top='0px';
+				_appCacheEl.style.opacity='1';
+			}, 0);
+		}
+
+		return _appCacheEl;
+	}
+
+	function setAppCacheProgress(percent) {
+		getAppCacheProgress();
+		_appCacheProgress.style.width = 10 + (180 * percent) + 'px';
+	}
+
 	// after load, we poll for the correct document height
 	w.onload = function() {
 		var now = +new Date();
 		var increased = false;
 		var poll = setInterval(function() {
 			hideAddressBar();
-			var h = w.innerHeight;
-			if (fontNodes) {
-				var isLoaded = true;
-				for (var i = 0, n = fontNodes.length; i < n; ++i) {
-					if (fontNodes[i].offsetWidth == defaultWidth) {
-						isLoaded = false;
-						break;
+			// if (orientationOk) {
+				var h = w.innerHeight;
+				if (fontNodes) {
+					var isLoaded = true;
+					for (var i = 0, n = fontNodes.length; i < n; ++i) {
+						if (fontNodes[i].offsetWidth == defaultWidth) {
+							isLoaded = false;
+							break;
+						}
+					}
+
+					if (isLoaded) {
+						fontsLoaded = true;
 					}
 				}
 
-				if (isLoaded) {
-					fontsLoaded = true;
+				// timeout after 1 second and assume we have the right height, or
+				// note when the height increases (we scrolled) and launch the app
+				if (h == min && increased && fontsLoaded || +new Date() - now > 5000 || !canHideAddressBar && fontsLoaded) {
+					if (mobile == 'android') {
+						w.scrollTo(0, -1);
+					}
+
+					clearInterval(poll);
+
+					setTimeout(function () {
+						jsio("import gc.browser.bootstrap.launchBrowser");
+					}, 0);
 				}
-			}
-			
-			// timeout after 1 second and assume we have the right height, or 
-			// note when the height increases (we scrolled) and launch the app
-			if (h == min && increased && fontsLoaded || +new Date() - now > 5000 || !canHideAddressBar) {
-				if (mobile == 'android') {
-					w.scrollTo(0, -1);
-				}
 
-				clearInterval(poll);
-
-				setTimeout(function () {
-					jsio("import gc.browser.bootstrap.launchBrowser");
-				}, 0);
-			}
-
-			// some android phones report correctly first, then shrink the height
-			// to fit the address bar. always reset min
-			if (h > min) { increased = true; }
-			min = h;
+				// some android phones report correctly first, then shrink the height
+				// to fit the address bar. always reset min
+				if (h > min) { increased = true; }
+				min = h;
+			// }
 		}, 50);
 	}
 }
