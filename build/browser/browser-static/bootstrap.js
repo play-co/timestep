@@ -193,11 +193,13 @@ function bootstrap(initialImport, target) {
 	// 	appCache.update(); // Attempt to update the user's cache.
 	// }
 
+	var _isDownloading = (appCache.status == appCache.DOWNLOADING);
 	function handleCacheEvent(evt) {
-		if (evt.type == 'progress') {
+		if (evt.type == 'downloading') {
+			_isDownloading = true;
+		} else if (_isDownloading && evt.type == 'progress' && evt.total) {
 			setAppCacheProgress(evt.loaded / evt.total);
 		} else if (evt.type == 'updateready') {
-
 			var el = getAppCacheProgress();
 			el.innerText = 'game updated! tap here';
 			el.style.width = 'auto';
