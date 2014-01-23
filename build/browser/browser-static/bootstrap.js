@@ -114,7 +114,7 @@ function bootstrap(initialImport, target) {
 	var canHideAddressBar = !(iosVersion && iosVersion >= 7) && !isKik && mobile;
 
 	w.hideAddressBar = function() {
-		if (!mobile) { return; }
+		if (!mobile || !canHideAddressBar) { return; }
 
 		d.body.style.height = 2 * screen.height + 'px';
 		if (mobile == 'ios') {
@@ -123,6 +123,7 @@ function bootstrap(initialImport, target) {
 		} else {
 			w.scrollTo(0, 1);
 		}
+
 		d.body.offsetHeight;
 	}
 
@@ -193,22 +194,48 @@ function bootstrap(initialImport, target) {
 	// 	appCache.update(); // Attempt to update the user's cache.
 	// }
 
-	var _isDownloading = (appCache.status == appCache.DOWNLOADING);
 	function handleCacheEvent(evt) {
-		if (evt.type == 'downloading') {
-			_isDownloading = true;
-		} else if (_isDownloading && evt.type == 'progress' && evt.total) {
-			setAppCacheProgress(evt.loaded / evt.total);
-		} else if (evt.type == 'updateready') {
-			var el = getAppCacheProgress();
-			el.innerText = 'game updated! tap here';
-			el.addEventListener('click', reload, false);
-			el.addEventListener('touchstart', reload, false);
+		if (evt.type == 'updateready') {
+			// var el = d.body.appendChild(d.createElement('div'));
+			// el.style.cssText = 'opacity:0;position:absolute;z-index:9900000;top:-20px;margin:0px auto'
+			// 	+ 'height:20px;width:200px;'
+			// 	+ '-webkit-border-radius:0px 0px 5px 5px;'
+			// 	+ '-webkit-transition:all 0.7s ease-in-out;'
+			// 	+ '-webkit-transform:scale(' + w.devicePixelRatio + ');'
+			// 	+ '-webkit-transform-origin:50% 0%;'
+			// 	+ '-webkit-box-shadow:0px 2px 3px rgba(0, 0, 0, 0.4);'
+			// 	+ 'background:rgba(0,0,0,0.7);color:#FFF;'
+			// 	+ 'padding:10px 15px;'
+			// 	+ 'font-size: 15px;';
+			// 	+ 'text-align: center;';
+			// 	+ 'cursor:pointer;';
+
+			// if (CONFIG.embeddedFonts && CONFIG.embeddedFonts.length) {
+			// 	el.style.fontFamily = CONFIG.embeddedFonts[0];
+			// }
+
+			// el.innerText = 'game updated! tap here';
+			// el.style.left = (d.body.offsetWidth - 200) / 2 + 'px';
+
+			// el.setAttribute('noCapture', true); // prevent DevKit from stopping clicks on this event
+			// el.addEventListener('click', reload, true);
+			// el.addEventListener('touchstart', reload, true);
+
+			// setTimeout(function () {
+			// 	el.style.top='0px';
+			// 	el.style.opacity='1';
+			// }, 0);
+
+			// setTimeout(function () {
+			// 	el.style.top='-20px';
+			// 	el.style.opacity='0';
+			// }, 30000);
+			console.log("update ready");
 
 			// reload immediately if splash is still visible
 			var splash = d.getElementById('_GCSplash');
 			if (splash && splash.parentNode) {
-				// reload();
+				reload();
 			}
 
 			function reload() {
@@ -218,52 +245,7 @@ function bootstrap(initialImport, target) {
 				try { appCache.swapCache(); } catch (e) {}
 				setTimeout(function () { location.reload(); }, 50);
 			}
-		} else if (evt.type == 'error') {
-			var el = getAppCacheProgress();
-			el.parentNode.removeChild(el);
 		}
-	}
-
-	var _appCacheEl;
-	var _appCacheProgress;
-	function getAppCacheProgress() {
-		if (!_appCacheEl) {
-			_appCacheEl = d.body.appendChild(d.createElement('div'));
-			_appCacheEl.style.cssText = 'opacity:0;position:absolute;z-index:100000;top:-20px;margin:0px auto'
-				+ 'height:20px;width:200px;'
-				+ '-webkit-border-radius:0px 0px 5px 5px;'
-				+ '-webkit-transition:all 0.7s ease-in-out;'
-				+ '-webkit-transform:scale(' + w.devicePixelRatio + ');'
-				+ '-webkit-transform-origin:50% 0%;'
-				+ '-webkit-box-shadow:0px 2px 3px rgba(0, 0, 0, 0.4);'
-				+ 'background:rgba(0,0,0,0.7);color:#FFF;'
-				+ 'padding:10px 15px;'
-				+ 'font-size: 15px;';
-				+ 'text-align: center;';
-				+ 'cursor:pointer;';
-
-			if (CONFIG.embeddedFonts && CONFIG.embeddedFonts.length) {
-				_appCacheEl.style.fontFamily = CONFIG.embeddedFonts[0];
-			}
-
-			_appCacheProgress = _appCacheEl.appendChild(d.createElement('div'));
-			_appCacheProgress.style.cssText = '-webkit-transition:all 0.3s ease-in-out;background:#FFF;height:10px;-webkit-border-radius:5px;width:10px;opacity:0.7;';
-			_appCacheEl.style.left = (d.body.offsetWidth - 200) / 2 + 'px';
-
-			_appCacheEl.setAttribute('noCapture', true); // prevent DevKit from stopping clicks on this event
-
-			setTimeout(function () {
-				_appCacheEl.style.top='0px';
-				_appCacheEl.style.opacity='1';
-			}, 0);
-		}
-
-		return _appCacheEl;
-	}
-
-	function setAppCacheProgress(percent) {
-		getAppCacheProgress();
-		_appCacheProgress.style.width = 10 + (160 * percent) + 'px';
 	}
 
 	// after load, we poll for the correct document height
