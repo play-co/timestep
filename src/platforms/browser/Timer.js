@@ -44,7 +44,8 @@ function sendTimeout() { setTimeout(onFrame, MIN_DT); }
 function sendTimeoutNow() { setTimeout(onFrame, 0); }
 
 var fastDriver = sendTimeoutNow,
-	mainDriver = sendTimeout;
+	mainDriver = sendTimeout,
+	driverId;
 
 if (asFastAsPossible) {
 	if (!disablePostMessage) {
@@ -59,7 +60,7 @@ if (asFastAsPossible) {
 				|| window.mozRequestAnimationFrame
 				|| window.oRequestAnimationFrame
 				|| window.msRequestAnimationFrame);
-	
+
 	if (reqAnim) {
 		fastDriver = mainDriver = reqAnim;
 	} else if (!disablePostMessage) {
@@ -106,13 +107,13 @@ function onFrame() {
 			fast = 0;
 		}
 		*/
-		
+
 		if (dt > MIN_DT) {
 		//	++fast;
-			fastDriver.call(window, onFrame);
+			driverId = fastDriver.call(window, onFrame);
 		} else {
 		//	++slow;
-			mainDriver.call(window, onFrame);
+			driverId = mainDriver.call(window, onFrame);
 		}
 	}
 }
@@ -121,7 +122,13 @@ exports.last = null;
 
 exports.start = function (onTick) {
 	_onTick = onTick;
-	mainDriver.call(window, onFrame);
+	driverId = mainDriver.call(window, onFrame);
 }
 
-exports.stop = function () { _onTick = null; }
+exports.stop = function () {
+	_onTick = null;
+	if (driverId) {
+		window.cancelAnimationFrame(driverId);
+		driverId = null;
+	}
+}
