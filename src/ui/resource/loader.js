@@ -125,6 +125,11 @@ var Loader = Class(function () {
 			
 			var files = Object.keys(preloadSheets);
 
+			// If no files were specified by the preload command,
+			if (files.length == 0) {
+				logger.log("WARNING: No files to preload from path:", pathPrefix, "-- A gamedev needs to update the code with the real resource paths.");
+			}
+
 			var callback = this._loadGroup(merge({resources: files}, opts));
 			cb && callback.run(cb);
 			return callback;
