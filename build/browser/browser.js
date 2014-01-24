@@ -448,6 +448,7 @@ function generateGameHTML (opts, project, target, imgCache, js, css) {
 		'</body>',
 		opts.footerHTML.join('\n') || '',
 		'<script>IMG_CACHE=' + JSON.stringify(imgCache) + ';' + js + '</script>',
+		'<script>window.addEventListener("load", function(event) { if (/Kik/.test(navigator.userAgent) && /Android/.test(navigator.userAgent)) { var el = document.getElementById("_GCSplash"); var w = window.innerWidth; el.style.width = w + "px"; var h = window.innerHeight; el.style.height = h + "px"; } }, false);</script>',
 		'</html>'
 	);
 
