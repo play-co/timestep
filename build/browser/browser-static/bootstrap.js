@@ -235,15 +235,8 @@ function bootstrap(initialImport, target) {
 			// reload immediately if splash is still visible
 			var splash = d.getElementById('_GCSplash');
 			if (splash && splash.parentNode) {
-				reload();
-			}
-
-			function reload() {
-				console.log('... reloading');
-				el.style.top = '-20px';
-				el.style.opacity = '0';
 				try { appCache.swapCache(); } catch (e) {}
-				setTimeout(function () { location.reload(); }, 50);
+				location.reload();
 			}
 		}
 	}
