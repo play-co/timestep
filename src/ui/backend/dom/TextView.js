@@ -201,7 +201,6 @@ exports = Class(View, function (supr) {
 						- (numLines > 1 ? opts.lineHeight * numLines : 1) * fontSize) / 2;
 		}
 
-		if (this._text == 'Play') debugger;
 		this._textNode.style.marginTop = offset + 'px';
 	};
 
