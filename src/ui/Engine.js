@@ -96,6 +96,7 @@ var Engine = exports = Class(Emitter, function (supr) {
 				offscreen: false
 			});
 
+			this._rootElement.id = "timestep_onscreen_canvas";
 			this._ctx = this._rootElement.getContext('2d');
 			this._ctx.font = '11px ' + device.defaultFontFamily;
 		}
