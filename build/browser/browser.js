@@ -39,6 +39,8 @@ function merge(base, extra) {
 			}
 		}
 	}
+
+	return base;
 }
 
 function extract(obj, keys) {
@@ -71,6 +73,10 @@ exports.build = function (builder, project, subtarget, moreOpts, cb) {
 		embedSplash: true,
 		cache: [],
 		copy: [],
+		desktopBodyCSS: "",
+
+		frame: merge(browserOpts.frame, {width: 320, height: 480}),
+		canvas: merge(browserOpts.canvas, {width: 320, height: 480}),
 		baseURL: argv.baseURL || ''
 	});
 
@@ -106,15 +112,17 @@ exports.build = function (builder, project, subtarget, moreOpts, cb) {
 		target: target,
 		subtarget: subtarget,
 
-		compress: moreOpts.compress,
-
-		cache: browserOpts.cache,
-		copy: browserOpts.copy,
-
-		baseURL: browserOpts.baseURL
+		compress: moreOpts.compress
 	});
 
-	merge(buildOpts, extract(browserOpts, ['appleTouchIcon', 'appleTouchStartupImage', 'embedSplash', 'spinner']));
+	merge(buildOpts, extract(browserOpts,
+		['appleTouchIcon', 'appleTouchStartupImage',
+			'embedSplash',
+			'spinner',
+			'cache', 'copy',
+			'frame', 'canvas', 'desktopBodyCSS', 'bootstrapCSS',
+			'baseURL'
+			]));
 
 	exports.runBuild(builder, project, buildOpts, function (err, res) {
 		cb(err, {
@@ -425,7 +433,7 @@ function generateGameHTML (opts, project, target, imgCache, js, css) {
 		opts.bodyHTML.join('\n') || ''
 	);
 
-	if (opts.embedSplash) {
+	if (opts.embedSplash && browserSplash) {
 		html.push('<div id="_GCSplash" style="-webkit-transition:opacity 1s;position:absolute;top:0px;left:0px;width:100%;height:100%;z-index:1;background:#000 url(\'' + getBase64Image(browserSplash) + '\') no-repeat;background-size:cover">');
 		if (opts.spinner) {
 			html.push(
@@ -465,14 +473,10 @@ function generateIndexHTML(opts, project) {
 		'<title>' + project.manifest.title + '</title>'
 	);
 
-	var size = (project.manifest && project.manifest.supportedOrientations &&
-					(project.manifest.supportedOrientations[0] === 'portrait')) ?
-					{width: 320, height: 480} : {width: 480, height: 320};
-
 	html.push(
 		'</head>',
-		'<body>',
-		'<iframe width="' + size.width + '" height="' + size.height + '" src="game.html" style="display:block;border:0;margin:0 auto;"></iframe>',
+		'<body style="margin:0px;padding:0px;' + (opts.desktopBodyCSS || '') + '">',
+		'<iframe width="' + opts.canvas.width + '" height="' + opts.canvas.height + '" src="game.html" style="display:block;border:0;margin:0;"></iframe>',
 		'</body>',
 		'</html>'
 	);
@@ -620,6 +624,14 @@ function compileHTML (project, opts, target, resources, code, cb) {
 		if(!opts.debug && project.manifest.googleAnalyticsAccount) {
 			var formattedGACode = util.format(STATIC_GA_JS, project.manifest.googleAnalyticsAccount, project.manifest.studio.domain);
 			preloader.push(formattedGACode);
+		}
+
+		if (opts.bootstrapCSS) {
+			css.push(opts.bootstrapCSS);
+		}
+
+		if (opts.canvas && opts.canvas.css) {
+			css.push("#timestep_onscreen_canvas{" + opts.canvas.css + "}");
 		}
 
 		// Condense resources.
