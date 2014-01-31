@@ -39,14 +39,26 @@ var RawAudio = Class(function () {
 			}
 		}
 
+		var playTimeout;
+
 		audio.oldPlay = audio.play;
 		audio.play = function() {
 			if (audio.readyState == 4) {
 				audio.oldPlay();
 			} else {
-				setTimeout(audio.play, 32);
+				playTimeout = setTimeout(audio.play, 32);
 			}
 		};
+
+		audio.oldPause = audio.pause;
+		audio.pause = function() {
+			if (playTimeout) {
+				clearTimeout(playTimeout);	
+				playTimeout = undefined;
+			}
+
+			audio.oldPause();
+		}
 
 		// Hook into accessibility features.
 		GLOBAL.ACCESSIBILITY.subscribe('MuteChange', this, function () {
