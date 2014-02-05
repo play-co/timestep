@@ -333,8 +333,10 @@ var TextView = exports = Class(View, function (supr) {
 				}
 				if (shadowColor) {
 					var shadowOffset = this._opts.shadowWidth || 0;
+					var shadowOffsetX = this._opts.shadowDx || shadowOffset;
+					var shadowOffsetY = this._opts.shadowDy || shadowOffset;
 					ctx.fillStyle = shadowColor;
-					ctx.fillText(word, x + lineOffset + shadowOffset, y + lineOffset + shadowOffset, maxWidth);
+					ctx.fillText(word, x + lineOffset + shadowOffsetX, y + lineOffset + shadowOffsetY, maxWidth);
 				}
 
 				ctx.fillStyle = color;
