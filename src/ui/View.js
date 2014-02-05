@@ -173,6 +173,7 @@ var View = exports = Class(Emitter, function () {
 		}
 
 		this.style.update(opts);
+		this.__input.update(opts);
 
 		if (opts.superview) {
 			opts.superview.addSubview(this);

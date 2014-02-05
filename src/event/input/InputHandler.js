@@ -36,6 +36,10 @@ var InputHandler = exports = Class(function () {
 	this.init = function (view, opts) {
 		this.view = view;
 
+		this.update(opts);
+	}
+
+	this.update = function(opts) {
 		if ('canHandleEvents' in opts) {
 			this.canHandleEvents = opts.canHandleEvents;
 		}
