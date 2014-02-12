@@ -166,7 +166,7 @@ exports = Class(View, function (supr) {
 		bounceRadius: 50, // [number] or 'bounds'
 		drag: true,
 		inertia: true,
-		dragRadius: 10,
+		dragRadius: Math.min(device.width, device.height) / 32,
 		snapPixels: undefined,
 		useLayoutBounds: false,
 		layout: 'box'
