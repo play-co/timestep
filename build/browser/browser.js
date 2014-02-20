@@ -20,6 +20,7 @@ var wrench = require('wrench');
 var util = require('util');
 var mime = require('mime');
 
+var logger;
 var INITIAL_IMPORT = 'gc.browser.launchClient';
 
 // Static resources.
@@ -27,6 +28,11 @@ var STATIC_GA_JS = fs.readFileSync(path.join(__dirname, 'browser-static/ga.js'),
 var STATIC_BOOTSTRAP_CSS = path.join(__dirname, 'browser-static/bootstrap.css');
 var STATIC_BOOTSTRAP_JS = path.join(__dirname, 'browser-static/bootstrap.js');
 var STATIC_SPINNER_HTML = path.join(__dirname, 'browser-static/spinner.html');
+
+var argParser = require('optimist')(process.argv)
+	.alias('baseURL', 'u').describe('baseURL', 'all relative resources except for index should be loaded from this URL');
+
+var argv = argParser.argv;
 
 function merge(base, extra) {
 	base = base || {};
@@ -51,17 +57,25 @@ function extract(obj, keys) {
 	return ret;
 }
 
-var _builder;
-var _paths;
-var logger;
-exports.build = function (builder, project, subtarget, moreOpts, cb) {
-
-	var argParser = require('optimist')(process.argv)
-		.alias('baseURL', 'u').describe('baseURL', 'all relative resources except for index should be loaded from this URL')
-
-	var argv = argParser.argv;
-
+var _builder; // TODO hack, remove this
+exports.build = function (builder, project, subtarget, baseOpts, cb) {
 	var target = 'browser-' + subtarget;
+
+	var buildOpts = builder.packager.getBuildOpts(project, baseOpts, {
+		target: target,
+		subtarget: subtarget
+	});
+
+	exports.runBuild(builder, project, buildOpts, function (err, res) {
+		cb(err, {
+			buildOpts: buildOpts,
+			res: res
+		});
+	});
+};
+
+function mergeInBrowserOpts (project, buildOpts) {
+
 	var browserOpts = project.manifest.browser || {};
 
 	merge(browserOpts, {
@@ -73,81 +87,57 @@ exports.build = function (builder, project, subtarget, moreOpts, cb) {
 		embedSplash: true,
 		cache: [],
 		copy: [],
-		desktopBodyCSS: "",
+		desktopBodyCSS: '',
 
+		// html to insert
+		headHTML: [],
+		bodyHTML: [],
+		footerHTML: [],
+
+		// browser framing options
 		frame: merge(browserOpts.frame, {width: 320, height: 480}),
 		canvas: merge(browserOpts.canvas, {width: 320, height: 480}),
 		baseURL: argv.baseURL || ''
 	});
 
-	if (browserOpts.spinner) {
-		merge(browserOpts.spinner, {x: '50%', y: '50%', width: '120px', height: '120px', color0: 'rgba(255, 255, 255, 0.2)', color1: '#FFF'});
+	if (buildOpts.isSimulated) {
+		// native simulated builds should disable most of these flags
+		browserOpts.appleTouchIcon = false;
+		browserOpts.appleTouchStartupImage = false;
+		browserOpts.embedSplash = false;
+	} else {
+		if (browserOpts.spinner) {
+			// provide defaults for the browser splash screen spinner
+			merge(browserOpts.spinner, {x: '50%', y: '50%', width: '90px', height: '90px', color0: 'rgba(255, 255, 255, 0.2)', color1: '#FFF'});
 
-		// convert numbers to numbers with units
-		['width', 'height'].forEach(function (key) {
-			var match = browserOpts.spinner[key].match(/^-?[0-9.]+(.*)$/);
-			browserOpts.spinner[key] = {
-				value: parseFloat(browserOpts.spinner[key]),
-				unit: match && match[1] || 'px'
-			};
-		});
+			// convert numbers to numbers with units
+			['width', 'height'].forEach(function (key) {
+				var match = browserOpts.spinner[key].match(/^-?[0-9.]+(.*)$/);
+				browserOpts.spinner[key] = {
+					value: parseFloat(browserOpts.spinner[key]),
+					unit: match && match[1] || 'px'
+				};
+			});
+		}
 	}
 
-	var buildOpts = builder.packager.getBuildOptions({
-		appID: project.manifest.appID,
-		version: Date.now(),
-
-		fullPath: project.paths.root,
-		localBuildPath: path.relative(project.paths.root, moreOpts.buildPath),
-		output: moreOpts.buildPath,
-
-		debug: !!moreOpts.debug,
-		stage: !!moreOpts.stage,
-
-		isSimulated: moreOpts.isSimulated,
-		ip: moreOpts.ip,
-
-		servicesURL: moreOpts.servicesURL || '',
-
-		target: target,
-		subtarget: subtarget,
-
-		compress: moreOpts.compress
-	});
-
+	// copy specified browserOpts into buildOpts
 	merge(buildOpts, extract(browserOpts,
 		['appleTouchIcon', 'appleTouchStartupImage',
-			'embedSplash',
-			'spinner',
-			'cache', 'copy',
-			'frame', 'canvas', 'desktopBodyCSS', 'bootstrapCSS',
-			'baseURL'
-			]));
+			'embedSplash', 'cache', 'copy', 'desktopBodyCSS',
+			'headHTML', 'bodyHTML', 'footerHTML',
+			'frame', 'canvas', 'baseURL',
 
-	exports.runBuild(builder, project, buildOpts, function (err, res) {
-		cb(err, {
-			buildOpts: buildOpts,
-			res: res
-		});
-	});
-};
+			'spinner',
+			'bootstrapCSS',
+		]));
+}
 
 exports.runBuild = function (builder, project, buildOpts, cb) {
 	_builder = builder;
 	logger = new _builder.common.Formatter('build-browser');
 
-	// The following build opts are used for normal builds, but also simulated
-	// native builds that require an html file so we can't add them in the
-	// exports.build function
-
-	// html to insert
-	buildOpts.headHTML = [];
-	buildOpts.bodyHTML = [];
-	buildOpts.footerHTML = [];
-
-	if (buildOpts.debug) {
-		buildOpts.version = Date.now() + '&' + Math.random();
-	}
+	mergeInBrowserOpts(project, buildOpts);
 
 	var f = ff(function () {
 		// Exclude jsio in browser builds (we include it separately)
@@ -454,9 +444,16 @@ function generateGameHTML (opts, project, target, imgCache, js, css) {
 
 	html.push(
 		'</body>',
+		'<script>', js, '</script>',
+
+		// load after config object
 		opts.footerHTML.join('\n') || '',
-		'<script>IMG_CACHE=' + JSON.stringify(imgCache) + ';' + js + '</script>',
-		'<script>window.addEventListener("load", function(event) { if (/Kik/.test(navigator.userAgent) && /Android/.test(navigator.userAgent)) { var el = document.getElementById("_GCSplash"); var w = window.innerWidth; el.style.width = w + "px"; var h = window.innerHeight; el.style.height = h + "px"; } }, false);</script>',
+		'<script>',
+		'IMG_CACHE=' + JSON.stringify(imgCache) + ';',
+
+		// fix old android sizing bugs
+		'window.addEventListener("load", function(event) { if (/Kik/.test(navigator.userAgent) && /Android/.test(navigator.userAgent)) { var el = document.getElementById("_GCSplash"); var w = window.innerWidth; el.style.width = w + "px"; var h = window.innerHeight; el.style.height = h + "px"; } }, false);',
+		'</script>',
 		'</html>'
 	);
 

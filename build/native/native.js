@@ -50,45 +50,27 @@ var installAddons = function(builder, project, next) {
 }
 
 // takes a project, subtarget(android/ios), additional opts.
-exports.build = function (build, project, subtarget, moreOpts, cb) {
+exports.build = function (build, project, subtarget, baseOpts, cb) {
 	var target = 'native-' + subtarget;
 
 	logger = new build.common.Formatter('build-native');
 
-	// Get domain from manifest under studio.domain
-	var studio = project.manifest.studio;
-	var domain = studio ? studio.domain : null;
-	domain = domain || "gameclosure.com";
-
 	//define a bunch of build options
-	var opts = build.packager.getBuildOptions({
-		appID: project.manifest.appID,
+	var opts = build.packager.getBuildOpts(project, baseOpts, {
 
-		output: moreOpts.buildPath, // path is overriden by native if not the test app or simulate
-		fullPath: project.paths.root, // path
-		localBuildPath: path.relative(project.paths.root, moreOpts.buildPath),
-
-		debug: moreOpts.debug,
-		servicesURL: moreOpts.servicesURL,
-
-		isSimulated: !!moreOpts.isSimulated,
-		isTestApp: !!moreOpts.isTestApp,
 		noRedirect: false,
-		compress: moreOpts.compress,
 		noPrompt: true,
 
-		// Build process.
+		// build process.
 		packageName: '',
-		studio: domain,
-		version: project.manifest.version,
 		metadata: null,
 
-		template: moreOpts.template,
+		template: baseOpts.template,
 
 		target: target,
 		subtarget: subtarget,
 	});
-	
+
 	// doesn't build ios - builds the js that it would use, then you shim out NATIVE
 	if (opts.isTestApp) {
 		installAddons(build, project, function() {
@@ -124,7 +106,7 @@ function wrapNativeJS (build, project, opts, target, resources, code, cb) {
 		if (!fs.existsSync(info.fullPath)) {
 			return;
 		}
-		
+
 		var ext = path.extname(info.fullPath).substr(1);
 		if (ext == "js") {
 			var contents = fs.readFileSync(info.fullPath, 'utf-8');
@@ -141,7 +123,7 @@ function wrapNativeJS (build, project, opts, target, resources, code, cb) {
 			}
 		}
 	});
-	
+
 
 	build.packager.getJSConfig(project, opts, target, function(jsConfig) {
 		cb([jsConfig,
@@ -206,7 +188,7 @@ exports.writeNativeResources = function (build, project, opts, next) {
 		for (var ii = 0; ii < renameList.length; ++ii) {
 			var key = renameList[ii];
 			var mutatedKey = key.substr(0, key.length - 4) + ".mp3";
-			
+
 			keys[mutatedKey] = keys[key];
 			keys[key] = undefined;
 		}
@@ -259,7 +241,7 @@ exports.writeNativeResources = function (build, project, opts, next) {
 		};
 
 		logger.log('writing files to', opts.output);
-		
+
 		var list = {};
 
 		var keys = Object.keys(cache);
