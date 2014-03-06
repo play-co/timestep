@@ -104,21 +104,21 @@ function mergeInBrowserOpts (project, buildOpts) {
 		// native simulated builds should disable most of these flags
 		browserOpts.appleTouchIcon = false;
 		browserOpts.appleTouchStartupImage = false;
-		browserOpts.embedSplash = false;
-	} else {
-		if (browserOpts.spinner) {
-			// provide defaults for the browser splash screen spinner
-			merge(browserOpts.spinner, {x: '50%', y: '50%', width: '90px', height: '90px', color0: 'rgba(255, 255, 255, 0.2)', color1: '#FFF'});
+		browserOpts.embedSplash = true;
+	}
 
-			// convert numbers to numbers with units
-			['width', 'height'].forEach(function (key) {
-				var match = browserOpts.spinner[key].match(/^-?[0-9.]+(.*)$/);
-				browserOpts.spinner[key] = {
-					value: parseFloat(browserOpts.spinner[key]),
-					unit: match && match[1] || 'px'
-				};
-			});
-		}
+	if (browserOpts.spinner) {
+		// provide defaults for the browser splash screen spinner
+		merge(browserOpts.spinner, {x: '50%', y: '50%', width: '90px', height: '90px', color0: 'rgba(255, 255, 255, 0.2)', color1: '#FFF'});
+
+		// convert numbers to numbers with units
+		['width', 'height'].forEach(function (key) {
+			var match = browserOpts.spinner[key].match(/^-?[0-9.]+(.*)$/);
+			browserOpts.spinner[key] = {
+				value: parseFloat(browserOpts.spinner[key]),
+			unit: match && match[1] || 'px'
+			};
+		});
 	}
 
 	// copy specified browserOpts into buildOpts

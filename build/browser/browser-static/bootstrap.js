@@ -236,7 +236,7 @@ function bootstrap(initialImport, target) {
 			var splash = d.getElementById('_GCSplash');
 			if (splash && splash.parentNode) {
 				try { appCache.swapCache(); } catch (e) {}
-				location.reload();
+				//location.reload();
 			}
 		}
 	}
