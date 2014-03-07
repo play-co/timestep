@@ -308,10 +308,6 @@ var TextView = exports = Class(View, function (supr) {
 
 		this._updateCtx(ctx);
 
-		if (strokeColor) {
-			ctx.strokeStyle = strokeColor;
-		}
-
 		while (i) {
 			item = words[--i];
 			word = item.word;
@@ -328,15 +324,33 @@ var TextView = exports = Class(View, function (supr) {
 				}
 
 			} else {
-				if (strokeColor) {
-					ctx.strokeText(word, x + lineOffset, y + lineOffset, maxWidth);
-				}
 				if (shadowColor) {
-					var shadowOffset = this._opts.shadowWidth || 0;
-					var shadowOffsetX = this._opts.shadowDx || shadowOffset;
-					var shadowOffsetY = this._opts.shadowDy || shadowOffset;
-					ctx.fillStyle = shadowColor;
-					ctx.fillText(word, x + lineOffset + shadowOffsetX, y + lineOffset + shadowOffsetY, maxWidth);
+					var shadowOffsetX = this._opts.shadowWidth || 0;
+					var shadowOffsetY = this._opts.shadowWidth || 0;
+					if ('shadowDx' in this._opts || 'shadowDy' in this._opts) {
+						var shadowOffsetX = this._opts.shadowDx | 0;
+						var shadowOffsetY = this._opts.shadowDy | 0;
+					}
+					var hasShadowOpacity = 'shadowOpacity' in this._opts;
+					var oldOpacity = ctx.globalAlpha;
+					if (hasShadowOpacity) {
+						ctx.globalAlpha = this._opts.shadowOpacity;
+					}
+					if (strokeColor) {
+						ctx.strokeStyle = shadowColor;
+						ctx.strokeText(word, x + lineOffset + shadowOffsetX, y + lineOffset + shadowOffsetY, maxWidth);
+					} else {
+						ctx.fillStyle = shadowColor;
+						ctx.fillText(word, x + lineOffset + shadowOffsetX, y + lineOffset + shadowOffsetY, maxWidth);
+					}
+					if (hasShadowOpacity) {
+						ctx.globalAlpha = oldOpacity;
+					}
+				}
+
+				if (strokeColor) {
+					ctx.strokeStyle = strokeColor;
+					ctx.strokeText(word, x + lineOffset, y + lineOffset, maxWidth);
 				}
 
 				ctx.fillStyle = color;
