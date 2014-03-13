@@ -334,7 +334,7 @@ var TextView = exports = Class(View, function (supr) {
 					var hasShadowOpacity = 'shadowOpacity' in this._opts;
 					var oldOpacity = ctx.globalAlpha;
 					if (hasShadowOpacity) {
-						ctx.globalAlpha = this._opts.shadowOpacity;
+						ctx.globalAlpha *= this._opts.shadowOpacity;
 					}
 					if (strokeColor) {
 						ctx.strokeStyle = shadowColor;
