@@ -111,7 +111,9 @@ function bootstrap(initialImport, target) {
 		Image.get = function(url) { return CACHE[url]; };
 	}
 
-	var canHideAddressBar = !(iosVersion && iosVersion >= 7) && !isKik && mobile;
+	// TODO: Remove this automatic false. Kik does not always show up in the user agent so
+	//       default to not being able to hide the progress bar for now
+	var canHideAddressBar = false && !(iosVersion && iosVersion >= 7) && !isKik && mobile;
 
 	w.hideAddressBar = function() {
 		if (!mobile || !canHideAddressBar) { return; }
