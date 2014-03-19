@@ -31,7 +31,7 @@ exports = Class(TextView, function (supr) {
 
 	var defaults = {
 		prompt: '',
-		autoShowKeyboard: false,
+		autoShowKeyboard: true,
 		isPassword: false
 	};
 
