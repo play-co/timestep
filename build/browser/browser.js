@@ -424,7 +424,7 @@ function generateGameHTML (opts, project, target, imgCache, js, css) {
 	);
 
 	if (opts.embedSplash && browserSplash) {
-		html.push('<div id="_GCSplash" style="-webkit-transition:opacity 1s;position:absolute;top:0px;left:0px;width:100%;height:100%;z-index:1;background:#000 url(\'' + getBase64Image(browserSplash) + '\') no-repeat;background-size:cover">');
+		html.push('<div id="_GCSplash" style="-webkit-transition:opacity 0.3s;position:absolute;top:0px;left:0px;width:100%;height:100%;z-index:1;background:#000 url(\'' + getBase64Image(browserSplash) + '\') no-repeat;background-size:cover">');
 		if (opts.spinner) {
 			html.push(
 				fs.readFileSync(STATIC_SPINNER_HTML, 'utf8')
