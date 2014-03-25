@@ -158,6 +158,10 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		}
 
 		try {
+			if (this._view._opts.compositeOperation) {
+				ctx.globalCompositeOperation = this._view._opts.compositeOperation;
+			}
+
 			if (this.backgroundColor) {
 				ctx.fillStyle = this.backgroundColor;
 				ctx.fillRect(0, 0, width, height);
@@ -167,7 +171,6 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 			this._view.render && this._view.render(ctx, opts);
 			this._renderSubviews(ctx, opts);
 			opts.viewport = viewport;
-
 		} finally {
 			ctx.clearFilters();
 			ctx.restore();
