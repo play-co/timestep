@@ -195,6 +195,11 @@ exports = GridView = Class(View, function (supr) {
 		}
 	};
 
+	this.addSubview = function (view) {
+		supr(this, "addSubview", [view]);
+		this.needsReflow();
+	};
+
 	this.getRows = function () {
 		return this._rows;
 	};
