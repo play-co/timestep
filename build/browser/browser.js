@@ -361,8 +361,7 @@ function generateGameHTML (opts, project, target, imgCache, js, css) {
 
 	// Check if there is a manifest.
 	html.push('<!DOCTYPE html>');
-
-	if (opts.debug) {
+	if (opts.debug || opts.isSimulated) {
 		html.push('<html>');
 	} else {
 		html.push('<html manifest="' + opts.target + '.manifest">');
