@@ -228,6 +228,12 @@ exports = Class(View, function(supr) {
 		while (this.activeParticleObjects.length) {
 			this._killParticle(0);
 		}
+
+		this.canvX = 0;
+		this.canvY = 0;
+		this.canvW = 1;
+		this.canvH = 1;
+		this.canvas.getContext("2D").clear();
 	};
 
 	this.runTick = function(dt) {
