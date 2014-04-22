@@ -133,7 +133,7 @@ exports = Class(lib.PubSub, function () {
 		this._srcImg = img;
 
 		if (img instanceof HTMLCanvasElement) {
-			this._onLoad(false); // no error
+			this._onLoad(false, img); // no error
 		} else {
 			// if it's already loaded, we call _onLoad immediately. Note that
 			// we don't use `.complete` here intentionally since web browsers
@@ -152,7 +152,9 @@ exports = Class(lib.PubSub, function () {
 				}
 			}
 
-			img.__cb.run(this, '_onLoad');
+			img.__cb.run(this, function (err) {
+				this._onLoad(err, img);
+			});
 		}
 	};
 
@@ -270,7 +272,14 @@ exports = Class(lib.PubSub, function () {
 	this.doOnLoad = function () { this._cb.forward(arguments); return this; };
 
 	// internal onload handler for actual Image object
-	this._onLoad = function (err) {
+	// img is the internal image that triggered the _onLoad callback
+	this._onLoad = function (err, img) {
+		// if our source image has changed we should ignore this onload callback
+		// this can happen if _setSrcImg is called multiple times with different urls/images
+		if (img && img != this._srcImg) {
+			return;
+		}
+
 		if (err) {
 			// TODO: something better?
 			logger.error('Image failed to load:', this._map.url);
@@ -278,6 +287,8 @@ exports = Class(lib.PubSub, function () {
 			this._cb.fire({NoImage: true});
 			return;
 		}
+
+		this._isError = false;
 
 		if (this._srcImg.width == 0) { logger.warn('Image has no width', this._url); }
 
