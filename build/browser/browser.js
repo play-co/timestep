@@ -62,7 +62,12 @@ exports.build = function (builder, project, subtarget, moreOpts, cb) {
 	var argv = argParser.argv;
 
 	var target = 'browser-' + subtarget;
-	var browserOpts = project.manifest.browser || {};
+	var browserOpts = project.manifest.browser || {},
+		defaultSize = {width: 320, height: 480};
+
+	if(subtarget === 'desktop') {
+		defaultSize = {width: 800, height: 600};
+	}
 
 	merge(browserOpts, {
 		// include a base64-inline image for the apple-touch-icon meta tag (if webpage is saved to homescreen)
@@ -75,8 +80,8 @@ exports.build = function (builder, project, subtarget, moreOpts, cb) {
 		copy: [],
 		desktopBodyCSS: "",
 
-		frame: merge(browserOpts.frame, {width: 320, height: 480}),
-		canvas: merge(browserOpts.canvas, {width: 320, height: 480}),
+		frame: merge(browserOpts.frame, defaultSize),
+		canvas: merge(browserOpts.canvas, defaultSize),
 		baseURL: argv.baseURL || ''
 	});
 
