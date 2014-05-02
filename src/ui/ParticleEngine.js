@@ -460,6 +460,13 @@ exports = Class(View, function (supr) {
 			data = particle.pData;
 			s = particle.style;
 
+			// failsafe for a heisenbug that arises from mis-use of the engine
+			if (!data) {
+				// zombie particles must die
+				this._killParticle(particle, data, i);
+				continue;
+			}
+
 			// handle particle delays
 			if (data.delay > 0) {
 				data.delay -= dt;
