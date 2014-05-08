@@ -42,6 +42,8 @@ exports = Class(ui.View, function (supr) {
 	};
 
 	this.updateSlices = function (opts) {
+		opts = opts || this._opts;
+
 		// reset slice cache
 		this._renderCacheKey = {};
 		this._sliceCache = [];
@@ -124,33 +126,30 @@ exports = Class(ui.View, function (supr) {
 	};
 
 	this.updateOpts = function (opts) {
-		opts = merge(supr(this, 'updateOpts', arguments), this._opts);
-
-		if (opts.scaleMethod) {
-			if (this._scaleMethod != opts.scaleMethod) {
-				var key = opts.scaleMethod;
-				if (/slice$/.test(key)) {
-					key = 'slice';
-				}
-
-				this.render = renderFunctions[key];
-				this._renderCacheKey = {};
-				this._scaleMethod = opts.scaleMethod;
-				this._isSlice = this._scaleMethod.slice(1) == 'slice';
+		var opts = supr(this, 'updateOpts', arguments);
+		var changeScaleMethod = opts.scaleMethod && this._scaleMethod != opts.scaleMethod;
+		if (changeScaleMethod) {
+			var key = opts.scaleMethod;
+			if (/slice$/.test(key)) {
+				key = 'slice';
 			}
+
+			this.render = renderFunctions[key];
+			this._renderCacheKey = {};
+			this._scaleMethod = opts.scaleMethod;
+			this._isSlice = this._scaleMethod.slice(1) == 'slice';
 		}
 
 		if ('debug' in opts) {
 			this.debug = !!opts.debug;
 		}
 
-		if (this._isSlice && this._img) {
-			this.updateSlices(opts);
+		if (opts.image) {
+			this.setImage(opts.image);
+		} else if (changeScaleMethod && this._isSlice && this._img) {
+			this.updateSlices();
 		}
 
-		if (opts.image) {
-			this.setImage(opts.image, opts);
-		}
 		if (opts.verticalAlign) {
 			this._renderCacheKey = {};
 			this._verticalAlign = opts.verticalAlign;
@@ -317,11 +316,11 @@ exports = Class(ui.View, function (supr) {
 		return this._img;
 	};
 
-	this.setImage = function (img, opts) {
+	this.setImage = function (img) {
 		this._renderCacheKey = {};
 		var autoSized = false;
 		var sw, sh, iw, ih, bounds;
-		opts = merge(opts, this._opts);
+		var opts = this._opts;
 
 		if (typeof img == 'string') {
 			bounds = GCResources.getMap()[img];
@@ -342,7 +341,7 @@ exports = Class(ui.View, function (supr) {
 
 			if (img) {
 				if (!img.isError()) {
-					img.doOnLoad(this, 'setImage', img, opts);
+					img.doOnLoad(this, 'setImage', img);
 				}
 				return;
 			}
@@ -362,11 +361,7 @@ exports = Class(ui.View, function (supr) {
 
 		if (this._img) {
 			if (this._isSlice) {
-				this.updateSlices({
-					scaleMethod: this._opts.scaleMethod,
-					sourceSlices: this._opts.sourceSlices,
-					destSlices: this._opts.destSlices
-				});
+				this.updateSlices();
 
 				var sourceSlicesHor = this._sourceSlicesHor;
 				var sourceSlicesVer = this._sourceSlicesVer;
