@@ -301,7 +301,7 @@ exports = Class(View, function (supr) {
 		//threshold for which if the current bounce radius minus the current
 		//bounced amount is under, the bounce will be ended
 		var BOUNCE_THRESHOLD = 1;
-		if (typeof x == 'number') {
+		if (typeof x == 'number' && this._opts.scrollX !== false) {
 			if (this._isBouncing) {
 				// do nothing
 			} else if (this._canBounce) {
@@ -333,7 +333,7 @@ exports = Class(View, function (supr) {
 			}
 		}
 
-		if (typeof y == 'number') {
+		if (typeof y == 'number' && this._opts.scrollY !== false) {
 			if (this._isBouncing) {
 				// do nothing
 			} else if (this._canBounce) {
