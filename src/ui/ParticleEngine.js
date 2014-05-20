@@ -78,6 +78,7 @@ exports = Class(View, function (supr) {
 		ddtheta: 0,
 		ddradius: 0,
 		elapsed: 0,
+		compositeOp: "",
 		transition: TRANSITION_LINEAR,
 		onStart: null,
 		onDeath: null,
@@ -177,6 +178,7 @@ exports = Class(View, function (supr) {
 					ddtheta: 0,
 					ddradius: 0,
 					elapsed: 0,
+					compositeOp: "",
 					transition: TRANSITION_LINEAR,
 					onStart: null,
 					onDeath: null,
@@ -242,6 +244,7 @@ exports = Class(View, function (supr) {
 					ddtheta: 0,
 					ddradius: 0,
 					elapsed: 0,
+					compositeOp: "",
 					transition: TRANSITION_LINEAR,
 					onStart: null,
 					onDeath: null,
@@ -393,6 +396,7 @@ exports = Class(View, function (supr) {
 				data.onStart && data.onStart(particle);
 			}
 
+			particle.style.compositeOperation = data.compositeOp;
 			particle.pData = data;
 			active.push(particle);
 		}
@@ -519,8 +523,8 @@ exports = Class(View, function (supr) {
 			} else {
 				// cartesian by default
 				var dx = data.dx, dy = data.dy, ddx = data.ddx, ddy = data.ddy;
-				if (dx) { data.x = s.x += pct * dx; }
-				if (dy) { data.y = s.y += pct * dy; }
+				data.x = s.x = data.x + pct * dx;
+				data.y = s.y = data.y + pct * dy;
 				if (ddx) { data.dx += pct * ddx; }
 				if (ddy) { data.dy += pct * ddy; }
 			}
