@@ -38,6 +38,8 @@ exports = Class(View, function (supr) {
 
 	// all particle objects obtained from this class are initialized with these properties
 	var particleDefaults = {
+		flipX: false,
+		flipY: false,
 		x: 0,
 		y: 0,
 		r: 0,
@@ -138,6 +140,8 @@ exports = Class(View, function (supr) {
 				// initialize particle objects with default properties
 				// duplicate of default properties for optimal performance
 				this.freeParticleObjects.push({
+					flipX: false,
+					flipY: false,
 					x: 0,
 					y: 0,
 					r: 0,
@@ -204,6 +208,8 @@ exports = Class(View, function (supr) {
 			} else {
 				// duplicate of default properties for optimal performance
 				obj = {
+					flipX: false,
+					flipY: false,
 					x: 0,
 					y: 0,
 					r: 0,
@@ -282,7 +288,9 @@ exports = Class(View, function (supr) {
 		data.external = true;
 		for (var index in data.triggers) {
 			var trig = data.triggers[index];
-			trig.isStyle = trig.property.charAt(0) !== 'd';
+			trig.isStyle = trig.isStyle !== undefined
+				? trig.isStyle
+				: trig.property.charAt(0) !== 'd';
 		}
 
 		// automatically interrupt any animation currently in progress
@@ -339,7 +347,9 @@ exports = Class(View, function (supr) {
 
 			for (var index in data.triggers) {
 				var trig = data.triggers[index];
-				trig.isStyle = trig.property.charAt(0) !== 'd';
+				trig.isStyle = trig.isStyle !== undefined
+					? trig.isStyle
+					: trig.property.charAt(0) !== 'd';
 			}
 
 			// use free particles if we have any
@@ -389,6 +399,7 @@ exports = Class(View, function (supr) {
 					inLayout: false
 				});
 				particle.needsReflow = function () {};
+				s = particle.style;
 			}
 
 			if (!data.delay) {
@@ -396,7 +407,10 @@ exports = Class(View, function (supr) {
 				data.onStart && data.onStart(particle);
 			}
 
-			particle.style.compositeOperation = data.compositeOp;
+			// apply one-time properties
+			s.flipX = data.flipX;
+			s.flipY = data.flipY;
+			s.compositeOperation = data.compositeOp;
 			particle.pData = data;
 			active.push(particle);
 		}
