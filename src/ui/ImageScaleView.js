@@ -318,6 +318,10 @@ exports = Class(ui.View, function (supr) {
 
 	this.setImage = function (img) {
 		this._renderCacheKey = {};
+		if(this._imgUrlChangeListener) {
+			this._img.removeListener(this._imgUrlChangeListener);
+			this._imgUrlChangeListener = null;
+		}
 		var autoSized = false;
 		var sw, sh, iw, ih, bounds;
 		var opts = this._opts;
@@ -396,6 +400,8 @@ exports = Class(ui.View, function (supr) {
 			}
 
 			this._img.doOnLoad(this, 'needsRepaint');
+			this._imgUrlChangeListener =
+				this._img.on('urlChanged', bind(this, 'setImage', this._img));
 		}
 	};
 
