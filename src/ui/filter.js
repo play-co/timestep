@@ -44,7 +44,7 @@ var Filter = exports.Filter = Class(function () {
 	};
 
 	this.init = function (opts) {
-		this._opts = merge(opts, defaults);
+		this._opts = merge(merge({}, opts), defaults);
 		this._views = [];
 	};
 
@@ -57,11 +57,8 @@ var Filter = exports.Filter = Class(function () {
 	};
 
 	this.update = function (opts) {
-		opts = opts || {};
 		for (var prop in opts) {
-			if (typeof this._opts[prop] != 'undefined') {
-				this._opts[prop] = opts[prop];
-			}
+			this._opts[prop] = opts[prop];
 		}
 		for (var i = 0; i < this._views.length; i++) {
 			var view = this._views[i];
@@ -101,12 +98,8 @@ Filter.TYPES = {
 
 exports.LinearAddFilter = Class(Filter, function (supr) {
 	this.init = function (opts) {
-		supr(this,'init',arguments);
+		supr(this, 'init', arguments);
 		this._opts.type = 'LinearAdd';
-	};
-
-	this.get = function () {
-		return this._opts;
 	};
 });
 
@@ -119,10 +112,6 @@ exports.TintFilter = Class(Filter, function (supr) {
 		supr(this, 'init', arguments);
 		this._opts.type = 'Tint';
 	};
-
-	this.get = function () {
-		return this._opts;
-	};
 });
 
 /**
@@ -133,10 +122,6 @@ exports.MultiplyFilter = Class(Filter, function (supr) {
 	this.init = function (opts) {
 		supr(this, 'init', arguments);
 		this._opts.type = 'Multiply';
-	};
-
-	this.get = function () {
-		return this._opts;
 	};
 });
 
@@ -152,10 +137,6 @@ exports.PositiveMaskFilter = Class(Filter, function (supr) {
 			this._opts.imgObject = new Image({url: this._opts.image});
 		}
 	};
-
-	this.get = function () {
-		return this._opts;
-	};
 });
 
 /**
@@ -170,8 +151,4 @@ exports.NegativeMaskFilter = Class(Filter, function (supr) {
 			this._opts.imgObject = new Image({url: this._opts.image});
 		}
 	};
-
-	this.get = function () {
-		return this._opts;
-	}
 });
