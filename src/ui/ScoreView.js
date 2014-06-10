@@ -24,8 +24,11 @@
 import ui.View as View;
 import ui.ImageView as ImageView;
 import ui.resource.Image as Image;
+import ui.filter as filter;
 
-var REFLOW_WAIT_MAX_COUNT = 2;
+var min = Math.min;
+var max = Math.max;
+
 exports = Class(View, function(supr) {
 
 	this.init = function(opts) {
@@ -35,11 +38,11 @@ exports = Class(View, function(supr) {
 		// characters that should be rendered
 		this._activeCharacters = [];
 		this._imageViews = [];
+		this._filterColor = opts.filterColor || null;
 
 		// container view for characters
 		this._container = new View({
 			superview: this,
-			layout: opts.layout && 'box',
 			width: opts.width,
 			height: opts.height,
 			canHandleEvents: false
@@ -49,62 +52,44 @@ exports = Class(View, function(supr) {
 		this._horizontalAlign = opts.horizontalAlign || opts.textAlign || 'center';
 		this._verticalAlign = opts.verticalAlign || 'middle';
 		this._spacing = opts.spacing || 0;
-		this._reflowWaitCount = 0;
 		this._text = opts.text;
 		opts.characterData && this.setCharacterData(opts.characterData);
 	};
 
 	this.setCharacterData = function(data) {
-		this._srcHeight = undefined;
 		this._characterData = data;
-
 		for (var i in data) {
 			var d = data[i];
 			d.img = new Image({ url: d.image });
-
 			var map = d.img.getMap();
-			d.width = d.width || (map.width + map.marginLeft + map.marginRight);
-			this._srcHeight = this._srcHeight || (map.height + map.marginTop + map.marginBottom);
+			d.width = d.width || map.width + map.marginLeft + map.marginRight;
+			this._srcHeight = map.height + map.marginTop + map.marginBottom;
 		}
-
 		if (this._text) {
 			this.setText(this._text);
 		}
 	};
 
-	this.refresh = function() {
-		setTimeout(bind(this, 'setText', this._text), 0);
-	};
-
 	this.setText = function(text) {
-		this._text = text = (text === undefined) ? '' : (text + '');
+		this._text = text = "" + text;
 
-		var size = this.getBoundingShape(true),
-			width = size.width, height = size.height;
-		if (this._opts.layout && (!width || !height) && this._reflowWaitCount < REFLOW_WAIT_MAX_COUNT) {
-			this._reflowWaitCount += 1;
-			return setTimeout(bind(this, 'setText', text), 0);
-		}
-		this._reflowWaitCount = 0;
+		var width = this.style.width;
+		var height = this.style.height;
+		var textWidth = 0;
+		var offsetX = 0;
+		var offsetY = 0;
+		var scale = height / this._srcHeight;
+		var spacing = this._spacing * scale;
 
-		var textWidth = 0, offsetX = 0, offsetY = 0,
-			scale = height / this._srcHeight,
-			spacing = this._spacing * scale,
-			i = 0, c = 0, data, character;
-
+		var i = 0;
 		while (i < text.length) {
-			character = text.charAt(i);
-			data = this._characterData[character];
+			var character = text.charAt(i);
+			var data = this._characterData[character];
 			if (data) {
-				this._activeCharacters[c] = data;
+				this._activeCharacters[i] = data;
 				textWidth += data.width * scale + spacing;
-				// special x offsets to fix text kerning only affect text width if it's first or last char
-				if (data.offset && (i == 0 || i == text.length - 1)) {
-					textWidth += data.offset * scale;
-				}
-				c++;
 			} else {
-				logger.log('WARNING! Calling ScoreView.setText with unavailable character: ' + character);
+				logger.warn('WARNING! ScoreView.setText, no data for: ' + character);
 			}
 			i++;
 		}
@@ -115,62 +100,48 @@ exports = Class(View, function(supr) {
 			this._container.style.scale = 1;
 		}
 
-		if (this._horizontalAlign == 'center') {
+		if (this._horizontalAlign === 'center') {
 			offsetX = (width - textWidth) / 2;
-		} else if (this._horizontalAlign == 'right') {
+		} else if (this._horizontalAlign === 'right') {
 			offsetX = width - textWidth;
 		}
-		offsetX = Math.max(0, offsetX * this._container.style.scale);
+		offsetX = max(0, offsetX * this._container.style.scale);
 
 		var scaledHeight = height * this._container.style.scale;
-		if (this._verticalAlign == 'middle') {
+		if (this._verticalAlign === 'middle') {
 			offsetY = (height - scaledHeight) / 2;
-		} else if (this._verticalAlign == 'bottom') {
+		} else if (this._verticalAlign === 'bottom') {
 			offsetY = height - scaledHeight;
 		}
-		offsetY = Math.max(0, offsetY / this._container.style.scale);
+		offsetY = max(0, offsetY / this._container.style.scale);
 
 		while (text.length > this._imageViews.length) {
-			var newView = new ImageView({
-				superview: this._container,
-				x: 0,
-				y: 0,
-				width: 1,
-				height: 1,
-				canHandleEvents: false,
-				inLayout: false
-			});
-			newView.needsReflow = function() {};
+			var newView = new ImageView({ superview: this._container });
 			this._imageViews.push(newView);
 		}
 
 		// trim excess characters
-		this._activeCharacters.length = c;
+		this._activeCharacters.length = text.length;
 
-		var x = offsetX, y = offsetY;
-		for (i = 0; i < this._activeCharacters.length; i++) {
+		var fc = this._filterColor;
+		var fcHash = this._getColorHash(fc);
+		for (var i = 0; i < this._activeCharacters.length; i++) {
 			var data = this._activeCharacters[i];
 			var view = this._imageViews[i];
+			var s = view.style;
 			var w = data.width * scale;
 
-			// special x offsets to fix text kerning
-			if (data.offset) {
-				x += data.offset * scale;
-			}
-
-			view.style.x = x;
-			view.style.y = y;
-			view.style.width = w;
-			view.style.height = height; // all characters should have the same height
-			view.style.visible = true;
+			s.x = offsetX;
+			s.y = offsetY;
+			s.width = w;
+			s.height = height; // all characters should have the same height
+			s.visible = true;
 			view.setImage(data.img);
 
-			// remove special offset
-			if (data.offset) {
-				x -= data.offset * scale;
-			}
+			// update color filters
+			this._updateFilter(view, fc, fcHash);
 
-			x += w + spacing;
+			offsetX += w + spacing;
 		}
 
 		while (i < this._imageViews.length) {
@@ -179,5 +150,42 @@ exports = Class(View, function(supr) {
 		}
 	};
 
-	this.needsReflow = function() {};
+	this.setFilterColor = function(color) {
+		this._filterColor = color;
+		this._updateFilters();
+	};
+
+	this._updateFilters = function() {
+		var fc = this._filterColor;
+		var fcHash = this._getColorHash(fc);
+		for (var i = 0, len = this._activeCharacters.length; i < len; i++) {
+			this._updateFilter(this._imageViews[i], fc, fcHash);
+		}
+	};
+
+	this._updateFilter = function(view, color, hash) {
+		if (color) {
+			if (!view.colorFilter) {
+				view.colorFilter = new filter.MultiplyFilter(color);
+				view.setFilter(view.colorFilter);
+				view.lastColorHash = hash;
+			} else if (view.lastColorHash !== hash) {
+				view.colorFilter.update(color);
+				view.lastColorHash = hash;
+			}
+		} else if (view.colorFilter) {
+			view.colorFilter = null;
+			view.removeFilter();
+			view.lastColorHash = 0;
+		}
+	};
+
+	this._getColorHash = function(color) {
+		var hash = 0;
+		if (color) {
+			hash = 1000 * color.r + color.g + 0.001 * color.b + 0.0001 * color.a;
+		}
+		return hash;
+	};
+
 });
