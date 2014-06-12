@@ -38,22 +38,23 @@ var MIME = {
 var Loader = Class(function () {
 	this._map = {};
 
-	this.getMap = function () { return this._map; }
-	this.setMap = function (map) { 
+	this.getMap = function () { return this._map; };
+	this.setMap = function (map) {
 		var localizedMap = {};
 		// For any resource staring with resource-local/ change the path to be resources/
 		// This allows localized resources to be loaded the same way for all languages
 		var language = navigator.language && navigator.language.split('-')[0].toLowerCase() || 'en';
-		var localResources = 'resources-' + language;
-		var shortLocalResources = 'resources-' + language.split('_')[0];
+		var region = navigator.language && navigator.language.split('-')[1] || '';
+		var localResources = 'resources-' + language + '-' + region;
+		var shortLocalResources = 'resources-' + language;
 		for (var key in map) {
 			var localLoc = key.indexOf(localResources);
 			var shortLocalLoc = key.indexOf(shortLocalResources);
 			// Favor an exact match of the local and then try to match the short local
-			if (localLoc == 0) {
+			if (localLoc === 0) {
 				var modifiedPath = 'resources' + key.substring(localResources.length);
 				localizedMap[modifiedPath] = map[key];
-			} else if (shortLocalLoc == 0) {
+			} else if (shortLocalLoc === 0) {
 				var modifiedPath = 'resources' + key.substring(shortLocalResources.length);
 				localizedMap[modifiedPath] = map[key];
 			}else {
@@ -61,13 +62,13 @@ var Loader = Class(function () {
 			}
 		}
 		this._map = localizedMap; 
-	}
-	
+	};
+
 	// TODO: rename this function...
 	this.get = function (file) {
 		return 'resources/images/' + file;
-	}
-	
+	};
+
 	/**
 	 * Preload a given resource or array of resources.
 	 * You can specify a folder name, or even a partial filename,
@@ -150,7 +151,7 @@ var Loader = Class(function () {
 			//HACK to make the preloader continue in the browser
 			return { complete: true };
 		}
-	}
+	};
 
 	this.getImagePaths = function (prefix) {
 		prefix = prefix.replace(/^\//, ''); // remove leading slash
@@ -162,7 +163,7 @@ var Loader = Class(function () {
 			}
 		}
 		return images;
-	}
+	};
 
 	this.getImage = function (src, noWarn) {
 		// create the image
@@ -185,7 +186,7 @@ var Loader = Class(function () {
 		}
 
 		return img;
-	}
+	};
 
 	/** 
 	 * used internally by timestep.Image to seamlessly convert
@@ -193,7 +194,6 @@ var Loader = Class(function () {
 	 * than in timestep.Image) to keep sprite formats in one consistent place. 
 	 */
 	this._updateImageMap = function (map, url, x, y, w, h) {
-
 		x = x || 0;
 		y = y || 0;
 		w = w == undefined ? -1 : w;
@@ -218,7 +218,7 @@ var Loader = Class(function () {
 		map.y = info.y - info.marginTop;
 		map.width = info.w + info.marginLeft + info.marginRight;
 		map.height = info.h + info.marginTop + info.marginBottom;
-		
+
 		// Add in any source map options passed in to get the actual offsets
 		map.x += x * scale;
 		map.y += y * scale;
@@ -228,25 +228,24 @@ var Loader = Class(function () {
 		if (h > 0) {
 			map.height = h * scale;
 		}
-		
+
 		// now updatea the margins to account for the new source map
 		map.marginLeft = Math.max(0, info.x - map.x);
 		map.marginTop = Math.max(0, info.y - map.y);
 		map.marginRight = Math.max(0, (map.x + map.width) - (info.x + info.w));
 		map.marginBottom = Math.max(0, (map.y + map.height) - (info.y + info.h));
-		
+
 		// and re-offset the source map to exclude margins
 		map.x += map.marginLeft;
 		map.y += map.marginTop;
 		map.width -= (map.marginLeft + map.marginRight);
 		map.height -= (map.marginTop + map.marginBottom);
-		
+
 		// the scale of the source image, if scaled in a spritesheet
 		map.scale = scale;
 		map.url = info.sheet;
-
 		return map;
-	}
+	};
 
 	this._getRaw = function (type, src, copy, noWarn) {
 		// always return the cached copy unless specifically requested not to
@@ -263,7 +262,7 @@ var Loader = Class(function () {
 				logger.error('unknown type for preloader', type);
 		}
 		return (_cache[src] = res);
-	}
+	};
 
 	// The callback is called for each image in the group with the image
 	// source that loaded and whether there was an error.
@@ -373,7 +372,7 @@ var Loader = Class(function () {
 
 					// React to failed load of this resource
 					next(true);
-				}
+				};
 
 				// Start it reloading
 				res.reload();
@@ -428,9 +427,9 @@ var Loader = Class(function () {
 				}, timeout)
 			}
 		}, 0);
-		
 		return callback;
-	}
+	};
+
 });
 
 exports = new Loader();
