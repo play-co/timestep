@@ -14,6 +14,7 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
+import .i18n;
 import lib.Callback;
 
 var _cache = {};
@@ -38,30 +39,12 @@ var MIME = {
 var Loader = Class(function () {
 	this._map = {};
 
-	this.getMap = function () { return this._map; };
+	this.getMap = function () {
+		return this._map;
+	};
+
 	this.setMap = function (map) {
-		var localizedMap = {};
-		// For any resource staring with resource-local/ change the path to be resources/
-		// This allows localized resources to be loaded the same way for all languages
-		var language = navigator.language && navigator.language.split('-')[0].toLowerCase() || 'en';
-		var region = navigator.language && navigator.language.split('-')[1] || '';
-		var localResources = 'resources-' + language + '-' + region;
-		var shortLocalResources = 'resources-' + language;
-		for (var key in map) {
-			var localLoc = key.indexOf(localResources);
-			var shortLocalLoc = key.indexOf(shortLocalResources);
-			// Favor an exact match of the local and then try to match the short local
-			if (localLoc === 0) {
-				var modifiedPath = 'resources' + key.substring(localResources.length);
-				localizedMap[modifiedPath] = map[key];
-			} else if (shortLocalLoc === 0) {
-				var modifiedPath = 'resources' + key.substring(shortLocalResources.length);
-				localizedMap[modifiedPath] = map[key];
-			}else {
-				localizedMap[key] = map[key];
-			}
-		}
-		this._map = localizedMap; 
+		this._map = i18n.localizeResourceMap(map);
 	};
 
 	// TODO: rename this function...
