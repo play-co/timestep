@@ -112,7 +112,6 @@ var PARTICLE_DEFAULTS = {
 	transition: TRANSITION_LINEAR,
 	onStart: null,
 	onDeath: null,
-	onTick: null,
 	external: false,
 	triggers: null // NOT ok to use array here, assign later
 };
@@ -220,7 +219,6 @@ exports = Class(View, function (supr) {
 				transition: TRANSITION_LINEAR,
 				onStart: null,
 				onDeath: null,
-				onTick: null,
 				external: false,
 				triggers: [] // OK to use an array here
 			});
@@ -288,7 +286,6 @@ exports = Class(View, function (supr) {
 				transition: TRANSITION_LINEAR,
 				onStart: null,
 				onDeath: null,
-				onTick: null,
 				external: false,
 				triggers: [] // OK to use an array here
 			});
@@ -489,8 +486,6 @@ exports = Class(View, function (supr) {
 				pct = (prgAfter - prgBefore) * data.ttl / 1000;
 			}
 
-			data.onTick && data.onTick(particle, pct, dt);
-
 			// translation
 			if (data.polar) {
 				data.radius += pct * data.dradius;
@@ -589,6 +584,21 @@ exports = Class(View, function (supr) {
 	 */
 	this.getActiveParticles = function() {
 		return this._activeParticles;
+	};
+
+	/**
+	 * fn (function) called for each active particle view, takes params: view, index
+	 *
+	 * ctx (object) the context on which fn should be called
+	 *
+	 * like Array.forEach, call a function for each active particle view
+	 */
+	this.forEachActiveParticle = function(fn, ctx) {
+		var views = this._activeParticles;
+		var f = bind(ctx, fn);
+		for (var i = 0, len = views.length; i < len; i++) {
+			f(views[i], i);
+		}
 	};
 
 });

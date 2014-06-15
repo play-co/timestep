@@ -155,6 +155,10 @@ exports = Class(View, function(supr) {
 		this._updateFilters();
 	};
 
+	this.clearFilterColor = function() {
+		this.setFilterColor(null);
+	};
+
 	this._updateFilters = function() {
 		var fc = this._filterColor;
 		var fcHash = this._getColorHash(fc);

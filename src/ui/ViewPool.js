@@ -58,7 +58,7 @@ exports = Class(function () {
 			// create a new view, ideally this never happens during gameplay
 			var view = this._createView(opts);
 			var viewName = this._ctor.prototype.__class__ || this._ctor;
-			logger.log("ViewPool creating new View in obtainView:", viewName);
+			logger.warn("ViewPool made new View in obtainView:", view.getTag(), viewName);
 		}
 		view._obtainedFromPool = true;
 		view.style.visible = true;

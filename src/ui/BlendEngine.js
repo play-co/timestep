@@ -98,7 +98,6 @@ var PARTICLE_DEFAULTS = {
 	transition: TRANSITION_LINEAR,
 	onStart: null,
 	onDeath: null,
-	onTick: null,
 	triggers: null, // NOT ok to use array here, assign later
 	absX: 0,
 	absY: 0,
@@ -197,7 +196,6 @@ exports = Class(View, function(supr) {
 				transition: TRANSITION_LINEAR,
 				onStart: null,
 				onDeath: null,
-				onTick: null,
 				triggers: [], // OK to use an array here
 				absX: 0,
 				absY: 0,
@@ -289,8 +287,6 @@ exports = Class(View, function(supr) {
 				var prgAfter = getTransitionProgress(data.elapsed / data.ttl);
 				pct = (prgAfter - prgBefore) * data.ttl / 1000;
 			}
-
-			data.onTick && data.onTick(data, pct, dt);
 
 			// translation
 			if (data.polar) {
@@ -454,6 +450,15 @@ exports = Class(View, function(supr) {
 
 	this.getActiveParticles = function() {
 		return this._activeParticleObjects;
+	};
+
+	// same as ParticleEngine, except passes particle objects instead of views
+	this.forEachActiveParticle = function(fn, ctx) {
+		var active = this._activeParticleObjects;
+		var f = bind(ctx, fn);
+		for (var i = 0, len = active.length; i < len; i++) {
+			f(active[i], i);
+		}
 	};
 
 });
