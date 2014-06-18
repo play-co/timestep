@@ -194,6 +194,10 @@ exports = Class(BufferedCanvas, function (supr) {
 		this._ctx.clearFilters();
 	}
 
+    this.setTransform = function(m11, m12, m21, m22, dx, dy) {
+        this._ctx.setTransform(m11, m12, m21, m22, dx, dy);
+    }
+
 	util.setProperty(this, 'globalAlpha', {
 		get: function () {
 			return this._ctx.getGlobalAlpha();
