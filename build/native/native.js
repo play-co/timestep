@@ -121,7 +121,10 @@ function wrapNativeJS (build, project, opts, target, resources, code, cb) {
 				logger.error(exStr);
 				throw new Error(exStr);
 			}
-		}
+		} else if (ext == "xml") {
+			var xmlData = fs.readFileSync(info.fullPath, 'utf-8');
+            inlineCache[info.relative] = xmlData;
+        }
 	});
 
 
