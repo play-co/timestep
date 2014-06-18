@@ -545,7 +545,7 @@ function compileHTML (project, opts, target, resources, code, cb) {
 					f2.succeed();
 				} else if (info.ext == '.css') {
 					// TODO
-				} else if (info.ext == '.js' || info.ext == '.json') {
+				} else if (info.ext == '.js' || info.ext == '.json' || info.ext == '.xml') {
 					fs.readFile(info.fullPath, 'utf-8', f2());
 				} else {
 					f2.succeed();
