@@ -22,8 +22,13 @@
  */
 var RGBA = exports = Class(function () {
 
-	this.init = function (rgba) {
-		this.update(rgba);
+	this.init = function () {
+		this.r = 0;
+		this.g = 0;
+		this.b = 0;
+		this.a = 1;
+
+		this.update.apply(this, arguments);
 	};
 
 	this.update = function (rgba) {
@@ -33,17 +38,15 @@ var RGBA = exports = Class(function () {
 			this.b = arguments[2];
 			this.a = arguments[3] !== undefined ? arguments[3] : 1;
 		} else if (typeof rgba === 'string') {
-			this.parse(rgba);
+			var cached = cache[rgba];
+			if (cached) {
+				this.set(cached);
+			} else {
+				this.parse(rgba);
+			}
 		} else if (rgba) {
 			this.set(rgba);
 		}
-	};
-
-	this.set = function (rgba) {
-		this.r = rgba.r || 0;
-		this.g = rgba.g || 0;
-		this.b = rgba.b || 0;
-		this.a = rgba.a !== undefined ? rgba.a : 1;
 	};
 
 	this.get = function () {
@@ -55,9 +58,13 @@ var RGBA = exports = Class(function () {
 		};
 	};
 
-	// https://gist.github.com/983535
-	this.toHex = function () {
-		return "#" + ((256 + this.r << 8 | this.g) << 8 | this.b).toString(16).slice(1);
+	this.set = function (rgba) {
+		if (rgba !== undefined) {
+			this.r = rgba.r || 0;
+			this.g = rgba.g || 0;
+			this.b = rgba.b || 0;
+			this.a = rgba.a !== undefined ? rgba.a : 1;
+		}
 	};
 
 	var rgbParser = /rgba?\(\s*([.0-9]+)\s*,\s*([.0-9]+)\s*,\s*([.0-9]+)\s*,?\s*([.0-9]+)?\s*\)/;
@@ -80,13 +87,17 @@ var RGBA = exports = Class(function () {
 				this.a = 1;
 			}
 		} else {
+			// handles hex strings (#FC0, #FFCC00, #FC09, #FFCC0099)
 			this.a = 1;
-
-			if (str.length === 9) {
+			var len = str.length;
+			if (len === 5) {
+				var a = str.substring(4, 5);
+				this.a = ('0x' + a + a | 0) / 255;
+				str = str.substring(0, 4);
+			} else if (len === 9) {
+				this.a = ('0x' + str.substring(7, 9) | 0) / 255;
 				str = str.substring(0, 7);
-				this.a = '0x' + str.substring(7, 9) | 0;
 			}
-
 			var match = hexToRGB(str);
 			if (match) {
 				this.r = match[0];
@@ -94,6 +105,10 @@ var RGBA = exports = Class(function () {
 				this.b = match[2];
 			}
 		}
+	};
+
+	this.toHex = function () {
+		return "#" + ((256 + this.r << 8 | this.g) << 8 | this.b).toString(16).slice(1);
 	};
 
 	this.toString = function () {
