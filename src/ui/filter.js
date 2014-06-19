@@ -30,60 +30,56 @@
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/filter.md
  */
 
+import ui.Color as Color;
 import ui.resource.Image as Image;
 
 var Filter = exports.Filter = Class(function () {
 
-	var defaults = {
-		priority: 0,
-		type: null,
-		r: 0,
-		g: 0,
-		b: 0,
-		a: 0
-	};
-
 	this.init = function (opts) {
-		this._opts = merge(merge({}, opts), defaults);
+		this._color = new Color(opts);
+		this._type = opts.type || null;
 		this._views = [];
 	};
 
 	this.get = function () {
-		return this._opts;
+		return this._color;
 	};
 
 	this.getType = function () {
-		return this._opts.type;
+		return this._type;
 	};
 
 	this.update = function (opts) {
-		for (var prop in opts) {
-			this._opts[prop] = opts[prop];
-		}
-		for (var i = 0; i < this._views.length; i++) {
-			var view = this._views[i];
+		this._color.update(opts);
+		this._type = opts.type !== undefined ? opts.type : this._type;
+
+		var views = this._views;
+		for (var i = 0, len = views.length; i < len; i++) {
+			var view = views[i];
 			view.__view.filterColor = this.getColorString();
 			view.__view.filterType = Filter.TYPES[this.getType()] || 0;
 		}
 	};
 
 	this.setView = function (view) {
-		if (this._views.indexOf(view) == -1) {
-			this._views.push(view);
+		var views = this._views;
+		if (views.indexOf(view) === -1) {
+			views.push(view);
 		}
 	};
 
 	this.removeView = function (view) {
-		var i = this._views.indexOf(view);
-		if (i != -1) {
-			this._views.splice(i, 1);
+		var views = this._views;
+		var i = views.indexOf(view);
+		if (i !== -1) {
+			views.splice(i, 1);
 		}
 	};
 
 	this.getColorString = function () {
-		var c = this._opts;
-		return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + c.a + ')';
+		return this._color.toString();
 	};
+
 });
 
 Filter.TYPES = {
@@ -99,7 +95,7 @@ Filter.TYPES = {
 exports.LinearAddFilter = Class(Filter, function (supr) {
 	this.init = function (opts) {
 		supr(this, 'init', arguments);
-		this._opts.type = 'LinearAdd';
+		this._type = 'LinearAdd';
 	};
 });
 
@@ -110,7 +106,7 @@ exports.LinearAddFilter = Class(Filter, function (supr) {
 exports.TintFilter = Class(Filter, function (supr) {
 	this.init = function (opts) {
 		supr(this, 'init', arguments);
-		this._opts.type = 'Tint';
+		this._type = 'Tint';
 	};
 });
 
@@ -121,7 +117,7 @@ exports.TintFilter = Class(Filter, function (supr) {
 exports.MultiplyFilter = Class(Filter, function (supr) {
 	this.init = function (opts) {
 		supr(this, 'init', arguments);
-		this._opts.type = 'Multiply';
+		this._type = 'Multiply';
 	};
 });
 
@@ -132,10 +128,14 @@ exports.MultiplyFilter = Class(Filter, function (supr) {
 exports.PositiveMaskFilter = Class(Filter, function (supr) {
 	this.init = function (opts) {
 		supr(this, 'init', arguments);
-		this._opts.type = 'PositiveMask';
-		if (this._opts.image) {
-			this._opts.imgObject = new Image({url: this._opts.image});
+		this._type = 'PositiveMask';
+		if (opts.image) {
+			this._mask = new Image({ url: opts.image });
 		}
+	};
+
+	this.getMask = function () {
+		return this._mask;
 	};
 });
 
@@ -146,9 +146,13 @@ exports.PositiveMaskFilter = Class(Filter, function (supr) {
 exports.NegativeMaskFilter = Class(Filter, function (supr) {
 	this.init = function (opts) {
 		supr(this, 'init', arguments);
-		this._opts.type = 'NegativeMask';
-		if (this._opts.image) {
-			this._opts.imgObject = new Image({url: this._opts.image});
+		this._type = 'NegativeMask';
+		if (opts.image) {
+			this._mask = new Image({ url: opts.image });
 		}
+	};
+
+	this.getMask = function () {
+		return this._mask;
 	};
 });

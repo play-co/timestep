@@ -197,7 +197,7 @@ var View = exports = Class(Emitter, function () {
 		logger.warn("View.getFilters() is deprecated! Use View.getFilter() instead.");
 		var filters = {};
 		if (this._filter) {
-			filters[this._filter._opts.type] = this._filter;
+			filters[this._filter.getType()] = this._filter;
 		}
 		return filters;
 	};

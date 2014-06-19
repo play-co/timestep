@@ -323,161 +323,139 @@ exports = Class(lib.PubSub, function () {
 	this.isReady = function () { return !this._isError && this._cb.fired(); };
 
 	var isNative = GLOBAL.NATIVE && !device.simulatingMobileNative;
-	var SLICE = Array.prototype.slice;
 	if (!isNative) {
 		var Canvas = device.get('Canvas');
 		var _filterCanvas = new Canvas();
 		var _filterCtx = _filterCanvas.getContext('2d');
+
+		var _imgDataCanvas = new Canvas();
+		var _imgDataCtx = _imgDataCanvas.getContext('2d');
 	};
 
-	this.render = function (ctx, destX, destY, destW, destH) {
+	this.renderToFilter = function (ctx, srcX, srcY, srcW, srcH, color, op) {
+		_filterCanvas.width = srcW;
+		_filterCanvas.height = srcH;
+		_filterCtx.globalCompositeOperation = 'source-over';
+		this.render(_filterCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
+
+		_filterCtx.globalCompositeOperation = 'source-in';
+		_filterCtx.fillStyle = "rgba(" + color.r  + "," + color.g + "," + color.b + "," + color.a + ")";
+		_filterCtx.fillRect(0, 0, srcW, srcH);
+
+		_filterCtx.globalCompositeOperation = op;
+		this.render(_filterCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
+		return _filterCanvas;
+	};
+
+	this.renderMultiply = function (ctx, srcX, srcY, srcW, srcH, color) {
+		var imgData = this.getImageData(srcX, srcY, srcW, srcH);
+		var data = imgData.data;
+		for (var i = 0, len = data.length; i < len; i += 4) {
+			data[i] *= (color.r / 255);
+			data[i + 1] *= (color.g / 255);
+			data[i + 2] *= (color.b / 255);
+		}
+
+		_filterCanvas.width = imgData.width;
+		_filterCanvas.height = imgData.height;
+		_filterCtx.putImageData(imgData, 0, 0);
+		return _filterCanvas;
+	};
+
+	this.renderToFilterMask = function (ctx, srcX, srcY, srcW, srcH, mask, op) {
+		_filterCanvas.width = srcW;
+		_filterCanvas.height = srcH;
+		_filterCtx.globalCompositeOperation = 'source-over';
+		mask.render(_filterCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
+
+		_filterCtx.globalCompositeOperation = op;
+		this.render(_filterCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
+		return _filterCanvas;
+	};
+
+	this.applyFilters = function (ctx, srcX, srcY, srcW, srcH) {
+		var resultImg = this._srcImg;
+		var linearAdd = ctx.filters.LinearAdd;
+		if (linearAdd) {
+			resultImg = this.renderToFilter(ctx, srcX, srcY, srcW, srcH, linearAdd.get(), 'lighter');
+		}
+
+		var tint = ctx.filters.Tint;
+		if (tint) {
+			resultImg = this.renderToFilter(ctx, srcX, srcY, srcW, srcH, tint.get(), 'source-over');
+		}
+
+		var mult = ctx.filters.Multiply;
+		if (mult) {
+			resultImg = this.renderMultiply(ctx, srcX, srcY, srcW, srcH, mult.get());
+		}
+
+		var negMask = ctx.filters.NegativeMask;
+		if (negMask) {
+			resultImg = this.renderToFilterMask(ctx, srcX, srcY, srcW, srcH, negMask.getMask(), 'source-in');
+		}
+
+		var posMask = ctx.filters.PositiveMask;
+		if (posMask) {
+			resultImg = this.renderToFilterMask(ctx, srcX, srcY, srcW, srcH, posMask.getMask(), 'source-out');
+		}
+		return resultImg;
+	};
+
+	this.render = function (ctx) {
 		if (!this._cb.fired()) { return; }
 
-		try {
-			var args = arguments;
-			var map = this._map;
-			var scaleX;
-			var scaleY;
+		var map = this._map;
+		var srcImg = this._srcImg;
+		var srcX = map.x;
+		var srcY = map.y;
+		var srcW = map.width;
+		var srcH = map.height;
+		var destX = arguments[5] !== undefined ? arguments[5] : arguments[1] || 0;
+		var destY = arguments[6] !== undefined ? arguments[6] : arguments[2] || 0;
+		var destW = arguments[7] !== undefined ? arguments[7] : arguments[3] || 0;
+		var destH = arguments[8] !== undefined ? arguments[8] : arguments[4] || 0;
 
-			if (!(ctx.filters && (ctx.filters.Multiply || ctx.filters.NegativeMask || ctx.filters.PositiveMask))) {
-				if (args.length == 9) {
-					ctx.drawImage(this._srcImg, args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]);
-				} else if (destX instanceof Rect) {
-					if (destY instanceof Rect) {
-						var srcRect = destX;
-						var destRect = destY;
-						scaleX = destRect.width / (map.marginLeft + map.width + map.marginRight);
-						scaleY = destRect.height / (map.marginTop + map.height + map.marginBottom);
-						ctx.drawImage(this._srcImg,
-							srcRect.x, srcRect.y, srcRect.width, srcRect.height,
-							destRect.x, destRect.y, destRect.width, destRect.height);
+		if (arguments.length < 9) {
+			var scaleX = destW / (map.marginLeft + map.width + map.marginRight);
+			var scaleY = destH / (map.marginTop + map.height + map.marginBottom);
+			destX += scaleX * map.marginLeft;
+			destY += scaleY * map.marginTop;
+			destW = scaleX * map.width;
+			destH = scaleY * map.height;
+		} else {
+			srcX = arguments[1];
+			srcY = arguments[2];
+			srcW = arguments[3];
+			srcH = arguments[4];
+		}
 
-					} else {
-						var destRect = destX;
-						scaleX = destRect.width / (map.marginLeft + map.width + map.marginRight);
-						scaleY = destRect.height / (map.marginTop + map.height + map.marginBottom);
-						ctx.drawImage(this._srcImg,
-									  map.x, map.y, map.width, map.height,
-									  destRect.x + scaleX * map.marginLeft,
-									  destRect.y + scaleY * map.marginTop,
-									  scaleX * map.width,
-									  scaleY * map.height);
-					}
-				} else {
-					scaleX = destW / (map.marginLeft + map.width + map.marginRight);
-					scaleY = destH / (map.marginTop + map.height + map.marginBottom);
-
-					if (scaleX != Infinity && scaleY != Infinity) {
-						ctx.drawImage(this._srcImg,
-									  map.x, map.y, map.width, map.height,
-									  (destX || 0) + scaleX * map.marginLeft,
-									  (destY || 0) + scaleY * map.marginTop,
-									  scaleX * map.width,
-									  scaleY * map.height);
-					}
-				}
+		if (!isNative && ctx.filters) {
+			srcImg = this.applyFilters(ctx, srcX, srcY, srcW, srcH);
+			if (srcImg !== this._srcImg) {
+				srcX = 0;
+				srcY = 0;
 			}
+		}
 
-			var renderArgs = arguments, img = this;
-
-			function applyOperation(color, op1, op2) {
-				_filterCanvas.width = destW;
-				_filterCanvas.height = destH;
-				_filterCtx.globalCompositeOperation = 'source-over';
-				img.render.apply(img, [_filterCtx].concat(SLICE.call(renderArgs, 1)));
-
-				_filterCtx.globalCompositeOperation = op1;
-				_filterCtx.fillStyle = "rgba(" + color.r  + "," + color.g + "," + color.b + "," + color.a + ")";
-				_filterCtx.fillRect(destX || 0, destY || 0, destW || map.width, destH || map.height);
-
-				var oldCompositeOperation = ctx.globalCompositeOperation;
-				ctx.globalCompositeOperation = op2;
-				ctx.drawImage(_filterCanvas, destX || 0, destY || 0, destW || map.width, destH || map.height);
-				ctx.globalCompositeOperation = oldCompositeOperation;
-			}
-
-			// Rendering engine flags.
-			var isWebkit = /WebKit/.exec(navigator.appVersion);
-			if (!isNative && ctx.filters) {
-
-				if (ctx.filters.LinearAdd) {
-					var f = ctx.filters.LinearAdd.get();
-					applyOperation(f, 'source-in', 'lighter');
-				}
-
-				if (ctx.filters.Tint) {
-					var f = ctx.filters.Tint.get();
-					var color = {r: f.r, g: f.g, b: f.b, a: f.a};
-					applyOperation(color, 'source-in', 'source-over');
-				}
-
-				if (ctx.filters.Multiply) {
-					var f = ctx.filters.Multiply.get();
-					var imgData = this.getImageData();
-					var data = imgData.data;
-					
-					for (var i = 0; i < data.length; i+=4) {
-						data[i] *= (f.r / 255);
-						data[i + 1] *= (f.g / 255); 
-						data[i + 2] *= (f.b / 255); 
-					}
-
-					_filterCanvas.width = imgData.width;
-					_filterCanvas.height = imgData.height;
-					_filterCtx.putImageData(imgData, 0, 0);
-					ctx.drawImage(_filterCanvas, destX || 0, destY || 0, destW || map.width, destH || map.height);
-
-				}
-
-				if (ctx.filters.NegativeMask) {
-					var f = ctx.filters.NegativeMask.get();
-					_filterCanvas.width = destW;
-					_filterCanvas.height = destH;
-					_filterCtx.globalCompositeOperation = 'source-over';
-					f.imgObject.render.apply(f.imgObject, [_filterCtx].concat(SLICE.call(renderArgs, 1)));
-
-					_filterCtx.globalCompositeOperation = 'source-in';
-					img.render.apply(img, [_filterCtx].concat(SLICE.call(renderArgs, 1)));
-
-					var oldCompositeOperation = ctx.globalCompositeOperation;
-					ctx.globalCompositeOperation = 'source-over';
-					ctx.drawImage(_filterCanvas, destX || 0, destY || 0, destW || map.width, destH || map.height);
-					ctx.globalCompositeOperation = oldCompositeOperation;
-				}
-
-				if (ctx.filters.PositiveMask) {
-					var f = ctx.filters.PositiveMask.get();
-					_filterCanvas.width = destW;
-					_filterCanvas.height = destH;
-					_filterCtx.globalCompositeOperation = 'source-over';
-					f.imgObject.render.apply(f.imgObject, [_filterCtx].concat(SLICE.call(renderArgs, 1)));
-
-					_filterCtx.globalCompositeOperation = 'source-out';
-					img.render.apply(img, [_filterCtx].concat(SLICE.call(renderArgs, 1)));
-
-					var oldCompositeOperation = ctx.globalCompositeOperation;
-					ctx.globalCompositeOperation = 'source-over';
-					ctx.drawImage(_filterCanvas, destX || 0, destY || 0, destW || map.width, destH || map.height);
-					ctx.globalCompositeOperation = oldCompositeOperation;
-				}
-			}
-		} catch(e) {}
+		ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
 	};
 
-	this.getImageData = function () {
+	this.getImageData = function (x, y, width, height) {
+		var map = this._map;
 		if (!GLOBAL.document || !document.createElement) { throw 'Not supported'; }
-		if (!this._map.width || !this._map.height) { throw 'Not loaded'; }
+		if (!map.width || !map.height) { throw 'Not loaded'; }
 
-		var canvas = document.createElement('canvas');
-		canvas.width = this._map.width;
-		canvas.height = this._map.height;
-		var ctx = canvas.getContext('2d');
+		x = x || 0;
+		y = y || 0;
+		width = width || map.width;
+		height = height || map.height;
+		_imgDataCanvas.width = width;
+		_imgDataCanvas.height = height;
 
-		this.render(ctx, 0, 0, this._map.width, this._map.height);
-
-		var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-
-		return imageData;
+		_imgDataCtx.clear();
+		this.render(_imgDataCtx, x, y, width, height, 0, 0, width, height);
+		return _imgDataCtx.getImageData(0, 0, width, height);
 	};
 
 	this.setImageData = function (data) { };

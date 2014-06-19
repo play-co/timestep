@@ -136,7 +136,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		var filters = {};
 		var filter = this._view.getFilter();
 		if (filter) {
-			filters[filter._opts.type] = filter;
+			filters[filter.getType()] = filter;
 		}
 		ctx.setFilters(filters);
 
