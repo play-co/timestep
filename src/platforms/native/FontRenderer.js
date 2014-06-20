@@ -14,44 +14,70 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
+/**
+ * @package env.browser.FontRenderer;
+ *
+ * Render fonts or custom fonts on a Canvas context.
+ */
+
+import device;
 import ui.Color as Color;
 import ui.filter as filter;
 import ui.resource.Font as Font;
 
-var _customFonts = {},
-	_customFontInfo = {};
+var max = Math.max;
 
-function loadCustomFontImage(customFont, index) {
-	var image = new Image();
+var _customFonts = {};
+var _customFontInfo = {};
+var _fontMap = {};
+var _buffers = [];
+var _fontBuffer = false;
+var _origMeasureText;
 
-	image.onload = function () {
-		image.onload = null;
+exports.init = function () {
+	var manifest = window.CONFIG;
+	if (manifest && manifest.fonts) {
+		var fonts = manifest.fonts;
+		for (var i = 0, len = fonts.length; i < len; i++) {
+			var font = fonts[i];
+			var customFont = {
+				filename: font.filename,
+				settings: font,
+				imagesLoaded: -1,
+				imagesTotal: 0,
+				loaded: false
+			}
+			_customFonts[font.filename] = customFont;
+			loadingCustomFont(customFont);
+		}
+	}
+};
+
+var loadCustomFontImage = function(customFont, index, stroke) {
+	var img = new GCImage({
+		url: 'resources/fonts/' + customFont.filename + '_' + index
+			+ (stroke ? '_Stroke.png' : '.png')
+	});
+	img.doOnLoad(function () {
 		customFont.imagesLoaded++;
 		customFont.loaded = (customFont.imagesLoaded === customFont.imagesTotal);
-	}
-	image._src = 'resources/fonts/' + customFont.filename + index + '.png';
-	image.src = image._src;
+	});
+	return img;
+};
 
-	return image;
-}
-
-function findVerticalInfo(dimensions) {
+var findVerticalInfo = function(dimensions) {
 	// A..Z, a..z, all
 	var ranges = [{start: 0x41, end: 0x5A}, {start: 0x61, end: 0x7A}, {start: 0x20, end: 0xFF}];
-	var range;
-	var dimension;
 	var found = false;
 	var baseline = 0;
 	var bottom = 0;
-	var i;
-
-	for (i = 0; i < ranges.length; i++) {
-		range = ranges[i];
-		for (j = range.start; j <= range.end; j++) {
-			dimension = dimensions[j];
+	for (var i = 0, len = ranges.length; i < len; i++) {
+		var range = ranges[i];
+		for (var j = range.start; j <= range.end; j++) {
+			var dimension = dimensions[j];
 			if (dimension) {
-				baseline = Math.max(baseline, dimension.h);
-				bottom = Math.max(bottom, dimension.h);
+				baseline = max(baseline, dimension.h);
+				bottom = max(bottom, dimension.h);
 				found = true;
 			}
 		}
@@ -59,26 +85,18 @@ function findVerticalInfo(dimensions) {
 			break;
 		}
 	}
+	return { baseline: baseline, bottom: bottom };
+};
 
-	return {
-		baseline: baseline,
-		bottom: bottom
-	};
-}
-
-function findHorizontalInfo(dimensions) {
+var findHorizontalInfo = function(dimensions) {
 	// a..z, A..Z
 	var ranges = [{start: 0x61, end: 0x7A}, {start: 0x41, end: 0x5A}, {start: 0x20, end: 0xFF}];
-	var range;
-	var dimension;
 	var width = 0;
 	var count = 0;
-	var i, j;
-
-	for (i = 0; i < ranges.length; i++) {
-		range = ranges[i];
-		for (j = range.start; j <= range.end; j++) {
-			dimension = dimensions[j];
+	for (var i = 0, len = ranges.length; i < len; i++) {
+		var range = ranges[i];
+		for (var j = range.start; j <= range.end; j++) {
+			var dimension = dimensions[j];
 			if (dimension) {
 				width += dimension.w;
 				count++;
@@ -88,45 +106,25 @@ function findHorizontalInfo(dimensions) {
 			break;
 		}
 	}
+	return { width: 0.8 * width / count };
+};
 
-	return {
-		width: width / count
-	};
-}
-
-function loadingCustomFont(customFont) {
+var loadingCustomFont = function(customFont) {
 	if (customFont.imagesLoaded !== -1) {
 	 	return !customFont.loaded;
 	}
 
-	var settings = customFont.settings,
-		filename = settings.filename,
-		images,
-		image,
-		info,
-		i, j;
-
-	if (_customFontInfo[filename]) {
-		info = _customFontInfo[filename];
+	var settings = customFont.settings;
+	var filename = settings.filename;
+	var info = _customFontInfo[filename];
+	if (info) {
 		customFont.dimensions = info.dimensions;
 		customFont.horizontal = info.horizontal;
 		customFont.vertical = info.vertical;
 	} else {
-		var basename = 'resources/fonts/' + filename;
-		var json = CACHE[basename + '.json'];
-		if (json == null) {
-			var js = CACHE[basename + '.js'];
-			if (js) {
-				json = js.replace(/^\s*exports\s*=\s*|;\s*$/g, '');
-			} else {
-				return;
-			}
-		}
-
+		var json = CACHE['resources/fonts/' + filename + '.json'];
 		customFont.dimensions = JSON.parse(json);
 		customFont.horizontal = findHorizontalInfo(customFont.dimensions);
-		customFont.horizontal.tracking = settings.tracking;
-		customFont.horizontal.outline = settings.outline;
 		customFont.vertical = findVerticalInfo(customFont.dimensions);
 
 		_customFontInfo[filename] = {
@@ -136,73 +134,154 @@ function loadingCustomFont(customFont) {
 		};
 	}
 
-	customFont.images = [];
+	var images = customFont.images = [];
+	var strokeImages = customFont.strokeImages = [];
 	customFont.imagesLoaded = 0;
+	for (var i = 0; i < settings.count; i++) {
+		images.push(loadCustomFontImage(customFont, i, false));
+		customFont.imagesTotal++;
 
-	images = customFont.images;
+		if (customFont.settings.stroke) {
+			strokeImages.push(loadCustomFontImage(customFont, i, true));
+			customFont.imagesTotal++;
+		}
+	}
+	return true;
+};
 
-	switch (customFont.type) {
-		case 'color':
-			for (i = 0; i < settings.count; i++) {
-				images[i] = [];
-				images[i].push(loadCustomFontImage(customFont, '_0_' + i));
-				customFont.imagesTotal++;
-			}
-			break;
+var measure = function(ctx, fontInfo, text) {
+	var customFont = fontInfo.customFont;
+	var dimensions = customFont.dimensions;
+	var scale = fontInfo.scale;
+	var spacing = (customFont.settings.spacing || 0) * scale;
+	var width = 0;
+	var failed = true;
 
-		case 'composite':
-			for (i = 1; i < 3; i++) {
-				images[i - 1] = [];
-				for (j = 0; j < settings.count; j++) {
-					images[i - 1].push(loadCustomFontImage(customFont, '_' + i + '_' + j));
-					customFont.imagesTotal++;
+	if (dimensions) {
+		failed = false;
+		var prevCharCode = 0;
+		for (var i = 0, len = text.length; i < len; i++) {
+			var charCode = text.charCodeAt(i);
+			if (charCode === 9) { // tab ...
+				width += customFont.horizontal.width * 4 * scale;
+			} else if (charCode === 32) { // space ...
+				width += customFont.horizontal.width * scale;
+			} else {
+				if (dimensions[charCode]) {
+					var character = dimensions[charCode];
+					var kern = character.kerning[prevCharCode] || 0;
+					width += (character.ow + kern) * scale + spacing;
+				} else {
+					failed = true;
 				}
 			}
-			break;
+			if (failed) {
+				break;
+			}
+			prevCharCode = charCode;
+		}
+	}
+
+	if (failed) {
+		var font = ctx.font;
+		ctx.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (ctx.defaultFontFamily || device.defaultFontFamily);
+		var result = { failed: true, width: _origMeasureText.apply(ctx, [text]) };
+		ctx.font = font;
+		return result;
+	} else {
+		return { failed: false, width: width };
+	}
+};
+
+var renderCustomFont = function(ctx, x, y, maxWidth, text, color, fontInfo, index) {
+	var measureInfo = measure(ctx, fontInfo, text);
+	if (measureInfo.failed) {
+		return false;
+	}
+
+	var customFont = fontInfo.customFont;
+	var srcBuffers = index === 0 ? customFont.images : customFont.strokeImages;
+	var dimensions = customFont.dimensions;
+	var scale = fontInfo.scale;
+	var width = measureInfo.width;
+	if (width > maxWidth) {
+		scale *= maxWidth / width;
+	}
+
+	var spacing = (customFont.settings.spacing || 0) * scale;
+
+	// nothing is ever vertically centered ...
+	y -= 3;
+
+	if (ctx.textBaseline === 'alphabetic') {
+		y -= customFont.vertical.baseline * scale;
+	} else if (ctx.textBaseline === 'middle') {
+		y -= (customFont.vertical.bottom / 2) * scale;
+	} else if (ctx.textBaseline === 'bottom') {
+		y -= customFont.vertical.bottom * scale;
+	}
+
+	if (ctx.textAlign === 'center') {
+		x -= width / 2;
+	} else if (ctx.textAlign === 'right') {
+		x -= width;
+	}
+
+	var buffer = false;
+	var bufferX = x;
+	var bufferY = y;
+	if (buffer) {
+		x = buffer.x;
+		y = buffer.y;
+		ctx = buffer.ctx;
+	}
+
+	if (!buffer || buffer.refresh) {
+		var prevCharCode = 0;
+		for (var i = 0, len = text.length; i < len; i++) {
+			var charCode = text.charCodeAt(i);
+			if (charCode === 9) { // tab ...
+				x += customFont.horizontal.width * 4 * scale;
+			} else if (charCode === 32) { // space ...
+				x += customFont.horizontal.width * scale;
+			} else {
+				var character = dimensions[charCode];
+				var kern = character.kerning[prevCharCode] || 0;
+				x += kern;
+				var img = srcBuffers[character.sheetIndex];
+				img.render(
+					ctx,
+					character.x,
+					character.y,
+					character.w,
+					character.h,
+					x + character.ox * scale,
+					y + character.oy * scale,
+					character.w * scale,
+					character.h * scale
+				);
+				x += character.ow * scale + spacing;
+			}
+			prevCharCode = charCode;
+		}
+	}
+
+	if (buffer) {
+		this.drawImage(
+			buffer.ctx.canvas,
+			buffer.x,
+			buffer.y,
+			buffer.width,
+			buffer.height,
+			bufferX,
+			bufferY,
+			buffer.width,
+			buffer.height
+		);
 	}
 
 	return true;
-}
-
-(function () {
-	var manifest = window.CONFIG;
-
-	if (manifest.fonts) {
-		var fonts = manifest.fonts,
-			font,
-			customFont,
-			i = fonts.length;
-
-		while (i) {
-			font = fonts[--i];
-			
-			customFont = {
-				filename: font.filename,
-				settings: font,
-				imagesLoaded: -1,
-				imagesTotal: 0,
-				loaded: false,
-				type: 'color'
-			};
-			_customFonts[font.contextName + ' color'] = customFont;
-			//font.preloadColor && 
-			loadingCustomFont(customFont);
-
-			customFont = {
-				// The difference between color- and composite-filename is in the suffix!!!
-				filename: font.filename,
-				settings: font,
-				imagesLoaded: -1,
-				imagesTotal: 0,
-				loaded: false,
-				type: 'composite'
-			}
-			_customFonts[font.contextName + ' composite'] = customFont;
-			//font.preloadComposite && 
-			loadingCustomFont(customFont);
-		}
-	}
-})();
+};
 
 exports.findFontInfo = function (ctx) {
 	var font = Font.parse(ctx.font);
@@ -213,101 +292,94 @@ exports.findFontInfo = function (ctx) {
 		font.scale = font.getSize() / customFont.settings.size;
 		return font;
 	}
-
-	return false;
-}
+	return null;
+};
 
 exports.wrapMeasureText = function (origMeasureText) {
+	_origMeasureText = origMeasureText;
 	return function (text) {
 		var fontInfo = exports.findFontInfo(this);
-
 		if (!fontInfo) {
 			return origMeasureText.apply(this, arguments);
 		}
-		if (loadingCustomFont(fontInfo.customFont)) {
-			return origMeasureText.apply(this, arguments);
-		}
-		var measureInfo = this._ctx.measureTextBitmap(text + '', fontInfo);
+		var measureInfo = measure(this, fontInfo, text);
 		if (measureInfo.failed) {
 			return origMeasureText.apply(this, arguments);
 		}
-
 		return measureInfo;
 	}
 };
 
 exports.wrapFillText = function (origFillText) {
-	return function (text, x, y) {
+	return function (text, x, y, maxWidth) {
 		var fontInfo = exports.findFontInfo(this);
-
 		if (!fontInfo) {
 			return origFillText.apply(this, arguments);
 		}
-
 		if (loadingCustomFont(fontInfo.customFont)) {
 			return;
 		}
-
-		if (fontInfo.customFont.type === 'composite') {
-			var color = Color.parse(this.fillStyle);
-			if (this.__compositeColor != color) {
-				this.__compositeColor = color;
-				if (!this.__compositeFilter) { this.__compositeFilter = []; }
-				this.__compositeFilter[0] = new filter.MultiplyFilter(color);
-			}
-
-			var resetFilters = true;
-			this.clearFilters();
-			this.setFilters(this.__compositeFilter);
+		if (isNaN(x)) {
+			x = 0;
+		}
+		if (isNaN(y)) {
+			y = 0;
 		}
 
-		if (!this._ctx.fillTextBitmap(this, x, y, text + '', this.fillStyle, fontInfo, 0)) {
-			return origFillText.apply(this, arguments);
+		// apply color filters if necessary
+		var color = Color.parse(this.fillStyle);
+		if (!this.filters["Tint"]) {
+			this.filters["Tint"] = new filter.TintFilter(color);
+		}
+		if (this.__bmpTxtColor !== color) {
+			this.__bmpTxtColor = color;
+			this.filters["Tint"].update(color);
 		}
 
-		if (resetFilters) {
-			this.clearFilters();
-
-			// TODO: might be nice to reset original filters... this is a bug in some cases otherwise
-			// this.setFilters(originalFilters);
+		if (!renderCustomFont(this, x, y, maxWidth, text + '', this.fillStyle, fontInfo, 0)) {
+			var font = this.font;
+			this.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (this.defaultFontFamily || device.defaultFontFamily);
+			origFillText.apply(this, [text, x, y]);
+			this.font = font;
 		}
 	}
 };
 
 exports.wrapStrokeText = function (origStrokeText) {
-	return function (text, x, y) {
+	return function (text, x, y, maxWidth) {
 		var fontInfo = exports.findFontInfo(this);
-
 		if (!fontInfo) {
 			return origStrokeText.apply(this, arguments);
 		}
-
 		if (loadingCustomFont(fontInfo.customFont)) {
 			return;
 		}
-
-		if (fontInfo.customFont.type === 'composite') {
-			var color = Color.parse(this.strokeStyle);
-			if (this.__compositeStrokeColor != color) {
-				this.__compositeStrokeColor = color;
-				if (!this.__compositeStrokeFilter) { this.__compositeStrokeFilter = []; }
-				this.__compositeStrokeFilter[0] = new filter.MultiplyFilter(color);
-			}
-
-			var resetFilters = true;
-			this.clearFilters();
-			this.setFilters(this.__compositeStrokeFilter);
+		if (isNaN(x)) {
+			x = 0;
+		}
+		if (isNaN(y)) {
+			y = 0;
 		}
 
-		if (!this._ctx.fillTextBitmap(this, x, y, text + '', this.strokeStyle, fontInfo, 1)) {
-			return origStrokeText.apply(this, arguments);
+		// apply color filters if necessary
+		var color = Color.parse(this.strokeStyle);
+		if (!this.filters["Tint"]) {
+			this.filters["Tint"] = new filter.TintFilter(color);
+		}
+		if (this.__bmpTxtColor !== color) {
+			this.__bmpTxtColor = color;
+			this.filters["Tint"].update(color);
 		}
 
-		if (resetFilters) {
-			this.clearFilters();
-
-			// TODO: might be nice to reset original filters... this is a bug in some cases otherwise
-			// this.setFilters(originalFilters);
+		if (!renderCustomFont(this, x, y, maxWidth, text + '', this.strokeStyle, fontInfo, 1)) {
+			var font = this.font;
+			this.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (this.defaultFontFamily || device.defaultFontFamily);
+			origStrokeText.apply(this, [text, x, y]);
+			this.font = font;
 		}
 	}
+};
+
+exports.getFontBuffer = function () {
+	return _fontBuffer;
 };
