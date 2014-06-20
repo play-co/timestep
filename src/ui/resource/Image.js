@@ -71,7 +71,7 @@ if (!ImageMap) {
 			this.marginRight = marginRight;
 			this.marginBottom = marginBottom;
 			this.marginLeft = marginLeft;
-		}
+		};
 	});
 }
 

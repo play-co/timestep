@@ -37,12 +37,15 @@ var Filter = exports.Filter = Class(function () {
 
 	this.init = function (opts) {
 		this._color = new Color(opts);
-		this._type = opts.type || null;
+		this._type = opts.type || '';
 		this._views = [];
 	};
 
 	this.get = function () {
-		return this._color;
+		var opts = this._color.get();
+		opts.type = this._type;
+		opts.priority = 0;
+		return opts;
 	};
 
 	this.getType = function () {
@@ -50,6 +53,7 @@ var Filter = exports.Filter = Class(function () {
 	};
 
 	this.update = function (opts) {
+		opts = opts || this.get();
 		this._color.update(opts);
 		this._type = opts.type !== undefined ? opts.type : this._type;
 

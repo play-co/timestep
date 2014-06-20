@@ -27,49 +27,45 @@ function setter(name) {
 	return (function (val) {
 		return (this[name] = val);
 	});
-}
+};
 
 function getter(name) {
 	return (function (val) {
 		return this[name];
 	});
-}
+};
 
 exports = function (opts) {
-	var parentNode = opts && opts.parent,
-		el = opts && opts.el || document.createElement('canvas');
-	
-	//if (!parentNode) {
-	//	el.style.cssText = 'position: absolute; top: 0px; left: 0px; z-index: 1';
-	//}
-	
+	var parentNode = opts && opts.parent;
+	var el = opts && opts.el || document.createElement('canvas');
+
 	el.width = opts.width;
 	el.height = opts.height;
-	
+
 	var ctx = el.getContext('2d');
 	ctx.font = '11px ' + device.defaultFontFamily;
-	ctx.getElement = function () { return el; }
-	
-	ctx.reset = function () {}
-	
+	ctx.getElement = function () { return el; };
+
+	ctx.reset = function () {};
+
 	ctx.clear = function () {
 		//el.width = el.width;
 		this.clearRect(0, 0, el.width, el.height);
 	};
-	
+
 	ctx.clipRect = function (x, y, w, h) {
 		ctx.beginPath();
 		ctx.rect(x, y, w, h);
 		ctx.clip();
-	}
-	
+	};
+
 	ctx.swap = function () {};
 	ctx.execSwap = function () {};
-	
+
 	ctx.circle = function (x, y, radius) {
 		this.beginPath();
 		this.arc(x, y, radius, 0, 2 * Math.PI, true);
-	}
+	};
 
 	var _lastPointSprite = {
 		img: null,
@@ -109,8 +105,8 @@ exports = function (opts) {
 			var y = y1 + dy * i / count;
 			this.drawImage(canvas, 0, 0, width, height, x - d / 2, y - d / 2, d, d);
 		}
-	}
-	
+	};
+
 	ctx.roundRect = function (x, y, width, height, radius) {
 		this.beginPath();
 		this.moveTo(x,y+radius);
@@ -122,29 +118,29 @@ exports = function (opts) {
 		this.quadraticCurveTo(x+width,y,x+width-radius,y);
 		this.lineTo(x+radius,y);
 		this.quadraticCurveTo(x,y,x,y+radius);
-	}
+	};
 
 	ctx.loadIdentity = function () {
 		this.setTransform(1, 0, 0, 1, 0, 0);
-	}
-	
+	};
+
 	ctx.measureText = FontRenderer.wrapMeasureText(ctx.measureText);
 	ctx.fillText = FontRenderer.wrapFillText(ctx.fillText);
 	ctx.strokeText = FontRenderer.wrapStrokeText(ctx.strokeText);
 
-	ctx.filters = {}
+	ctx.filters = {};
 	ctx.setFilters = function (filters) {
 		this.clearFilters();
 		for (var name in filters) {
 			this.filters[name] = filters[name];
 		}
-	}
+	};
 
 	ctx.clearFilters = function () {
 		for (var name in this.filters) {
 			delete this.filters[name];
 		}
-	}
-	
+	};
+
 	return ctx;
 };

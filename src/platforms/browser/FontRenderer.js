@@ -21,9 +21,9 @@
  */
 
 import device;
+import ui.Color as Color;
+import ui.filter as filter;
 import ui.resource.Font as Font;
-import ui.Engine as Engine;
-import .FontBuffer as FontBuffer;
 
 var max = Math.max;
 
@@ -53,9 +53,10 @@ exports.init = function () {
 	}
 };
 
-var loadCustomFontImage = function(customFont, index) {
+var loadCustomFontImage = function(customFont, index, stroke) {
 	var img = new GCImage({
-		url: 'resources/fonts/' + customFont.filename + '_' + index + '.png'
+		url: 'resources/fonts/' + customFont.filename + '_' + index
+			+ (stroke ? '_Stroke.png' : '.png')
 	});
 	img.doOnLoad(function () {
 		customFont.imagesLoaded++;
@@ -134,10 +135,16 @@ var loadingCustomFont = function(customFont) {
 	}
 
 	var images = customFont.images = [];
+	var strokeImages = customFont.strokeImages = [];
 	customFont.imagesLoaded = 0;
 	for (var i = 0; i < settings.count; i++) {
-		images.push(loadCustomFontImage(customFont, i));
+		images.push(loadCustomFontImage(customFont, i, false));
 		customFont.imagesTotal++;
+
+		if (customFont.settings.stroke) {
+			strokeImages.push(loadCustomFontImage(customFont, i, true));
+			customFont.imagesTotal++;
+		}
 	}
 	return true;
 };
@@ -186,17 +193,21 @@ var measure = function(ctx, fontInfo, text) {
 	}
 };
 
-var renderCustomFont = function(ctx, x, y, text, color, fontInfo, index) {
+var renderCustomFont = function(ctx, x, y, maxWidth, text, color, fontInfo, index) {
 	var measureInfo = measure(ctx, fontInfo, text);
 	if (measureInfo.failed) {
 		return false;
 	}
 
 	var customFont = fontInfo.customFont;
-	var srcBuffers = customFont.images;
+	var srcBuffers = index === 0 ? customFont.images : customFont.strokeImages;
 	var dimensions = customFont.dimensions;
 	var scale = fontInfo.scale;
 	var width = measureInfo.width;
+	if (width > maxWidth) {
+		scale *= maxWidth / width;
+	}
+
 	var spacing = (customFont.settings.spacing || 0) * scale;
 
 	// nothing is ever vertically centered ...
@@ -300,7 +311,7 @@ exports.wrapMeasureText = function (origMeasureText) {
 };
 
 exports.wrapFillText = function (origFillText) {
-	return function (text, x, y) {
+	return function (text, x, y, maxWidth) {
 		var fontInfo = exports.findFontInfo(this);
 		if (!fontInfo) {
 			return origFillText.apply(this, arguments);
@@ -315,7 +326,17 @@ exports.wrapFillText = function (origFillText) {
 			y = 0;
 		}
 
-		if (!renderCustomFont(this, x, y, text + '', this.fillStyle, fontInfo, 0)) {
+		// apply color filters if necessary
+		var color = Color.parse(this.fillStyle);
+		if (!this.filters["Tint"]) {
+			this.filters["Tint"] = new filter.TintFilter(color);
+		}
+		if (this.__bmpTxtColor !== color) {
+			this.__bmpTxtColor = color;
+			this.filters["Tint"].update(color);
+		}
+
+		if (!renderCustomFont(this, x, y, maxWidth, text + '', this.fillStyle, fontInfo, 0)) {
 			var font = this.font;
 			this.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (this.defaultFontFamily || device.defaultFontFamily);
 			origFillText.apply(this, [text, x, y]);
@@ -325,7 +346,7 @@ exports.wrapFillText = function (origFillText) {
 };
 
 exports.wrapStrokeText = function (origStrokeText) {
-	return function (text, x, y) {
+	return function (text, x, y, maxWidth) {
 		var fontInfo = exports.findFontInfo(this);
 		if (!fontInfo) {
 			return origStrokeText.apply(this, arguments);
@@ -340,7 +361,17 @@ exports.wrapStrokeText = function (origStrokeText) {
 			y = 0;
 		}
 
-		if (!renderCustomFont(this, x, y, text + '', this.strokeStyle, fontInfo, 1)) {
+		// apply color filters if necessary
+		var color = Color.parse(this.strokeStyle);
+		if (!this.filters["Tint"]) {
+			this.filters["Tint"] = new filter.TintFilter(color);
+		}
+		if (this.__bmpTxtColor !== color) {
+			this.__bmpTxtColor = color;
+			this.filters["Tint"].update(color);
+		}
+
+		if (!renderCustomFont(this, x, y, maxWidth, text + '', this.strokeStyle, fontInfo, 1)) {
 			var font = this.font;
 			this.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (this.defaultFontFamily || device.defaultFontFamily);
 			origStrokeText.apply(this, [text, x, y]);
