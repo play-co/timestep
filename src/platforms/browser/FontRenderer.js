@@ -29,9 +29,6 @@ var max = Math.max;
 
 var _customFonts = {};
 var _customFontInfo = {};
-var _fontMap = {};
-var _buffers = [];
-var _fontBuffer = false;
 var _origMeasureText;
 
 exports.init = function () {
@@ -41,13 +38,13 @@ exports.init = function () {
 		for (var i = 0, len = fonts.length; i < len; i++) {
 			var font = fonts[i];
 			var customFont = {
-				filename: font.filename,
+				fontName: font.fontName,
 				settings: font,
 				imagesLoaded: -1,
 				imagesTotal: 0,
 				loaded: false
 			}
-			_customFonts[font.filename] = customFont;
+			_customFonts[font.fontName] = customFont;
 			loadingCustomFont(customFont);
 		}
 	}
@@ -55,7 +52,7 @@ exports.init = function () {
 
 var loadCustomFontImage = function(customFont, index, stroke) {
 	var img = new GCImage({
-		url: 'resources/fonts/' + customFont.filename + '_' + index
+		url: 'resources/fonts/' + customFont.fontName + '_' + index
 			+ (stroke ? '_Stroke.png' : '.png')
 	});
 	img.doOnLoad(function () {
@@ -115,19 +112,19 @@ var loadingCustomFont = function(customFont) {
 	}
 
 	var settings = customFont.settings;
-	var filename = settings.filename;
-	var info = _customFontInfo[filename];
+	var fontName = settings.fontName;
+	var info = _customFontInfo[fontName];
 	if (info) {
 		customFont.dimensions = info.dimensions;
 		customFont.horizontal = info.horizontal;
 		customFont.vertical = info.vertical;
 	} else {
-		var json = CACHE['resources/fonts/' + filename + '.json'];
+		var json = CACHE['resources/fonts/' + fontName + '.json'];
 		customFont.dimensions = JSON.parse(json);
 		customFont.horizontal = findHorizontalInfo(customFont.dimensions);
 		customFont.vertical = findVerticalInfo(customFont.dimensions);
 
-		_customFontInfo[filename] = {
+		_customFontInfo[fontName] = {
 			dimensions: customFont.dimensions,
 			horizontal: customFont.horizontal,
 			vertical: customFont.vertical
@@ -170,7 +167,7 @@ var measure = function(ctx, fontInfo, text) {
 				if (dimensions[charCode]) {
 					var character = dimensions[charCode];
 					var kern = character.kerning[prevCharCode] || 0;
-					width += (character.ow + kern) * scale + spacing;
+					width += (character.xadvance + kern) * scale + spacing;
 				} else {
 					failed = true;
 				}
@@ -210,9 +207,6 @@ var renderCustomFont = function(ctx, x, y, maxWidth, text, color, fontInfo, inde
 
 	var spacing = (customFont.settings.spacing || 0) * scale;
 
-	// nothing is ever vertically centered ...
-	y -= 3;
-
 	if (ctx.textBaseline === 'alphabetic') {
 		y -= customFont.vertical.baseline * scale;
 	} else if (ctx.textBaseline === 'middle') {
@@ -227,57 +221,32 @@ var renderCustomFont = function(ctx, x, y, maxWidth, text, color, fontInfo, inde
 		x -= width;
 	}
 
-	var buffer = false;
-	var bufferX = x;
-	var bufferY = y;
-	if (buffer) {
-		x = buffer.x;
-		y = buffer.y;
-		ctx = buffer.ctx;
-	}
-
-	if (!buffer || buffer.refresh) {
-		var prevCharCode = 0;
-		for (var i = 0, len = text.length; i < len; i++) {
-			var charCode = text.charCodeAt(i);
-			if (charCode === 9) { // tab ...
-				x += customFont.horizontal.width * 4 * scale;
-			} else if (charCode === 32) { // space ...
-				x += customFont.horizontal.width * scale;
-			} else {
-				var character = dimensions[charCode];
-				var kern = character.kerning[prevCharCode] || 0;
-				x += kern;
-				var img = srcBuffers[character.sheetIndex];
-				img.render(
-					ctx,
-					character.x,
-					character.y,
-					character.w,
-					character.h,
-					x + character.ox * scale,
-					y + character.oy * scale,
-					character.w * scale,
-					character.h * scale
-				);
-				x += character.ow * scale + spacing;
-			}
-			prevCharCode = charCode;
+	var prevCharCode = 0;
+	for (var i = 0, len = text.length; i < len; i++) {
+		var charCode = text.charCodeAt(i);
+		if (charCode === 9) { // tab ...
+			x += customFont.horizontal.width * 4 * scale;
+		} else if (charCode === 32) { // space ...
+			x += customFont.horizontal.width * scale;
+		} else {
+			var character = dimensions[charCode];
+			var kern = character.kerning[prevCharCode] || 0;
+			x += kern;
+			var img = srcBuffers[character.sheetIndex];
+			img.render(
+				ctx,
+				character.x,
+				character.y,
+				character.w,
+				character.h,
+				x + character.ox * scale,
+				y + character.oy * scale,
+				character.w * scale,
+				character.h * scale
+			);
+			x += character.xadvance * scale + spacing;
 		}
-	}
-
-	if (buffer) {
-		this.drawImage(
-			buffer.ctx.canvas,
-			buffer.x,
-			buffer.y,
-			buffer.width,
-			buffer.height,
-			bufferX,
-			bufferY,
-			buffer.width,
-			buffer.height
-		);
+		prevCharCode = charCode;
 	}
 
 	return true;
@@ -378,8 +347,4 @@ exports.wrapStrokeText = function (origStrokeText) {
 			this.font = font;
 		}
 	}
-};
-
-exports.getFontBuffer = function () {
-	return _fontBuffer;
 };
