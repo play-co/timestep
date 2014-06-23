@@ -144,13 +144,12 @@ exports = Class(ui.View, function (supr) {
 			this.debug = !!opts.debug;
 		}
 
-		if (this._isSlice && this._img) {
+		if (opts.image) {
+			this.setImage(opts.image, opts);
+		} else if (this._isSlice && this._img) {
 			this.updateSlices(opts);
 		}
 
-		if (opts.image) {
-			this.setImage(opts.image, opts);
-		}
 		if (opts.verticalAlign) {
 			this._renderCacheKey = {};
 			this._verticalAlign = opts.verticalAlign;
