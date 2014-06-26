@@ -494,7 +494,13 @@ exports = Class(lib.PubSub, function () {
 			}
 		}
 
-		ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
+		this._renderImage(ctx, srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
+	};
+
+	this._renderImage = function(ctx, srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH) {
+		try {
+			ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
+		} catch(e) {}
 	};
 
 	this.getImageData = function (x, y, width, height) {
