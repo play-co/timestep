@@ -20,7 +20,7 @@ import ui.View as View;
  * @class ui.widget.GridView
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/widget/gridview.md
  */
-exports = GridView = Class(View, function (supr) {
+exports = Class(View, function (supr) {
 	this.init = function (opts) {
 		opts = merge(opts, {
 			horizontalMargin: 0,
