@@ -103,6 +103,10 @@ exports = Class(ScrollView, function (supr) {
 		cell.style.update(pos);
 	}
 
+	this.setDataSource = function (dataSource) {
+		this.model.setDataSource(dataSource);
+	};
+
 	// This function returns a DataSource
 	this.getSelections = function () {
 		return this.model.getSelections();
