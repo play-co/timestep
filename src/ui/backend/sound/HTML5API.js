@@ -28,6 +28,7 @@ import device;
 // "Extend" the local instance of Audio objects.
 var RawAudio = Class(function () {
 	this.init = function () {
+		if (typeof Audio == "undefined") { return false; }
 		var audio = new Audio();
 
 		// we can't really extend an HTML5 audio object in a browser, so
@@ -131,22 +132,24 @@ var MultiSound = Class(function () {
 			}
 
 			var audio = new RawAudio();
-			audio.loop = loop;
-			audio.volume = volume;
-			audio.isBackgroundMusic = opts.background;
-			audio.src = fullPath;
-			audio.preload = ((audio.readyState != 4) || (soundManager._preload && !opts.background)) ? "auto" : "none";
+			if (audio) {
+				audio.loop = loop;
+				audio.volume = volume;
+				audio.isBackgroundMusic = opts.background;
+				audio.src = fullPath;
+				audio.preload = ((audio.readyState != 4) || (soundManager._preload && !opts.background)) ? "auto" : "none";
 
-			// If you pause or mute an html5 audio object in the browser
-			// before the sound is ready, it will play anyway.  Here, we
-			// check the pause status when the audio starts playing.
-			if (audio.addEventListener) {
-				audio.addEventListener('playing', _checkPauseOnPlay);
-			}
+				// If you pause or mute an html5 audio object in the browser
+				// before the sound is ready, it will play anyway.  Here, we
+				// check the pause status when the audio starts playing.
+				if (audio.addEventListener) {
+					audio.addEventListener('playing', _checkPauseOnPlay);
+				}
 
-			sources.push(audio);
-			if (audio.isBackgroundMusic && window.NATIVE) {
-				NATIVE.sound.registerMusic(fullPath, audio);
+				sources.push(audio);
+				if (audio.isBackgroundMusic && window.NATIVE) {
+					NATIVE.sound.registerMusic(fullPath, audio);
+				}
 			}
 		}
 
@@ -272,20 +275,22 @@ exports = Class(Emitter, function (supr) {
 		// determine whether browser supports mp3 or ogg. Default to mp3 if
 		// both are supported. Native will return true for everything, but
 		// on native, we store ogg files as .mp3 files, so return .mp3...
-		var sound = new Audio();
-		this._ext = sound.canPlayType("audio/mpeg") ? '.mp3'
-			: sound.canPlayType("audio/ogg") ? '.ogg' : '';
+		if (typeof Audio != "undefined") {
+			var sound = new Audio();
+			this._ext = sound.canPlayType("audio/mpeg") ? '.mp3'
+				: sound.canPlayType("audio/ogg") ? '.ogg' : '';
 
-		if (!this._ext) {
-			this._ext = '.mp3';
-			logger.log('warning: could not determine sound support type');
-		}
+			if (!this._ext) {
+				this._ext = '.mp3';
+				logger.log('warning: could not determine sound support type');
+			}
 
-		// add sounds to the audio API's list of sounds and
-		// preload them if appropriate
-		for (var key in this._map) {
-			var item = this._map[key];
-			this.addSound(key, item);
+			// add sounds to the audio API's list of sounds and
+			// preload them if appropriate
+			for (var key in this._map) {
+				var item = this._map[key];
+				this.addSound(key, item);
+			}
 		}
 	};
 
