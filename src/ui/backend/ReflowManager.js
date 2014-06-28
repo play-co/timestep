@@ -185,7 +185,7 @@ var ReflowManager = exports = Class(function () {
 						DEBUG && _debug.log('view', view.uid, 'resize event firing', w + 'x' + h, '(prev: ' + style.__cachedWidth + 'x' + style.__cachedHeight + ')');
 						style.__cachedWidth = w;
 						style.__cachedHeight = h;
-						view.publish('Resize');
+						view.emit('resize');
 					}
 				}
 			}

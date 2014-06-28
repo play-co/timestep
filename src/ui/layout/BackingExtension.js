@@ -31,13 +31,13 @@ var layoutProps = {
 		'flex': {value: 0, cb: '_onLayoutChange'},
 		'justifyContent': {value: 'start', cb: '_onLayoutChange'},
 
-		'centerX': {value: false, cb: '_onBoxChange'},
-		'centerY': {value: false, cb: '_onBoxChange'},
+		'centerX': {value: false, cb: '_onLayoutChange'},
+		'centerY': {value: false, cb: '_onLayoutChange'},
 
-		'top': {value: undefined, cb: '_onBoxChange'},
-		'right': {value: undefined, cb: '_onBoxChange'},
-		'bottom': {value: undefined, cb: '_onBoxChange'},
-		'left': {value: undefined, cb: '_onBoxChange'},
+		'top': {value: undefined, cb: '_onLayoutChange'},
+		'right': {value: undefined, cb: '_onLayoutChange'},
+		'bottom': {value: undefined, cb: '_onLayoutChange'},
+		'left': {value: undefined, cb: '_onLayoutChange'},
 
 		'minWidth': {value: undefined, cb: '_onBoundsChange'},
 		'minHeight': {value: undefined, cb: '_onBoundsChange'},
@@ -48,7 +48,7 @@ var layoutProps = {
 		'layoutHeight': {value: undefined, cb: '_onLayoutHeight'},
 
 		'fixedAspectRatio': {value: false, cb: '_onFixedAspectRatio'},
-		'aspectRatio': {value: null, cb: '_onBoxChange'},
+		'aspectRatio': {value: null, cb: '_onLayoutChange'},
 
 		'margin': {value: null, cb: '_onMarginChange'},
 		'padding': {
@@ -94,7 +94,7 @@ View.addExtension({
 			this.left = this._cachedMargin.left;
 			this.right = this._cachedMargin.right;
 
-			this._onBoxChange();
+			this._onLayoutChange();
 		}
 
 		proto._onFixedAspectRatio = function (key, value) {
@@ -231,7 +231,7 @@ View.addExtension({
 				this._layoutWidthIsPercent = false;
 			}
 
-			this._onBoxChange();
+			this._onLayoutChange();
 		}
 
 		proto._onLayoutHeight = function (key, value) {
@@ -243,20 +243,11 @@ View.addExtension({
 				this._layoutHeightIsPercent = false;
 			}
 
-			this._onBoxChange();
+			this._onLayoutChange();
 		}
 
 		proto._onBoundsChange = function () {
 			this.addResizeListeners();
-			this._onBoxChange();
-		}
-
-		// trigger a reflow and apply a layout if necessary
-		proto._onBoxChange = function () {
-			if (this.layout === undefined) {
-				this.layout = 'box';
-			}
-
 			this._onLayoutChange();
 		}
 
