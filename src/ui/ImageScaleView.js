@@ -23,6 +23,7 @@
 
 import ui.View;
 import ui.resource.Image as Image;
+import ui.resource.loader as resourceLoader;
 
 exports = Class(ui.View, function (supr) {
 
@@ -330,7 +331,7 @@ exports = Class(ui.View, function (supr) {
 		var opts = this._opts;
 
 		if (typeof img == 'string') {
-			bounds = GCResources.getMap()[img];
+			bounds = resourceLoader.getMap()[img];
 			if (bounds) {
 				iw = bounds.w + bounds.marginLeft + bounds.marginRight;
 				ih = bounds.h + bounds.marginTop + bounds.marginBottom;
