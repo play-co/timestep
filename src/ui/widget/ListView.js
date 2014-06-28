@@ -76,7 +76,7 @@ exports = Class(ScrollView, function (supr) {
 		}
 
 		// make sure the height is not undefined for compatibility with the layouts
-		if (this._autoSize && !this.style.height) { this.style.height = 0; }
+		if (this._autoSize) { this.style.height = 0; }
 
 		this._needsModelRender = true;
 
