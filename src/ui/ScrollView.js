@@ -66,8 +66,6 @@ exports = Class(View, function (supr) {
 			function clippedWrapRender(contentView, backing, ctx, opts) {
 				if (!backing.visible) { return; }
 
-				if (!backing.__firstRender) { _reflowMgr.add(backing._view); }
-
 				// non-native case only
 				if (backing._needsSort) { backing._needsSort = false; backing._subviews.sort(); }
 
@@ -217,12 +215,14 @@ exports = Class(View, function (supr) {
 	this.updateOpts = function (opts) {
 		supr(this, 'updateOpts', arguments);
 
-		if ('useLayoutBounds' in opts) {
-			if (opts.useLayoutBounds) {
-				this.subscribe('LayoutResize', this, '_updateLayoutBounds');
-				this._updateLayoutBounds();
+		if ('useContentBounds' in opts) {
+			if (opts.useContentBounds) {
+				this._contentView.style.layoutHeight = 'wrapContent';
+				this._contentView.style.layoutWidth = 'wrapContent';
+				this._contentView.subscribe('resize', this, '_updateContentBounds');
+				this._updateContentBounds();
 			} else {
-				this.unsubscribe('LayoutResize', this, '_updateLayoutBounds');
+				this._contentView.unsubscribe('resize', this, '_updateContentBounds');
 			}
 		}
 
@@ -237,17 +237,16 @@ exports = Class(View, function (supr) {
 		return opts;
 	};
 
-	this._updateLayoutBounds = function () {
-		if (!this.style.layout || !this._opts.useLayoutBounds) { return; }
+	this._updateContentBounds = function () {
+
+		if (!this._opts.useContentBounds) { return; }
 
 		var bounds = this._scrollBounds;
-		bounds.minX = bounds.minY = bounds.maxX = bounds.maxY = 0;
-		this._contentView.getSubviews().forEach(function(sv) {
-			bounds.minX = Math.min(bounds.minX, sv.style.x);
-			bounds.minY = Math.min(bounds.minY, sv.style.y);
-			bounds.maxX = Math.max(bounds.maxX, sv.style.x + sv.style.width);
-			bounds.maxY = Math.max(bounds.maxY, sv.style.y + sv.style.height);
-		});
+		var s = this._contentView.style;
+		bounds.minX = s.x;
+		bounds.maxX = s.x + s.width + this.style.padding.right;
+		bounds.minY = s.y;
+		bounds.maxY = s.y + s.height + this.style.padding.bottom;
 	};
 
 	this.buildView = function () {
@@ -256,11 +255,12 @@ exports = Class(View, function (supr) {
 
 	this.addSubview = function (view) {
 		this._contentView.addSubview(view);
-		this._updateLayoutBounds();
+		this._updateContentBounds();
 	};
+
 	this.removeSubview = function (view) {
 		this._contentView.removeSubview(view);
-		this._updateLayoutBounds();
+		this._updateContentBounds();
 	};
 
 	this.removeAllSubviews = function () {
@@ -411,7 +411,7 @@ exports = Class(View, function (supr) {
 		this._contentView.getInput().blockEvents = false;
 
 		if (this._opts.inertia) {
-			
+
 			//how much of the current event
 			//should be favored over older events in the running
 			//weighted average being computed
@@ -428,7 +428,7 @@ exports = Class(View, function (supr) {
 				avgDelta.x = (avgDelta.x * (1 - WEIGHT)) + (this.scrollData[i].x * WEIGHT);
 				avgDelta.y = (avgDelta.y * (1 - WEIGHT)) + (this.scrollData[i].y * WEIGHT);
 			}
-			 
+
 			this.scrollData = [];
 
 			var delta = new Point(avgDelta).scale(.7);
