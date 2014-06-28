@@ -97,8 +97,6 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 
 	this.wrapRender = function (ctx, opts) {
 		if (!this.visible) { return; }
-
-		if (!this.__firstRender) { this._view.needsReflow(true); }
 		if (this._needsSort) { this._needsSort = false; this._subviews.sort(); }
 
 		var width = this._width;

@@ -22,7 +22,6 @@
 
 import ui.View as View;
 import ui.resource.Image as Image;
-import ui.layout.Padding as Padding;
 import device;
 import .util.FragmentBuffer as FragmentBuffer;
 import .TextFlow;
@@ -51,7 +50,6 @@ var TextView = exports = Class(View, function (supr) {
 		wrap: false,
 		autoSize: false,
 		autoFontSize: true,
-		padding: new Padding(0),
 		lineHeight: 1.2,
 
 		// font properties...
@@ -253,10 +251,6 @@ var TextView = exports = Class(View, function (supr) {
 		this.updateCache();
 
 		this._checkDeprecatedOpts(opts);
-
-		if ("padding" in opts) {
-			this.style.padding = new Padding(opts.padding);
-		}
 
 		if (!dontCheck) {
 			this._restoreOpts();

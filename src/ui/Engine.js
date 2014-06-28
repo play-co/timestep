@@ -128,9 +128,7 @@ var Engine = exports = Class(Emitter, function (supr) {
 			keyListener: this._keyListener
 		});
 
-		this._reflowManager = ReflowManager.get();
-
-		this._view.setReflowManager(this._reflowManager);
+		this._reflowMgr = ReflowManager.get();
 
 		this._tickBuffer = 0;
 		this._onTick = [];
@@ -169,11 +167,6 @@ var Engine = exports = Class(Emitter, function (supr) {
 			} else {
 				this.scaleUI(576, 1024);
 			}
-		}
-
-		if (this._opts.noReflow) {
-			this._reflowManager = null;
-			this._view.setReflowManager(null);
 		}
 
 		if (this._opts.showFPS) {
@@ -235,10 +228,6 @@ var Engine = exports = Class(Emitter, function (supr) {
 
 	this.setView = function (view) {
 		this._view = view; return this;
-	};
-
-	this.getReflowManager = function () {
-		return this._reflowManager;
 	};
 
 	this.show = function () {
@@ -365,10 +354,7 @@ var Engine = exports = Class(Emitter, function (supr) {
 			this.__tick(dt);
 		}
 
-		if (this._reflowManager) {
-			this._reflowManager.startReflow(this._ctx);
-			this._reflowManager.setInRender(true);
-		}
+		this._reflowMgr.reflowViews(this._ctx);
 
 		var doRepaint = this._opts.alwaysRepaint || this._needsRepaint;
 		if (!doRepaint && this._doubleBuffered && this._doubleBufferedState > 0) {
@@ -382,7 +368,6 @@ var Engine = exports = Class(Emitter, function (supr) {
 		}
 
 		this._needsRepaint = false;
-		this._reflowManager && this._reflowManager.setInRender(false);
 	};
 
 	this.render = function (dt) {
