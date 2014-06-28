@@ -31,6 +31,7 @@ import math.geom.Rect as Rect;
 import .backend.canvas.ViewBacking;
 
 import ui.backend.ReflowManager as ReflowManager;
+var _reflowMgr = ReflowManager.get();
 
 import event.input.dispatch as dispatch;
 import event.input.InputHandler as InputHandler;
@@ -38,8 +39,6 @@ import event.input.InputHandler as InputHandler;
 import animate;
 
 import util.setProperty;
-
-import .Engine;
 
 var KeyListener = device.get('KeyListener');
 
@@ -143,14 +142,8 @@ var View = exports = Class(Emitter, function () {
 		this.__view = this.style = new (opts.Backing || _BackingCtor)(this, opts);
 
 		this._filter = null;
-		this._dragOffset = {};
 
 		this.__view._view = this;
-
-		var engine = Engine.get();
-		if (engine) {
-			this._reflowManager = engine.getReflowManager();
-		}
 
 		this.updateOpts(opts);
 	};
@@ -341,7 +334,7 @@ var View = exports = Class(Emitter, function () {
 	 */
 	this.setHandleEvents = this.canHandleEvents = function (handleEvents, ignoreSubviews) {
 		this.__input.canHandleEvents = handleEvents;
-		
+
 		if (typeof ignoreSubviews === 'boolean') {
 			this.__input.blockEvents = ignoreSubviews;
 		}
@@ -360,12 +353,14 @@ var View = exports = Class(Emitter, function () {
 		this._needsRepaint = true;
 	};
 
-	this.needsReflow = function (force) {
-		if (this.style.__firstRender || force) {
-			this._reflowManager && this._reflowManager.add(this);
+	this.needsReflow = function () {
+		if (this.reflow != DEFAULT_REFLOW || this.style.layout) {
+			_reflowMgr.add(this);
 			this._needsRepaint = true;
 		}
 	};
+
+	this.reflowSync = function () { _reflowMgr.reflow(this); };
 
 	/**
 	 * Consumes an event targeting this view.
@@ -430,10 +425,6 @@ var View = exports = Class(Emitter, function () {
 	};
 
 	// --- view hierarchy component ---
-
-	this.setReflowManager = function (reflowManager) {
-		this._reflowManager = reflowManager;
-	};
 
 	/**
 	 * Return the subview at the given index.
@@ -518,7 +509,6 @@ var View = exports = Class(Emitter, function () {
 	this.addSubview = function (view) {
 		if (this.__view.addSubview(view)) {
 			view.needsRepaint();
-			this._reflowManager && view.needsReflow();
 
 			this._linkView(view);
 
@@ -529,7 +519,12 @@ var View = exports = Class(Emitter, function () {
 			if (this.__root) {
 				var root = this.__root;
 				var viewCreated = view;
-				scheduler.add(bind(this, function recurse(view) {
+				scheduler.add(bind(this, function recurse (view) {
+					if (!view.style.__firstRender) {
+						view.style.__firstRender = true;
+						view.needsReflow();
+					}
+
 					view.__root = root;
 					view.emit('ViewAdded', viewCreated);
 					var subviews = view.getSubviews();
@@ -589,7 +584,7 @@ var View = exports = Class(Emitter, function () {
 	 */
 	this.removeSubview = function (view) {
 		if (this.__view.removeSubview(view)) {
-			this._unlinkView(view);	
+			this._unlinkView(view);
 			this.publish('SubviewRemoved', view);
 			if (view.__root) {
 				scheduler.add(bind(this, function recurse(view) {
@@ -633,22 +628,19 @@ var View = exports = Class(Emitter, function () {
 
 	// --- onResize callbacks ---
 
-	this.reflow = function () {
+	var DEFAULT_REFLOW = function () {
 	};
+
+	this.reflow = DEFAULT_REFLOW;
 
 	// ---
 
 	/**
 	 * Get the root application for this view.
 	 */
-	this.getApp = function () {
-		var top = this;
-		var next;
-		do {
-			next = top.__view.getSuperview();
-		} while (next && (top = next));
-		return top.__root;
-	};
+	this.getEngine = this.getApp = function () {
+		return this.__root;
+	}
 
 	/**
 	 * Returns an array of all ancestors of the current view.
