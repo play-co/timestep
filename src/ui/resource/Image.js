@@ -77,15 +77,14 @@ if (!ImageMap) {
 
 exports = Class(lib.PubSub, function () {
 
-	// helper canvases for filters and image data
 	var isNative = GLOBAL.NATIVE && !device.simulatingMobileNative;
-	if (!isNative) {
-		var Canvas = device.get('Canvas');
-		var _filterCanvas = new Canvas();
-		var _filterCtx = _filterCanvas.getContext('2d');
-		var _imgDataCanvas = new Canvas();
-		var _imgDataCtx = _imgDataCanvas.getContext('2d');
-	};
+	var Canvas = device.get('Canvas');
+
+	// helper canvases for filters and image data, initialized when/if needed
+	var _filterCanvas = null;
+	var _filterCtx = null;
+	var _imgDataCanvas = null;
+	var _imgDataCtx = null;
 
 	this.init = function (opts) {
 		if (!opts) {
@@ -425,6 +424,12 @@ exports = Class(lib.PubSub, function () {
 	};
 
 	this._applyFilters = function (ctx, srcX, srcY, srcW, srcH) {
+		// initialize a shared filterCanvas when/if needed
+		if (_filterCanvas === null) {
+			_filterCanvas = new Canvas();
+			_filterCtx = _filterCanvas.getContext('2d');
+		}
+
 		var resultImg = this._srcImg;
 		var filters = ctx.filters;
 		var linearAdd = filters.LinearAdd;
@@ -504,6 +509,12 @@ exports = Class(lib.PubSub, function () {
 	};
 
 	this.getImageData = function (x, y, width, height) {
+		// initialize a shared imgDataCanvas when/if needed
+		if (_imgDataCanvas === null) {
+			_imgDataCanvas = new Canvas();
+			_imgDataCtx = _imgDataCanvas.getContext('2d');
+		}
+
 		var map = this._map;
 		if (!GLOBAL.document || !document.createElement) { throw 'Not supported'; }
 		if (!map.width || !map.height) { throw 'Not loaded'; }
