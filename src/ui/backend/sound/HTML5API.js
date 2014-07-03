@@ -21,71 +21,67 @@
 // Only one background sound can be played at a time. They are streamed, not
 // preloaded, on native.
 
-import event.Emitter as Emitter;
-import util.path;
 import device;
+import util.path;
+import event.Emitter as Emitter;
+import ui.backend.sound.AudioLoader as AudioLoader;
+
+// define AudioContext as best as possible
+window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
 // "Extend" the local instance of Audio objects.
 var RawAudio = Class(function () {
 	this.init = function () {
-		if (typeof Audio == "undefined") { return false; }
-		var audio = new Audio();
+		if (typeof Audio === "undefined") {
+			return null;
+		}
 
-		// we can't really extend an HTML5 audio object in a browser, so
-		// do our best...
+		// we can't extend an HTML5 audio object in a browser, so do our best
+		var audio = new Audio();
 		var proto = RawAudio.prototype;
 		for (var i in proto) {
 			if (!audio[i] && proto.hasOwnProperty(i)) {
-				audio[i] = RawAudio.prototype[i];
+				audio[i] = proto[i];
 			}
 		}
 
-		var playTimeout;
-
+		var playTimeout = null;
 		audio.oldPlay = audio.play;
 		audio.play = function() {
-			if (audio.readyState == 4) {
+			if (audio.readyState === 4) {
 				audio.oldPlay();
 			} else {
 				playTimeout = setTimeout(audio.play, 32);
 			}
 		};
-
 		audio.oldPause = audio.pause;
 		audio.pause = function() {
-			if (playTimeout) {
-				clearTimeout(playTimeout);	
-				playTimeout = undefined;
+			if (playTimeout !== null) {
+				clearTimeout(playTimeout);
+				playTimeout = null;
 			}
-
 			audio.oldPause();
-		}
+		};
 
 		// Hook into accessibility features.
+		audio.muted = GLOBAL.ACCESSIBILITY.muted;
 		GLOBAL.ACCESSIBILITY.subscribe('MuteChange', this, function () {
 			audio.muted = GLOBAL.ACCESSIBILITY.muted;
 		});
-
-		audio.muted = GLOBAL.ACCESSIBILITY.muted;
 
 		return audio;
 	};
 
 	// add a stop method that resets the current time
 	this.stop = function () {
-		try {
-			// html5 Audio object
-			if (!this.paused) { this.pause(); }
-
-			// if we have the NETWORK_LOADING flag, only restart currentTime if the sound has loaded.
-			// http://scottdowne.wordpress.com/2010/08/17/no-more-exceptions/
-			if ((!('NETWORK_LOADING' in this)
-					|| this.networkState != this.NETWORK_LOADING
-					|| this.networkState != this.NETWORK_NO_SOURCE)
-					&& !isNaN(this.duration)) {
-				this.currentTime = 0;
-			}
-		} catch (e) {}
+		!this.paused && this.pause();
+		if ((this.NETWORK_LOADING === undefined
+			|| this.networkState !== this.NETWORK_LOADING
+			|| this.networkState !== this.NETWORK_NO_SOURCE)
+				&& !isNaN(this.duration))
+		{
+			this.currentTime = 0;
+		}
 	};
 });
 
@@ -94,86 +90,125 @@ var RawAudio = Class(function () {
  */
 var MultiSound = Class(function () {
 	this.init = function (soundManager, name, opts) {
+		opts = typeof opts === 'string' ? { sources: [opts] } : (opts || {});
+
 		this._soundManager = soundManager;
 		this._name = name;
+		this._isPaused = false;
+		this._lastSrc = null;
+		this._sources = [];
+		this._paths = [];
+
+		this._useAudioContext = false;
+		this._ctx = null;
+		this._loader = null;
+		this._gainNode = null;
+
+		this.loop = opts.loop !== undefined ? opts.loop : opts.background;
+		this.isBackgroundMusic = opts.background;
 
 		// if a list of file names is given in sources, load them as alternative
 		// clips for this sound. Else, assume the only clip for this sound
 		// is the file with its same name
-		opts = typeof opts == 'string' ? {sources: [opts]} : (opts || {});
 		var srcList = opts.sources || [name];
-		var sources = this._sources = [];
-
+		var sources = this._sources;
+		var paths = this._paths;
 		var basePath = soundManager.getPath();
 		var ext = soundManager.getExt();
 		var extTestExp = new RegExp(ext + '$', 'i');
+		var loop = this.loop;
+		var volume = opts.volume !== undefined ? opts.volume : 1;
 
-		var loop = opts.loop !== undefined ? opts.loop : opts.background;
-		var volume = opts.volume !== undefined ? opts.volume : 1.0;
-
+		// HTML5 hack for browsers
 		var isPaused = bind(this, 'isPaused');
-
-		// html5 hack for web browsers
 		var _checkPauseOnPlay = function (src) {
-				this.removeEventListener(arguments.callee);
-				if (isPaused()) {
-					this.pause();
-				}
-			};
+			this.removeEventListener(arguments.callee);
+			isPaused() && this.pause();
+		};
+
+		var ctx = soundManager.getAudioContext();
+		if (ctx) {
+			this._useAudioContext = true;
+			this._ctx = ctx;
+			this._loader = soundManager.getAudioLoader();
+			this._gainNode = ctx.createGain();
+			this._gainNode.connect(ctx.destination);
+			this._gainNode.gain.value = volume;
+		}
 
 		for (var i = 0, src; src = srcList[i]; ++i) {
-
 			// file paths are relative to the base path
 			var fullPath = util.path.join(basePath, opts.path, src);
-
 			// append the extension if not already provided
 			if (!extTestExp.test(fullPath)) {
 				fullPath += ext;
 			}
+			paths.push(fullPath);
 
-			var audio = new RawAudio();
-			if (audio) {
-				audio.loop = loop;
-				audio.volume = volume;
-				audio.isBackgroundMusic = opts.background;
-				audio.src = fullPath;
-				audio.preload = ((audio.readyState != 4) || (soundManager._preload && !opts.background)) ? "auto" : "none";
+			// prefer AudioContext over Audio
+			if (!this._useAudioContext) {
+				var audio = new RawAudio();
+				if (audio) {
+					audio.loop = loop;
+					audio.volume = volume;
+					audio.isBackgroundMusic = opts.background;
+					audio.src = fullPath;
+					audio.preload = ((audio.readyState !== 4) || (soundManager._preload && !opts.background)) ? "auto" : "none";
 
-				// If you pause or mute an html5 audio object in the browser
-				// before the sound is ready, it will play anyway.  Here, we
-				// check the pause status when the audio starts playing.
-				if (audio.addEventListener) {
-					audio.addEventListener('playing', _checkPauseOnPlay);
-				}
+					// If you pause or mute an html5 audio object in the browser
+					// before the sound is ready, it will play anyway.  Here, we
+					// check the pause status when the audio starts playing.
+					if (audio.addEventListener) {
+						audio.addEventListener('playing', _checkPauseOnPlay);
+					}
 
-				sources.push(audio);
-				if (audio.isBackgroundMusic && window.NATIVE) {
-					NATIVE.sound.registerMusic(fullPath, audio);
+					sources.push(audio);
+					if (audio.isBackgroundMusic) {
+						NATIVE.sound.registerMusic(fullPath, audio);
+					}
 				}
 			}
 		}
+	};
 
-		this.loop = loop;
-		this.isBackgroundMusic = opts.background;
+	this.getVolume = function () {
+		if (this._useAudioContext) {
+			return this._gainNode.gain.value;
+		} else {
+			var src = this._sources[0];
+			return (src && src.volume) || 0;
+		}
 	};
 
 	this.setVolume = function (volume) {
-		for (var i = 0, src; src = this._sources[i]; ++i) {
-			src.volume = volume;
+		if (this._useAudioContext) {
+			this._gainNode.gain.value = volume;
+		} else {
+			for (var i = 0, src; src = this._sources[i]; ++i) {
+				src.volume = volume;
+			}
 		}
 	};
 
 	this.stop = function () {
-		for (var i = 0, src; src = this._sources[i]; ++i) {
-			src.stop();
+		if (this._useAudioContext) {
+			this._lastSrc && this._lastSrc.stop(0);
+			this._lastSrc = null;
+		} else {
+			for (var i = 0, src; src = this._sources[i]; ++i) {
+				src.stop();
+			}
 		}
 	};
 
 	this.pause = function () {
 		this._isPaused = true;
-
-		for (var i = 0, src; src = this._sources[i]; ++i) {
-			src.pause();
+		if (this._useAudioContext) {
+			this.stop();
+		} else {
+			for (var i = 0, src; src = this._sources[i]; ++i) {
+				src.pause();
+			}
 		}
 	};
 
@@ -183,7 +218,7 @@ var MultiSound = Class(function () {
 
 	this.isPlaying = function () {
 		var isPlaying = false;
-		if (this._lastSrc) {
+		if (!this._useAudioContext && this._lastSrc !== null) {
 			var cur = this._lastSrc.currentTime;
 			var dur = this._lastSrc.duration;
 			// NaN duration means the duration isn't loaded yet,
@@ -202,11 +237,11 @@ var MultiSound = Class(function () {
 	};
 
 	this.getTime = function () {
-		return this._lastSrc ? this._lastSrc.currentTime : 0;
+		return this._lastSrc && this._lastSrc.currentTime || 0;
 	};
 
 	this.setTime = function (t) {
-		if (this._lastSrc && this.isBackgroundMusic && t != undefined) {
+		if (!this._useAudioContext && this._lastSrc && this.isBackgroundMusic) {
 			if (this._lastSrc.duration) {
 				this._lastSrc.currentTime = t;
 			} else {
@@ -223,24 +258,54 @@ var MultiSound = Class(function () {
 			this._isPaused = false;
 		}
 
-		var src = this._getRandom();
-		src.loop = opts.loop || this.loop;
-		src.play();
-		
-		if (src.muted) {
-			// Chrome bug? Audio objects with muted set before they
-			// are played won't be muted, so toggle the mute state
-			// twice after calling play.
-			src.muted = false;
-			src.muted = true;
+		var src = null;
+		var loop = opts.loop || this.loop;
+		var time = opts.time || 0;
+		var duration = opts.duration ? opts.duration * 1000 : undefined;
+
+		if (this._useAudioContext) {
+			var ctx = this._ctx;
+			var loader = this._loader;
+			var index = Math.random() * this._paths.length | 0;
+			var path = this._paths[index];
+			var buffer = loader.getBuffer(path);
+			if (!buffer) {
+				loader.doOnLoad(path, bind(this, function (buffers) {
+					this._playFromBuffer(buffers[0], loop, time, duration);
+				}));
+			} else {
+				this._playFromBuffer(buffer, loop, time, duration);
+			}
+		} else {
+			src = this._getRandom();
+			src.play();
+			if (src.muted) {
+				// Chrome bug? Audio objects with muted set before they
+				// are played won't be muted, so toggle the mute state
+				// twice after calling play.
+				src.muted = false;
+				src.muted = true;
+			}
+			this.setTime(time);
+			if (duration !== undefined) {
+				setTimeout(bind(this, 'pause'), duration);
+			}
+			this._lastSrc = src;
+		}
+	};
+
+	this._playFromBuffer = function (buffer, loop, time, duration) {
+		var ctx = this._ctx;
+		var src = ctx.createBufferSource();
+		src.buffer = buffer;
+		src.loop = loop;
+		src.connect(this._gainNode);
+		if (duration !== undefined) {
+			src.start(ctx.currentTime, time, duration);
+		} else {
+			src.start(ctx.currentTime, time);
 		}
 		this._lastSrc = src;
-		this.setTime(opts.time);
-		if (opts.duration) {
-			setTimeout(bind(this, function () {
-				this.pause();
-			}), opts.duration * 1000);
-		}
 	};
 
 	this._getRandom = function () {
@@ -255,56 +320,100 @@ var MultiSound = Class(function () {
 exports = Class(Emitter, function (supr) {
 	this.init = function (opts) {
 		opts = opts || {};
+		supr(this, 'init', arguments);
 
-		supr(this, 'init', [opts]);
-
+		this._ctx = null;
+		this._loader = null;
 		this.setPath(opts.path);
-
-		//opts.map is deprecated in favor of opts.files
 		this._map = opts.files || opts.map;
 		this._preload = opts.preload;
 		this._sounds = {};
 		this._isMusicMuted = false;
 		this._areEffectsMuted = false;
 		this._currentMusic = null;
+		this._key = "";
 
 		if (opts.persist) {
 			this.persistState(opts.persist);
 		}
 
+		// use an AudioContext if available, otherwise fallback to Audio
+		if (typeof AudioContext !== "undefined") {
+			this.setAudioContext(new AudioContext());
+		} else {
+			logger.warn("HTML5 AudioContext not supported, falling back to Audio!");
+		}
+
 		// determine whether browser supports mp3 or ogg. Default to mp3 if
 		// both are supported. Native will return true for everything, but
 		// on native, we store ogg files as .mp3 files, so return .mp3...
-		if (typeof Audio != "undefined") {
+		if (typeof Audio !== "undefined") {
 			var sound = new Audio();
-			this._ext = sound.canPlayType("audio/mpeg") ? '.mp3'
-				: sound.canPlayType("audio/ogg") ? '.ogg' : '';
-
-			if (!this._ext) {
-				this._ext = '.mp3';
-				logger.log('warning: could not determine sound support type');
+			if (sound.canPlayType("audio/mpeg")) {
+				this._ext = ".mp3";
+			} else if (sound.canPlayType("audio/ogg")) {
+				this._ext = ".ogg";
 			}
+		} else {
+			logger.warn("HTML5 Audio not supported!");
+		}
 
-			// add sounds to the audio API's list of sounds and
-			// preload them if appropriate
-			for (var key in this._map) {
-				var item = this._map[key];
-				this.addSound(key, item);
+		if (this._ext === undefined) {
+			this._ext = ".mp3";
+			logger.warn("Warning: sound support unclear - defaulting to .mp3");
+		}
+
+		// add sounds to the audio API's list of sounds and preload them
+		for (var key in this._map) {
+			var item = this._map[key];
+			this.addSound(key, item);
+		}
+
+		// AudioContext preloading
+		if (this._ctx && this._preload) {
+			var urls = [];
+			for (var key in this._sounds) {
+				var sound = this._sounds[key];
+				urls = urls.concat(sound._paths);
 			}
+			this.preloadSounds(urls);
 		}
 	};
 
-	this.getExt = function () { return this._ext; };
+	this.getAudioContext = function () {
+		return this._ctx;
+	};
 
-	this.getPath = function (name) {
-		return (name) ? this._sounds[name].path : this._path;
+	this.setAudioContext = function (ctx) {
+		this._ctx = ctx;
+		if (this._loader) {
+			this._loader.setAudioContext(ctx);
+		} else {
+			this._loader = new AudioLoader({ ctx: ctx });
+		}
+	};
+
+	this.getAudioLoader = function () {
+		return this._loader;
+	};
+
+	this.preloadSounds = function (urls) {
+		// used for AudioContext only
+		this._loader && this._loader.load(urls);
+	};
+
+	this.getExt = function () {
+		return this._ext;
+	};
+
+	this.getPath = function () {
+		return this._path;
 	};
 
 	this.setPath = function (path) {
 		if (path) {
 			path = path.replace(/\/$/, '');
 		}
-
 		this._path = path || '';
 	};
 
@@ -318,9 +427,14 @@ exports = Class(Emitter, function (supr) {
 		this._key = key;
 
 		var value = localStorage.getItem(this._key);
-		if (value) { try { value = JSON.parse(value); } catch (e) {} }
 		if (value) {
-			logger.log('restoring audio api state');
+			try {
+				value = JSON.parse(value);
+			} catch (e) {}
+		}
+
+		if (value) {
+			logger.log("Restoring Audio API state!");
 			this.setMusicMuted(value.isMusicMuted);
 			this.setEffectsMuted(value.areEffectsMuted);
 		}
@@ -329,29 +443,34 @@ exports = Class(Emitter, function (supr) {
 	/* @internal for now
 	 */
 	this._persist = function () {
-		if (this._key) {
+		if (this._key !== "") {
 			localStorage.setItem(this._key, JSON.stringify({
-					isMusicMuted: this._isMusicMuted,
-					areEffectsMuted: this._areEffectsMuted
-				}));
+				isMusicMuted: this._isMusicMuted,
+				areEffectsMuted: this._areEffectsMuted
+			}));
 		}
 	};
 
-	this.getMuted = function () { return this._isMusicMuted && this._areEffectsMuted; };
-	this.getMusicMuted = function () { return this._isMusicMuted; };
-	this.getEffectsMuted = function () { return this._areEffectsMuted; };
+	this.getMuted = function () {
+		return this._isMusicMuted && this._areEffectsMuted;
+	};
 
-	// global mute
+	this.getMusicMuted = function () {
+		return this._isMusicMuted;
+	};
+
+	this.getEffectsMuted = function () {
+		return this._areEffectsMuted;
+	};
+
 	this.setMuted = function (isMuted) {
 		this.setMusicMuted(isMuted);
 		this.setEffectsMuted(isMuted);
 	};
 
 	this.setMusicMuted = function (isMusicMuted) {
-		// if (isMusicMuted == this._isMusicMuted) { return; }
 		this._isMusicMuted = isMusicMuted;
 		this._persist();
-
 		// resume music on unmute
 		if (this._currentMusic) {
 			if (isMusicMuted) {
@@ -363,10 +482,8 @@ exports = Class(Emitter, function (supr) {
 	};
 
 	this.setEffectsMuted = function (areEffectsMuted) {
-		if (areEffectsMuted == this._areEffectsMuted) { return; }
 		this._areEffectsMuted = areEffectsMuted;
 		this._persist();
-
 		if (areEffectsMuted) {
 			for (var key in this._sounds) {
 				var sound = this._sounds[key];
@@ -377,64 +494,64 @@ exports = Class(Emitter, function (supr) {
 		}
 	};
 
-	this.setVolume = function (name, volume) {
+	this.getSound = function(name) {
 		var sound = this._sounds[name];
+		if (!sound) {
+			logger.warn("Warning: no sound of that name!");
+		}
+		return sound;
+	};
+
+	this.setVolume = function (name, volume) {
+		var sound = this.getSound(name);
 		if (sound) {
 			sound.setVolume(volume);
 			return true;
 		}
-
 		return false;
 	};
 
 	this.getVolume = function (name) {
-		var sound = this._sounds[name];
+		var sound = this.getSound(name);
 		if (sound) {
-			var elem = sound._sources[0]; //first audio element
-			return Math.round(10 * elem.volume) / 10; //round to nearest tenth
+			return sound.getVolume();
 		} else {
 			return null;
 		}
 	};
 
 	this.setTime = function (name, t) {
-		var sound = this._sounds[name];
+		var sound = this.getSound(name);
 		if (!sound) {
-			logger.log("warning: no sound of that name");
 			return false;
 		}
-
-		sound.setTime(t);
+		sound.setTime(t || 0);
+		return true;
 	};
 
 	this.getTime = function (name) {
-		var sound = this._sounds[name];
+		var sound = this.getSound(name);
 		if (!sound) {
-			logger.log("warning: no sound of that name");
 			return false;
 		}
-
 		return sound.getTime();
 	};
 
 	this.getDuration = function (name) {
-		var sound = this._sounds[name];
+		var sound = this.getSound(name);
 		if (!sound) {
-			logger.log("warning: no sound of that name");
 			return false;
 		}
-
 		return sound.getDuration();
 	};
 
 	this.play = function (name, opts) {
-		var sound = this._sounds[name];
-		opts = opts || {};
+		var sound = this.getSound(name);
 		if (!sound) {
-			logger.log("warning: no sound of that name");
 			return false;
 		}
 
+		opts = opts || {};
 		var isBackgroundMusic = sound.isBackgroundMusic;
 		if (isBackgroundMusic) {
 			// some platforms enforce only one simultaneous background music
@@ -442,9 +559,7 @@ exports = Class(Emitter, function (supr) {
 			if (this._currentMusic) {
 				this._currentMusic.stop();
 			}
-
 			this._currentMusic = sound;
-
 			// if we're muted, make sure to resume the music if we unmute
 			if (!this._isMusicMuted) {
 				sound.play(opts);
@@ -452,57 +567,48 @@ exports = Class(Emitter, function (supr) {
 		} else if (!this._areEffectsMuted) {
 			sound.play(opts);
 		}
-
 		return true;
 	};
 
 	this.pause = function (name) {
-		var sound = this._sounds[name];
-		if (!sound) { return false; }
-
-		// if we're muted and we pause the current music,
-		// don't resume the music on unmute.
-		if (this._currentMusic == sound) {
+		var sound = this.getSound(name);
+		if (!sound) {
+			return false;
+		}
+		// if muted and we pause current music, don't resume it on unmute
+		if (this._currentMusic === sound) {
 			this._currentMusic = null;
 		}
-
 		sound.pause();
-
 		return true;
 	};
 
 	this.stop = function (name) {
-		var sound = this._sounds[name];
-		if (!sound) { return false; }
-
-		// if we're muted and we pause the current music,
-		// don't resume the music on unmute.
-		if (this._currentMusic == sound) {
+		var sound = this.getSound(name);
+		if (!sound) {
+			return false;
+		}
+		// if muted and we pause current music, don't resume it on unmute
+		if (this._currentMusic === sound) {
 			this._currentMusic = null;
 		}
-
 		sound.stop();
-
 		return true;
 	};
 
 	this.isPaused = function (name) {
-		var sound = this._sounds[name];
+		var sound = this.getSound(name);
 		if (!sound) {
-			logger.log("warning: no sound of that name");
 			return false;
 		}
-
 		return sound.isPaused();
 	};
 
 	this.isPlaying = function (name) {
-		var sound = this._sounds[name];
+		var sound = this.getSound(name);
 		if (!sound) {
-			logger.log("warning: no sound of that name");
 			return false;
 		}
-
 		return sound.isPlaying();
 	};
 
