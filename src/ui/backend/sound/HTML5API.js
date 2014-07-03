@@ -258,13 +258,11 @@ var MultiSound = Class(function () {
 			this._isPaused = false;
 		}
 
-		var src = null;
 		var loop = opts.loop || this.loop;
 		var time = opts.time || 0;
 		var duration = opts.duration ? opts.duration * 1000 : undefined;
 
 		if (this._useAudioContext) {
-			var ctx = this._ctx;
 			var loader = this._loader;
 			var index = Math.random() * this._paths.length | 0;
 			var path = this._paths[index];
@@ -277,7 +275,7 @@ var MultiSound = Class(function () {
 				this._playFromBuffer(buffer, loop, time, duration);
 			}
 		} else {
-			src = this._getRandom();
+			var src = this._getRandom();
 			src.play();
 			if (src.muted) {
 				// Chrome bug? Audio objects with muted set before they
