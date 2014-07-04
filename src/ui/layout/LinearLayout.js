@@ -421,9 +421,9 @@ exports = Class(BoxLayout, function (supr) {
 
 		this._debug && this._summarize() && _debug.stepOut();
 
-		if (isVertical && s.layoutHeight == 'wrapContent') {
+		if (isVertical && layoutStyle.layoutHeight == 'wrapContent') {
 			this.reflowY();
-		} else if (!isVertical && s.layoutWidth == 'wrapContent') {
+		} else if (!isVertical && layoutStyle.layoutWidth == 'wrapContent') {
 			this.reflowX();
 		}
 
