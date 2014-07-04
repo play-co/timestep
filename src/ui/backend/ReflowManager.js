@@ -109,18 +109,15 @@ var ReflowManager = exports = Class(function () {
 			--this._pendingCount;
 		}
 
-		var style = view.style;
-		var reflowSubviews = false;
-
 		if (view.__layout) {
 			view.__layout.reflow();
-			reflowSubviews = true;
 		}
 
 		view.reflow && view.reflow();
 
 		// always reflow children if a layout changes sizes
-		if (reflowSubviews) {
+		if (view.__layout) {
+			var style = view.style;
 			var w = style.width;
 			var h = style.height;
 			if (style.__cachedWidth != style.width || style.__cachedHeight != style.height) {
