@@ -115,7 +115,7 @@ var Engine = exports = Class(Emitter, function (supr) {
 		// is currently attached to.  If __root is null, the view
 		// is not currently in a view hierarchy.
 		this._view.__root = this;
-		
+
 		this._events = [];
 
 		if (dispatch.KeyListener) {
@@ -174,7 +174,7 @@ var Engine = exports = Class(Emitter, function (supr) {
 				import ui.backend.debug.FPSView as FPSView;
 				this._applicationFPS = new FPSView({application: this});
 			}
-			
+
 			this._renderFPS = bind(this._applicationFPS, this._applicationFPS.render);
 			this._tickFPS = bind(this._applicationFPS, this._applicationFPS.tick);
 		} else {
@@ -239,7 +239,7 @@ var Engine = exports = Class(Emitter, function (supr) {
 		this._rootElement.style.display = 'none';
 		return this;
 	};
-	
+
 	this.pause = function () {
 		this.stopLoop();
 		if (this._keyListener) {
@@ -264,17 +264,18 @@ var Engine = exports = Class(Emitter, function (supr) {
 	this.startLoop = function (dtMin) {
 		if (this._running) { return; }
 		this._running = true;
-		
+
 		this.now = 0;
 		timer.start(dtMin || this._opts.dtMinimum);
+		this.emit('resume');
 		return this;
 	};
 
 	this.stopLoop = function () {
 		if (!this._running) { return; }
 		this._running = false;
-		
 		timer.stop();
+		this.emit('pause');
 		return this;
 	};
 
@@ -318,7 +319,7 @@ var Engine = exports = Class(Emitter, function (supr) {
 			var hasMove = false;
 			for (var i = n - 1; i >= 0; --i) {
 				if (events[i].type == dispatch.eventTypes.MOVE) {
-					if (!hasMove) { 
+					if (!hasMove) {
 						hasMove = true;
 					} else {
 						events.splice(i, 1);
