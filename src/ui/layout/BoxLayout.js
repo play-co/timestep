@@ -199,7 +199,7 @@ var BoxLayout = exports = Class(function () {
 		var w = 0;
 		var views = this._view.getSubviews();
 		for (var i = 0, v; v = views[i]; ++i) {
-			if (!v.style._layoutWidthIsPercent) {
+			if (!v.style._layoutWidthIsPercent && v.style.visible) {
 				var right = v.style.x + v.style.width * v.style.scale + (v.style.right || 0);
 				if (right > w) {
 					w = right;
@@ -214,7 +214,7 @@ var BoxLayout = exports = Class(function () {
 		var views = this._view.getSubviews();
 		var h = 0;
 		for (var i = 0, v; v = views[i]; ++i) {
-			if (!v.style._layoutHeightIsPercent) {
+			if (!v.style._layoutHeightIsPercent && v.style.visible) {
 				var bottom = v.style.y + v.style.height * v.style.scale + (v.style.bottom || 0);
 				if (bottom > h) {
 					h = bottom;
