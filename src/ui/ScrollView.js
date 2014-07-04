@@ -436,7 +436,7 @@ exports = Class(View, function (supr) {
 
 			var velocity = delta.getMagnitude();
 			//calculate the travel time of the scroll
-			//vf = vi + at -> t = vf - vi / a 
+			//vf = vi + at -> t = vf - vi / a
 			var time = - velocity / ACCEL;
 			//vf^2 = vi^2 + 2ax -> x = - (vi^2) / (2 *a)
 			var distance = .5 * - (velocity * velocity) / ACCEL;
@@ -658,13 +658,19 @@ exports = Class(View, function (supr) {
 	};
 
 	this.onInputScroll = function (evt) {
+		var style = this._contentView.style;
+		var x = style.x;
+		var y = style.y;
+
 		if (this._opts.scrollY && evt.scrollAxis == input.VERTICAL_AXIS) {
 			this.addOffset(undefined, evt.scrollDelta * 40);
 		} else if (this._opts.scrollX) {
 			this.addOffset(evt.scrollDelta * 40);
 		}
 
-		evt.cancel();
+		if (style.y != y || style.x != x) {
+			evt.cancel();
+		}
 	};
 
 	this.scrollTo = function (x, y, opts, cb) {
