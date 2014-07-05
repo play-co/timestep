@@ -18,7 +18,7 @@
 import util.setProperty as setProperty;
 
 var BaseBacking = exports = Class(function () {
-	
+
 	// required methods:
 	//
 	// this._onResize = function () {};
@@ -55,10 +55,10 @@ var BaseBacking = exports = Class(function () {
 		'visible': {value: true},
 		'shadowColor': {value: 'black'}, //only has an effect in TextView??
 		'clip': {value: false},
-		'backgroundColor': {value: undefined},
+		'backgroundColor': {value: ''},
 		'compositeOperation': {value: undefined},
 	};
-	
+
 	this.constructor.addProperty = function (key, def) {
 		styleKeys[key] = true;
 		setProperty(this.prototype, key, def);

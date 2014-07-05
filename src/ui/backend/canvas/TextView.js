@@ -68,7 +68,7 @@ var TextView = exports = Class(View, function (supr) {
 
 		// misc properties...
 		buffer: false, // GLOBAL.NATIVE && !device.simulatingMobileNative,
-		backgroundColor: null
+		backgroundColor: ''
 	};
 
 	var clearCache = {
