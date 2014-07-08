@@ -205,6 +205,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 					//lines.push([{word: s, width: currentWidth, line: lines.length}]);
 					//s = "";
 					lines.push(line);
+					line = [];
 					currentWidth = 0;
 				} else {
 					var isLineEmpty = !line.length;
