@@ -233,20 +233,3 @@ exports.collectGarbage = function () {
 	logger.log('collecting garbage');
 	NATIVE && NATIVE.gc && NATIVE.gc.runGC();
 }
-
-/**
- * Global device accessibility controls. Muting, click, color, font changing, etc.
- */
-
-GLOBAL.ACCESSIBILITY = new (Class(Emitter, function (supr) {
-	this.muted = false;
-
-	this.mute = function (flag) {
-		this.muted = flag;
-		this.publish('MuteChange');
-	};
-}));
-
-if (GLOBAL.ONACCESSIBLE) {
-	GLOBAL.ONACCESSIBLE();
-}
