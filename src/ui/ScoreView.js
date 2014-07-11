@@ -43,14 +43,15 @@ exports = Class(View, function(supr) {
 		// container view for characters
 		this._container = new View({
 			superview: this,
-			width: opts.width,
-			height: opts.height,
+			width: this.style.width,
+			height: this.style.height,
 			canHandleEvents: false
 		});
 
 		// text options
 		this._horizontalAlign = opts.horizontalAlign || opts.textAlign || 'center';
 		this._verticalAlign = opts.verticalAlign || 'middle';
+		this._srcHeight = opts.srcHeight || this.style.height;
 		this._spacing = opts.spacing || 0;
 		this._text = opts.text;
 		opts.characterData && this.setCharacterData(opts.characterData);
@@ -63,7 +64,8 @@ exports = Class(View, function(supr) {
 			d.img = new Image({ url: d.image });
 			var map = d.img.getMap();
 			d.width = d.width || map.width + map.marginLeft + map.marginRight;
-			this._srcHeight = map.height + map.marginTop + map.marginBottom;
+			var h = map.height + map.marginTop + map.marginBottom;
+			this._srcHeight = h > 0 ? h : this._srcHeight;
 		}
 		if (this._text) {
 			this.setText(this._text);
