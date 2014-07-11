@@ -129,21 +129,23 @@ exports = Class(View, function(supr) {
 		var fcHash = this._getColorHash(fc);
 		for (var i = 0; i < this._activeCharacters.length; i++) {
 			var data = this._activeCharacters[i];
+			if (data === undefined) {
+				continue;
+			}
+
 			var view = this._imageViews[i];
 			var s = view.style;
 			var w = data.width * scale;
-
 			s.x = offsetX;
 			s.y = offsetY;
 			s.width = w;
 			s.height = height; // all characters should have the same height
 			s.visible = true;
 			view.setImage(data.img);
+			offsetX += w + spacing;
 
 			// update color filters
 			this._updateFilter(view, fc, fcHash);
-
-			offsetX += w + spacing;
 		}
 
 		while (i < this._imageViews.length) {
