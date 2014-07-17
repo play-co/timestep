@@ -89,7 +89,7 @@ exports = Class(View, function(supr) {
 			var data = this._characterData[character];
 			if (data) {
 				this._activeCharacters[i] = data;
-				textWidth += data.width * scale + spacing;
+				textWidth += data.width * scale + (i ? spacing : 0);
 			} else {
 				logger.warn('WARNING! ScoreView.setText, no data for: ' + character);
 			}
