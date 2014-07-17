@@ -484,6 +484,7 @@ exports = Class(Emitter, function (supr) {
 	};
 
 	this.setMusicMuted = function (isMusicMuted) {
+		if (_muteAll) { isMusicMuted = true; }
 		this._isMusicMuted = isMusicMuted;
 		this._persist();
 		// resume music on unmute
@@ -497,6 +498,7 @@ exports = Class(Emitter, function (supr) {
 	};
 
 	this.setEffectsMuted = function (areEffectsMuted) {
+		if (_muteAll) { areEffectsMuted = true; }
 		this._areEffectsMuted = areEffectsMuted;
 		this._persist();
 		if (areEffectsMuted) {
