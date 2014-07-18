@@ -40,24 +40,6 @@ var TRANSITIONS = {
 	easeOut: function (n) { return n * (2 - n); }
 };
 
-var STYLE_KEYS = [
-	'x',
-	'y',
-	'r',
-	'anchorX',
-	'anchorY',
-	'width',
-	'height',
-	'scale',
-	'scaleX',
-	'scaleY',
-	'opacity',
-	'flipX',
-	'flipY',
-	'compositeOperation',
-	'visible'
-];
-
 var PARTICLE_DEFAULTS = {
 	x: 0,
 	y: 0,
@@ -367,10 +349,21 @@ exports = Class(View, function (supr) {
 
 			// apply style properties
 			var s = particle.style;
-			for (var k = 0, klen = STYLE_KEYS.length; k < klen; k++) {
-				var key = STYLE_KEYS[k];
-				s[key] = data[key];
-			}
+			s.x = data.x;
+			s.y = data.y;
+			s.r = data.r;
+			s.anchorX = data.anchorX;
+			s.anchorY = data.anchorY;
+			s.width = data.width;
+			s.height = data.height;
+			s.scale = data.scale;
+			s.scaleX = data.scaleX;
+			s.scaleY = data.scaleY;
+			s.opacity = data.opacity;
+			s.flipX = data.flipX;
+			s.flipY = data.flipY;
+			s.compositeOperation = data.compositeOperation;
+			s.visible = data.visible;
 
 			// start particles if there's no delay
 			if (!data.delay) {
