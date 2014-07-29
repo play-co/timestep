@@ -238,14 +238,17 @@ exports = Class(View, function(supr) {
 	};
 
 	this.killAllParticles = function() {
-		while (this._activeParticleObjects.length) {
-			this._killParticle(0);
+		// protect against canvas context clear before native texture is ready
+		if (this._activeParticleObjects.length) {
+			while (this._activeParticleObjects.length) {
+				this._killParticle(0);
+			}
+			this._canvX = 0;
+			this._canvY = 0;
+			this._canvW = 1;
+			this._canvH = 1;
+			this._canvas.getContext("2D").clear();
 		}
-		this._canvX = 0;
-		this._canvY = 0;
-		this._canvW = 1;
-		this._canvH = 1;
-		this._canvas.getContext("2D").clear();
 	};
 
 	this.runTick = function(dt) {
