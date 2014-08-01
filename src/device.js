@@ -103,13 +103,9 @@ exports.isMobileBrowser = false;
 exports.isUIWebView = false;
 exports.isSafari = /Safari/.test(ua);
 
-import std.uri;
-uri = new std.uri(window.location);
-exports.isSimulator = !!(uri.query('device') || uri.hash('device'));
-
+exports.isSimulator = GLOBAL.CONFIG && !!CONFIG.simulator;
 if (exports.isSimulator) {
-	var urlStr = window.location.href.toLowerCase();
-	exports.isIOSSimulator = urlStr.indexOf('ipad') !== -1 || urlStr.indexOf('iphone') !== -1;
+	exports.isIOSSimulator = /iphone|ipad/i.test(CONFIG.simulator.deviceType);
 
 	// Until we support more platforms, if it's not
 	// iOS then it's assumed to be an Android device
