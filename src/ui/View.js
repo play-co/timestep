@@ -825,7 +825,7 @@ var View = exports = Class(Emitter, function () {
 				cls = this.constructor.name;
 
 				if (!cls) {
-					cls = this.constructor.toString().match(/^function ([^(]+)/)[1];
+					cls = this.constructor.toString().match(/^function ([^(]*)/)[1];
 				}
 
 				if (cls) {
