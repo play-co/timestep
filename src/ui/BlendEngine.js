@@ -387,12 +387,12 @@ exports = Class(View, function(supr) {
 			var canvW = maxX - minX;
 			var canvH = maxY - minY;
 			if (canvW > MAX_TEX_WIDTH) {
-				var cx = this._forceCenterX !== undefined ? this._forceCenterX : canvX + canvW / 2;
+				var cx = this._forceCenterX !== void 0 ? this._forceCenterX : canvX + canvW / 2;
 				canvX = cx - MAX_TEX_WIDTH / 2;
 				canvW = MAX_TEX_WIDTH;
 			}
 			if (canvH > MAX_TEX_HEIGHT) {
-				var cy = this._forceCenterY !== undefined ? this._forceCenterY : canvY + canvH / 2;
+				var cy = this._forceCenterY !== void 0 ? this._forceCenterY : canvY + canvH / 2;
 				canvY = cy - MAX_TEX_HEIGHT / 2;
 				canvH = MAX_TEX_HEIGHT;
 			}
