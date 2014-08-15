@@ -513,9 +513,7 @@ exports = Class(Emitter, function (supr) {
 
 	this.getSound = function(name) {
 		var sound = this._sounds[name];
-		if (!sound) {
-			logger.warn("Warning: no sound of that name!");
-		}
+		if (!sound) { logger.warn("Warning: no sound named " + name); }
 		return sound;
 	};
 
