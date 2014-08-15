@@ -79,6 +79,8 @@ exports = Class(View, function(supr) {
 	};
 
 	this.setText = function(text) {
+		if (!this._characterData) { return; }
+
 		this._text = text = "" + text;
 
 		var width = this.style.width;
