@@ -169,9 +169,9 @@ exports.easeOutBounce = function (n) {
 	}
 };
 exports.easeInBounce = function (n) {
-	return 1 - this.easeOutBounce(1 - n);
+	return 1 - exports.easeOutBounce(1 - n);
 };
 exports.easeInOutBounce = function (n) {
-	if (n < 0.5) return this.easeInBounce(n * 2) * .5;
-	return this.easeOutBounce((n * 2) - 1) * .5 + .5;
+	if (n < 0.5) return exports.easeInBounce(n * 2) * .5;
+	return exports.easeOutBounce((n * 2) - 1) * .5 + .5;
 };
