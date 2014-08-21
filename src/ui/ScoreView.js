@@ -26,17 +26,18 @@ import ui.ImageView as ImageView;
 import ui.resource.Image as Image;
 import ui.filter as filter;
 
-var min = Math.min;
-var max = Math.max;
-
 exports = Class(View, function(supr) {
+	var min = Math.min;
+	var max = Math.max;
 
 	this.init = function(opts) {
 		opts.blockEvents = true;
 		supr(this, 'init', arguments);
 
 		// characters that should be rendered
+		this._text = '';
 		this._activeCharacters = [];
+		this._ignoreCharacters = [];
 		this._imageViews = [];
 		this._filterColor = opts.filterColor || null;
 
@@ -53,8 +54,9 @@ exports = Class(View, function(supr) {
 		this._verticalAlign = opts.verticalAlign || 'middle';
 		this._srcHeight = opts.srcHeight || this.style.height;
 		this._spacing = opts.spacing || 0;
-		this._text = opts.text;
+		// both characterData and text are required before rendering text images
 		opts.characterData && this.setCharacterData(opts.characterData);
+		opts.text && this.setText(opts.text);
 	};
 
 	this.setCharacterData = function(data) {
@@ -79,28 +81,40 @@ exports = Class(View, function(supr) {
 	};
 
 	this.setText = function(text) {
-		this._text = text = "" + text;
-
+		text = '' + text;
 		var width = this.style.width;
 		var height = this.style.height;
+		var textLength = text.length;
 		var textWidth = 0;
 		var offsetX = 0;
 		var offsetY = 0;
 		var scale = height / this._srcHeight;
 		var spacing = this._spacing * scale;
+		var oldText = this._text;
+		var oldTextLength = oldText.length;
+
+		this._ignoreCharacters.length = 0;
+		this._text = text;
 
 		var i = 0;
-		while (i < text.length) {
-			var character = text.charAt(i);
+		while (i < textLength) {
+			var character = text[i];
 			var data = this._characterData[character];
 			if (data) {
 				this._activeCharacters[i] = data;
-				textWidth += data.width * scale + (i ? spacing : 0);
+				textWidth += data.width;
+				if (i < oldTextLength && oldText[i] === character) {
+					this._ignoreCharacters.push(true);
+				} else {
+					this._ignoreCharacters.push(false);
+				}
 			} else {
 				logger.warn('WARNING! ScoreView.setText, no data for: ' + character);
 			}
 			i++;
 		}
+		textWidth *= scale;
+		textWidth += (textLength - 1) * spacing;
 
 		if (width < textWidth) {
 			this._container.style.scale = width / textWidth;
@@ -123,19 +137,18 @@ exports = Class(View, function(supr) {
 		}
 		offsetY = max(0, offsetY / this._container.style.scale);
 
-		while (text.length > this._imageViews.length) {
+		while (textLength > this._imageViews.length) {
 			var newView = new ImageView({ superview: this._container });
 			this._imageViews.push(newView);
 		}
-
 		// trim excess characters
-		this._activeCharacters.length = text.length;
+		this._activeCharacters.length = textLength;
 
 		var fc = this._filterColor;
 		var fcHash = this._getColorHash(fc);
-		for (var i = 0; i < this._activeCharacters.length; i++) {
+		for (var i = 0; i < textLength; i++) {
 			var data = this._activeCharacters[i];
-			if (data === undefined) {
+			if (data === void 0) {
 				continue;
 			}
 
@@ -144,11 +157,17 @@ exports = Class(View, function(supr) {
 			var w = data.width * scale;
 			s.x = offsetX;
 			s.y = offsetY;
+			offsetX += w + spacing;
+
+			// skip style updates and setImage if possible
+			if (this._ignoreCharacters[i]) {
+				continue;
+			}
+
 			s.width = w;
 			s.height = height; // all characters should have the same height
 			s.visible = true;
 			view.setImage(data.img);
-			offsetX += w + spacing;
 
 			// update color filters
 			this._updateFilter(view, fc, fcHash);
