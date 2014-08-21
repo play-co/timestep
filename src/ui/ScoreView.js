@@ -59,17 +59,23 @@ exports = Class(View, function(supr) {
 
 	this.setCharacterData = function(data) {
 		this._characterData = data;
+		var srcHeight = 0;
 		for (var i in data) {
 			var d = data[i];
 			d.img = new Image({ url: d.image });
 			var map = d.img.getMap();
 			d.width = d.width || map.width + map.marginLeft + map.marginRight;
 			var h = map.height + map.marginTop + map.marginBottom;
-			this._srcHeight = h > 0 ? h : this._srcHeight;
+			if (srcHeight === 0 && h > 0) {
+				// accept the first height we find and use it
+				srcHeight = h;
+			} else if (srcHeight !== h) {
+				// all assets passed to ScoreViews should have the same height
+				logger.warn(this.getTag() + ": Art Height Mismatch!", d.image);
+			}
 		}
-		if (this._text) {
-			this.setText(this._text);
-		}
+		this._srcHeight = srcHeight || this._srcHeight;
+		this._text && this.setText(this._text);
 	};
 
 	this.setText = function(text) {

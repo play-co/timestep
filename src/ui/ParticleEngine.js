@@ -128,7 +128,9 @@ exports = Class(View, function (supr) {
 		this._activeParticles = [];
 
 		// pre-initialization
-		opts.initCount && this._initParticlePool(opts.initCount);
+		var initCount = opts.initCount;
+		initCount && this._initParticlePool(initCount);
+		this._logViewCreation = initCount > 0;
 	};
 
 	/**
@@ -332,16 +334,22 @@ exports = Class(View, function (supr) {
 		for (var i = 0; i < count; i++) {
 			// get particle data object and recycled view if possible
 			var data = particleDataArray.pop();
-			var particle = free.pop() || new this._ctor({
-				superview: this,
-				visible: false,
-				canHandleEvents: false
-			});
+			var particle = free.pop();
+			if (!particle) {
+				particle = new this._ctor({
+					superview: this,
+					visible: false,
+					canHandleEvents: false
+				});
+				if (this._logViewCreation) {
+					logger.warn(this.getTag(), "created View:", particle.getTag());
+				}
+			}
 
 			// set particle image if necessary
 			if (particle.setImage) {
 				var img = imageCache[data.image];
-				if (img === undefined) {
+				if (img === void 0) {
 					img = imageCache[data.image] = new Image({ url: data.image });
 				}
 				particle.setImage(img);
@@ -388,7 +396,7 @@ exports = Class(View, function (supr) {
 		var triggers = data.triggers;
 		for (var i = 0, len = triggers.length; i < len; i++) {
 			var trig = triggers[i];
-			trig.isStyle = trig.isStyle !== undefined
+			trig.isStyle = trig.isStyle !== void 0
 				? trig.isStyle
 				: trig.property.charAt(0) !== 'd';
 		}
