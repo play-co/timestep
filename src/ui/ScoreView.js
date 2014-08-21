@@ -53,7 +53,7 @@ exports = Class(View, function(supr) {
 		this._verticalAlign = opts.verticalAlign || 'middle';
 		this._srcHeight = opts.srcHeight || this.style.height;
 		this._spacing = opts.spacing || 0;
-		this._text = opts.text;
+		this._text = opts.text !== undefined ? opts.text : '';
 		opts.characterData && this.setCharacterData(opts.characterData);
 	};
 
@@ -73,6 +73,7 @@ exports = Class(View, function(supr) {
 	};
 
 	this.setText = function(text) {
+		var oldText = this._text;
 		this._text = text = "" + text;
 
 		var width = this.style.width;
@@ -83,18 +84,31 @@ exports = Class(View, function(supr) {
 		var scale = height / this._srcHeight;
 		var spacing = this._spacing * scale;
 
+		var ignore = [];
+
+		var textLength = text.length;
 		var i = 0;
-		while (i < text.length) {
-			var character = text.charAt(i);
+		while (i < textLength) {
+			var character = text[i];
+
 			var data = this._characterData[character];
+			if (oldText[i] == character) {
+				ignore[i] = true;
+				textWidth += data.width;
+				i++
+				continue;
+			}
+
 			if (data) {
 				this._activeCharacters[i] = data;
-				textWidth += data.width * scale + (i ? spacing : 0);
+				textWidth += data.width;
 			} else {
 				logger.warn('WARNING! ScoreView.setText, no data for: ' + character);
 			}
 			i++;
 		}
+		textWidth *= scale;
+		textWidth += (textLength - 1) * spacing;
 
 		if (width < textWidth) {
 			this._container.style.scale = width / textWidth;
@@ -117,24 +131,33 @@ exports = Class(View, function(supr) {
 		}
 		offsetY = max(0, offsetY / this._container.style.scale);
 
-		while (text.length > this._imageViews.length) {
+		while (textLength > this._imageViews.length) {
 			var newView = new ImageView({ superview: this._container });
 			this._imageViews.push(newView);
 		}
 
 		// trim excess characters
-		this._activeCharacters.length = text.length;
+		this._activeCharacters.length = textLength;
 
 		var fc = this._filterColor;
 		var fcHash = this._getColorHash(fc);
-		for (var i = 0; i < this._activeCharacters.length; i++) {
+		for (var i = 0; i < textLength; i++) {
+			var view = this._imageViews[i];
+			var s = view.style;
+			if (ignore[i]) {
+				s.x = offsetX;
+				s.y = offsetY;
+				offsetX += s.width + spacing;
+				continue;
+			}
+
 			var data = this._activeCharacters[i];
 			if (data === undefined) {
 				continue;
 			}
 
-			var view = this._imageViews[i];
-			var s = view.style;
+			// var view = this._imageViews[i];
+			// var s = view.style;
 			var w = data.width * scale;
 			s.x = offsetX;
 			s.y = offsetY;
