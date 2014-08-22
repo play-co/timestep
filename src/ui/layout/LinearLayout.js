@@ -27,6 +27,7 @@
  */
 
 import ui.layout.Padding as Padding;
+import ui.backend.strPad as strPad;
 
 import .BoxLayout;
 
@@ -272,12 +273,20 @@ exports = Class(BoxLayout, function (supr) {
 	this.reflow = function () {
 		supr(this, 'reflow', arguments);
 
-		// style.order is first, then default to standard view sort order
+		// Get the position of each view in the subview array. This index
+		// will be used as the secondary sorting key.
+		var children = this._view.getSubviews();
+		var indexMap = {};
+		for (var i = 0, v; v = children[i]; ++i) {
+			indexMap[v.uid] = strPad.pad(i);
+		}
+
+		// style.order is first, then default to the views position in the
+		// subview array.
 		var n = 0;
 		for (var i = 0, v; v = this._views[i]; ++i) {
 			if (v.view.style.visible) {
-				// TODO: this won't work on native
-				v.index = v.view.style.__sortKey;
+				v.index = indexMap[v.view.uid];
 
 				++n;
 			}
