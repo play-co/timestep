@@ -22,7 +22,7 @@ exports = Class(function () {
 	 * Requires an instance of AudioContext
 	 */
 	this.init = function (opts) {
-		this._ctx = opts.ctx || new AudioContext();
+		this._ctx = opts.ctx;
 		this._bufferMap = {};
 		this._loadingMap = {};
 		this._onLoadMap = {};

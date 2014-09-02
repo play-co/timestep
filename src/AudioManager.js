@@ -37,6 +37,8 @@ import ui.backend.sound.AudioLoader as AudioLoader;
 // define AudioContext as best as possible; it may not exist
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 
+// global private variables
+var _ctx = null;
 var _muteAll = false;
 var _registeredAudioManagers = [];
 
@@ -113,7 +115,6 @@ var MultiSound = Class(function () {
 		this._paths = [];
 
 		this._useAudioContext = false;
-		this._ctx = null;
 		this._loader = null;
 		this._gainNode = null;
 
@@ -139,13 +140,11 @@ var MultiSound = Class(function () {
 			isPaused() && this.pause();
 		};
 
-		var ctx = soundManager.getAudioContext();
-		if (ctx) {
+		if (_ctx) {
 			this._useAudioContext = true;
-			this._ctx = ctx;
 			this._loader = soundManager.getAudioLoader();
-			this._gainNode = ctx.createGain();
-			this._gainNode.connect(ctx.destination);
+			this._gainNode = _ctx.createGain();
+			this._gainNode.connect(_ctx.destination);
 			this._gainNode.gain.value = volume;
 		}
 
@@ -306,15 +305,14 @@ var MultiSound = Class(function () {
 	};
 
 	this._playFromBuffer = function (buffer, loop, time, duration) {
-		var ctx = this._ctx;
-		var src = ctx.createBufferSource();
+		var src = _ctx.createBufferSource();
 		src.buffer = buffer;
 		src.loop = loop;
 		src.connect(this._gainNode);
 		if (duration !== undefined) {
-			src.start(ctx.currentTime, time, duration);
+			src.start(_ctx.currentTime, time, duration);
 		} else {
-			src.start(ctx.currentTime, time);
+			src.start(_ctx.currentTime, time);
 		}
 		this._lastSrc = src;
 	};
@@ -335,7 +333,6 @@ exports = Class(Emitter, function (supr) {
 		opts = opts || {};
 		supr(this, 'init', arguments);
 
-		this._ctx = null;
 		this._loader = null;
 		this.setPath(opts.path);
 		this._map = opts.files || opts.map;
@@ -353,10 +350,9 @@ exports = Class(Emitter, function (supr) {
 		opts.persist && this.persistState(opts.persist);
 
 		// use an AudioContext if available, otherwise fallback to Audio
-		if (typeof AudioContext !== "undefined") {
+		if (_ctx === null && typeof AudioContext !== 'undefined') {
 			try {
-				var ctx = new AudioContext();
-				this.setAudioContext(ctx);
+				_ctx = new AudioContext();
 			} catch (e) {
 				// most commonly due to hardware limits on AudioContext instances
 				logger.warn("HTML5 AudioContext init failed, falling back to Audio!");
@@ -364,6 +360,8 @@ exports = Class(Emitter, function (supr) {
 		} else {
 			logger.warn("HTML5 AudioContext not supported, falling back to Audio!");
 		}
+		// pass the global AudioContext instance to AudioLoaders
+		_ctx && this.setAudioContext();
 
 		// determine whether browser supports mp3 or ogg. Default to mp3 if
 		// both are supported. Native will return true for everything, but
@@ -391,7 +389,7 @@ exports = Class(Emitter, function (supr) {
 		}
 
 		// AudioContext preloading
-		if (this._ctx && this._preload) {
+		if (_ctx && this._preload) {
 			var urls = [];
 			for (var key in this._sounds) {
 				var sound = this._sounds[key];
@@ -402,15 +400,14 @@ exports = Class(Emitter, function (supr) {
 	};
 
 	this.getAudioContext = function () {
-		return this._ctx;
+		return _ctx;
 	};
 
-	this.setAudioContext = function (ctx) {
-		this._ctx = ctx;
+	this.setAudioContext = function () {
 		if (this._loader) {
-			this._loader.setAudioContext(ctx);
+			this._loader.setAudioContext(_ctx);
 		} else {
-			this._loader = new AudioLoader({ ctx: ctx });
+			this._loader = new AudioLoader({ ctx: _ctx });
 		}
 	};
 
