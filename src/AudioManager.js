@@ -176,7 +176,7 @@ var MultiSound = Class(function () {
 					}
 
 					sources.push(audio);
-					if (audio.isBackgroundMusic) {
+					if (audio.isBackgroundMusic && NATIVE && NATIVE.sound) {
 						NATIVE.sound.registerMusic(fullPath, audio);
 					}
 				}
@@ -354,7 +354,13 @@ exports = Class(Emitter, function (supr) {
 
 		// use an AudioContext if available, otherwise fallback to Audio
 		if (typeof AudioContext !== "undefined") {
-			this.setAudioContext(new AudioContext());
+			try {
+				var ctx = new AudioContext();
+				this.setAudioContext(ctx);
+			} catch (e) {
+				// most commonly due to hardware limits on AudioContext instances
+				logger.warn("HTML5 AudioContext init failed, falling back to Audio!");
+			}
 		} else {
 			logger.warn("HTML5 AudioContext not supported, falling back to Audio!");
 		}
