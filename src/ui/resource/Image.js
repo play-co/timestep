@@ -77,7 +77,7 @@ if (!ImageMap) {
 
 exports = Class(lib.PubSub, function () {
 
-	var isNative = GLOBAL.NATIVE && !device.simulatingMobileNative;
+	var isNative = GLOBAL.NATIVE && !device.isNativeSimulator;
 	var Canvas = device.get('Canvas');
 
 	// helper canvases for filters and image data, initialized when/if needed

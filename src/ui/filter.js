@@ -88,8 +88,9 @@ var Filter = exports.Filter = Class(function () {
 
 Filter.TYPES = {
 	"None": 0,
-	"LinearAdd": 1, 
-	"Multiply": 2
+	"LinearAdd": 1,
+	"Multiply": 2,
+	"Tint": 3
 };
 
 /**
