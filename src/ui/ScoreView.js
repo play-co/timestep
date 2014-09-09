@@ -96,6 +96,8 @@ exports = Class(View, function(supr) {
 		this._ignoreCharacters.length = 0;
 		this._text = text;
 
+		if (!this._characterData) { return; }
+
 		var i = 0;
 		while (i < textLength) {
 			var character = text[i];

@@ -6,5 +6,10 @@
 	"repository": {
 		"type": "git",
 		"url": "http://github.com/gameclosure/timestep/timestep.git"
+	},
+	"devkit": {
+		"clientPaths": {
+			"*": "src/"
+		}
 	}
 }

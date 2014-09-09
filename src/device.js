@@ -103,10 +103,7 @@ exports.isMobileBrowser = false;
 exports.isUIWebView = false;
 exports.isSafari = /Safari/.test(ua);
 
-import std.uri;
-uri = new std.uri(window.location);
-exports.isSimulator = !!(uri.query('device') || uri.hash('device'));
-
+exports.isSimulator = GLOBAL.CONFIG && !!CONFIG.simulator;
 if (exports.isSimulator) {
 	exports.isIOSSimulator = /iphone|ipod|ipad/i.test(CONFIG.simulator.deviceType);
 
