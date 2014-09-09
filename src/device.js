@@ -108,15 +108,17 @@ uri = new std.uri(window.location);
 exports.isSimulator = !!(uri.query('device') || uri.hash('device'));
 
 if (exports.isSimulator) {
-	var urlStr = window.location.href.toLowerCase();
-	exports.isIOSSimulator = urlStr.indexOf('ipad') !== -1 || urlStr.indexOf('iphone') !== -1;
+	exports.isIOSSimulator = /iphone|ipod|ipad/i.test(CONFIG.simulator.deviceType);
 
 	// Until we support more platforms, if it's not
 	// iOS then it's assumed to be an Android device
 	exports.isAndroidSimulator = !exports.isIOSSimulator;
+
+	exports.isNativeSimulator = /^native/.test(CONFIG.target);
 } else {
 	exports.isAndroidSimulator = false;
 	exports.isIOSSimulator = false;
+	exports.isNativeSimulator = false;
 }
 
 if (exports.isMobile) {
