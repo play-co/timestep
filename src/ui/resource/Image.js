@@ -472,10 +472,10 @@ exports = Class(lib.PubSub, function () {
 		var srcY = map.y;
 		var srcW = map.width;
 		var srcH = map.height;
-		var destX = args5 !== undefined ? args5 : args1 || 0;
-		var destY = args6 !== undefined ? args6 : args2 || 0;
-		var destW = args7 !== undefined ? args7 : args3 || 0;
-		var destH = args8 !== undefined ? args8 : args4 || 0;
+		var destX = args5 !== void 0 ? args5 : args1 || 0;
+		var destY = args6 !== void 0 ? args6 : args2 || 0;
+		var destW = args7 !== void 0 ? args7 : args3 || 0;
+		var destH = args8 !== void 0 ? args8 : args4 || 0;
 
 		if (arguments.length < 9) {
 			var scaleX = destW / (map.marginLeft + map.width + map.marginRight);
