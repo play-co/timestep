@@ -14,8 +14,6 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-"use import";
-
 import lib.PubSub;
 import .SoundManager;
 from util.underscore import _;
@@ -47,7 +45,7 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
 		_.each(opts.background, function (name) {
 			opts.map[name] = {'name': name}
 		}, this);
-		
+
 		soundManager.onready(bind(this, function () {
 			logger.log('SoundManager onReady');
 			for (key in opts.map) {
@@ -64,11 +62,11 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
 			this.publish('Ready');
 		}));
 	}
-	
+
 	this.canPlay = function (name) {
 		return (name in this._map);
 	}
-	
+
 	this.setVolume = function (volume) {
 		this._soundPlaying && soundManager.setVolume(this._soundPlaying, volume);
 		this._backgroundSoundPlaying && soundManager.setVolume(this._backgroundSoundPlaying, volume);

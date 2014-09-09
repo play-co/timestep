@@ -16,7 +16,6 @@
 
 import lib.PubSub;
 import lib.Enum as Enum;
-import std.js as JS;
 from util.browser import $;
 
 import device;

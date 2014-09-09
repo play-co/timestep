@@ -14,13 +14,11 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-import std.js as JS;
-
 exports = Class(function () {
 	
 	this.init = function (target, opts) {
 		this._target = target;
-		this._opts = opts = JS.merge(opts, {
+		this._opts = opts = merge(opts, {
 			trackClicks: false,
 			outline: false,
 			flash: false

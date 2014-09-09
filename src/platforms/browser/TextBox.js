@@ -14,8 +14,6 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-"use import";
-
 /**
  * package timestep.env.browser.TextBox;
  *
@@ -25,7 +23,7 @@
 from util.browser import $;
 
 exports = Class(function () {
-	
+
 	var defaultStyle = {
 		padding: 0,
 		lineHeight: 1.4,
@@ -42,7 +40,7 @@ exports = Class(function () {
 		top: 0,
 		left: 0
 	};
-	
+
 	this.init = function (opts) {
 		opts = merge(opts, {
 			color: 'black',
@@ -51,10 +49,10 @@ exports = Class(function () {
 
 		var style = merge({}, defaultStyle);
 		if (opts.color) { style.color = opts.color; }
-		
+
 		this._el = $({
 			tag: opts.multiLine ? "textarea" : "input",
-			attrs: {type: "text"}, 
+			attrs: {type: "text"},
 			style: style
 		});
 
@@ -63,17 +61,17 @@ exports = Class(function () {
 		$.onEvent(this._el, 'change', this, 'onChange');
 		$.onEvent(this._el, 'click', this, 'onClick');
 	}
-	
-	this.onBlur = 
+
+	this.onBlur =
 	this.onFocus =
 	this.onChange =
 	this.onClick = function () {}
-	
+
 	this.destroy = function () {
 		$.remove(this._el);
 		this._el = null;
 	}
-	
+
 	this.setApp = function (app) {
 		if (app != this._app || !this._el.parentNode) {
 			this._app = app;
@@ -82,22 +80,22 @@ exports = Class(function () {
 			canvas.parentNode.appendChild(this._el);
 		}
 	}
-	
+
 	this.change = function () {
-		
+
 	}
-	
+
 	this.click = function () {
 	}
-	
+
 	this.selectAll = function () {
 		this._el.focus();
 		this._el.select();
 	}
-	
+
 	this.show = function () { $.show(this._el); }
 	this.hide = function () { $.hide(this._el); }
-	
+
 	this.setValue = function (value) { this._el.value = value; return this; }
 	this.setOpacity = function (o) { this._el.style.opacity = o; return this; }
 	this.setType = function (type) { this._el.type = type; return this; }
@@ -110,10 +108,10 @@ exports = Class(function () {
 	this.getOpacity = function () { return this._el.style.opacity; }
 	this.getType = function () { return this._el.type; }
 	this.getVisible = function () { return this._el.parentNode && this._el.style.display == 'block'; }
-	
+
 	this.setPosition = function (p) { this._el.style.top = p.y + 'px'; this._el.style.left = p.x + 'px'; }
 	this.getPosition = function () { return {x: this.getX(), y: this.getY()}; }
-	
+
 	this.setDimensions = function (d) { this._el.style.width = d.width + 'px'; this._el.style.height = d.height + 'px'; return this; }
 	this.getDimensions = function () { return {width: this.getWidth(), height: this.getHeight()}; }
 });
