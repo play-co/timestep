@@ -39,6 +39,10 @@ var MIME = {
 var Loader = Class(function () {
 	this._map = {};
 
+	this.has = function (src) {
+		return this._map[src];
+	}
+
 	this.getMap = function () {
 		return this._map;
 	};
@@ -57,7 +61,7 @@ var Loader = Class(function () {
 	 * You can specify a folder name, or even a partial filename,
 	 * to preload all resources that begin with that prefix.
 	 * For instance, in a tree like so:
-	 * 
+	 *
 	 * resources
 	 * └── images
      *     ├── boss
@@ -66,16 +70,16 @@ var Loader = Class(function () {
      *     └── hero
      *         ├── shield.png
 	 *         └── sword.png
-	 * 
+	 *
 	 * You could preload both enemy images in either of the following
 	 * ways:
-	 * 
+	 *
 	 *     ui.resource.loader.preload("resources/images/boss/");
 	 *     ui.resource.loader.preload("resources/images/boss/enemy");
-	 * 
+	 *
 	 * Pass an array of paths to preload all at once. The callback
 	 * will be called when all resources have finished loading.
-	 * 
+	 *
 	 * This works for both images and sounds.
 	 */
 	this.preload = function (pathPrefix, opts, cb) {
@@ -106,7 +110,7 @@ var Loader = Class(function () {
 					preloadSheets[map[uri] && map[uri].sheet || uri] = true;
 				}
 			}
-			
+
 			var files = Object.keys(preloadSheets);
 
 			// If no files were specified by the preload command,
@@ -151,15 +155,15 @@ var Loader = Class(function () {
 	this.getImage = function (src, noWarn) {
 		// create the image
 		var img = new Image();
-		
+
 		// find the base64 image if it exists
 		if (Image.get) {
 			var b64 = Image.get(src);
-			if (b64 instanceof Image) { 
+			if (b64 instanceof Image) {
 				return b64;
 			}
 		}
-		
+
 		if (b64) {
 			img.src = b64;
 			Image.set(src, img);
@@ -171,10 +175,10 @@ var Loader = Class(function () {
 		return img;
 	};
 
-	/** 
+	/**
 	 * used internally by timestep.Image to seamlessly convert
 	 * non-sprited image URLs to sprited images. This is here (rather
-	 * than in timestep.Image) to keep sprite formats in one consistent place. 
+	 * than in timestep.Image) to keep sprite formats in one consistent place.
 	 */
 	this._updateImageMap = function (map, url, x, y, w, h) {
 		x = x || 0;
@@ -249,14 +253,14 @@ var Loader = Class(function () {
 
 	// The callback is called for each image in the group with the image
 	// source that loaded and whether there was an error.
-	// 
+	//
 	// function callback(lastSrc, error, isComplete, numCompleted, numTotal)
 	//    where error is true or false and isComplete is true when numCompleted == numTotal
 	//
 	this._loadGroup = function (opts, cb) {
 		var timeout = opts.timeout;
 		var callback = new lib.Callback();
-		
+
 		// compute a list of images using file extensions
 		var resources = opts.resources || [];
 		var n = resources.length || 0;
@@ -277,7 +281,7 @@ var Loader = Class(function () {
 			callback.fire();
 			return callback;
 		}
-		
+
 		// do the preload asynchronously (note that base64 is synchronous, only downloads are asynchronous)
 		var nextIndexToLoad = 0;
 		var numResources = loadableResources.length;
@@ -401,7 +405,7 @@ var Loader = Class(function () {
 		setTimeout(function () {
 			// spin up n simultaneous loaders!
 			for (var i = 0; i < parallel; ++i) { loadResource(); }
-			
+
 			// register timeout call
 			if (timeout) {
 				_timeout = setTimeout(function () {
