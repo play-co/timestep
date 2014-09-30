@@ -423,18 +423,21 @@ exports = Class(View, function(supr) {
 				ctx.globalCompositeOperation = data.compositeOperation;
 
 				var img = imageCache[data.image];
+				var map = img.getMap();
 				var destX = data.absX - canvX;
 				var destY = data.absY - canvY;
 				var destW = data.absW;
 				var destH = data.absH;
 				var scaleX = destW * img._invScaleX;
 				var scaleY = destH * img._invScaleY;
-				ctx.drawImage(img._srcImg,
-					img._map.x, img._map.y, img._map.width, img._map.height,
-					destX + scaleX * img._map.marginLeft,
-					destY + scaleY * img._map.marginTop,
-					scaleX * img._map.width,
-					scaleY * img._map.height);
+				if (map.width > 0 && map.height > 0) {
+					ctx.drawImage(img._srcImg,
+						map.x, map.y, map.width, map.height,
+						destX + scaleX * map.marginLeft,
+						destY + scaleY * map.marginTop,
+						scaleX * map.width,
+						scaleY * map.height);
+				}
 
 				_ctx.restore();
 			}
