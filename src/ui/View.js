@@ -645,15 +645,17 @@ var View = exports = Class(Emitter, function () {
 	/**
 	 * Returns an array of all ancestors of the current view.
 	 */
-	this.getParents = function () {
-		var list = [this];
-		var next;
-		do {
-			next = list[0].__view.getSuperview();
-		} while (next && list.unshift(next));
+	this.getParents = /* deprecated */
+	this.getSuperviews = function () {
 
-		list.pop();
-		return list;
+		var views = [];
+		var next = this.getSuperview();
+		while (next) {
+			views.unshift(next);
+			next = next.getSuperview();
+		}
+
+		return views;
 	};
 
 	/**
