@@ -21,6 +21,7 @@
  */
 
 import device;
+import ui.resource.Image as Image;
 import ui.Color as Color;
 import ui.filter as filter;
 import ui.resource.Font as Font;
@@ -51,7 +52,7 @@ exports.init = function () {
 };
 
 var loadCustomFontImage = function(customFont, index, stroke) {
-	var img = new GCImage({
+	var img = new Image({
 		url: 'resources/fonts/' + customFont.fontName + '_' + index
 			+ (stroke ? '_Stroke.png' : '.png')
 	});
