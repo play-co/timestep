@@ -55,7 +55,10 @@ exports.get = function (module) {
 };
 
 exports.importUI = function (module) {
-	return jsio('import ui.backend.' + (exports.useDOM ? 'dom' : 'canvas') + '.' + module, {dontExport: true, suppressErrors: true});
+  var domOrCanvas = exports.useDOM ? 'dom' : 'canvas';
+  var importString = 'import ui.backend.' + domOrCanvas + '.' + module;
+  var importOpts = {dontExport: true, suppressErrors: true};
+  return jsio(importString, importOpts);
 };
 
 exports.isMobileNative = exports.isMobile = /TeaLeaf/.test(ua);
