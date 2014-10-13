@@ -159,16 +159,16 @@ exports = Class(View, function(supr) {
 			var w = data.width * scale;
 			s.x = offsetX;
 			s.y = offsetY;
+			s.width = w;
+			s.height = height; // all characters should have the same height
+			s.visible = true;
 			offsetX += w + spacing;
 
-			// skip style updates and setImage if possible
+			// skip setImage if possible
 			if (this._ignoreCharacters[i]) {
 				continue;
 			}
 
-			s.width = w;
-			s.height = height; // all characters should have the same height
-			s.visible = true;
 			view.setImage(data.img);
 
 			// update color filters
