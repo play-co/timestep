@@ -346,13 +346,15 @@ exports = Class(View, function (supr) {
 				}
 			}
 
-			// set particle image if necessary
-			if (particle.setImage) {
-				var img = imageCache[data.image];
+			// only set particle image if necessary
+			var image = data.image;
+			if (particle.setImage && particle.lastImage !== image) {
+				var img = imageCache[image];
 				if (img === void 0) {
-					img = imageCache[data.image] = new Image({ url: data.image });
+					img = imageCache[image] = new Image({ url: image });
 				}
 				particle.setImage(img);
+				particle.lastImage = image;
 			}
 
 			// apply style properties
