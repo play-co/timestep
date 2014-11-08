@@ -132,6 +132,7 @@ exports.start = function (onTick) {
 }
 
 exports.stop = function () {
+	exports.last = null;
 	_onTick = null;
 	if (driverId) {
 		cancelDriver.call(window, driverId);
