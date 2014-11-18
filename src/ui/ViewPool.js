@@ -114,9 +114,8 @@ exports = Class(function () {
 	 */
 	this.forEachActiveView = function(fn, ctx) {
 		var views = this._views;
-		var f = bind(ctx, fn);
 		for (var i = this._freshViewIndex - 1; i >= 0; i--) {
-			f(views[i], i);
+			fn.call(ctx, views[i], i);
 		}
 	};
 
