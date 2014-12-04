@@ -654,7 +654,10 @@ exports = Class(View, function (supr) {
 
 		opts.viewport = viewport;
 
-		return viewport.x != x || viewport.y != y || viewport.width != width || viewport.height != height;
+		return !isNaN(viewport.x) && viewport.x != x
+				|| !isNaN(viewport.y) && viewport.y != y
+				|| !isNaN(viewport.width) && viewport.width != width
+				|| !isNaN(viewport.height) && viewport.height != height;
 	};
 
 	this.onInputScroll = function (evt) {

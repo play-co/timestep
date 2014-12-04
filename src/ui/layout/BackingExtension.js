@@ -214,9 +214,13 @@ View.addExtension({
 			var layout = this._superview && this._superview.__layout;
 			if (layout) {
 				if (value) {
-					layout.add(this._view);
+					if (layout.add) {
+						layout.add(this._view);
+					}
 				} else {
-					layout.remove(this._view);
+					if (layout.remove) {
+						layout.remove(this._view);
+					}
 					this._view.needsReflow();
 				}
 			}

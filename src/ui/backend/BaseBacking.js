@@ -20,8 +20,6 @@ import util.setProperty as setProperty;
 var BaseBacking = exports = Class(function () {
 
 	// required methods:
-	//
-	// this._onResize = function () {};
 	// this._onZIndex = function () {};
 
 	var styleKeys = this.constructor.styleKeys = {};
@@ -30,15 +28,19 @@ var BaseBacking = exports = Class(function () {
 	var BASE_STYLE_PROPS = {
 		'x': {value: 0},
 		'y': {value: 0},
-		'offsetX': {value: 0}, //translate
+		'width': {value: 0},
+		'height': {value: 0},
+		'offsetX': {value: 0},
 		'offsetY': {value: 0},
-		'offsetXPercent': {value: undefined, cb: '_onOffsetX'}, //not implemented
-		'offsetYPercent': {value: undefined, cb: '_onOffsetY'},
+		'offsetXPercent': {value: undefined, cb: function onOffsetX(n) {
+				this.offsetX = n * this.width / 100;
+			}},
+		'offsetYPercent': {value: undefined, cb: function onOffsetY(n) {
+				this.offsetY = n * this.height / 100;
+			}},
 		'anchorX': {value: 0}, //rotation and scale
 		'anchorY': {value: 0},
 		'centerAnchor': {value: false},
-		'width': {cb: '_onResize'},
-		'height': {cb: '_onResize'},
 		'r': {value: 0},
 		'opacity': {value: 1},
 		'zIndex': {value: 0, cb: '_onZIndex'},
@@ -86,7 +88,7 @@ var BaseBacking = exports = Class(function () {
 
 		return copy;
 	}
-	
+
 	this.update = function (style) {
 		for (var i in style) {
 			if (style.hasOwnProperty(i) && styleKeys.hasOwnProperty(i)) {

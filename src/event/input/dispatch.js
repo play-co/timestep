@@ -91,7 +91,9 @@ exports.traceEvt = function (view, evt, pt) {
 		evt.trace.unshift(view);
 		evt.pt[view.uid] = localPt;
 	}
-	
+
+	localPt.add(-view.style.padding.left, -view.style.padding.top);
+
 	var subviews = view.getSubviews();
 	for (var i = subviews.length - 1; i >= 0; --i) {
 		if (subviews[i].style.visible && exports.traceEvt(subviews[i], evt, localPt)) {

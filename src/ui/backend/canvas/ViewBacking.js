@@ -99,8 +99,8 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		if (!this.visible) { return; }
 		if (this._needsSort) { this._needsSort = false; this._subviews.sort(); }
 
-		var width = this._width;
-		var height = this._height;
+		var width = this.width;
+		var height = this.height;
 		if (width < 0 || height < 0) { return; }
 
 		ctx.save();
@@ -177,6 +177,8 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 	}
 
 	this._renderSubviews = function (ctx, opts) {
+		ctx.translate(this.padding.left, this.padding.top);
+
 		var i = 0;
 		var view;
 		var subviews = this._subviews;
@@ -222,16 +224,6 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 	this._setSortKey = function () {
 		this.__sortKey = this._sortIndex + this._addedAt;
 	}
-
-	//not implemented
-	this._onOffsetX = function (n) {
-		this.offsetX = n * this.width / 100;
-	};
-
-	//not implemented
-	this._onOffsetY = function (n) {
-		this.offsetY = n * this.height / 100;
-	};
 
 	this.toString = function () { return this.__sortKey; }
 });

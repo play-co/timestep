@@ -202,25 +202,34 @@ exports = Class(ScrollView, function (supr) {
 		}
 	};
 
+	/**
+	 * Computes and updates the scroll bounds based on the content size
+	 */
 	this.setMaxY = function (contentHeight) {
 
-		if (!contentHeight) { contentHeight = 0; }
+		// store new value
+		this._contentHeight = contentHeight || 0;
 
+		// compute additional height to get full scroll bounds
 		var additionalHeight = 0;
+
+		// add in padding
+		additionalHeight += this.style.padding.top + this.style.padding.bottom;
+
+		// add in height of header
 		if (this._headerView) {
 			additionalHeight += this._headerView.style.height || 0;
 		}
 
+		// add in height of footer
 		if (this._footerView) {
 			this._footerView.style.y = contentHeight + additionalHeight;
 			additionalHeight += this._footerView.style.height || 0;
 		}
 
-		this._contentHeight = contentHeight;
+		// handle autoSize flag (resizes view to fit content)
 		var maxY = contentHeight + additionalHeight;
-
 		if (this._autoSize && this.style.height != maxY) {
-
 			this.style.height = maxY;
 			this._needsModelRender = true;
 		}
@@ -244,6 +253,7 @@ exports = Class(ScrollView, function (supr) {
 
 		if (viewportChanged || this._needsModelRender || this.model._needsSort) {
 			this._needsModelRender = false;
+			opts.viewport.padding = this.style.padding;
 			this.model.render(opts.viewport);
 		}
 	};

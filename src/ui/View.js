@@ -753,28 +753,35 @@ var View = exports = Class(Emitter, function () {
 
 		while (view && view != relativeTo) {
 			var scale = view.style.scale;
+			var superview = view.__view.getSuperview();
+			var superviewPadding = superview && superview.style.padding;
 
-			//translate to anchor point
+			// translate to anchor point
 			abs.add(
 				-(view.style.anchorX),
 				-(view.style.anchorY)
 			);
 
-			//scale and rotate
+			// scale and rotate
 			abs.rotate(view.style.r);
 			abs.scale(scale);
 
-			//translate back
+			// translate back
 			abs.add(
 				view.style.anchorX + view.style.x + view.style.offsetX,
 				view.style.anchorY + view.style.y + view.style.offsetY
 			);
 
+			if (superviewPadding) {
+				abs.add(superviewPadding.left, superviewPadding.top);
+			}
+
 			r += view.style.r;
 			w *= scale;
 			h *= scale;
 			c *= scale;
-			view = view.__view.getSuperview();
+
+			view = superview;
 		}
 
 		return {

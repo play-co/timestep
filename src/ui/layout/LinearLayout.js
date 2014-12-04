@@ -381,7 +381,7 @@ exports = Class(BoxLayout, function (supr) {
 		var flexRemaining = flexSize - flexUsed;
 
 		// set the position of the views
-		var pos = padding && padding[propA] || 0;
+		var pos = 0;
 		var gap = 0;
 		if (flexRemaining > 0) {
 			// there's unused space, so justify our views

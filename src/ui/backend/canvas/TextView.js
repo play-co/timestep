@@ -349,7 +349,7 @@ var TextView = exports = Class(View, function (supr) {
 				ctx.fillText(word, x + lineOffset, y + lineOffset, maxWidth);
 			}
 		}
-		if (this._opts.debug) {
+		if (DEBUG && this._opts.debug) {
 			ctx.strokeStyle = 'black';
 			ctx.strokeRect(x, y, item.width, this.style.height - 2 * y);
 			ctx.strokeStyle = 'red';
@@ -402,8 +402,9 @@ var TextView = exports = Class(View, function (supr) {
 		if (this._opts.buffer) {
 			this._renderBuffer(ctx);
 		} else {
-			var strokeWidthOffset = -this.getStrokeWidth()/2;
-			this._renderToCtx(ctx, strokeWidthOffset, strokeWidthOffset);
+			var strokeWidthOffset = -this.getStrokeWidth() / 2;
+			var padding = this.style.padding;
+			this._renderToCtx(ctx, strokeWidthOffset + padding.left, strokeWidthOffset + padding.top);
 		}
 
 		this._cacheUpdate = false;
