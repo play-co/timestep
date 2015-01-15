@@ -257,7 +257,7 @@ var MultiSound = Class(function () {
 			if (this._lastSrc.duration) {
 				this._lastSrc.currentTime = t;
 			} else {
-				setTimeout(bind(this, 'setTime', t + 0.01), 10);
+				//setTimeout(bind(this, 'setTime', t + 0.01), 10);
 			}
 		}
 	};
