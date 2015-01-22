@@ -60,7 +60,7 @@ exports = Class(function () {
 		if (typeof opts.keyboardType === 'string') {
 			opts.keyboardType = KeyboardTypes[opts.keyboardType];
 		}
-		this._keyboardType = opts.keyboardType !== undefined ? opts.keyboardType : KeyboardTypes.default;
+		this._keyboardType = opts.keyboardType !== undefined ? opts.keyboardType : KeyboardTypes.Default;
 		this._id = -1;
 	};
 
