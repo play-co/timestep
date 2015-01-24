@@ -77,15 +77,14 @@ if (!ImageMap) {
 
 exports = Class(lib.PubSub, function () {
 
-	// helper canvases for filters and image data
-	var isNative = GLOBAL.NATIVE && !device.simulatingMobileNative;
-	if (!isNative) {
-		var Canvas = device.get('Canvas');
-		var _filterCanvas = new Canvas();
-		var _filterCtx = _filterCanvas.getContext('2d');
-		var _imgDataCanvas = new Canvas();
-		var _imgDataCtx = _imgDataCanvas.getContext('2d');
-	};
+	var isNative = GLOBAL.NATIVE && !device.isNativeSimulator;
+	var Canvas = device.get('Canvas');
+
+	// helper canvases for filters and image data, initialized when/if needed
+	var _filterCanvas = null;
+	var _filterCtx = null;
+	var _imgDataCanvas = null;
+	var _imgDataCtx = null;
 
 	this.init = function (opts) {
 		if (!opts) {
@@ -425,6 +424,12 @@ exports = Class(lib.PubSub, function () {
 	};
 
 	this._applyFilters = function (ctx, srcX, srcY, srcW, srcH) {
+		// initialize a shared filterCanvas when/if needed
+		if (_filterCanvas === null) {
+			_filterCanvas = new Canvas();
+			_filterCtx = _filterCanvas.getContext('2d');
+		}
+
 		var resultImg = this._srcImg;
 		var filters = ctx.filters;
 		var linearAdd = filters.LinearAdd;
@@ -467,10 +472,10 @@ exports = Class(lib.PubSub, function () {
 		var srcY = map.y;
 		var srcW = map.width;
 		var srcH = map.height;
-		var destX = args5 !== undefined ? args5 : args1 || 0;
-		var destY = args6 !== undefined ? args6 : args2 || 0;
-		var destW = args7 !== undefined ? args7 : args3 || 0;
-		var destH = args8 !== undefined ? args8 : args4 || 0;
+		var destX = args5 !== void 0 ? args5 : args1 || 0;
+		var destY = args6 !== void 0 ? args6 : args2 || 0;
+		var destW = args7 !== void 0 ? args7 : args3 || 0;
+		var destH = args8 !== void 0 ? args8 : args4 || 0;
 
 		if (arguments.length < 9) {
 			var scaleX = destW / (map.marginLeft + map.width + map.marginRight);
@@ -494,10 +499,22 @@ exports = Class(lib.PubSub, function () {
 			}
 		}
 
-		ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
+		this._renderImage(ctx, srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
+	};
+
+	this._renderImage = function(ctx, srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH) {
+		try {
+			ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
+		} catch(e) {}
 	};
 
 	this.getImageData = function (x, y, width, height) {
+		// initialize a shared imgDataCanvas when/if needed
+		if (_imgDataCanvas === null) {
+			_imgDataCanvas = new Canvas();
+			_imgDataCtx = _imgDataCanvas.getContext('2d');
+		}
+
 		var map = this._map;
 		if (!GLOBAL.document || !document.createElement) { throw 'Not supported'; }
 		if (!map.width || !map.height) { throw 'Not loaded'; }

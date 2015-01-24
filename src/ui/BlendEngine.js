@@ -238,14 +238,17 @@ exports = Class(View, function(supr) {
 	};
 
 	this.killAllParticles = function() {
-		while (this._activeParticleObjects.length) {
-			this._killParticle(0);
+		// protect against canvas context clear before native texture is ready
+		if (this._activeParticleObjects.length) {
+			while (this._activeParticleObjects.length) {
+				this._killParticle(0);
+			}
+			this._canvX = 0;
+			this._canvY = 0;
+			this._canvW = 1;
+			this._canvH = 1;
+			this._canvas.getContext("2D").clear();
 		}
-		this._canvX = 0;
-		this._canvY = 0;
-		this._canvW = 1;
-		this._canvH = 1;
-		this._canvas.getContext("2D").clear();
 	};
 
 	this.runTick = function(dt) {
@@ -384,12 +387,12 @@ exports = Class(View, function(supr) {
 			var canvW = maxX - minX;
 			var canvH = maxY - minY;
 			if (canvW > MAX_TEX_WIDTH) {
-				var cx = this._forceCenterX !== undefined ? this._forceCenterX : canvX + canvW / 2;
+				var cx = this._forceCenterX !== void 0 ? this._forceCenterX : canvX + canvW / 2;
 				canvX = cx - MAX_TEX_WIDTH / 2;
 				canvW = MAX_TEX_WIDTH;
 			}
 			if (canvH > MAX_TEX_HEIGHT) {
-				var cy = this._forceCenterY !== undefined ? this._forceCenterY : canvY + canvH / 2;
+				var cy = this._forceCenterY !== void 0 ? this._forceCenterY : canvY + canvH / 2;
 				canvY = cy - MAX_TEX_HEIGHT / 2;
 				canvH = MAX_TEX_HEIGHT;
 			}
@@ -420,18 +423,21 @@ exports = Class(View, function(supr) {
 				ctx.globalCompositeOperation = data.compositeOperation;
 
 				var img = imageCache[data.image];
+				var map = img.getMap();
 				var destX = data.absX - canvX;
 				var destY = data.absY - canvY;
 				var destW = data.absW;
 				var destH = data.absH;
 				var scaleX = destW * img._invScaleX;
 				var scaleY = destH * img._invScaleY;
-				ctx.drawImage(img._srcImg,
-					img._map.x, img._map.y, img._map.width, img._map.height,
-					destX + scaleX * img._map.marginLeft,
-					destY + scaleY * img._map.marginTop,
-					scaleX * img._map.width,
-					scaleY * img._map.height);
+				if (map.width > 0 && map.height > 0) {
+					ctx.drawImage(img._srcImg,
+						map.x, map.y, map.width, map.height,
+						destX + scaleX * map.marginLeft,
+						destY + scaleY * map.marginTop,
+						scaleX * map.width,
+						scaleY * map.height);
+				}
 
 				_ctx.restore();
 			}

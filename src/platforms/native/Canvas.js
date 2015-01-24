@@ -21,14 +21,14 @@ import util.setProperty;
 var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
 	this.init = function (opts) {
 		opts = merge(opts, {
-			width: 400,
-			height: 400,
+			width: 1,
+			height: 1,
 			offscreen: true
 		});
-		
+
 		// TODO: add getters/setters to width/height to auto-resize -- we'll need to allocate
 		// a new texture in OpenGL and blit the old one into the new one
-		
+
 		this._width = opts.width;
 		this._height = opts.height;
 		this._offscreen = opts.offscreen;
@@ -72,10 +72,16 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
 			this._context2D.resize(width, height);
 		}
 	}
-	
+
 	util.setProperty(this, 'width', {
 		set: function (width) {
-			this.resize(width, this._height);
+			if (this._width !== width) {
+				this._width = width;
+				this.resize(width, this._height);
+			}
+			if (this._context2D) {
+				this._context2D.clear();
+			}
 		},
 		get: function () {
 			return this._width;
@@ -84,7 +90,13 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
 
 	util.setProperty(this, 'height', {
 		set: function (height) {
-			this.resize(this._width, height);
+			if (this._height !== height) {
+				this._height = height;
+				this.resize(this._width, height);
+			}
+			if (this._context2D) {
+				this._context2D.clear();
+			}
 		},
 		get: function () {
 			return this._height;

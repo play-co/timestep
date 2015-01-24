@@ -31,13 +31,15 @@ exports = Class(function () {
 	 * opts.initOpts (object) opts object used only to pre-initialize views
 	 */
 	this.init = function (opts) {
+		var initCount = opts.initCount || 0;
+		var viewOpts = opts.initOpts || {};
+
 		this._ctor = opts.ctor || View;
 		this._freshViewIndex = 0;
 		this._views = [];
+		this._logViewCreation = initCount > 0;
 
-		var count = opts.initCount || 0;
-		var viewOpts = opts.initOpts || {};
-		for (var i = 0; i < count; i++) {
+		for (var i = 0; i < initCount; i++) {
 			var view = this._createView(merge({}, viewOpts));
 			view.style.visible = false;
 		}
@@ -57,8 +59,9 @@ exports = Class(function () {
 		} else {
 			// create a new view, ideally this never happens during gameplay
 			var view = this._createView(opts);
-			var viewName = this._ctor.prototype.__class__ || this._ctor;
-			logger.warn("ViewPool made new View in obtainView:", view.getTag(), viewName);
+			if (this._logViewCreation) {
+				logger.warn("ViewPool created View:", view.getTag());
+			}
 		}
 		view._obtainedFromPool = true;
 		view.style.visible = true;
@@ -111,9 +114,8 @@ exports = Class(function () {
 	 */
 	this.forEachActiveView = function(fn, ctx) {
 		var views = this._views;
-		var f = bind(ctx, fn);
-		for (var i = 0, len = this._freshViewIndex; i < len; i++) {
-			f(views[i], i);
+		for (var i = this._freshViewIndex - 1; i >= 0; i--) {
+			fn.call(ctx, views[i], i);
 		}
 	};
 

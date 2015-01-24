@@ -45,15 +45,15 @@ exports = Class(View, function (supr) {
 		fontWeight: "",
 		size: 128,
 		lineWidth: 2,
-		strokeColor: null,
-		shadowColor: null,
+		strokeColor: "",
+		shadowColor: "",
 
 		// alignment properties...
 		verticalAlign: "middle",
 		horizontalAlign: "center",
 
 		// misc properties...
-		backgroundColor: null
+		backgroundColor: ""
 	};
 
 	this.init = function (opts) {

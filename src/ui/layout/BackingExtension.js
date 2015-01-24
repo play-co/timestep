@@ -27,54 +27,49 @@ var layoutProps = {
 		'layout': {value: false, cb: '_onSetLayout'},
 		'inLayout': {value: true, cb: '_onInLayout'},
 		'order': {value: 0, cb: '_onOrder'},
-		'direction': {value: 'down', cb: '_onLayoutChange'},
+		'direction': {value: 'vertical', cb: '_onLayoutChange'},
 		'flex': {value: 0, cb: '_onLayoutChange'},
-		'halign': {value: 'start'}, 'halignSelf': {value: undefined},
-		'valign': {value: 'start'}, 'valignSelf': {value: undefined},
+		'justifyContent': {value: 'start', cb: '_onLayoutChange'},
 
-		'centerX': {value: false},
-		'centerY': {value: false},
+		'centerX': {value: false, cb: '_onLayoutChange'},
+		'centerY': {value: false, cb: '_onLayoutChange'},
 
 		'top': {value: undefined, cb: '_onLayoutChange'},
 		'right': {value: undefined, cb: '_onLayoutChange'},
 		'bottom': {value: undefined, cb: '_onLayoutChange'},
 		'left': {value: undefined, cb: '_onLayoutChange'},
 
-		'justifyContent': {value: 'start', cb: '_onLayoutChange'},
-		'sizeContainerToFit': {value: false, cb: '_onLayoutChange'},
+		'minWidth': {value: undefined, cb: '_onBoundsChange'},
+		'minHeight': {value: undefined, cb: '_onBoundsChange'},
+		'maxWidth': {value: undefined, cb: '_onBoundsChange'},
+		'maxHeight': {value: undefined, cb: '_onBoundsChange'},
 
-		'minWidth': {value: undefined, cb: '_onLayoutChange'},
-		'minHeight': {value: undefined, cb: '_onLayoutChange'},
-		'maxWidth': {value: undefined, cb: '_onLayoutChange'},
-		'maxHeight': {value: undefined, cb: '_onLayoutChange'},
-
-		'layoutWidth': {value: undefined, cb: '_onLayoutChange'},
-		'layoutHeight': {value: undefined, cb: '_onLayoutChange'},
+		'layoutWidth': {value: undefined, cb: '_onLayoutWidth'},
+		'layoutHeight': {value: undefined, cb: '_onLayoutHeight'},
 
 		'fixedAspectRatio': {value: false, cb: '_onFixedAspectRatio'},
 		'aspectRatio': {value: null, cb: '_onLayoutChange'},
 
-		'margin': {value: null, cb: '_onMarginChange'}
+		'margin': {value: null, cb: '_onMarginChange'},
+		'padding': {
+			get: function () {
+				return this._padding || (this._padding = new Padding());
+			},
+			set: function (value) {
+				if (this._padding) {
+					this._padding.update(value);
+				} else {
+					this._padding = new Padding(value);
+				}
+
+				this._onLayoutChange();
+			}
+		}
 	};
 
 for (var key in layoutProps) {
 	backend.BaseBacking.addProperty(key, layoutProps[key]);
 }
-
-util.setProperty(backend.BaseBacking.prototype, 'padding', {
-	get: function () {
-		return this._padding || (this._padding = new Padding());
-	},
-	set: function (value) {
-		if (this._padding) {
-			this._padding.update(value);
-		} else {
-			this._padding = new Padding(value);
-		}
-
-		this._onLayoutChange();
-	}
-});
 
 View.addExtension({
 	extend: function (ViewBacking) {
@@ -86,7 +81,7 @@ View.addExtension({
 			this._sortOrder = strPad.pad(order);
 			this._onLayoutChange();
 		};
-		
+
 		proto._onMarginChange = function (key, value) {
 			if (this._cachedMargin) {
 				this._cachedMargin.update(value);
@@ -108,8 +103,8 @@ View.addExtension({
 			}
 		}
 
-		proto.updateAspectRatio = function (w, h) {
-			this.aspectRatio = (w || this.width) / (h || this.height);
+		proto.updateAspectRatio = function (width, height) {
+			this.aspectRatio = (width || this.width) / (height || this.height);
 		}
 
 		proto.enforceAspectRatio = function(iw, ih, isTimeout) {
@@ -153,16 +148,67 @@ View.addExtension({
 			this.height = ih;
 		};
 
+		var layouts = {
+			'linear': LinearLayout,
+			'box': BoxLayout
+		};
+
 		proto._onSetLayout = function (key, which) {
-			switch (which) {
-				case 'linear':
-					this._view.__layout = new LinearLayout({view: this._view});
-					break;
-				case 'box':
-					this._view.__layout = new BoxLayout({view: this._view});
-					break;
+			var view = this._view;
+			var LayoutCtor = layouts[which];
+			if (LayoutCtor) {
+				view.__layout = new LayoutCtor({view: view});
+				this.addResizeListeners();
+			} else {
+				this._layout = false;
 			}
 		};
+
+		proto.addResizeListeners = function () {
+			if (!this._hasResizeListeners) {
+				this._hasResizeListeners = true;
+				util.setProperty(this, 'width', {cb: '_onWidth', value: this.width, configurable: true});
+				util.setProperty(this, 'height', {cb: '_onHeight', value: this.height, configurable: true});
+			}
+		}
+
+		proto._onWidth = function(prop, value, prevValue) {
+			// local properties are invalidated
+			// this._cache = null;
+
+			if (typeof this.maxWidth == 'number') {
+				this._width = Math.min(this.maxWidth, value || 0);
+			}
+
+			if (typeof this.minWidth == 'number') {
+				this._width = Math.max(this.minWidth, value || 0);
+			}
+
+			if (this._aspectRatio) {
+				this._height = this._width / this._aspectRatio;
+			}
+
+			this._onLayoutChange();
+		}
+
+		proto._onHeight = function(prop, value, prevValue) {
+			// local properties are invalidated
+			// this._cache = null;
+
+			if (typeof this.maxHeight == 'number') {
+				this._height = Math.min(this.maxHeight, value || 0);
+			}
+
+			if (typeof this.minHeight == 'number') {
+				this._height = Math.max(this.minHeight, value || 0);
+			}
+
+			if (this._aspectRatio) {
+				this._width = this._height * this._aspectRatio;
+			}
+
+			this._onLayoutChange();
+		}
 
 		proto._onInLayout = function (key, value) {
 			var layout = this._superview && this._superview.__layout;
@@ -175,40 +221,37 @@ View.addExtension({
 				}
 			}
 		}
-		
-		// var isPercent = /%$/;
-		// proto._onLayoutSizeChange = function (key, value, oldValue) {
-		// 	// Subscribes a view to parent resize events when the view is in the hierarchy and
-		// 	// contains a percentage height or width.
-		// 	//
-		// 	// NOTE: a view only sets up resize listeners once -- if layoutWidth is set to a percent and then reset
-		// 	// to not have a percent, it will still get reflow events when its superview resizes.  We could
-		// 	// remove the listeners once the view no longer has percentages.
-		// 	if (!this._hasResizeListeners && (isPercent.test(this._layoutWidth) || isPercent.test(this._layoutHeight))) {
-		// 		this._hasResizeListeners = true;
-		// 		this._view.on('ViewAdded', bind(this, function () {
-		// 			if (this.__superviewResize) {
-		// 				this.__superviewResize();
-		// 			}
-					
-		// 			var superview = this._view.getSuperview();
-		// 			var onResize = bind(this._view, 'needsReflow');
-		// 			superview.on('Resize', onResize);
-					
-		// 			this.__superviewResize = bind(this, function () {
-		// 				this.__superviewResize = null;
-		// 				superview.removeListener('Resize', onResize);
-		// 			});
-		// 		}));
-				
-		// 		this._view.on('ViewRemoved', bind(this, function (superview) {
-		// 			if (this.__superviewResize) { this.__superviewResize(); }
-		// 		}));
-		// 	}
-			
-		// 	this._onLayoutChange();
-		// }
 
+		proto._onLayoutWidth = function (key, value) {
+			if (value.charAt(value.length - 1) == '%') {
+				this._layoutWidthValue = parseFloat(value) / 100;
+				this._layoutWidthIsPercent = true;
+			} else {
+				this._layoutWidthValue = 0;
+				this._layoutWidthIsPercent = false;
+			}
+
+			this._onLayoutChange();
+		}
+
+		proto._onLayoutHeight = function (key, value) {
+			if (value.charAt(value.length - 1) == '%') {
+				this._layoutHeightValue = parseFloat(value) / 100;
+				this._layoutHeightIsPercent = true;
+			} else {
+				this._layoutHeightValue = 0;
+				this._layoutHeightIsPercent = false;
+			}
+
+			this._onLayoutChange();
+		}
+
+		proto._onBoundsChange = function () {
+			this.addResizeListeners();
+			this._onLayoutChange();
+		}
+
+		// trigger a reflow, optionally of the parent if the parent has layout too
 		proto._onLayoutChange = function () {
 			var superview = this.getSuperview();
 			if (superview && superview.__layout) {

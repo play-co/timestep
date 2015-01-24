@@ -97,23 +97,35 @@ exports = Class(BufferedCanvas, function (supr) {
 	}
 
 	this.resize = function (width, height) {
-		this.destroy();
-
-		// set the internal private properties (the public ones have setters that 
+		// set the internal private properties (the public ones have setters that
 		// would call this method again)
 		this.canvas._width = width;
 		this.canvas._height = height;
 
 		if (this._isOffscreen) {
-			var textureData = NATIVE.gl.makeCanvas(width, height, this.unloadListener);
-			this.canvas.__gl_name = textureData.__gl_name;
-			this.canvas._src = textureData._src;
-		} else {
+			var textureData;
+			if (!this._ctx) {
+				// create a new canvas
+				textureData = NATIVE.gl.makeCanvas(width, height, this.unloadListener);
+				this.canvas.__gl_name = textureData.__gl_name;
+				this.canvas._src = textureData._src;
+				this._ctx = new NATIVE.gl.Context2D(this.canvas, this.canvas._src, this.canvas.__gl_name);
+			} else {
+				// resize existing canvas
+				textureData = this._ctx.resize(width, height);
+				if (this.canvas._src != textureData._src) {
+					// update canvas internals if backed by a new texture
+					NATIVE.gl.updateCanvasURL(this.canvas._src, textureData._src);
+					this.canvas.__gl_name = textureData.__gl_name;
+					this.canvas._src = textureData._src;
+				}
+			}
+		} else if (!this._ctx) {
+			// if onscreen canvas has not been initialized
 			this.canvas.__gl_name = -1;
 			this.canvas._src = 'onscreen';
+			this._ctx = new NATIVE.gl.Context2D(this.canvas, this.canvas._src, this.canvas.__gl_name);
 		}
-
-		this._ctx = new NATIVE.gl.Context2D(this.canvas, this.canvas._src, this.canvas.__gl_name);
 	}
 
 	this.getNativeCtx = function () { return this._ctx; }
@@ -231,7 +243,7 @@ exports = Class(BufferedCanvas, function (supr) {
 	});
 
 	this.clearRect = function (x, y, width, height) {
-		this._ctx.clearRect(x, y, width, height); 
+		this._ctx.clearRect(x, y, width, height);
 	};
 
 	this.fillRect = function (x, y, width, height) {
@@ -310,7 +322,7 @@ exports = Class(BufferedCanvas, function (supr) {
 	this.drawPointSprites = function (x1, y1, x2, y2) {
 		this._ctx.drawPointSprites(this.pointSprite.src, this.lineWidth || 5, this.pointSpriteStep || 2, this.strokeStyle, x1, y1, x2, y2);
 	}
-	
+
 	this.closePath = function () {};
 
 	this.fill = function () {

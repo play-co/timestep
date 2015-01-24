@@ -14,8 +14,6 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-"use import";
-
 /**
  * package timestep.env.browser.TextInput;
  *
@@ -46,40 +44,40 @@ exports = Class(lib.PubSub, function () {
 		this._value = this._el.value;
 		this._selectionStart = 0;
 		this._selectionEnd = 0;
-		
+
 		$.onEvent(this._el, 'keydown', this, 'checkValue');
 		$.onEvent(this._el, 'keyup', this, 'checkValue');
 		$.onEvent(this._el, 'keypress', this, 'checkValue');
 		$.onEvent(this._el, 'focus', this, 'onFocus');
 		$.onEvent(this._el, 'blur', this, 'onBlur');
 	}
-	
+
 	this.onFocus = function () { this.publish('Focus'); }
 	this.onBlur = function () { this.publish('Blur'); }
-	
+
 	this.checkValue = function (evt) {
 		var target = evt.target,
 			start = target.selectionStart,
 			end = target.selectionEnd;
-		
+
 		var value = this._el.value;
-		
+
 		if (value != this._value) {
 			this.publish('ChangeValue', value);
 			this._value = value;
 		}
-		
+
 		if (start != this._selectionStart) {
 			this._selectionStart = start;
 			this.publish('ChangeSelectionStart', start);
 		}
-		
+
 		if (end != this._selectionEnd) {
 			this._selectionEnd = end;
 			this.publish('ChangeSelectionEnd', end);
 		}
 	}
-	
+
 	this.focus = function () { logger.log('focus'); this._el.focus(); }
 	this.blur = function () { this._el.blur(); }
 });
@@ -97,11 +95,11 @@ function checkTab(evt) {
 	var t = evt.target;
 	var ss = t.selectionStart;
 	var se = t.selectionEnd;
- 
+
 	// Tab key - insert tab expansion
 	if (evt.keyCode == 9) {
 		evt.preventDefault();
-		
+
 		if (evt.shiftKey) {
 			// Special case of multi line selection
 			if (ss != se && t.value.slice(ss,se).indexOf('\n') != -1) {
@@ -179,13 +177,13 @@ function checkTab(evt) {
 	} else if (evt.keyCode == 8 && t.value.slice(ss - tabLength, ss) == tab) {
 		// Backspace key - delete preceding tab expansion, if exists
 		evt.preventDefault();
-		
+
 		t.value = t.value.slice(0,ss - tabLength).concat(t.value.slice(ss,t.value.length));
 		t.selectionStart = t.selectionEnd = ss - tab.length;
 	} else if (evt.keyCode == 46 && t.value.slice(se, se + tabLength) == tab) {
 		// Delete key - delete following tab expansion, if exists
 		evt.preventDefault();
-		
+
 		t.value = t.value.slice(0,ss).concat(t.value.slice(ss + tabLength,t.value.length));
 		t.selectionStart = t.selectionEnd = ss;
 	} else if (evt.keyCode == 37 && t.value.slice(ss - tabLength, ss) == tab) {

@@ -40,24 +40,6 @@ var TRANSITIONS = {
 	easeOut: function (n) { return n * (2 - n); }
 };
 
-var STYLE_KEYS = [
-	'x',
-	'y',
-	'r',
-	'anchorX',
-	'anchorY',
-	'width',
-	'height',
-	'scale',
-	'scaleX',
-	'scaleY',
-	'opacity',
-	'flipX',
-	'flipY',
-	'compositeOperation',
-	'visible'
-];
-
 var PARTICLE_DEFAULTS = {
 	x: 0,
 	y: 0,
@@ -108,7 +90,7 @@ var PARTICLE_DEFAULTS = {
 	ddradius: 0,
 	elapsed: 0,
 	image: "",
-	compositeOperation: "",
+	compositeOperation: null,
 	transition: TRANSITION_LINEAR,
 	onStart: null,
 	onDeath: null,
@@ -146,7 +128,9 @@ exports = Class(View, function (supr) {
 		this._activeParticles = [];
 
 		// pre-initialization
-		opts.initCount && this._initParticlePool(opts.initCount);
+		var initCount = opts.initCount;
+		initCount && this._initParticlePool(initCount);
+		this._logViewCreation = initCount > 0;
 	};
 
 	/**
@@ -215,7 +199,7 @@ exports = Class(View, function (supr) {
 				ddradius: 0,
 				elapsed: 0,
 				image: "",
-				compositeOperation: "",
+				compositeOperation: null,
 				transition: TRANSITION_LINEAR,
 				onStart: null,
 				onDeath: null,
@@ -282,7 +266,7 @@ exports = Class(View, function (supr) {
 				ddradius: 0,
 				elapsed: 0,
 				image: "",
-				compositeOperation: "",
+				compositeOperation: null,
 				transition: TRANSITION_LINEAR,
 				onStart: null,
 				onDeath: null,
@@ -350,27 +334,46 @@ exports = Class(View, function (supr) {
 		for (var i = 0; i < count; i++) {
 			// get particle data object and recycled view if possible
 			var data = particleDataArray.pop();
-			var particle = free.pop() || new this._ctor({
-				superview: this,
-				visible: false,
-				canHandleEvents: false
-			});
+			var particle = free.pop();
+			if (!particle) {
+				particle = new this._ctor({
+					superview: this,
+					visible: false,
+					canHandleEvents: false
+				});
+				if (this._logViewCreation) {
+					logger.warn(this.getTag(), "created View:", particle.getTag());
+				}
+			}
 
-			// set particle image if necessary
-			if (particle.setImage) {
-				var img = imageCache[data.image];
-				if (img === undefined) {
-					img = imageCache[data.image] = new Image({ url: data.image });
+			// only set particle image if necessary
+			var image = data.image;
+			if (particle.setImage && particle.lastImage !== image) {
+				var img = imageCache[image];
+				if (img === void 0) {
+					img = imageCache[image] = new Image({ url: image });
 				}
 				particle.setImage(img);
+				particle.lastImage = image;
 			}
 
 			// apply style properties
 			var s = particle.style;
-			for (var k = 0, klen = STYLE_KEYS.length; k < klen; k++) {
-				var key = STYLE_KEYS[k];
-				s[key] = data[key];
-			}
+			s.x = data.x;
+			s.y = data.y;
+			s.r = data.r;
+			s.anchorX = data.anchorX;
+			s.anchorY = data.anchorY;
+			s.width = data.width;
+			s.height = data.height;
+			s.scale = data.scale;
+			s.scaleX = data.scaleX;
+			s.scaleY = data.scaleY;
+			s.opacity = data.opacity;
+			s.flipX = data.flipX;
+			s.flipY = data.flipY;
+			s.compositeOperation = data.compositeOperation;
+			s.visible = data.visible;
 
 			// start particles if there's no delay
 			if (!data.delay) {
@@ -395,7 +398,7 @@ exports = Class(View, function (supr) {
 		var triggers = data.triggers;
 		for (var i = 0, len = triggers.length; i < len; i++) {
 			var trig = triggers[i];
-			trig.isStyle = trig.isStyle !== undefined
+			trig.isStyle = trig.isStyle !== void 0
 				? trig.isStyle
 				: trig.property.charAt(0) !== 'd';
 		}
@@ -595,9 +598,8 @@ exports = Class(View, function (supr) {
 	 */
 	this.forEachActiveParticle = function(fn, ctx) {
 		var views = this._activeParticles;
-		var f = bind(ctx, fn);
 		for (var i = 0, len = views.length; i < len; i++) {
-			f(views[i], i);
+			fn.call(ctx, views[i], i);
 		}
 	};
 

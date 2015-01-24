@@ -55,7 +55,10 @@ exports.get = function (module) {
 };
 
 exports.importUI = function (module) {
-	return jsio('import ui.backend.' + (exports.useDOM ? 'dom' : 'canvas') + '.' + module, {dontExport: true, suppressErrors: true});
+  var domOrCanvas = exports.useDOM ? 'dom' : 'canvas';
+  var importString = 'import ui.backend.' + domOrCanvas + '.' + module;
+  var importOpts = {dontExport: true, suppressErrors: true};
+  return jsio(importString, importOpts);
 };
 
 exports.isMobileNative = exports.isMobile = /TeaLeaf/.test(ua);
@@ -103,20 +106,19 @@ exports.isMobileBrowser = false;
 exports.isUIWebView = false;
 exports.isSafari = /Safari/.test(ua);
 
-import std.uri;
-uri = new std.uri(window.location);
-exports.isSimulator = !!(uri.query('device') || uri.hash('device'));
-
+exports.isSimulator = GLOBAL.CONFIG && !!CONFIG.simulator;
 if (exports.isSimulator) {
-	var urlStr = window.location.href.toLowerCase();
-	exports.isIOSSimulator = urlStr.indexOf('ipad') !== -1 || urlStr.indexOf('iphone') !== -1;
+	exports.isIOSSimulator = /iphone|ipod|ipad/i.test(CONFIG.simulator.deviceType);
 
 	// Until we support more platforms, if it's not
 	// iOS then it's assumed to be an Android device
 	exports.isAndroidSimulator = !exports.isIOSSimulator;
+
+	exports.isNativeSimulator = /^native/.test(CONFIG.target);
 } else {
 	exports.isAndroidSimulator = false;
 	exports.isIOSSimulator = false;
+	exports.isNativeSimulator = false;
 }
 
 if (exports.isMobile) {
@@ -232,21 +234,4 @@ exports.stayAwake = function(enable) {
 exports.collectGarbage = function () {
 	logger.log('collecting garbage');
 	NATIVE && NATIVE.gc && NATIVE.gc.runGC();
-}
-
-/**
- * Global device accessibility controls. Muting, click, color, font changing, etc.
- */
-
-GLOBAL.ACCESSIBILITY = new (Class(Emitter, function (supr) {
-	this.muted = false;
-
-	this.mute = function (flag) {
-		this.muted = flag;
-		this.publish('MuteChange');
-	};
-}));
-
-if (GLOBAL.ONACCESSIBLE) {
-	GLOBAL.ONACCESSIBLE();
 }

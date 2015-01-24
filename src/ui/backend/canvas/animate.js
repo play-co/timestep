@@ -136,8 +136,8 @@ var TRANSITIONS = [
 	transitions.easeInBack,        // 29
 	transitions.easeOutBack,       // 30
 	transitions.easeInOutBack,     // 31
-	transitions.easeInBounce,      // 32
-	transitions.easeOutBounce,     // 33
+	transitions.easeOutBounce,     // 32
+	transitions.easeInBounce,      // 33
 	transitions.easeInOutBounce    // 34
 ];
 
@@ -172,8 +172,8 @@ exports.easeInOutElastic  = 28;
 exports.easeInBack        = 29;
 exports.easeOutBack       = 30;
 exports.easeInOutBack     = 31;
-exports.easeInBounce      = 32;
-exports.easeOutBounce     = 33;
+exports.easeOutBounce     = 32;
+exports.easeInBounce      = 33;
 exports.easeInOutBounce   = 34;
 
 function getTransition(n) {

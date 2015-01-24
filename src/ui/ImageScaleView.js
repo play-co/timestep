@@ -23,6 +23,7 @@
 
 import ui.View;
 import ui.resource.Image as Image;
+import ui.resource.loader as resourceLoader;
 
 exports = Class(ui.View, function (supr) {
 
@@ -330,7 +331,7 @@ exports = Class(ui.View, function (supr) {
 		var opts = this._opts;
 
 		if (typeof img == 'string') {
-			bounds = GCResources.getMap()[img];
+			bounds = resourceLoader.getMap()[img];
 			if (bounds) {
 				iw = bounds.w + bounds.marginLeft + bounds.marginRight;
 				ih = bounds.h + bounds.marginTop + bounds.marginBottom;
@@ -629,6 +630,16 @@ exports = Class(ui.View, function (supr) {
 	var debugColors = ['#FF0000', '#00FF00', '#0000FF'];
 
 	this.getTag = function () {
-		return 'ImageScaleView' + this.uid + ':' + (this._img && this._img._map.url.substring(0, 16));
+		var url = this._img && (this._img.getOriginalURL() || this._img._map && this._img._map.url);
+		if (url) {
+			var match = url.match(/[^\/]+$/);
+			if (match) {
+				url = match[0];
+			}
+
+			url = ':' + url.substring(0, 16);
+		}
+
+		return 'ImageScaleView' + this.uid + (url || '');
 	};
 });

@@ -18,28 +18,70 @@ var BoxLayout = exports = Class(function () {
 
 	var cls = this.constructor;
 
-	this.reflowsChildren = false;
-
 	this.init = function (opts) {
 		this._view = opts.view;
 
-		cls.initParentListener(opts.view);
+		cls.listenSubviewResize(opts.view);
 	}
 
-	this.reflow = function (force) {
+	this.reflow = function () {
 		var view = this._view;
 		var sv = view.getSuperview();
 		var style = view.style;
 
-		if (sv && (force || !style.inLayout || !sv.style.layout || sv.__layout && !sv.__layout.reflowsChildren)) {
-			cls.reflowX(view, sv.style.width);
-			cls.reflowY(view, sv.style.height);
+		// if wrapping content, listen for changes to subviews
+		if (style._layoutWidth == 'wrapContent' || style._layoutHeight == 'wrapContent') {
+			cls.addSubviewListener(view);
 		}
 
+		if (sv) {
+			var notInLayout = !style.inLayout || !style.flex || sv.style.layout != 'linear';
+			if (notInLayout || !sv.__layout.isHorizontal()) {
+				this.reflowX();
+			}
 
+			if (notInLayout || !sv.__layout.isVertical()) {
+				this.reflowY();
+			}
+		}
 	}
 
-	cls.addParentListener = function (view) {
+	cls.addSubviewListener = function (view) {
+		if (!view.__hasSubviewListener) {
+			view.__hasSubviewListener = true;
+			view.subscribe('SubviewAdded', this, '_onSubviewAdded', view);
+			view.subscribe('SubviewRemoved', this, '_onSubviewRemoved', view);
+
+			var subviews = view.getSubviews();
+			for (var i = 0, n = subviews.length; i < n; ++i) {
+				this._onSubviewAdded(view, subviews[i]);
+			}
+		}
+	};
+
+	cls.removeSubviewListener = function (view) {
+		if (view.__hasSubviewListener) {
+			view.__hasSubviewListener = false;
+			view.unsubscribe('SubviewAdded', this, '_onSubviewAdded');
+			view.unsubscribe('SubviewRemoved', this, '_onSubviewRemoved');
+
+			var subviews = view.getSubviews();
+			for (var i = 0, n = subviews.length; i < n; ++i) {
+				this._onSubviewRemoved(view, subviews[i]);
+			}
+		}
+	};
+
+	cls._onSubviewAdded = function (view, subview) {
+		subview.style.addResizeListeners();
+		view.connectEvent(subview, 'resize', bind(view, 'needsReflow'));
+	};
+
+	cls._onSubviewRemoved = function (view, subview) {
+		view.disconnectEvent(subview, 'resize');
+	};
+
+	cls.addResizeListener = function (view) {
 		if (view.style.__removeSuperviewResize) {
 			view.style.__removeSuperviewResize();
 		}
@@ -47,100 +89,139 @@ var BoxLayout = exports = Class(function () {
 		// reflow on parent view resize
 		var onResize = bind(view, 'needsReflow');
 		var superview = view.getSuperview();
-		superview && superview.on('Resize', onResize);
-
-		// store a closure to unsubscribe this event
-		view.style.__removeSuperviewResize = bind(view.style, function () {
-			this.__removeSuperviewResize = null;
-			superview && superview.removeListener('Resize', onResize);
-		});
+		if (superview) {
+			superview.on('resize', onResize);
+			// store a closure to unsubscribe this event
+			view.style.__removeSuperviewResize = bind(view.style, function () {
+				this.__removeSuperviewResize = null;
+				superview && superview.removeListener('resize', onResize);
+			});
+		}
 	}
 
-	cls.initParentListener = function (view) {
-		if (view.__root) { this.addParentListener(view); }
+	cls.listenSubviewResize = function (view) {
+		if (view.__root) { this.addResizeListener(view); }
 
-		view.on('ViewAdded', bind(this, 'addParentListener', view));
+		view.on('ViewAdded', bind(this, 'addResizeListener', view));
 		view.on('ViewRemoved', bind(view.style, function () {
 			this.__removeSuperviewResize && this.__removeSuperviewResize();
 		}));
 	}
 
-	cls.reflowX = function (view, svWidth, padding) {
-		if (!svWidth) { return; }
-
+	this.reflowX = function (view) {
+		var view = this._view;
 		var s = view.style;
-		var availWidth = (svWidth - (padding && padding.getHorizontal() || 0));
+
+		var sv = view.getSuperview();
+		if (s.inLayout && sv.style.layout == 'linear') {
+			var inLinearLayout = sv.__layout.isHorizontal();
+			var padding = sv.style.padding;
+		}
+
+		var svWidth = sv.style.width;
+		var availWidth = svWidth - (padding && padding.getHorizontal() || 0);
 
 		// compute the width
-		var w = 0;
-		if (s.layoutWidth == 'wrapContent') {
+		var w;
+		if (s._layoutWidth == 'wrapContent') {
 			// find the maximal right edge
-			var views = view.getSubviews();
-			for (var i = 0, v; v = views[i]; ++i) {
-				var right = v.style.x + v.style.width * v.style.scale;
+			w = this.getContentWidth() + s.padding.right;
+		}
+
+		// 1. we're not in a layout and both right and left are defined
+		else if (!inLinearLayout && svWidth && s.right != undefined && s.left != undefined) {
+			w = availWidth / s.scale - (s.left || 0) - (s.right || 0);
+		}
+
+		// 2. width is defined a percent
+		else if (svWidth && s._layoutWidthIsPercent) {
+			w = availWidth / s.scale * s._layoutWidthValue;
+		}
+
+		// 3. width is inherited from the superview
+		else if (s.width == undefined && svWidth) {
+			w = availWidth / s.scale;
+		}
+
+		else {
+			w = s._width;
+		}
+
+		// Note that we don't trigger any resize handlers here
+		s._width = w;
+
+		if (!inLinearLayout && svWidth) {
+			if (w !== undefined && s.centerX) { s.x = Math.round((availWidth - s.scale * w) / 2 + (padding && padding.left || 0)); }
+			if (w !== undefined && s.left == undefined && s.right != undefined) { s.x = Math.round(availWidth - s.scale * w - s.right - (padding && padding.right || 0)); }
+			if (s.left != undefined) { s.x = Math.round(s.left + (padding && padding.left || 0)); }
+		}
+	}
+
+	this.reflowY = function () {
+		var view = this._view;
+		var s = view.style;
+		var sv = view.getSuperview();
+		if (s.inLayout && sv.style.layout == 'linear') {
+			var inLinearLayout = sv.__layout.isVertical();
+			var padding = sv.style.padding;
+		}
+
+		var svHeight = sv.style.height;
+		var availHeight = svHeight - (padding && padding.getVertical() || 0);
+
+		var wrapContent = (s._layoutHeight == 'wrapContent');
+
+		// compute the height
+		var h;
+		if (wrapContent) {
+			h = this.getContentHeight() + s.padding.bottom;
+		} else if (!inLinearLayout && svHeight && s.top != undefined && s.bottom != undefined) {
+			h = availHeight / s.scale - (s.top || 0) - (s.bottom || 0);
+		} else if (svHeight && s._layoutHeightIsPercent) {
+			h = availHeight / s.scale * s._layoutHeightValue;
+		} else if (s.height == undefined && svHeight) {
+			h = availHeight / s.scale;
+		} else {
+			h = s.height;
+		}
+
+		s._height = h;
+
+		if (!inLinearLayout && svHeight) {
+			if (h !== undefined && s.centerY) { s.y = Math.round((availHeight - s.scale * h) / 2 + (padding && padding.top || 0)); }
+			if (h !== undefined && s.top == undefined && s.bottom != undefined) { s.y = Math.round(availHeight - s.scale * h - s.bottom - (padding && padding.bottom || 0)); }
+			if (s.top != undefined) { s.y = Math.round(s.top + (padding && padding.top || 0)); }
+		}
+	}
+
+	this.getContentWidth = function () {
+		// find the maximal right edge
+		var w = 0;
+		var views = this._view.getSubviews();
+		for (var i = 0, v; v = views[i]; ++i) {
+			if (!v.style._layoutWidthIsPercent && v.style.visible) {
+				var right = v.style.x + v.style.width * v.style.scale + (v.style.right || 0);
 				if (right > w) {
 					w = right;
 				}
 			}
-		} else {
-			var sv = view.getSuperview();
-			w = s.right != undefined && s.left != undefined ? availWidth / s.scale - (s.left || 0) - (s.right || 0)
-				: (s.layoutWidth && s.layoutWidth.charAt(s.layoutWidth.length-1) == '%') ? (availWidth / s.scale) * (parseFloat(s.layoutWidth) / 100)
-				: view._opts.width ? view._opts.width
-				: s.aspectRatio ? (view._opts.height || s.height) * s.aspectRatio
-				: (sv.style.direction == "horizontal" && typeof s.flex == "number") ? availWidth * s.flex / sv._flexSum
-				: view._opts.autoSize ? s.width
-				: availWidth / s.scale || s.width;
 		}
-
-		if (s.centerX) { s.x = (availWidth - s.scale * w) / 2 + (padding && padding.left || 0); }
-		if (s.left == undefined && s.right != undefined) { s.x = availWidth - s.scale * w - s.right - (padding && padding.right || 0); }
-		if (s.left != undefined) { s.x = s.left + (padding && padding.left || 0); }
-
-		s.width = w;
-
-		if (s.centerAnchor) {
-			s.anchorX = w / 2;
-		}
+		return w;
 	}
 
-	cls.reflowY = function (view, svHeight, padding) {
-		if (!svHeight) { return; }
-
-		var s = view.style;
-		var availHeight = (svHeight - (padding && padding.getVertical() || 0));
-
-		// compute the height
+	this.getContentHeight = function () {
+		// find the maximal bottom edge
+		var views = this._view.getSubviews();
 		var h = 0;
-		if (s.layoutHeight == 'wrapContent') {
-			// find the maximal right edge
-			var views = view.getSubviews();
-			for (var i = 0, v; v = views[i]; ++i) {
-				var bottom = v.style.y + v.style.height * v.style.scale;
+		for (var i = 0, v; v = views[i]; ++i) {
+			if (!v.style._layoutHeightIsPercent && v.style.visible) {
+				var bottom = v.style.y + v.style.height * v.style.scale + (v.style.bottom || 0);
 				if (bottom > h) {
 					h = bottom;
 				}
 			}
-		} else {
-			var sv = view.getSuperview();
-			h = s.top != undefined && s.bottom != undefined ? availHeight / s.scale - (s.top || 0) - (s.bottom || 0)
-				: (s.layoutHeight && s.layoutHeight.charAt(s.layoutHeight.length-1) == '%') ? (availHeight / s.scale) * (parseFloat(s.layoutHeight) / 100)
-				: view._opts.height ? view._opts.height
-				: s.aspectRatio ? (view._opts.width || s.width) / s.aspectRatio
-				: (sv.style.direction == "vertical" && typeof s.flex == "number") ? availHeight * s.flex / sv._flexSum
-				: view._opts.autoSize ? s.height
-				: availHeight / s.scale || s.height;
 		}
-
-		if (s.centerY) { s.y = (availHeight - s.scale * h) / 2 + (padding && padding.top || 0); }
-		if (s.top == undefined && s.bottom != undefined) { s.y = availHeight - s.scale * h - s.bottom - (padding && padding.bottom || 0); }
-		if (s.top != undefined) { s.y = s.top + (padding && padding.top || 0); }
-
-		s.height = h;
-
-		if (s.centerAnchor) {
-			s.anchorY = h / 2;
-		}
+		return h;
 	}
-});
 
+});

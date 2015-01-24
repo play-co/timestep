@@ -71,10 +71,9 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 						? (text.replace(/\t/g, " ").match(/\S+|[\n]| +(?= )/g) || [])
 						: text.split("\n");
 
-		var word;
 		var splitWords = [];
 		for (i in words) {
-			word = words[i];
+			var word = words[i];
 			var eStart = -1;
 			var lastSplit = 0;
 			for (var index = 0; index < word.length; index++) {
@@ -125,7 +124,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 		}
 
 		while (currentWord < wordCount) {
-			word = {word: words[currentWord], width: this.measureText(ctx, words[currentWord]), line: 1};
+			var word = {word: words[currentWord], width: this.measureText(ctx, words[currentWord]), line: 1};
 			this._line.push(word);
 			this._lineWidth += word.width + spaceWidth;
 			this._maxWordWidth = Math.max(this._maxWordWidth, word.width);
@@ -143,7 +142,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 		this._maxWordWidth = 0;
 
 		while (currentWord < wordCount) {
-			word = this._line[currentWord];
+			var word = this._line[currentWord];
 			word.line = 1;
 			word.width = this.measureText(ctx, word.word);
 			this._lineWidth += word.width + spaceWidth;
@@ -156,7 +155,6 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 	// Split the single line into multiple lines which fit into the available width...
 	this._wrap = function (ctx, width) {
 		var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(" ").width;
-		var word;
 		var currentWidth = 0;
 		var lines = [];
 		var line = [];
@@ -170,7 +168,7 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 
 		if (this._opts.horizontalAlign === "justify") {
 			while (currentWord < wordCount) {
-				word = this._line[currentWord++];
+				var word = this._line[currentWord++];
 				currentWidth += word.width + spaceWidth;
 				if (word.word === "\n") {
 					lines.push(line);
@@ -199,12 +197,13 @@ var TextFlow = exports = Class(PubSub, function (supr) {
 			// time (unnecessarily).  Additionally, this extra measure is
 			// expensive, so we'll just use our rough approximation.
 			while (currentWord < wordCount) {
-				word = this._line[currentWord++];
+				var word = this._line[currentWord++];
 				// currentWidth = ctx.measureText(s).width;
 				if (word.word === "\n") {
 					//lines.push([{word: s, width: currentWidth, line: lines.length}]);
 					//s = "";
 					lines.push(line);
+					line = [];
 					currentWidth = 0;
 				} else {
 					var isLineEmpty = !line.length;
