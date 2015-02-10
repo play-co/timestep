@@ -26,5 +26,6 @@ exports.start = function (onTick) {
 
 exports.last = null;
 
-// NOTE: The timer is stopped automatically so this is just a stub
-exports.stop = function () { }
+exports.stop = function () {
+    exports.last = null;
+}
