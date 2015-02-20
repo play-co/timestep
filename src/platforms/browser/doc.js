@@ -21,7 +21,7 @@ from util.browser import $;
 import device;
 
 var SCALING = Enum('FIXED', 'RESIZE', 'MANUAL');
-var defaultScalingMode = device.isMobileBrowser || device.simulating ? SCALING.RESIZE : SCALING.FIXED;
+var defaultScalingMode = !device.isMobileNative || device.simulating ? SCALING.RESIZE : SCALING.FIXED;
 
 /**
  * @extends lib.PubSub
