@@ -345,7 +345,7 @@ exports = Class(BufferedCanvas, function (supr) {
 	this.createImageData = function(width, height) {
 		// createImageData can be passed another image data object
 		// the data in the passed in image is not copied
-		if ('width' in width) {
+		if (typeof width === 'object' && 'width' in width) {
 			height = width.height;
 			width = width.width;
 		}
