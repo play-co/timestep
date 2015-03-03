@@ -172,8 +172,8 @@ exports.easeInOutElastic  = 28;
 exports.easeInBack        = 29;
 exports.easeOutBack       = 30;
 exports.easeInOutBack     = 31;
-exports.easeOutBounce     = 32;
-exports.easeInBounce      = 33;
+exports.easeInBounce      = 32;
+exports.easeOutBounce     = 33;
 exports.easeInOutBounce   = 34;
 
 function getTransition(n) {
