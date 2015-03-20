@@ -420,7 +420,9 @@ var View = exports = Class(Emitter, function () {
 		var list = this.getParents();
 		var i = 0;
 		list.push(this);
-		while (list[++i]) { pt = list[i].__view.localizePoint(pt); }
+		while (list[i]) {
+			pt = list[i++].__view.localizePoint(pt);
+		}
 		return pt;
 	};
 
