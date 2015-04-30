@@ -453,39 +453,33 @@ exports = Class(View, function (supr) {
 			// if we overshot the bounds, don't waste time animating the acceleration.
 			var bounds = this.getStyleBounds();
 			var target = new Point(offset).add(delta);
+			var animateX = true;
+			var animateY = true;
 			if (target.y < bounds.minY - this._bounceRadius) {
 				if (offset.y < bounds.minY) {
-					distance = 0;
-				} else {
-					distance = delta.getMagnitude();
+					animateY = false;
 				}
 			}
 
 			if (target.y > bounds.maxY + this._bounceRadius) {
 				if (offset.y > bounds.maxY) {
-					distance = 0;
-				} else {
-					distance = delta.getMagnitude();
+					animateY = false;
 				}
 			}
 
 			if (target.x < bounds.minX - this._bounceRadius) {
 				if (offset.x < bounds.minX) {
-					distance = 0;
-				} else {
-					distance = delta.getMagnitude();
+					animateX = false;
 				}
 			}
 
 			if (target.x > bounds.maxX + this._bounceRadius) {
 				if (offset.x > bounds.maxX) {
-					distance = 0;
-				} else {
-					distance = delta.getMagnitude();
+					animateX = false;
 				}
 			}
 
-			if (distance) {
+			if (animateX || animateY) {
 				this._anim.now(bind(this, function (tt, t) {
 					this.setOffset(
 						offset.x + delta.x * tt,
