@@ -32,7 +32,7 @@ exports = Class(function () {
 	 */
 	this.init = function (opts) {
 		var initCount = opts.initCount || 0;
-		var viewOpts = opts.initOpts || {};
+		this._initOpts = opts.initOpts || {};
 
 		this._ctor = opts.ctor || View;
 		this._freshViewIndex = 0;
@@ -40,7 +40,7 @@ exports = Class(function () {
 		this._logViewCreation = initCount > 0;
 
 		for (var i = 0; i < initCount; i++) {
-			var view = this._createView(merge({}, viewOpts));
+			var view = this._createView(merge({}, this._initOpts));
 			view.style.visible = false;
 		}
 	};
@@ -124,7 +124,7 @@ exports = Class(function () {
 	 */
 	this._createView = function (opts) {
 		var views = this._views;
-		var view = new this._ctor(opts);
+		var view = new this._ctor(merge(opts, this._initOpts));
 		view._poolIndex = views.length;
 		views.push(view);
 		return view;
