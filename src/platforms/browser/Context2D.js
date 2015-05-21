@@ -23,6 +23,8 @@
 import device;
 import .FontRenderer;
 
+from .webgl2d import WebGL2D;
+
 function setter(name) {
 	return (function (val) {
 		return (this[name] = val);
@@ -41,6 +43,10 @@ exports = function (opts) {
 
 	el.width = opts.width;
 	el.height = opts.height;
+
+	if (opts.offscreen === false) {
+		WebGL2D.enable(el);
+	}
 
 	var ctx = el.getContext('2d');
 	ctx.font = '11px ' + device.defaultFontFamily;
