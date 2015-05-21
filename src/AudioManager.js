@@ -35,11 +35,24 @@ import ui.backend.sound.AudioLoader as AudioLoader;
 // preloaded, on native.
 
 // define AudioContext as best as possible; it may not exist
-window.AudioContext = window.AudioContext || window.webkitAudioContext;
+var AudioContext = window.AudioContext || window.webkitAudioContext;
 
 // global private variables
 var _ctx = null;
-var _muteAll = false;
+
+// use an AudioContext if available, otherwise fallback to Audio
+if (AudioContext) {
+	try {
+		_ctx = new AudioContext();
+	} catch (e) {
+		// most commonly due to hardware limits on AudioContext instances
+		logger.warn("HTML5 AudioContext init failed, falling back to Audio!");
+	}
+} else {
+	logger.warn("HTML5 AudioContext not supported, falling back to Audio!");
+}
+
+var _muteAll = true;
 var _registeredAudioManagers = [];
 
 /**
@@ -275,7 +288,9 @@ var MultiSound = Class(function () {
 			var buffer = loader.getBuffer(path);
 			if (!buffer) {
 				loader.doOnLoad(path, bind(this, function (buffers) {
-					this._playFromBuffer(buffers[0], loop, time, duration);
+					if (!this._isPaused) {
+						this._playFromBuffer(buffers[0], loop, time, duration);
+					}
 				}));
 			} else {
 				this._playFromBuffer(buffer, loop, time, duration);
@@ -345,17 +360,6 @@ exports = Class(Emitter, function (supr) {
 
 		opts.persist && this.persistState(opts.persist);
 
-		// use an AudioContext if available, otherwise fallback to Audio
-		if (_ctx === null && typeof AudioContext !== 'undefined') {
-			try {
-				_ctx = new AudioContext();
-			} catch (e) {
-				// most commonly due to hardware limits on AudioContext instances
-				logger.warn("HTML5 AudioContext init failed, falling back to Audio!");
-			}
-		} else if (_ctx === null) {
-			logger.warn("HTML5 AudioContext not supported, falling back to Audio!");
-		}
 		// pass the global AudioContext instance to AudioLoaders
 		_ctx && this.setAudioContext();
 
