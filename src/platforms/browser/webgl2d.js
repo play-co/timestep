@@ -314,7 +314,7 @@ import .TextManager;
 
           // Blending options
           gl.enable(gl.BLEND);
-          gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+          gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
           gl2d.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
 
@@ -1381,6 +1381,8 @@ import .TextManager;
         sMask = sMask|shaderMask.crop;
         doCrop = true;
       }
+
+      gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
       var shaderProgram = gl2d.initShaders(transform.c_stack, sMask);
 
