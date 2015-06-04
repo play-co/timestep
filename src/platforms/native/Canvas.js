@@ -56,6 +56,17 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
 		}
 	}
 
+	this.getBoundingClientRect = function() {
+		return {
+			bottom: this._height,
+			height: this._height,
+			left: 0,
+			right: this._width,
+			top: this._width,
+			width: 0
+		};
+	}
+
 	this.toDataURL = function() {
 		return NATIVE.gl.toDataURL(this._context2D)
 	}
