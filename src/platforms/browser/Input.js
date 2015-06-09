@@ -76,13 +76,21 @@ exports = Class(function (supr) {
 	}
 
 	this.enable = function () {
+		if (this._isEnabled) { return; }
+		this._isEnabled = true;
+
 		this._handleMove = $.onEvent(document, device.events.move, this, 'handleMouse', eventTypes.MOVE);
 		this._handleSelect = $.onEvent(document, device.events.end, this, 'handleMouse', eventTypes.SELECT);
 		this._handleScroll = $.onEvent(window, 'DOMMouseScroll', this, 'handleMouse', eventTypes.SCROLL); // FF
 		this._handleWheel = $.onEvent(window, 'mousewheel', this, 'handleMouse', eventTypes.SCROLL); // webkit
+
+		this._addElEvents();
 	};
 
 	this.disable = function () {
+		if (!this._isEnabled) { return; }
+		this._isEnabled = false;
+
 		if (this._handleMove) {
 			this._handleMove();
 			this._handleMove = false;
@@ -99,6 +107,8 @@ exports = Class(function (supr) {
 			this._handleWheel();
 			this._handleWheel = false;
 		}
+
+		this._removeElEvents();
 	};
 	
 	this.onFocusCapture = function (e) {
@@ -115,19 +125,20 @@ exports = Class(function (supr) {
 			this._keyListener && this._keyListener.setEnabled(true);
 		}
 	}
-	
-	this.setElement = function (el) {
-		this._el = el;
-		
+
+	this._removeElEvents = function () {
 		if (this._elEvents) {
 			for(var i = 0, detach; detach = this._elEvents[i]; ++i) {
 				detach();
 			}
 		}
-		
-		el.ondragstart = function () { return false; }
-		el.onselectstart = function () { return false; }
-		
+	}
+
+	this._addElEvents = function () {
+		var el = this._el;
+		el.ondragstart = function () { return false; };
+		el.onselectstart = function () { return false; };
+
 		this._elEvents = [];
 		
 		if (!device.useDOM) {
@@ -139,7 +150,13 @@ exports = Class(function (supr) {
 			this._elEvents.push($.onEvent(el, 'mouseout', this, 'onMouseOut'));
 		}
 	}
-	
+
+	this.setElement = function (el) {
+		this._removeElEvents();
+		this._el = el;
+		this._addElEvents();
+	}
+
 	this.onMouseOver = function () { this._isOver = true; }
 	this.onMouseOut = function () { this._isOver = false; }
 	this.onMouseDown = function () { this._isMouseDown = true; }
