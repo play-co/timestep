@@ -135,6 +135,9 @@ exports = Class(function (supr) {
   };
 
   this._addElEvents = function () {
+
+    this._removeElEvents();
+
     var el = this._el;
     el.ondragstart = function () { return false; };
     el.onselectstart = function () { return false; };
