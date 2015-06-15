@@ -58,7 +58,8 @@ exports = Class(View, function (supr) {
 	
 	this.render = function (ctx) {
 		ctx.fillStyle = this._opts.backgroundColor;
-		
+		var alpha = ctx.globalAlpha;
+
 		var w = this.style.width,
 				h = this.style.height,
 				radius = this._opts.radius,
@@ -88,7 +89,7 @@ exports = Class(View, function (supr) {
 		
 		for (i = 0; i < this._opts.spokes; ++i) {
 			ctx.rotate(this._step);
-			ctx.globalAlpha = Math.max(0.1, (i - trail) / trail);
+			ctx.globalAlpha = alpha * Math.max(0.1, (i - trail) / trail);
 			ctx.fillRect(10, -thickness / 2, w - 15, thickness);
 		}
 	}
