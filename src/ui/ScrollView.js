@@ -479,7 +479,7 @@ exports = Class(View, function (supr) {
 				}
 			}
 
-			if (animateX || animateY) {
+			if (delta.getMagnitude() && (animateX || animateY)) {
 				this._anim.now(bind(this, function (tt, t) {
 					this.setOffset(
 						offset.x + delta.x * tt,
