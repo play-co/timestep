@@ -35,6 +35,7 @@ import ui.resource.loader as resourceLoader;
  */
 
 var ImageCache = {};
+var GET_IMAGE_DATA_NOT_SUPPORTED = (!GLOBAL.document || !document.createElement);
 
 // `imageOnLoad` is called when a DOM image object fires a `load` or `error`
 // event.  Fire the internal `cb` with the error status.
@@ -508,7 +509,7 @@ exports = Class(lib.PubSub, function () {
 		}
 
 		var map = this._map;
-		if (!GLOBAL.document || !document.createElement) { throw 'Not supported'; }
+		if (GET_IMAGE_DATA_NOT_SUPPORTED) { throw 'Not supported'; }
 		if (!map.width || !map.height) { throw 'Not loaded'; }
 
 		x = x || 0;
