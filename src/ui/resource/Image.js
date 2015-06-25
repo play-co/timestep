@@ -28,14 +28,19 @@ import device;
 import lib.PubSub;
 import event.Callback as Callback;
 import ui.resource.loader as resourceLoader;
+import cache.LRUCache as LRUCache;
 
+var TINT_CACHE_SIZE = 4096;
+
+var ImageCache = {};
+var TintedImageCache = new LRUCache(TINT_CACHE_SIZE);
+
+var GET_IMAGE_DATA_NOT_SUPPORTED = (!GLOBAL.document || !document.createElement);
 /**
  * Callback when images are loaded. This has a failsafe that runs up to a certain
  * threshold asynchronously, attempting to read the image size, before dying.
  */
 
-var ImageCache = {};
-var GET_IMAGE_DATA_NOT_SUPPORTED = (!GLOBAL.document || !document.createElement);
 
 // `imageOnLoad` is called when a DOM image object fires a `load` or `error`
 // event.  Fire the internal `cb` with the error status.
@@ -387,25 +392,37 @@ exports = Class(lib.PubSub, function () {
 		return _filterCanvas;
 	};
 
-	this._renderMultiply = function (ctx, srcX, srcY, srcW, srcH, color) {
-		// multiply rgb channels
-		var imgData = this.getImageData(srcX, srcY, srcW, srcH);
-		var data = imgData.data;
-		// simplified multiply math outside of the massive for loop
-		var a = color.a;
-		var mr = 1 + a * ((color.r / 255) - 1);
-		var mg = 1 + a * ((color.g / 255) - 1);
-		var mb = 1 + a * ((color.b / 255) - 1);
-		for (var i = 0, len = data.length; i < len; i += 4) {
-			data[i] *= mr;
-			data[i + 1] *= mg;
-			data[i + 2] *= mb;
+	var unusedCanvas = null;
+
+	this._getTintedImage = function(srcX, srcY, srcW, srcH, color) {
+		var colorString = (color.r << 16 | color.g << 8 | color.b).toString(16);
+		var cacheKey = this.getURL() + srcX + "|" + srcY + "|" + srcW + "|" + srcH + "|" + colorString;
+		var result = TintedImageCache.get(cacheKey);
+		if (!result) {
+			result = unusedCanvas || new Canvas();
+			resultCtx = result.getContext('2d');
+			result.width = srcW;
+			result.height = srcH;
+			var imgData = this.getImageData(srcX, srcY, srcW, srcH);
+			var data = imgData.data;
+			// simplified multiply math outside of the massive for loop
+			var a = color.a;
+			var mr = 1 + a * ((color.r / 255) - 1);
+			var mg = 1 + a * ((color.g / 255) - 1);
+			var mb = 1 + a * ((color.b / 255) - 1);
+			for (var i = 0, len = data.length; i < len; i += 4) {
+				data[i] *= mr;
+				data[i + 1] *= mg;
+				data[i + 2] *= mb;
+			}
+			// put the updated rgb data into our new canvas
+			// console.log("CACHING TINTED IMAGE", cacheKey, color.r, color.g, color.b);
+			resultCtx.putImageData(imgData, 0, 0);
+			var removedEntry = TintedImageCache.put(cacheKey, result);
+			unusedCanvas = removedEntry ? removedEntry.value : null;
+			console.log(unusedCanvas);
 		}
-		// put the updated rgb data into our filter canvas
-		_filterCanvas.width = imgData.width;
-		_filterCanvas.height = imgData.height;
-		_filterCtx.putImageData(imgData, 0, 0);
-		return _filterCanvas;
+		return result;
 	};
 
 	this._renderMask = function (ctx, srcX, srcY, srcW, srcH, mask, op) {
@@ -444,7 +461,7 @@ exports = Class(lib.PubSub, function () {
 		} else if (tint) {
 			resultImg = this._renderFilter(ctx, srcX, srcY, srcW, srcH, tint.get(), 'source-over');
 		} else if (mult) {
-			resultImg = this._renderMultiply(ctx, srcX, srcY, srcW, srcH, mult.get());
+			resultImg = this._getTintedImage(srcX, srcY, srcW, srcH, mult.get());
 		} else if (negMask) {
 			resultImg = this._renderMask(ctx, srcX, srcY, srcW, srcH, negMask.getMask(), 'source-in');
 		} else if (posMask) {
@@ -534,4 +551,5 @@ exports = Class(lib.PubSub, function () {
 
 exports.__clearCache__ = function () {
 	ImageCache = {};
+	TintedImageCache.removeAll();
 };
