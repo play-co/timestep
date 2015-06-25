@@ -84,7 +84,7 @@ var slow = 0, fast = 0;
 
 function onFrame() {
 	if (_onTick) {
-		var now = +new Date(),
+		var now = Date.now(),
 			dt = now - (exports.last || now);
 		
 		exports.last = now;
