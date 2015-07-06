@@ -464,9 +464,9 @@ exports = Class(lib.PubSub, function () {
 		var srcY = map.y;
 		var srcW = map.width;
 		var srcH = map.height;
-		var destX = argumentCount > 5 ? arguments[5] : arguments[1];
-		var destY = argumentCount > 6 ? arguments[6] : arguments[2];
-		var destW = argumentCount > 7 ? arguments[7] : arguments[3];
+		var destX = argumentCount > 5 ? arguments[5] : arguments[1] || 0;
+		var destY = argumentCount > 6 ? arguments[6] : arguments[2] || 0;
+		var destW = argumentCount > 7 ? arguments[7] : arguments[3] || 0;
 		var destH = argumentCount > 8 ? arguments[8] : arguments[4] || 0;
 
 		if (argumentCount < 9) {
