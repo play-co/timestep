@@ -24,10 +24,9 @@ import event.Emitter as Emitter;
 import animate.transitions as transitions;
 import timer;
 
-var anim_uid = 0;
+var uid = 0;
 
-exports = function (subject, groupId) {
-
+exports = function (subject, groupID) {
 	// TODO: we have a circular import, so do the Engine import on first use
 	if (typeof Engine == 'undefined') {
 		import ui.Engine as Engine;
@@ -35,25 +34,24 @@ exports = function (subject, groupId) {
 		import device;
 	}
 
-	if (device.useDOM && subject instanceof View && !groupId) {
+	if (device.useDOM && subject instanceof View && !groupID) {
 		return subject.getAnimation();
 	}
 
-	var groupId = groupId || 0,
-		group = groups[groupId] || (groups[groupId] = new Group()),
-		animID = subject.__anim_id || (subject.__anim_id = '__anim_' + (++anim_uid)),
-		anim = group.get(animID);
-
+	var groupID = groupID || 0;
+	var animID = subject.__anim_id || (subject.__anim_id = '__anim_' + (++uid));
+	var anims = subject.__anims || (subject.__anims = {});
+	var group = anims[groupID] || (anims[groupID] = new Group());
+	var anim = group.get(animID);
 	if (!anim) {
 		anim = subject instanceof View
-				? new ViewAnimator(subject, group)
-				: new Animator(subject, group);
-
+			? new ViewAnimator(subject, group)
+			: new Animator(subject, group);
 		group.add(animID, anim);
 	}
 
 	return anim;
-}
+};
 
 exports.getViewAnimator = function () {
 	return ViewAnimator;
@@ -81,27 +79,16 @@ var Group = Class(Emitter, function (supr) {
 		for (var id in this._anims) {
 			if (this._anims[id].hasFrames()) { return true; }
 		}
-
 		return false;
 	};
 
 	this.onAnimationFinish = function (anim) {
-		delete this._anims[anim.id];
-
 		if (!this.isActive()) {
 			// if called from a Finish event, republish it
 			this.publish('Finish');
 		}
 	};
 });
-
-var groups = {
-	0: new Group()
-};
-
-exports.getGroup = function (i) {
-	return groups[i || 0];
-};
 
 var TRANSITIONS = [
 	transitions.easeInOut,         // 0: default
