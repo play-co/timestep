@@ -39,7 +39,7 @@ exports = function (subject, groupID) {
 	}
 
 	// animators created once and cached on subject '__anims' object by groupID
-	// so they're only garbage-collected when the subject is garbage collected
+	// so they're only garbage collected when the subject is garbage collected
 	var groupID = groupID || 0;
 	var animID = subject.__anim_id || (subject.__anim_id = '__anim_' + (++uid));
 	var anims = subject.__anims || (subject.__anims = {});
