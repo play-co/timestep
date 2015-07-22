@@ -135,8 +135,8 @@ var TRANSITIONS = [
 	transitions.easeInBack,        // 29
 	transitions.easeOutBack,       // 30
 	transitions.easeInOutBack,     // 31
-	transitions.easeOutBounce,     // 32
-	transitions.easeInBounce,      // 33
+	transitions.easeInBounce,      // 32
+	transitions.easeOutBounce,     // 33
 	transitions.easeInOutBounce    // 34
 ];
 
