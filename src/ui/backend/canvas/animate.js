@@ -51,6 +51,49 @@ exports = function (subject, animID) {
 	return anim;
 };
 
+// get all animations on a given subject
+exports.getSubjectAnimations = function (subject) {
+	var anims = subject.__anims || {};
+	var animsArray = [];
+	for (var id in anims) {
+		animsArray.push(anims[id]);
+	}
+	return animsArray;
+};
+
+// clear all animations on a given subject
+exports.clearSubjectAnimations = function (subject) {
+	var anims = this.getSubjectAnimations(subject);
+	for (var i = 0; i < anims.length; i++) {
+		anims[i].clear();
+	}
+};
+
+// commit all animations on a given subject
+exports.commitSubjectAnimations = function (subject) {
+	var anims = this.getSubjectAnimations(subject);
+	for (var i = 0; i < anims.length; i++) {
+		anims[i].commit();
+	}
+};
+
+// pause all animations on a given subject
+exports.pauseSubjectAnimations = function (subject) {
+	var anims = this.getSubjectAnimations(subject);
+	for (var i = 0; i < anims.length; i++) {
+		anims[i].pause();
+	}
+};
+
+// resume all animations on a given subject
+exports.resumeSubjectAnimations = function (subject) {
+	var anims = this.getSubjectAnimations(subject);
+	for (var i = 0; i < anims.length; i++) {
+		anims[i].resume();
+	}
+};
+
+// used to get/set native or browser ViewAnimator constructors
 exports.getViewAnimator = function () {
 	return ViewAnimator;
 };
