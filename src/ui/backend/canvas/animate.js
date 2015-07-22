@@ -418,6 +418,12 @@ var Animator = exports.Animator = Class(Emitter, function () {
 
 		// nothing left in the queue!
 		this._unschedule();
+		this._onFinish();
+	};
+
+	// fire a 'Finish' event when all queued frames complete
+	this._onFinish = function () {
+		this.publish('Finish');
 	};
 });
 
