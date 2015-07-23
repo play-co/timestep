@@ -25,9 +25,9 @@ import event.Emitter as Emitter;
 import animate.transitions as transitions;
 import timer;
 
-var DEFAULT_ANIM_ID = "__default_anim";
+var DEFAULT_GROUP_ID = "__default_group";
 
-exports = function (subject, animID) {
+exports = function (subject, groupID) {
 	// TODO: we have a circular import, so do the Engine import on first use
 	if (typeof Engine === 'undefined') {
 		import ui.Engine as Engine;
@@ -35,20 +35,20 @@ exports = function (subject, animID) {
 		import device;
 	}
 
-	if (device.useDOM && subject instanceof View && !animID) {
+	if (device.useDOM && subject instanceof View && !groupID) {
 		return subject.getAnimation();
 	}
 
-	// animators created once and cached on subject '__anims' object by animID
+	// animators created once and cached on subject '__anims' object by groupID
 	// so they're only garbage collected when the subject is garbage collected
-	animID = animID || DEFAULT_ANIM_ID;
+	groupID = groupID || DEFAULT_GROUP_ID;
 	var anims = subject.__anims || (subject.__anims = {});
-	var anim = anims[animID];
+	var anim = anims[groupID];
 	if (!anim) {
 		anim = subject instanceof View
-			? new ViewAnimator(subject, animID)
-			: new Animator(subject, animID);
-		anims[animID] = anim;
+			? new ViewAnimator(subject, groupID)
+			: new Animator(subject, groupID);
+		anims[groupID] = anim;
 	}
 
 	return anim;
@@ -100,15 +100,15 @@ exports.resumeSubjectAnimations = function (subject) {
 exports.getViewAnimator = function () { return ViewAnimator; };
 exports.setViewAnimator = function (ctor) { ViewAnimator = ctor; };
 
-// class for tracking sets of animations w same animID across different subjects
+// class for tracking sets of animations w same groupID across different subjects
 var Group = Class(Emitter, function () {
-	this.init = function (animID) {
-		this.animID = animID;
+	this.init = function (groupID) {
+		this.groupID = groupID;
 		this.anims = [];
 		this.reset();
 	};
 
-	// populate w all active animators w matching animIDs across any subject
+	// populate w all active animators w matching groupIDs across any subject
 	this.reset = function () {
 		this._isFinished = false;
 		this.anims.length = 0;
@@ -119,7 +119,7 @@ var Group = Class(Emitter, function () {
 		for (var i = 0; i < listeners.length; i++) {
 			var listener = listeners[i];
 			var anim = listener._ctx;
-			if (anim && anim.animID === this.animID) {
+			if (anim && anim.groupID === this.groupID) {
 				this.anims.push(anim);
 				anim.once('Finish', finishCallback.chain());
 			}
@@ -185,9 +185,9 @@ var Group = Class(Emitter, function () {
 	};
 });
 
-// returns a new Group containing a set of Animators w the same animID
-exports.getGroup = function (animID) {
-	return new Group(animID || DEFAULT_ANIM_ID);
+// returns a new Group containing a set of Animators w the same groupID
+exports.getGroup = function (groupID) {
+	return new Group('' + (groupID || DEFAULT_GROUP_ID));
 };
 
 var TRANSITIONS = [
@@ -374,8 +374,8 @@ var ViewStyleFrame = Class(Frame, function () {
 });
 
 var Animator = exports.Animator = Class(Emitter, function () {
-	this.init = function (subject, animID) {
-		this.animID = animID;
+	this.init = function (subject, groupID) {
+		this.groupID = groupID;
 		this.subject = subject;
 		this.clear();
 		this._isPaused = false;
