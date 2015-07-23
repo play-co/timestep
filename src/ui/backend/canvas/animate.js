@@ -187,8 +187,7 @@ var Group = Class(Emitter, function () {
 
 // returns a new Group containing a set of Animators w the same animID
 exports.getGroup = function (animID) {
-	animID = animID || DEFAULT_ANIM_ID;
-	return new Group(animID);
+	return new Group(animID || DEFAULT_ANIM_ID);
 };
 
 var TRANSITIONS = [
