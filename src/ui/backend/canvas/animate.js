@@ -20,9 +20,12 @@
  * Canvas animate namespace and functions.
  */
 
+import lib.Callback as Callback;
 import event.Emitter as Emitter;
 import animate.transitions as transitions;
 import timer;
+
+var DEFAULT_ANIM_ID = "__default_anim";
 
 exports = function (subject, animID) {
 	// TODO: we have a circular import, so do the Engine import on first use
@@ -38,13 +41,13 @@ exports = function (subject, animID) {
 
 	// animators created once and cached on subject '__anims' object by animID
 	// so they're only garbage collected when the subject is garbage collected
-	animID = animID || '__default';
+	animID = animID || DEFAULT_ANIM_ID;
 	var anims = subject.__anims || (subject.__anims = {});
 	var anim = anims[animID];
 	if (!anim) {
 		anim = subject instanceof View
-			? new ViewAnimator(subject)
-			: new Animator(subject);
+			? new ViewAnimator(subject, animID)
+			: new Animator(subject, animID);
 		anims[animID] = anim;
 	}
 
@@ -94,12 +97,98 @@ exports.resumeSubjectAnimations = function (subject) {
 };
 
 // used to get/set native or browser ViewAnimator constructors
-exports.getViewAnimator = function () {
-	return ViewAnimator;
-};
+exports.getViewAnimator = function () { return ViewAnimator; };
+exports.setViewAnimator = function (ctor) { ViewAnimator = ctor; };
 
-exports.setViewAnimator = function (ctor) {
-	ViewAnimator = ctor;
+// class for tracking sets of animations w same animID across different subjects
+var Group = Class(Emitter, function () {
+	this.init = function (animID) {
+		this.animID = animID;
+		this.anims = [];
+		this.reset();
+	};
+
+	// populate w all active animators w matching animIDs across any subject
+	this.reset = function () {
+		this._isFinished = false;
+		this.anims.length = 0;
+
+		var engine = Engine.get();
+		var listeners = engine.listeners('Tick');
+		var finishCallback = new Callback();
+		for (var i = 0; i < listeners.length; i++) {
+			var listener = listeners[i];
+			var anim = listener._ctx;
+			if (anim && anim.animID === this.animID) {
+				this.anims.push(anim);
+				anim.once('Finish', finishCallback.chain());
+			}
+		}
+
+		// when all anims within this group finish, publish a Finish event
+		var onGroupFinish = bind(this, '_onGroupFinish');
+		if (this.anims.length) {
+			finishCallback.run(onGroupFinish);
+		} else {
+			// if there weren't any active Animators, publish Finish next tick
+			this._isFinished = true;
+			setTimeout(onGroupFinish, 0);
+		}
+		return this;
+	};
+
+	// called internally when all animations complete
+	this._onGroupFinish = function () {
+		this._isFinished = true;
+		this.publish('Finish');
+	};
+
+	// have all the animations in the group completed?
+	this.isFinished = function () {
+		return this._isFinished;
+	};
+
+	// clear all the animations in the group
+	this.clear = function () {
+		var anims = this.anims;
+		for (var i = 0; i < anims.length; i++) {
+			anims[i].clear();
+		}
+		return this;
+	};
+
+	// commit all the animations in the group
+	this.commit = function () {
+		var anims = this.anims;
+		for (var i = 0; i < anims.length; i++) {
+			anims[i].commit();
+		}
+		return this;
+	};
+
+	// pause all the animations in the group
+	this.pause = function () {
+		var anims = this.anims;
+		for (var i = 0; i < anims.length; i++) {
+			anims[i].pause();
+		}
+		return this;
+	};
+
+	// resume all the animations in the group
+	this.resume = function () {
+		var anims = this.anims;
+		for (var i = 0; i < anims.length; i++) {
+			anims[i].resume();
+		}
+		return this;
+	};
+});
+
+// returns a new Group containing a set of Animators w the same animID
+exports.getGroup = function (animID) {
+	animID = animID || DEFAULT_ANIM_ID;
+	return new Group(animID);
 };
 
 var TRANSITIONS = [
@@ -286,7 +375,8 @@ var ViewStyleFrame = Class(Frame, function () {
 });
 
 var Animator = exports.Animator = Class(Emitter, function () {
-	this.init = function (subject) {
+	this.init = function (subject, animID) {
+		this.animID = animID;
 		this.subject = subject;
 		this.clear();
 		this._isPaused = false;
@@ -306,6 +396,7 @@ var Animator = exports.Animator = Class(Emitter, function () {
 			this._isPaused = true;
 			this._unschedule();
 		}
+		return this;
 	};
 
 	this.resume = function () {
@@ -313,6 +404,7 @@ var Animator = exports.Animator = Class(Emitter, function () {
 			this._isPaused = false;
 			this._schedule();
 		}
+		return this;
 	};
 
 	this._schedule = function () {
@@ -369,7 +461,10 @@ var Animator = exports.Animator = Class(Emitter, function () {
 		return this;
 	};
 
-	this.debug = function () { this._debug = true; return this; };
+	this.debug = function () {
+		this._debug = true;
+		return this;
+	};
 
 	this.commit = function () {
 		this._elapsed = 0;
@@ -418,11 +513,11 @@ var Animator = exports.Animator = Class(Emitter, function () {
 
 		// nothing left in the queue!
 		this._unschedule();
-		this._onFinish();
+		this._onAnimationFinish();
 	};
 
 	// fire a 'Finish' event when all queued frames complete
-	this._onFinish = function () {
+	this._onAnimationFinish = function () {
 		this.publish('Finish');
 	};
 });
