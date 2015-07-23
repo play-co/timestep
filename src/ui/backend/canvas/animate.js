@@ -26,6 +26,7 @@ import animate.transitions as transitions;
 import timer;
 
 var DEFAULT_GROUP_ID = "__default_group";
+var viewIDCache = {};
 
 exports = function (subject, groupID) {
 	// TODO: we have a circular import, so do the Engine import on first use
@@ -45,9 +46,13 @@ exports = function (subject, groupID) {
 	var anims = subject.__anims || (subject.__anims = {});
 	var anim = anims[groupID];
 	if (!anim) {
-		anim = subject instanceof View
-			? new ViewAnimator(subject, groupID)
-			: new Animator(subject, groupID);
+		if (subject instanceof View) {
+			anim = new ViewAnimator(subject, groupID);
+			var viewIDs = viewIDCache[groupID] || (viewIDCache[groupID] = []);
+			viewIDs.push(subject.uid);
+		} else {
+			anim = new Animator(subject, groupID);
+		}
 		anims[groupID] = anim;
 	}
 
@@ -110,16 +115,32 @@ var Group = Class(Emitter, function () {
 
 	// populate w all active animators w matching groupIDs across any subject
 	this.reset = function () {
+		var finishCallback = new Callback();
 		this._isFinished = false;
 		this.anims.length = 0;
 
+		// find all animating view subjects in the group
+		var viewIDs = viewIDCache[this.groupID] || [];
+		for (var i = 0; i < viewIDs.length; i++) {
+			var id = viewIDs[i];
+			var view = View.findViewByID(id);
+			var anim = view && view.__anims && view.__anims[this.groupID];
+			if (anim) {
+				this.anims.push(anim);
+				anim.once('Finish', finishCallback.chain());
+			}
+		}
+
+		// find all animating non-view subjects in the group
 		var engine = Engine.get();
 		var listeners = engine.listeners('Tick');
-		var finishCallback = new Callback();
 		for (var i = 0; i < listeners.length; i++) {
 			var listener = listeners[i];
 			var anim = listener._ctx;
-			if (anim && anim.groupID === this.groupID) {
+			if (anim
+				&& anim.groupID === this.groupID
+				&& this.anims.indexOf(anim) === -1)
+			{
 				this.anims.push(anim);
 				anim.once('Finish', finishCallback.chain());
 			}

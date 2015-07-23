@@ -857,3 +857,28 @@ View.setDefaultViewBacking = function (ViewBackingCtor) {
 
 // default view backing is canvas
 View.setDefaultViewBacking(backend.canvas.ViewBacking);
+
+// traverse the view hierarchy to find a specific view by its uid
+View.findViewByID = function (id) {
+	var root = GC.app && GC.app.view;
+	if (root) {
+		return findViewByID(root, id);
+	} else {
+		return null;
+	}
+};
+
+function findViewByID (view, id) {
+	if (view.uid === id) {
+		return view;
+	}
+	var subviews = view.getSubviews();
+	for (var i = 0; i < subviews.length; i++) {
+		var sub = subviews[i];
+		var res = findViewByID(sub, id);
+		if (res) {
+			return res;
+		}
+	}
+	return null;
+};
