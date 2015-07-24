@@ -127,7 +127,7 @@ var Group = Class(Emitter, function () {
 
 	// populate w all active animators w matching groupIDs across any subject
 	this.reset = function () {
-		var finishCallback = new Callback();
+		this._finishCallback = new Callback();
 		this._isFinished = false;
 		this.anims.length = 0;
 
@@ -137,42 +137,48 @@ var Group = Class(Emitter, function () {
 			var id = viewIDs[i];
 			var view = View.findViewByID(id);
 			var anim = view && view.__anims && view.__anims[this.groupID];
-			if (anim) {
-				this.anims.push(anim);
-				anim.once('Finish', finishCallback.chain());
-			}
+			anim && this._add(anim);
 		}
 
 		// find all animating non-view subjects in the group
 		var engine = Engine.get();
 		var listeners = engine.listeners('Tick');
 		for (var i = 0; i < listeners.length; i++) {
-			var listener = listeners[i];
-			var anim = listener._ctx;
+			var anim = listeners[i]._ctx;
 			if (anim
 				&& anim.groupID === this.groupID
 				&& this.anims.indexOf(anim) === -1)
 			{
-				this.anims.push(anim);
-				anim.once('Finish', finishCallback.chain());
+				this._add(anim);
 			}
 		}
 
 		// when all anims within this group finish, publish a Finish event
-		var onGroupFinish = bind(this, '_onGroupFinish');
 		if (this.anims.length) {
-			finishCallback.run(onGroupFinish);
+			this._finishCallback.run(bind(this, '_onGroupFinish'));
 		} else {
 			// if there weren't any active Animators, publish Finish next tick
 			this._isFinished = true;
-			setTimeout(onGroupFinish, 0);
+			setTimeout(bind(this, '_onGroupFinish'), 0);
 		}
 		return this;
+	};
+
+	// called internally by reset to populate correct anims array
+	this._add = function (anim) {
+		this.anims.push(anim);
+		anim._groupFinishCB = this._finishCallback.chain();
+		anim.once('Finish', anim._groupFinishCB);
 	};
 
 	// called internally when all animations complete
 	this._onGroupFinish = function () {
 		this._isFinished = true;
+		var anims = this.anims;
+		for (var i = 0; i < anims.length; i++) {
+			anims[i]._groupFinishCB = null;
+		}
+		this._finishCallback = null;
 		this.publish('Finish');
 	};
 
@@ -185,8 +191,12 @@ var Group = Class(Emitter, function () {
 	this.clear = function () {
 		var anims = this.anims;
 		for (var i = 0; i < anims.length; i++) {
-			anims[i].clear();
+			var anim = anims[i];
+			anim.clear();
+			anim.removeListener('Finish', anim._groupFinishCB);
+			anim._groupFinishCB = null;
 		}
+		this._finishCallback = null;
 		return this;
 	};
 
