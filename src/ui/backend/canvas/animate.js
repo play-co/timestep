@@ -105,7 +105,19 @@ exports.resumeSubjectAnimations = function (subject) {
 exports.getViewAnimator = function () { return ViewAnimator; };
 exports.setViewAnimator = function (ctor) { ViewAnimator = ctor; };
 
-// class for tracking sets of animations w same groupID across different subjects
+/**
+ * Group Class
+ * - finds animations w the same groupID across different subjects
+ * - created and returned by animate.getGroup()
+ * - reset populates the group with all active animations w matching groupID
+ * - subscribe to the 'Finish' event to fire a callback when
+ *     all animations in the group complete, for example:
+ *     myGroup.once('Finish', function () { ... });
+ * - exposes clear, commit, pause, and resume to apply to all group animations
+ * - creating or resetting a group traverses your view hierarchy
+ * - saving a group will also save any subjects from being garbage collected
+ */
+
 var Group = Class(Emitter, function () {
 	this.init = function (groupID) {
 		this.groupID = groupID;
@@ -206,6 +218,7 @@ var Group = Class(Emitter, function () {
 	};
 });
 
+// please see Group Class notes above!
 // returns a new Group containing a set of Animators w the same groupID
 exports.getGroup = function (groupID) {
 	return new Group('' + (groupID || DEFAULT_GROUP_ID));
