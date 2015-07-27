@@ -114,10 +114,9 @@ exports.setViewAnimator = function (ctor) { ViewAnimator = ctor; };
  *     all animations in the group complete, for example:
  *     myGroup.once('Finish', function () { ... });
  * - exposes clear, commit, pause, and resume to apply to all group animations
- * - creating or resetting a group traverses your view hierarchy
- * - saving a group will also save any subjects from being garbage collected
+ * - WARNING: creating or resetting a group traverses your view hierarchy
+ * - WARNING: saving a group will also save subjects (from garbage collection)
  */
-
 var Group = Class(Emitter, function () {
 	this.init = function (groupID) {
 		this.groupID = groupID;
@@ -137,7 +136,9 @@ var Group = Class(Emitter, function () {
 			var id = viewIDs[i];
 			var view = View.findViewByID(id);
 			var anim = view && view.__anims && view.__anims[this.groupID];
-			anim && this._add(anim);
+			if (anim && anim.hasFrames()) {
+				this._add(anim);
+			}
 		}
 
 		// find all animating non-view subjects in the group
@@ -187,6 +188,17 @@ var Group = Class(Emitter, function () {
 		return this._isFinished;
 	};
 
+	// are there any active animations in the group?
+	this.isActive = function () {
+		var anims = this.anims;
+		for (var i = 0; i < anims.length; i++) {
+			if (anims[i].hasFrames()) {
+				return true;
+			}
+		}
+		return false;
+	};
+
 	// clear all the animations in the group
 	this.clear = function () {
 		var anims = this.anims;
@@ -228,8 +240,12 @@ var Group = Class(Emitter, function () {
 	};
 });
 
-// please see Group Class notes above!
-// returns a new Group containing a set of Animators w the same groupID
+/**
+ * See Group Class notes above!
+ * - returns a new Group containing a set of Animators w the same groupID
+ * - WARNING: creating or resetting a group traverses your view hierarchy
+ * - WARNING: saving a group will also save subjects (from garbage collection)
+ */
 exports.getGroup = function (groupID) {
 	return new Group('' + (groupID || DEFAULT_GROUP_ID));
 };
