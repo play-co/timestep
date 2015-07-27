@@ -337,6 +337,26 @@ exports = Class(BufferedCanvas, function (supr) {
 		}
 	};
 
+	var PixelArray = window.Uint8ClampedArray
+			|| window.CanvasPixelArray
+			|| window.Uint8Array
+			|| window.Array;
+
+	this.createImageData = function(width, height) {
+		// createImageData can be passed another image data object
+		// the data in the passed in image is not copied
+		if (typeof width === 'object' && 'width' in width) {
+			height = width.height;
+			width = width.width;
+		}
+
+		return {
+			width: width,
+			height: height,
+			data: new PixelArray(width * height)
+		};
+	}
+
     this.fillText = FontRenderer.wrapFillText(function (str, x, y, maxWidth) {
         var font = Font.parse(this.font);
         var fontName = font.getName();
