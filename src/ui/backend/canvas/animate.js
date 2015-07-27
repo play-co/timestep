@@ -119,7 +119,7 @@ exports.setViewAnimator = function (ctor) { ViewAnimator = ctor; };
  */
 var Group = Class(Emitter, function () {
 	this.init = function (groupID) {
-		this.groupID = groupID;
+		this.groupID = groupID + '';
 		this.anims = [];
 		this.reset();
 	};
@@ -183,7 +183,7 @@ var Group = Class(Emitter, function () {
 		this.publish('Finish');
 	};
 
-	// have all the animations in the group completed?
+	// has the 'Finish' callback already fired?
 	this.isFinished = function () {
 		return this._isFinished;
 	};
@@ -247,7 +247,7 @@ var Group = Class(Emitter, function () {
  * - WARNING: saving a group will also save subjects (from garbage collection)
  */
 exports.getGroup = function (groupID) {
-	return new Group('' + (groupID || DEFAULT_GROUP_ID));
+	return new Group(groupID || DEFAULT_GROUP_ID);
 };
 
 var TRANSITIONS = [
