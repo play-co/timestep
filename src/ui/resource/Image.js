@@ -457,27 +457,19 @@ exports = Class(lib.PubSub, function () {
 			return;
 		}
 
+		var argumentCount = arguments.length;
 		var map = this._map;
 		var srcImg = this._srcImg;
-		var args1 = arguments[1];
-		var args2 = arguments[2];
-		var args3 = arguments[3];
-		var args4 = arguments[4];
-		var args5 = arguments[5];
-		var args6 = arguments[6];
-		var args7 = arguments[7];
-		var args8 = arguments[8];
-		var args9 = arguments[9];
 		var srcX = map.x;
 		var srcY = map.y;
 		var srcW = map.width;
 		var srcH = map.height;
-		var destX = args5 !== void 0 ? args5 : args1 || 0;
-		var destY = args6 !== void 0 ? args6 : args2 || 0;
-		var destW = args7 !== void 0 ? args7 : args3 || 0;
-		var destH = args8 !== void 0 ? args8 : args4 || 0;
+		var destX = argumentCount > 5 ? arguments[5] : arguments[1] || 0;
+		var destY = argumentCount > 6 ? arguments[6] : arguments[2] || 0;
+		var destW = argumentCount > 7 ? arguments[7] : arguments[3] || 0;
+		var destH = argumentCount > 8 ? arguments[8] : arguments[4] || 0;
 
-		if (arguments.length < 9) {
+		if (argumentCount < 9) {
 			var scaleX = destW / (map.marginLeft + map.width + map.marginRight);
 			var scaleY = destH / (map.marginTop + map.height + map.marginBottom);
 			destX += scaleX * map.marginLeft;
@@ -485,10 +477,10 @@ exports = Class(lib.PubSub, function () {
 			destW = scaleX * map.width;
 			destH = scaleY * map.height;
 		} else {
-			srcX = args1;
-			srcY = args2;
-			srcW = args3;
-			srcH = args4;
+			srcX = arguments[1];
+			srcY = arguments[2];
+			srcW = arguments[3];
+			srcH = arguments[4];
 		}
 
 		if (!isNative && ctx.filters) {
