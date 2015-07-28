@@ -25,8 +25,8 @@ import event.Emitter as Emitter;
 import animate.transitions as transitions;
 import timer;
 
+var groups = {};
 var DEFAULT_GROUP_ID = "__default_group";
-var viewIDCache = {};
 
 exports = function (subject, groupID) {
 	// TODO: we have a circular import, so do the Engine import on first use
@@ -40,21 +40,22 @@ exports = function (subject, groupID) {
 		return subject.getAnimation();
 	}
 
+	// create a group for this groupID if it doesn't exist
+	!groups[groupID] && (groups[groupID] = new Group(groupID));
+
 	// animators created once and cached on subject '__anims' object by groupID
 	// so they're only garbage collected when the subject is garbage collected
 	groupID = groupID || DEFAULT_GROUP_ID;
 	var anims = subject.__anims || (subject.__anims = {});
 	var anim = anims[groupID];
 	if (!anim) {
-		if (subject instanceof View) {
-			anim = new ViewAnimator(subject, groupID);
-			var viewIDs = viewIDCache[groupID] || (viewIDCache[groupID] = []);
-			viewIDs.push(subject.uid);
-		} else {
-			anim = new Animator(subject, groupID);
-		}
+		anim = subject instanceof View
+			? new ViewAnimator(subject)
+			: new Animator(subject);
 		anims[groupID] = anim;
 	}
+
+	anim.groupID = groupID;
 
 	return anim;
 };
@@ -107,133 +108,75 @@ exports.setViewAnimator = function (ctor) { ViewAnimator = ctor; };
 
 /**
  * Group Class
- * - finds animations w the same groupID across different subjects
- * - created and returned by animate.getGroup()
- * - reset populates the group with all active animations w matching groupID
+ * - a collection of animations by groupID across different subjects
+ * - accessed by animate.getGroup()
  * - subscribe to the 'Finish' event to fire a callback when
- *     all animations in the group complete, for example:
+ *     all animations in the group are complete or cleared, for example:
  *     myGroup.once('Finish', function () { ... });
  * - exposes clear, commit, pause, and resume to apply to all group animations
- * - WARNING: creating or resetting a group traverses your view hierarchy
- * - WARNING: saving a group will also save subjects (from garbage collection)
  */
 var Group = Class(Emitter, function () {
 	this.init = function (groupID) {
 		this.groupID = groupID + '';
 		this.anims = [];
-		this.reset();
 	};
 
-	// populate w all active animators w matching groupIDs across any subject
-	this.reset = function () {
-		this._finishCallback = new Callback();
-		this._isFinished = false;
-		this.anims.length = 0;
+	// add an active animator to the group
+	this.add = function (anim) {
+		if (this.anims.indexOf(anim) === -1) {
+			this.anims.push(anim);
+		}
+	};
 
-		// find all animating view subjects in the group
-		var viewIDs = viewIDCache[this.groupID] || [];
-		for (var i = 0; i < viewIDs.length; i++) {
-			var id = viewIDs[i];
-			var view = View.findViewByID(id);
-			var anim = view && view.__anims && view.__anims[this.groupID];
-			if (anim && anim.hasFrames()) {
-				this._add(anim);
+	// remove an inactive animator from the group
+	this.remove = function (anim) {
+		var index = this.anims.indexOf(anim);
+		if (index !== -1) {
+			this.anims.splice(index, 1);
+
+			// fire Finish event after final animation removed
+			if (this.anims.length === 0) {
+				this.publish('Finish');
 			}
 		}
-
-		// find all animating non-view subjects in the group
-		var engine = Engine.get();
-		var listeners = engine.listeners('Tick');
-		for (var i = 0; i < listeners.length; i++) {
-			var anim = listeners[i]._ctx;
-			if (anim
-				&& anim.groupID === this.groupID
-				&& this.anims.indexOf(anim) === -1)
-			{
-				this._add(anim);
-			}
-		}
-
-		// when all anims within this group finish, publish a Finish event
-		if (this.anims.length) {
-			this._finishCallback.run(bind(this, '_onGroupFinish'));
-		} else {
-			// if there weren't any active Animators, publish Finish next tick
-			this._isFinished = true;
-			setTimeout(bind(this, '_onGroupFinish'), 0);
-		}
-		return this;
 	};
 
-	// called internally by reset to populate correct anims array
-	this._add = function (anim) {
-		this.anims.push(anim);
-		anim._groupFinishCB = this._finishCallback.chain();
-		anim.once('Finish', anim._groupFinishCB);
-	};
-
-	// called internally when all animations complete
-	this._onGroupFinish = function () {
-		this._isFinished = true;
-		var anims = this.anims;
-		for (var i = 0; i < anims.length; i++) {
-			anims[i]._groupFinishCB = null;
-		}
-		this._finishCallback = null;
-		this.publish('Finish');
-	};
-
-	// has the 'Finish' callback already fired?
-	this.isFinished = function () {
-		return this._isFinished;
-	};
-
-	// are there any active animations in the group?
+	// are there any active animators in the group?
 	this.isActive = function () {
-		var anims = this.anims;
-		for (var i = 0; i < anims.length; i++) {
-			if (anims[i].hasFrames()) {
-				return true;
-			}
-		}
-		return false;
+		return this.anims.length > 0;
 	};
 
-	// clear all the animations in the group
+	// clear all the animators in the group
 	this.clear = function () {
 		var anims = this.anims;
-		for (var i = 0; i < anims.length; i++) {
-			var anim = anims[i];
-			anim.clear();
-			anim.removeListener('Finish', anim._groupFinishCB);
-			anim._groupFinishCB = null;
+		for (var i = anims.length - 1; i >= 0; i--) {
+			anims[i].clear();
 		}
-		this._finishCallback = null;
 		return this;
 	};
 
-	// commit all the animations in the group
+	// commit all the animators in the group
 	this.commit = function () {
 		var anims = this.anims;
-		for (var i = 0; i < anims.length; i++) {
+		for (var i = anims.length - 1; i >= 0; i--) {
 			anims[i].commit();
 		}
 		return this;
 	};
 
-	// pause all the animations in the group
+	// pause all the animators in the group
 	this.pause = function () {
 		var anims = this.anims;
-		for (var i = 0; i < anims.length; i++) {
+		for (var i = anims.length - 1; i >= 0; i--) {
 			anims[i].pause();
 		}
 		return this;
 	};
 
-	// resume all the animations in the group
+	// resume all the animators in the group
 	this.resume = function () {
 		var anims = this.anims;
-		for (var i = 0; i < anims.length; i++) {
+		for (var i = anims.length - 1; i >= 0; i--) {
 			anims[i].resume();
 		}
 		return this;
@@ -242,12 +185,9 @@ var Group = Class(Emitter, function () {
 
 /**
  * See Group Class notes above!
- * - returns a new Group containing a set of Animators w the same groupID
- * - WARNING: creating or resetting a group traverses your view hierarchy
- * - WARNING: saving a group will also save subjects (from garbage collection)
  */
 exports.getGroup = function (groupID) {
-	return new Group(groupID || DEFAULT_GROUP_ID);
+	return groups[groupID || DEFAULT_GROUP_ID];
 };
 
 var TRANSITIONS = [
@@ -434,8 +374,7 @@ var ViewStyleFrame = Class(Frame, function () {
 });
 
 var Animator = exports.Animator = Class(Emitter, function () {
-	this.init = function (subject, groupID) {
-		this.groupID = groupID;
+	this.init = function (subject) {
 		this.subject = subject;
 		this.clear();
 		this._isPaused = false;
@@ -445,6 +384,7 @@ var Animator = exports.Animator = Class(Emitter, function () {
 		this._elapsed = 0;
 		this._queue = [];
 		this._unschedule();
+		this._removeFromGroup();
 		return this;
 	};
 
@@ -517,6 +457,7 @@ var Animator = exports.Animator = Class(Emitter, function () {
 			onTick: onTick
 		}));
 		this._schedule();
+		this._addToGroup();
 		return this;
 	};
 
@@ -572,12 +513,19 @@ var Animator = exports.Animator = Class(Emitter, function () {
 
 		// nothing left in the queue!
 		this._unschedule();
-		this._onAnimationFinish();
+		this._removeFromGroup();
 	};
 
-	// fire a 'Finish' event when all queued frames complete
-	this._onAnimationFinish = function () {
-		this.publish('Finish');
+	this._addToGroup = function () {
+		if (this.groupID) {
+			groups[this.groupID].add(this);
+		}
+	};
+
+	this._removeFromGroup = function () {
+		if (this.groupID) {
+			groups[this.groupID].remove(this);
+		}
 	};
 });
 
