@@ -312,9 +312,6 @@ var CallbackFrame = Class(Frame, function () {
 	};
 });
 
-// a wait frame is just a frame that does nothing... so don't do anything!
-var WaitFrame = Frame;
-
 var ObjectFrame = Class(Frame, function () {
 	this.exec = function (tt, t, debug) {
 		// set starting values on first execution
@@ -454,7 +451,7 @@ var Animator = exports.Animator = Class(Emitter, function () {
 		} else if (targetType === 'object') {
 			return new ObjectFrame(opts);
 		} else {
-			return new WaitFrame(opts);
+			return new Frame(opts);
 		}
 	};
 
