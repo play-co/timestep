@@ -41,11 +41,11 @@ exports = function (subject, groupID) {
 	}
 
 	// create a group for this groupID if it doesn't exist
+	groupID = groupID || DEFAULT_GROUP_ID;
 	!groups[groupID] && (groups[groupID] = new Group(groupID));
 
 	// animators created once and cached on subject '__anims' object by groupID
 	// so they're only garbage collected when the subject is garbage collected
-	groupID = groupID || DEFAULT_GROUP_ID;
 	var anims = subject.__anims || (subject.__anims = {});
 	var anim = anims[groupID];
 	if (!anim) {
@@ -517,15 +517,13 @@ var Animator = exports.Animator = Class(Emitter, function () {
 	};
 
 	this._addToGroup = function () {
-		if (this.groupID) {
-			groups[this.groupID].add(this);
-		}
+		var group = groups[this.groupID];
+		group && group.add(this);
 	};
 
 	this._removeFromGroup = function () {
-		if (this.groupID) {
-			groups[this.groupID].remove(this);
-		}
+		var group = groups[this.groupID];
+		group && group.remove(this);
 	};
 });
 
