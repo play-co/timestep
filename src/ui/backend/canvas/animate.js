@@ -20,7 +20,6 @@
  * Canvas animate namespace and functions.
  */
 
-import lib.Callback as Callback;
 import event.Emitter as Emitter;
 import animate.transitions as transitions;
 import timer;
@@ -52,10 +51,9 @@ exports = function (subject, groupID) {
 		anim = subject instanceof View
 			? new ViewAnimator(subject)
 			: new Animator(subject);
+		anim.groupID = groupID;
 		anims[groupID] = anim;
 	}
-
-	anim.groupID = groupID;
 
 	return anim;
 };
