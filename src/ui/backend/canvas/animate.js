@@ -102,9 +102,38 @@ exports.resumeSubjectAnimations = function (subject) {
 	}
 };
 
-// used to get/set native or browser ViewAnimator constructors
-exports.getViewAnimator = function () { return ViewAnimator; };
-exports.setViewAnimator = function (ctor) { ViewAnimator = ctor; };
+// clear all animations globally
+exports.clearAllAnimations = function () {
+	for (var id in groups) {
+		groups[id].clear();
+	}
+};
+
+// commit all animations globally
+exports.commitAllAnimations = function () {
+	for (var id in groups) {
+		groups[id].commit();
+	}
+};
+
+// pause all animations globally
+exports.pauseAllAnimations = function () {
+	for (var id in groups) {
+		groups[id].pause();
+	}
+};
+
+// resume all animations globally
+exports.resumeAllAnimations = function () {
+	for (var id in groups) {
+		groups[id].resume();
+	}
+};
+
+// see Group Class notes below
+exports.getGroup = function (groupID) {
+	return groups[groupID || DEFAULT_GROUP_ID];
+};
 
 /**
  * Group Class
@@ -182,13 +211,6 @@ var Group = Class(Emitter, function () {
 		return this;
 	};
 });
-
-/**
- * See Group Class notes above!
- */
-exports.getGroup = function (groupID) {
-	return groups[groupID || DEFAULT_GROUP_ID];
-};
 
 var TRANSITIONS = [
 	transitions.easeInOut,         // 0: default
@@ -536,3 +558,7 @@ var ViewAnimator = Class(Animator, function () {
 		}
 	};
 });
+
+// used to get/set native or browser ViewAnimator constructors
+exports.getViewAnimator = function () { return ViewAnimator; };
+exports.setViewAnimator = function (ctor) { ViewAnimator = ctor; };
