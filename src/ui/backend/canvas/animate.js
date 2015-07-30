@@ -484,6 +484,7 @@ var Animator = exports.Animator = Class(Emitter, function () {
 	};
 
 	this.commit = function () {
+		this.resume();
 		this._elapsed = 0;
 		for (var i = 0, p; p = this._queue[i]; ++i) {
 			this._elapsed += p.duration;
