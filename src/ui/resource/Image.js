@@ -28,12 +28,9 @@ import device;
 import lib.PubSub;
 import event.Callback as Callback;
 import ui.resource.loader as resourceLoader;
-import cache.LRUCache as LRUCache;
-
-var TINT_CACHE_SIZE = 4096;
+import ui.backend.canvas.FilterRenderer as FilterRenderer;
 
 var ImageCache = {};
-var TintedImageCache = new LRUCache(TINT_CACHE_SIZE);
 
 var GET_IMAGE_DATA_NOT_SUPPORTED = (!GLOBAL.document || !document.createElement);
 /**
@@ -86,11 +83,11 @@ exports = Class(lib.PubSub, function () {
 	var isNative = GLOBAL.NATIVE && !device.isNativeSimulator;
 	var Canvas = device.get('Canvas');
 
-	// helper canvases for filters and image data, initialized when/if needed
-	var _filterCanvas = null;
-	var _filterCtx = null;
+	// helper canvases for image data, initialized when/if needed
 	var _imgDataCanvas = null;
 	var _imgDataCtx = null;
+
+	this.filterRenderer = new FilterRenderer();
 
 	this.init = function (opts) {
 		if (!opts) {
@@ -376,99 +373,7 @@ exports = Class(lib.PubSub, function () {
 		return !this._isError && this._cb.fired();
 	};
 
-	this._renderFilter = function (ctx, srcX, srcY, srcW, srcH, color, op) {
-		_filterCanvas.width = srcW;
-		_filterCanvas.height = srcH;
-		// render the base image
-		_filterCtx.globalCompositeOperation = 'source-over';
-		this.render(_filterCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
-		// render the filter color
-		_filterCtx.globalCompositeOperation = op;
-		_filterCtx.fillStyle = "rgba(" + color.r  + "," + color.g + "," + color.b + "," + color.a + ")";
-		_filterCtx.fillRect(0, 0, srcW, srcH);
-		// use our base image to cut out the image shape from the rect
-		_filterCtx.globalCompositeOperation = 'destination-in';
-		this.render(_filterCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
-		return _filterCanvas;
-	};
 
-	var unusedCanvas = null;
-
-	this._getTintedImage = function(srcX, srcY, srcW, srcH, color) {
-		var colorString = (color.r << 16 | color.g << 8 | color.b).toString(16);
-		var cacheKey = this.getURL() + srcX + "|" + srcY + "|" + srcW + "|" + srcH + "|" + colorString;
-		var result = TintedImageCache.get(cacheKey);
-		if (!result) {
-			result = unusedCanvas || new Canvas();
-			resultCtx = result.getContext('2d');
-			result.width = srcW;
-			result.height = srcH;
-			var imgData = this.getImageData(srcX, srcY, srcW, srcH);
-			var data = imgData.data;
-			// simplified multiply math outside of the massive for loop
-			var a = color.a;
-			var mr = 1 + a * ((color.r / 255) - 1);
-			var mg = 1 + a * ((color.g / 255) - 1);
-			var mb = 1 + a * ((color.b / 255) - 1);
-			for (var i = 0, len = data.length; i < len; i += 4) {
-				data[i] *= mr;
-				data[i + 1] *= mg;
-				data[i + 2] *= mb;
-			}
-			// put the updated rgb data into our new canvas
-			// console.log("CACHING TINTED IMAGE", cacheKey, color.r, color.g, color.b);
-			resultCtx.putImageData(imgData, 0, 0);
-			var removedEntry = TintedImageCache.put(cacheKey, result);
-			unusedCanvas = removedEntry ? removedEntry.value : null;
-			console.log(unusedCanvas);
-		}
-		return result;
-	};
-
-	this._renderMask = function (ctx, srcX, srcY, srcW, srcH, mask, op) {
-		_filterCanvas.width = srcW;
-		_filterCanvas.height = srcH;
-		// render the mask image
-		var srcMaskX = mask.getSourceX();
-		var srcMaskY = mask.getSourceY();
-		var srcMaskW = mask.getSourceW();
-		var srcMaskH = mask.getSourceH();
-		_filterCtx.globalCompositeOperation = 'source-over';
-		mask.render(_filterCtx, srcMaskX, srcMaskY, srcMaskW, srcMaskH, 0, 0, srcW, srcH);
-		// render the base image
-		_filterCtx.globalCompositeOperation = op;
-		this.render(_filterCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
-		return _filterCanvas;
-	};
-
-	this._applyFilters = function (ctx, srcX, srcY, srcW, srcH) {
-		// initialize a shared filterCanvas when/if needed
-		if (_filterCanvas === null) {
-			_filterCanvas = new Canvas();
-			_filterCtx = _filterCanvas.getContext('2d');
-		}
-
-		var resultImg = this._srcImg;
-		var filters = ctx.filters;
-		var linearAdd = filters.LinearAdd;
-		var tint = filters.Tint;
-		var mult = filters.Multiply;
-		var negMask = filters.NegativeMask;
-		var posMask = filters.PositiveMask;
-		// only one filter can actually be applied at a time
-		if (linearAdd) {
-			resultImg = this._renderFilter(ctx, srcX, srcY, srcW, srcH, linearAdd.get(), 'lighter');
-		} else if (tint) {
-			resultImg = this._renderFilter(ctx, srcX, srcY, srcW, srcH, tint.get(), 'source-over');
-		} else if (mult) {
-			resultImg = this._getTintedImage(srcX, srcY, srcW, srcH, mult.get());
-		} else if (negMask) {
-			resultImg = this._renderMask(ctx, srcX, srcY, srcW, srcH, negMask.getMask(), 'source-in');
-		} else if (posMask) {
-			resultImg = this._renderMask(ctx, srcX, srcY, srcW, srcH, posMask.getMask(), 'source-out');
-		}
-		return resultImg;
-	};
 
 	this.render = function (ctx) {
 		if (!this._cb.fired()) {
@@ -502,8 +407,9 @@ exports = Class(lib.PubSub, function () {
 		}
 
 		if (!isNative && ctx.filters) {
-			srcImg = this._applyFilters(ctx, srcX, srcY, srcW, srcH);
-			if (srcImg !== this._srcImg) {
+			var filterImg = this.filterRenderer.renderFilter(ctx, this, srcX, srcY, srcW, srcH);
+			if (filterImg) {
+				srcImg = filterImg;
 				srcX = 0;
 				srcY = 0;
 			}
@@ -550,6 +456,5 @@ exports = Class(lib.PubSub, function () {
 });
 
 exports.__clearCache__ = function () {
-	ImageCache = {};
-	TintedImageCache.removeAll();
+  ImageCache = {};
 };
