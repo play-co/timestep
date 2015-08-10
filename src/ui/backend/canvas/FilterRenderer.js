@@ -24,13 +24,10 @@ import device;
 
 exports = Class(function () {
 
-	var CACHE_SIZE = 1024;
 	var Canvas = device.get('Canvas');
-
-    var cacheCount = 0;
-
 	var unusedCanvas = null;
 
+	var CACHE_SIZE = 1024;
 	this.cache = new LRUCache(CACHE_SIZE);
 
 	this.renderFilter = function (ctx, srcImg, srcX, srcY, srcW, srcH) {
@@ -74,9 +71,6 @@ exports = Class(function () {
 
 		var removedEntry = this.cache.put(cacheKey, resultImg);
 		unusedCanvas = removedEntry ? removedEntry.value : null;
-
-      	if (!unusedCanvas) { cacheCount++; }
-		console.log("CACHE COUNT", cacheCount);
 
 		return resultImg;
 	};
