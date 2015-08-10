@@ -24,8 +24,10 @@ import device;
 
 exports = Class(function () {
 
-	var CACHE_SIZE = 4096;
+	var CACHE_SIZE = 1024;
 	var Canvas = device.get('Canvas');
+
+    var cacheCount = 0;
 
 	var unusedCanvas = null;
 
@@ -59,11 +61,11 @@ exports = Class(function () {
 				break;
 
 			case "NegativeMask":
-				resultImg = this.renderMask(ctx, srcX, srcY, srcW, srcH, filter.getMask(), 'source-in');
+				resultImg = this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(), 'source-in');
 				break;
 
 			case "PositiveMask":
-				resultImg = this.renderMask(ctx, srcX, srcY, srcW, srcH, filter.getMask(), 'source-out');
+				resultImg = this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(), 'source-out');
 				break;
 
 			default:
@@ -72,6 +74,9 @@ exports = Class(function () {
 
 		var removedEntry = this.cache.put(cacheKey, resultImg);
 		unusedCanvas = removedEntry ? removedEntry.value : null;
+
+      	if (!unusedCanvas) { cacheCount++; }
+		console.log("CACHE COUNT", cacheCount);
 
 		return resultImg;
 	};
@@ -114,7 +119,7 @@ exports = Class(function () {
 		return result;
 	};
 
-	this.renderMask = function (ctx, srcX, srcY, srcW, srcH, mask, op) {
+	this.renderMask = function (ctx, srcImg, srcX, srcY, srcW, srcH, mask, op) {
 		var result = this.getCanvas(srcW, srcH);
 		var resultCtx = result.getContext('2d');
 		// render the mask image
@@ -126,7 +131,7 @@ exports = Class(function () {
 		mask.render(resultCtx, srcMaskX, srcMaskY, srcMaskW, srcMaskH, 0, 0, srcW, srcH);
 		// render the base image
 		resultCtx.globalCompositeOperation = op;
-		this.render(resultCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
+		srcImg.render(resultCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
 		return result;
 	};
 
@@ -138,10 +143,11 @@ exports = Class(function () {
 		var filterType = filter.getType();
 		var suffix;
 		if (filterType === 'NegativeMask' || filterType === 'PositiveMask') {
-			suffix = filter.getMask().src;
+			suffix = filter.getMask().getURL();
 		} else {
 			var color = filter.get();
-			suffix = (color.r << 16 | color.g << 8 | color.b).toString(16);
+			var alpha = (color.a * 255) & 0xff;
+			suffix = "" + alpha + "|" + color.r + "|" + color.g + "|" + color.b;
 		}
 		var cacheKey = filterType + "|" + url + "|" + srcX + "|" + srcY + "|" + srcW + "|" + srcH + "|" + suffix;
 		return cacheKey;
@@ -153,14 +159,6 @@ exports = Class(function () {
 		result.width = width;
 		result.height = height;
 		return result;
-	};
-
-	this.filterFunctions = {
-		LinearAdd: this.renderLinearAdd,
-		Tint: this.renderTint,
-		Multiply: this.renderMultiply,
-		NegativeMask: this.renderNegativeMask,
-		PositiveMask: this.renderPositiveMask
 	};
 
 });
