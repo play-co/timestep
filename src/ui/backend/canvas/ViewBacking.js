@@ -25,12 +25,21 @@ import ..BaseBacking;
 import util.setProperty as setProperty;
 
 var _styleKeys = {};
+var IDENTITY_MATRIX = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
+
+var sin = Math.sin;
+var cos = Math.cos;
 
 var ViewBacking = exports = Class(BaseBacking, function () {
 
 	this.constructor.absScale = 1;
 
 	this.init = function (view) {
+		this._globalTransform = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
+		this._cachedRotation = 0;
+		this._cachedSin = 1;
+		this._cachedCos = 0;
+		this._globalOpacity = 1;
 		this._view = view;
 		this._subviews = [];
 	}
@@ -95,40 +104,104 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		// }
 	}
 
+	this.updateGlobalTransform = function() {
+		var parent = this._view.__parent ? this._view.__parent.__view : null;
+		this._globalOpacity = parent ? parent._globalOpacity * this.opacity : this.opacity;
+
+		var flipX = this.flipX ? -1 : 1;
+		var flipY = this.flipY ? -1 : 1;
+
+		var pgt = parent ? parent._globalTransform : IDENTITY_MATRIX;
+		var gt = this._globalTransform;
+		var sx = this.scaleX * this.scale * flipX;
+		var sy = this.scaleY * this.scale * flipY;
+		var ax = this.flipX ? this._width - this.anchorX : this.anchorX;
+		var ay = this.flipY ? this._height - this.anchorY : this.anchorY;
+		var tx = this.x;
+		var ty = this.y;
+
+		if (this.r === 0) {
+			tx -= ax * sx;
+			ty -= ay * sy;
+			gt.a = pgt.a * sx;
+			gt.b = pgt.b * sx;
+			gt.c = pgt.c * sy;
+			gt.d = pgt.d * sy;
+			gt.tx = tx * pgt.a + ty * pgt.c + pgt.tx;
+			gt.ty = tx * pgt.b + ty * pgt.d + pgt.ty;
+		} else {
+			if (this.r !== this._cachedRotation) {
+				this._cachedRotation = this.r;
+				this._cachedSin = sin(this.r);
+				this._cachedCos = cos(this.r);
+			}
+			var a  =  this._cachedCos * sx;
+			var b  =  this._cachedSin * sx;
+			var c  = -this._cachedSin * sy;
+			var d  =  this._cachedCos * sy;
+
+			if (ax || ay) {
+				tx -= a * ax + c * ay;
+				ty -= b * ax + d * ay;
+			}
+
+			gt.a = a * pgt.a + b * pgt.c;
+			gt.b = a * pgt.b + b * pgt.d;
+			gt.c = c * pgt.a + d * pgt.c;
+			gt.d = c * pgt.b + d * pgt.d;
+			gt.tx = tx * pgt.a + ty * pgt.c + pgt.tx;
+			gt.ty = tx * pgt.b + ty * pgt.d + pgt.ty;
+		}
+
+		gt.tx += (this.anchorX + this.offsetX) * sx * flipX;
+		gt.ty += (this.anchorY + this.offsetY) * sy * flipY;
+	};
+
 	this.wrapRender = function (ctx, opts) {
 		if (!this.visible) { return; }
-		if (this._needsSort) { this._needsSort = false; this._subviews.sort(); }
+
+		if (this._needsSort) {
+			this._needsSort = false;
+			this._subviews.sort();
+		}
 
 		var width = this._width;
 		var height = this._height;
 		if (width < 0 || height < 0) { return; }
 
-		ctx.save();
+//		ctx.save();
 
-		ctx.translate(this.x + this.anchorX + this.offsetX, this.y + this.anchorY + this.offsetY);
+		if (!this._view.__parent) { ctx.save(); }
 
-		if (this.r) { ctx.rotate(this.r); }
-
-		// clip this render to be within its view;
-		if (this.scale != 1) {
-			ctx.scale(this.scale, this.scale);
-			ViewBacking.absScale *= this.scale;
-		}
-
-		// scale dimensions individually
-		if (this.scaleX != 1) {
-			ctx.scale(this.scaleX, 1);
-		}
-		if (this.scaleY != 1) {
-			ctx.scale(1, this.scaleY);
-		}
-
-		this.absScale = ViewBacking.absScale;
-
-		if (this.opacity != 1) { ctx.globalAlpha *= this.opacity; }
-
-		ctx.translate(-this.anchorX, -this.anchorY);
-
+		this.updateGlobalTransform();
+		var gt = this._globalTransform;
+		ctx.setTransform(gt.a, gt.b, gt.c, gt.d, gt.tx, gt.ty);
+//
+//		ctx.translate(this.x + this.anchorX + this.offsetX, this.y + this.anchorY + this.offsetY);
+//
+//		if (this.r) { ctx.rotate(this.r); }
+//
+//		// clip this render to be within its view;
+//		if (this.scale != 1) {
+//			ctx.scale(this.scale, this.scale);
+//			ViewBacking.absScale *= this.scale;
+//		}
+//
+//		// scale dimensions individually
+//		if (this.scaleX != 1) {
+//			ctx.scale(this.scaleX, 1);
+//		}
+//		if (this.scaleY != 1) {
+//			ctx.scale(1, this.scaleY);
+//		}
+//
+//		this.absScale = ViewBacking.absScale;
+//
+//		if (this.opacity != 1) { ctx.globalAlpha *= this.opacity; }
+		ctx.globalAlpha = this._globalOpacity;
+//
+//		ctx.translate(-this.anchorX, -this.anchorY);
+//
 		if (this.clip) { ctx.clipRect(0, 0, width, height); }
 
 		var filter = this._view.getFilter();
@@ -138,24 +211,24 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 			ctx.setFilters(filters);
 		}
 
-		if (this.flipX || this.flipY) {
-			ctx.translate(
-				this.flipX ? width / 2 : 0,
-				this.flipY ? height / 2 : 0
-			);
+//		if (this.flipX || this.flipY) {
+//			ctx.translate(
+//				this.flipX ? width / 2 : 0,
+//				this.flipY ? height / 2 : 0
+//			);
+//
+//			ctx.scale(
+//				this.flipX ? -1 : 1,
+//				this.flipY ? -1 : 1
+//			);
+//
+//			ctx.translate(
+//				this.flipX ? -width / 2 : 0,
+//				this.flipY ? -height / 2 : 0
+//			);
+//		}
 
-			ctx.scale(
-				this.flipX ? -1 : 1,
-				this.flipY ? -1 : 1
-			);
-
-			ctx.translate(
-				this.flipX ? -width / 2 : 0,
-				this.flipY ? -height / 2 : 0
-			);
-		}
-
-		try {
+//		try {
 			if (this.compositeOperation) {
 				ctx.globalCompositeOperation = this.compositeOperation;
 			}
@@ -169,19 +242,19 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 			this._view.render && this._view.render(ctx, opts);
 			this._renderSubviews(ctx, opts);
 			opts.viewport = viewport;
-		} finally {
+//		} finally {
 			ctx.clearFilters();
-			ctx.restore();
-			ViewBacking.absScale /= this.scale;
-		}
+			if (!this._view.__parent) { ctx.restore(); }
+//			ctx.restore();
+//			ViewBacking.absScale /= this.scale;
+//		}
 	}
 
 	this._renderSubviews = function (ctx, opts) {
-		var i = 0;
-		var view;
 		var subviews = this._subviews;
-		while (view = subviews[i++]) {
-			view.wrapRender(ctx, opts);
+		var viewCount = subviews.length;
+		for (var i = 0; i < viewCount; i++) {
+			subviews[i].wrapRender(ctx, opts);
 		}
 	}
 

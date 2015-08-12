@@ -419,9 +419,9 @@ exports = Class(lib.PubSub, function () {
 	};
 
 	this._renderImage = function(ctx, srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH) {
-		try {
+//		try {
 			ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
-		} catch(e) {}
+//		} catch(e) {}
 	};
 
 	this.getImageData = function (x, y, width, height) {
