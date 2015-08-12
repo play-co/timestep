@@ -153,8 +153,8 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 			gt.ty = tx * pgt.b + ty * pgt.d + pgt.ty;
 		}
 
-		gt.tx += (this.anchorX + this.offsetX) * sx * flipX;
-		gt.ty += (this.anchorY + this.offsetY) * sy * flipY;
+		gt.tx += (this.anchorX + this.offsetX) * gt.a * flipX;
+		gt.ty += (this.anchorY + this.offsetY) * gt.d * flipY;
 	};
 
 	this.wrapRender = function (ctx, opts) {
@@ -169,9 +169,8 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		var height = this._height;
 		if (width < 0 || height < 0) { return; }
 
-//		ctx.save();
-
-		if (!this._view.__parent) { ctx.save(); }
+		var saveContext = this.clip || !this._view.__parent;
+		if (saveContext) { ctx.save(); }
 
 		this.updateGlobalTransform();
 		var gt = this._globalTransform;
@@ -244,8 +243,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 			opts.viewport = viewport;
 //		} finally {
 			ctx.clearFilters();
-			if (!this._view.__parent) { ctx.restore(); }
-//			ctx.restore();
+			if (saveContext) { ctx.restore(); }
 //			ViewBacking.absScale /= this.scale;
 //		}
 	}
