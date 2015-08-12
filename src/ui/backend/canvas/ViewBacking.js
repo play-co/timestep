@@ -32,13 +32,11 @@ var cos = Math.cos;
 
 var ViewBacking = exports = Class(BaseBacking, function () {
 
-	this.constructor.absScale = 1;
-
 	this.init = function (view) {
 		this._globalTransform = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
 		this._cachedRotation = 0;
-		this._cachedSin = 1;
-		this._cachedCos = 0;
+		this._cachedSin = 0;
+		this._cachedCos = 1;
 		this._globalOpacity = 1;
 		this._view = view;
 		this._subviews = [];
@@ -117,8 +115,8 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		var sy = this.scaleY * this.scale * flipY;
 		var ax = this.flipX ? this._width - this.anchorX : this.anchorX;
 		var ay = this.flipY ? this._height - this.anchorY : this.anchorY;
-		var tx = this.x;
-		var ty = this.y;
+		var tx = this.x + this.offsetX + this.anchorX;
+		var ty = this.y + this.offsetY + this.anchorY;
 
 		if (this.r === 0) {
 			tx -= ax * sx;
@@ -152,9 +150,6 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 			gt.tx = tx * pgt.a + ty * pgt.c + pgt.tx;
 			gt.ty = tx * pgt.b + ty * pgt.d + pgt.ty;
 		}
-
-		gt.tx += (this.anchorX + this.offsetX) * gt.a * flipX;
-		gt.ty += (this.anchorY + this.offsetY) * gt.d * flipY;
 	};
 
 	this.wrapRender = function (ctx, opts) {
@@ -169,38 +164,14 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		var height = this._height;
 		if (width < 0 || height < 0) { return; }
 
-		var saveContext = this.clip || !this._view.__parent;
+		var saveContext = this.clip || this.compositeOperation|| !this._view.__parent;
 		if (saveContext) { ctx.save(); }
 
 		this.updateGlobalTransform();
 		var gt = this._globalTransform;
 		ctx.setTransform(gt.a, gt.b, gt.c, gt.d, gt.tx, gt.ty);
-//
-//		ctx.translate(this.x + this.anchorX + this.offsetX, this.y + this.anchorY + this.offsetY);
-//
-//		if (this.r) { ctx.rotate(this.r); }
-//
-//		// clip this render to be within its view;
-//		if (this.scale != 1) {
-//			ctx.scale(this.scale, this.scale);
-//			ViewBacking.absScale *= this.scale;
-//		}
-//
-//		// scale dimensions individually
-//		if (this.scaleX != 1) {
-//			ctx.scale(this.scaleX, 1);
-//		}
-//		if (this.scaleY != 1) {
-//			ctx.scale(1, this.scaleY);
-//		}
-//
-//		this.absScale = ViewBacking.absScale;
-//
-//		if (this.opacity != 1) { ctx.globalAlpha *= this.opacity; }
 		ctx.globalAlpha = this._globalOpacity;
-//
-//		ctx.translate(-this.anchorX, -this.anchorY);
-//
+
 		if (this.clip) { ctx.clipRect(0, 0, width, height); }
 
 		var filter = this._view.getFilter();
@@ -209,23 +180,6 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 			filters[filter.getType()] = filter;
 			ctx.setFilters(filters);
 		}
-
-//		if (this.flipX || this.flipY) {
-//			ctx.translate(
-//				this.flipX ? width / 2 : 0,
-//				this.flipY ? height / 2 : 0
-//			);
-//
-//			ctx.scale(
-//				this.flipX ? -1 : 1,
-//				this.flipY ? -1 : 1
-//			);
-//
-//			ctx.translate(
-//				this.flipX ? -width / 2 : 0,
-//				this.flipY ? -height / 2 : 0
-//			);
-//		}
 
 //		try {
 			if (this.compositeOperation) {
@@ -244,7 +198,6 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 //		} finally {
 			ctx.clearFilters();
 			if (saveContext) { ctx.restore(); }
-//			ViewBacking.absScale /= this.scale;
 //		}
 	}
 
