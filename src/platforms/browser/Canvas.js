@@ -28,6 +28,9 @@ exports = Class(function () {
 		var ctx = new Context2D(opts);
 		var el = this._el = ctx.getElement();
 		el.getContext = function () { return ctx; }
+		el.style.userSelect =
+		el.style.webkitUserSelect =
+		el.style.webkitTouchCallout = 'none';
 		el.complete = true;
 		return el;
 	}
