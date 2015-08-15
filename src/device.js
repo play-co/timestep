@@ -72,7 +72,7 @@ logger.log(exports.isMobile ? 'on mobile device' : 'in web browser');
 
 exports.screen = new Emitter();
 
-var devicePixelRatio = window.devicePixelRatio || 1;
+var devicePixelRatio = window.originalDevicePixelRatio || window.devicePixelRatio || 1;
 
 // @deprecated
 exports.devicePixelRatio = devicePixelRatio;
