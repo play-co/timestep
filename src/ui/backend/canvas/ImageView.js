@@ -155,7 +155,7 @@ var ImageView = exports = Class(View, function (supr) {
 	 */
 
 	this.render = function (ctx) {
-		if (!this._img || this._img.isError()) { return; }
+		if (!this._img) { return; }
 
 		var s = this.style;
 		var w = s.width;

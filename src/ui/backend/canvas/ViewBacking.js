@@ -25,12 +25,13 @@ import ..BaseBacking;
 import util.setProperty as setProperty;
 
 var _styleKeys = {};
-var IDENTITY_MATRIX = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
-
-var sin = Math.sin;
-var cos = Math.cos;
 
 var ViewBacking = exports = Class(BaseBacking, function () {
+
+	var IDENTITY_MATRIX = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
+
+	var sin = Math.sin;
+	var cos = Math.cos;
 
 	this.init = function (view) {
 		this._globalTransform = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
@@ -164,7 +165,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		var height = this._height;
 		if (width < 0 || height < 0) { return; }
 
-		var saveContext = this.clip || this.compositeOperation|| !this._view.__parent;
+		var saveContext = this.clip || this.compositeOperation || !this._view.__parent;
 		if (saveContext) { ctx.save(); }
 
 		this.updateGlobalTransform();
