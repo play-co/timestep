@@ -21,7 +21,7 @@ exports.resolve = function (env, opts) {
 		'.initialize',
 		'.FontRenderer',
 		'.Input',
-		'.InputPrompt',
+		'.inputDialog',
 		'.StatusBar',
 		'.KeyListener',
 		'.TextBox',

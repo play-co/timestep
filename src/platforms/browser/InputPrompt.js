@@ -18,87 +18,102 @@
  * package timestep.env.browser.InputPrompt;
  *
  * Prompt the user manually for input.
- *
- * ??? TODO Move this to debug, probably. A native modal prompt has no place
- *          in game code.
  */
-var KeyboardTypes = {
-	Default: 0,                // Default type for the current input method.
-    NumbersAndPunctuation: 2,  // Numbers and assorted punctuation.
-    URL: 3,                    // A type optimized for URL entry (shows . / .com prominently).
-    NumberPad: 4,              // A number pad (0-9). Suitable for PIN entry.
-    PhonePad: 5,               // A phone pad (1-9, *, 0, #, with letters under the numbers).
-    EmailAddress: 7,           // A type optimized for multiple email address entry (shows space @ . prominently).
-    DecimalPad: 8
-}
 
-exports = Class(function () {
-	var defaults = {
-		onChange: function () {},
-		title: '',
-		message: '',
-		value: '',
-		prompt: ''
-	}
+from util.browser import $;
+import ..ui.keyboardTypes as keyboardTypes;
 
-	this.init = function (opts) {
-		opts = merge(opts, defaults);
-		this.onChange = opts.onChange;
-		this.onSubmit = opts.onSubmit;
-		this._value = opts.value;
-		this._message = opts.title || opts.message || opts.prompt;
-	};
+var BASE_CLASS = 'timestep-native-dialog';
+var TITLE_CLASS = 'title';
+var MESSAGE_CLASS = 'message';
+var BUTTONS_CLASS = 'buttons';
+var DEFAULT_STYLES = [
+  '.' + BASE_CLASS + ' { position: absolute; z-index: 9999999; font: 12px Helvetica; color: #444; background: rgba(255, 255, 255, 0.9); border-radius: 5px; text-align: left; }',
+  '.' + BASE_CLASS + ' .' + TITLE_CLASS + '{ padding: 10px; font-weight: bold; }',
+  '.' + BASE_CLASS + ' .' + MESSAGE_CLASS + '{ padding: 10px; color: #888; }',
+  '.' + BASE_CLASS + ' .' + BUTTONS_CLASS + '{ padding: 10px; text-align: right; }',
+].join('');
 
-	this.show = function () {
-		var value = window.prompt(this._message, this._value);
-		if (value !== null) { // returns null if user presses cancel
-			this._value = value;
-			this.onChange && this.onChange(value);
-			this.onSubmit && this.onSubmit(value);
-		} else {
-			// TODO: do something else on cancel?
-			this.onChange && this.onChange(value);
-		}
-	};
+var addedStyles = false;
+exports.show = function (controller, opts) {
+  var addClasses = opts.defaultBrowserStyles;
 
-	this.getValue = function () {
-		return this._value;
-	};
+  // initialize default styles
+  if (addClasses && !addedStyles) {
+    $({
+      parent: document.getElementsByTagName('head')[0],
+      tag: 'style',
+      text: DEFAULT_STYLES
+    });
+  }
 
-	this.setValue = function (value) {
-		this._value = value;
-		return this;
-	};
+  // create buttons
+  var buttons = [];
+  var okButton;
+  var cancelButton;
+  if (opts.okText) {
+    okButton = $({
+        type: 'button',
+        text: opts.okText,
+        attrs: {noCapture: true}
+      });
+    buttons.push(okButton);
+    if (opts.onSubmit) {
+      $.onEvent(okButton, 'click', opts.onSubmit);
+    }
+  }
 
-	this.setMessage = function (message) {
-		this._message = message;
-		return this;
-	};
+  if (opts.cancelText) {
+    cancelButton = $({
+        type: 'button',
+        text: opts.cancelText,
+        attrs: {noCapture: true}
+      });
+    buttons.push(cancelButton);
+    if (opts.onCancel) {
+      $.onEvent(okButton, 'click', opts.onCancel);
+    }
+  }
 
-	this.setOkButton = function (value) {
-		this._okText = value;
-		return this;
-	}
+  // create input element
+  var input = $({
+      tag: 'input',
+      attrs: {
+        noCapture: true,
+        type: opts.isPassword ? 'password' : keyboardTypes.getHTMLType('text')
+      }
+    });
 
-	this.setCancelButton = function (value) {
-		this._cancelText = value;
-		return this;
-	}
+  if (opts.onChange) {
+    $.onEvent(input, 'change', opts.onChange);
+  }
 
-	this.setKeyboardType = function(keyboardType) {
-		logger.warn('Setting keyboard type in the browser does nothing');
-		return this;
-	};
+  // create dialog
+  var dialog = $({
+    parent: document.body,
+    className: addClasses && BASE_CLASS,
+    children: [{
+      className: addClasses && TITLE_CLASS,
+      text: opts.title
+    }, {
+      className: addClasses && MESSAGE_CLASS,
+      text: opts.message
+    }, input,
+    {
+      className: addClasses && BUTTONS_CLASS,
+      children: buttons
+    }]
+  });
 
-	this.requestFocus = function() { this.show(); return this; }
+  if (addClasses) {
+    var windowSize = $.size(window);
+    $.style(dialog, {
+      left: (windowSize.width - dialog.offsetWidth) / 2,
+      top: (windowSize.height - dialog.offsetHeight) / 2,
+    });
+  }
 
-	this.closeEditField = function() {}
-
-	this.setHint = function() {}
-
-	this.refresh = function() {}
-});
-
-exports.showStatusBar = function() {};
-exports.hideStatusBar = function() {};
-exports.KeyboardTypes = KeyboardTypes;
+  if (opts.onShow) {
+    opts.onShow(dialog);
+  }
+};

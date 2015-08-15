@@ -30,6 +30,7 @@
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/device.md
  */
 
+/* globals jsio */
 import event.Emitter as Emitter;
 import util.setProperty;
 
@@ -44,12 +45,16 @@ var ua = navigator.userAgent;
  * @namespace
  */
 
-var _devices = {}
+var _devices = {};
 exports.registerDevice = function (name, path) {
 	_devices[name] = path;
-}
+};
 
 exports.get = function (module) {
+
+	// deprecated: InputPrompt used to be platform-specific
+	if (module == 'InputPrompt') { return jsio('import ui.InputPrompt'); }
+
 	var path = _devices[exports.name] || 'platforms.browser';
 	return jsio('import ' + path + '.' + module, {dontExport: true, suppressErrors: true});
 };
