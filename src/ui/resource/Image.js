@@ -376,7 +376,7 @@ exports = Class(lib.PubSub, function () {
 
 
 	this.render = function (ctx) {
-		if (!this._cb.fired()) {
+		if (!this._cb.fired() || this._isError) {
 			return;
 		}
 
