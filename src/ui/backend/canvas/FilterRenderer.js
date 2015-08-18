@@ -148,10 +148,15 @@ exports = Class(function () {
 	};
 
 	this.getCanvas = function(width, height) {
-		var result = unusedCanvas || new Canvas();
-		unusedCanvas = null;
-		result.width = width;
-		result.height = height;
+		var result;
+		if (unusedCanvas) {
+			result = unusedCanvas;
+			result.width = width;
+			result.height = height;
+			unusedCanvas = null;
+		} else {
+			result = new Canvas({ width: width, height: height });
+		}
 		return result;
 	};
 
