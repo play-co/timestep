@@ -41,7 +41,7 @@ var Loader = Class(function () {
 
 	this.has = function (src) {
 		return this._map[src];
-	}
+	};
 
 	this.getMap = function () {
 		return this._map;
@@ -54,6 +54,39 @@ var Loader = Class(function () {
 	// TODO: rename this function...
 	this.get = function (file) {
 		return 'resources/images/' + file;
+	};
+
+	/**
+	 * Adds spritesheets to the image map
+	 *
+	 * @param {Object[]} sheets          an array of spritesheet definitions
+	 * @param {string}   sheets[].f      sprite filename
+	 * @param {number}   sheets[].x      sprite position x-coordinate (integer)
+	 * @param {number}   sheets[].y      sprite position y-coordinate (integer)
+	 * @param {number}   sheets[].w      sprite content width (without margin) (integer)
+	 * @param {number}   sheets[].h      sprite content height (without margin) (integer)
+	 * @param {number}   [sheets[].t=0]  sprite transparent margin top
+	 * @param {number}   [sheets[].r=0]  sprite transparent margin right
+	 * @param {number}   [sheets[].b=0]  sprite transparent margin bottom
+	 * @param {number}   [sheets[].l=0]  sprite transparent margin left
+	 */
+	this.addSheets = function (sheets) {
+		Object.keys(sheets).forEach(function (name) {
+			var sheet = sheets[name];
+			sheet.forEach(function (info) {
+				this._map[info.f] = {
+					sheet: 'spritesheets/' + name,
+					x: info.x,
+					y: info.y,
+					w: info.w,
+					h: info.h,
+					marginTop: info.t || 0,
+					marginRight: info.r || 0,
+					marginBottom: info.b || 0,
+					marginLeft: info.l || 0
+				};
+			}, this);
+		}, this);
 	};
 
 	/**
@@ -411,7 +444,7 @@ var Loader = Class(function () {
 				_timeout = setTimeout(function () {
 					callback.fire();
 					numLoaded = numResources;
-				}, timeout)
+				}, timeout);
 			}
 		}, 0);
 		return callback;
