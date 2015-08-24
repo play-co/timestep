@@ -188,12 +188,12 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		}
 
 //		try {
-			if (this.compositeOperation) {
+			if (this._compositeOperation) {
 				ctx.globalCompositeOperation = this.compositeOperation;
 			}
 
-			if (this.backgroundColor) {
-				ctx.fillStyle = this.backgroundColor;
+			if (this._backgroundColor) {
+				ctx.fillStyle = this._backgroundColor;
 				ctx.fillRect(0, 0, width, height);
 			}
 
