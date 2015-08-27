@@ -34,7 +34,7 @@ var eventTypes = input.eventTypes;
 
 var UID = -1;
 
-exports = Class(function (supr) {
+exports = Class(function () {
 
   this.init = function (opts) {
 
@@ -172,11 +172,9 @@ exports = Class(function (supr) {
 
   this.handleMouse = function (type, evt, recursive) {
     var target = evt.target;
-    if (this._hasFocus && this._hasFocus == target || target && target.getAttribute && target.getAttribute('noCapture')) { return; }
+    if (!device.useDOM && !this._isDown && this._el && evt.target != this._el) { return; }
 
     var isMobileBrowser = device.isMobileBrowser;
-
-    if (!device.useDOM && !isMobileBrowser && !this._isDown && this._el && evt.target != this._el) { return; }
 
     // Cancel all events that occur on the canvas.  Optionally, pass scroll events
     // through to the page (apps that don't care about handling scroll events may
