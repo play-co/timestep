@@ -28,7 +28,7 @@ import device;
 import lib.PubSub;
 import event.Callback as Callback;
 import ui.resource.loader as resourceLoader;
-import ui.backend.canvas.FilterRenderer as FilterRenderer;
+import ui.backend.canvas.filterRenderer as filterRenderer;
 
 var ImageCache = {};
 
@@ -86,8 +86,6 @@ exports = Class(lib.PubSub, function () {
 	// helper canvases for image data, initialized when/if needed
 	var _imgDataCanvas = null;
 	var _imgDataCtx = null;
-
-	this.filterRenderer = new FilterRenderer();
 
 	this.init = function (opts) {
 		if (!opts) {
@@ -407,7 +405,7 @@ exports = Class(lib.PubSub, function () {
 		}
 
 		if (!isNative && ctx.filters) {
-			var filterImg = this.filterRenderer.renderFilter(ctx, this, srcX, srcY, srcW, srcH);
+			var filterImg = filterRenderer.renderFilter(ctx, this, srcX, srcY, srcW, srcH);
 			if (filterImg) {
 				srcImg = filterImg;
 				srcX = 0;
@@ -415,13 +413,7 @@ exports = Class(lib.PubSub, function () {
 			}
 		}
 
-		this._renderImage(ctx, srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
-	};
-
-	this._renderImage = function(ctx, srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH) {
-//		try {
-			ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
-//		} catch(e) {}
+		ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
 	};
 
 	this.getImageData = function (x, y, width, height) {

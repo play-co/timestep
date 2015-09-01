@@ -190,4 +190,4 @@ var FilterRenderer = Class(function () {
 
 });
 
-exports = FilterRenderer;
+exports = new FilterRenderer();
