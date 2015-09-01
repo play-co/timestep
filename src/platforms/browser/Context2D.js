@@ -50,13 +50,13 @@ exports = function (opts) {
 
 	ctx.clear = function () {
 		//el.width = el.width;
-		this.clearRect(0, 0, el.width, el.height);
+		// this.clearRect(0, 0, el.width, el.height);
 	};
 
 	ctx.clipRect = function (x, y, w, h) {
 		ctx.beginPath();
 		ctx.rect(x, y, w, h);
-		ctx.clip();
+		ctx.scissor(x, y, w, h);
 	};
 
 	ctx.swap = function () {};

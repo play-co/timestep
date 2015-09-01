@@ -125,7 +125,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 
 		this.absScale = ViewBacking.absScale;
 
-		if (this.opacity != 1) { ctx.globalAlpha *= this.opacity; }
+		if (this.opacity != 1) { ctx.set_globalAlpha(this.opacity); }
 
 		ctx.translate(-this.anchorX, -this.anchorY);
 

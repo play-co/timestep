@@ -39,6 +39,8 @@ import event.input.dispatch as dispatch;
 import timer;
 import ui.backend.ReflowManager as ReflowManager;
 
+import ui.backend.webgl.nanovg as NanoVG;
+
 import device;
 
 var _timers = [];
@@ -67,6 +69,8 @@ var Engine = exports = Class(Emitter, function (supr) {
 			canvas = document.getElementById(canvas);
 		}
 
+		var ownsCanvas = !canvas;
+
 		this._opts = opts = merge(opts, {
 			keyListenerEnabled: true,
 			width: canvas && canvas.width || device.width,
@@ -89,6 +93,16 @@ var Engine = exports = Class(Emitter, function (supr) {
 
 		if (!device.useDOM) {
 			var Canvas = device.get('Canvas');
+			if (!canvas) {
+				var ctx = NanoVG.get(opts.width, opts.height);
+				var el = ctx.canvas;
+				ctx.getElement = function () { return el; };
+				ctx.setFilters = function() {};
+				ctx.clearFilters = function() {};
+				canvas = ctx.canvas;
+				canvas.getContext = function () { return ctx; }
+			}
+
 			this._rootElement = new Canvas({
 				el: canvas, // use an existing canvas if one was provided, but wrap the 2D context
 				width: opts.width,
@@ -97,7 +111,7 @@ var Engine = exports = Class(Emitter, function (supr) {
 			});
 
 			this._rootElement.id = "timestep_onscreen_canvas";
-			this._ctx = this._rootElement.getContext('2d');
+			this._ctx = ctx;
 			this._ctx.font = '11px ' + device.defaultFontFamily;
 		}
 
@@ -136,7 +150,7 @@ var Engine = exports = Class(Emitter, function (supr) {
 		// configure auto-layout in the browser (expand
 		// to fill the viewport)
 		if (device.name == 'browser') {
-			if (canvas) {
+			if (!ownsCanvas) {
 				device.width = canvas.width;
 				device.height = canvas.height;
 				device.screen.width = canvas.width;
@@ -372,6 +386,7 @@ var Engine = exports = Class(Emitter, function (supr) {
 	};
 
 	this.render = function (dt) {
+		this._ctx.glBeginLoop();
 		if (this._opts.clearEachFrame) {
 			this._ctx && this._ctx.clear();
 		}
@@ -384,8 +399,7 @@ var Engine = exports = Class(Emitter, function (supr) {
 			if (DEBUG) {
 				this._renderFPS(this._ctx, dt);
 			}
-
-			this._ctx.swap();
+			this._ctx.glEndLoop();
 		}
 	};
 

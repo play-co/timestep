@@ -28,6 +28,7 @@ import device;
 import lib.PubSub;
 import event.Callback as Callback;
 import ui.resource.loader as resourceLoader;
+import ui.backend.webgl.nanovg as NanoVG;
 
 /**
  * Callback when images are loaded. This has a failsafe that runs up to a certain
@@ -358,6 +359,13 @@ exports = Class(lib.PubSub, function () {
 			}
 		}
 
+        if(srcImg.__gl_name === undefined) {
+			var ctx = NanoVG.get();
+			ctx.currentImage= srcImg;
+			ctx.createTextureFromImage(srcImg.width, srcImg.height);
+			srcImg.__gl_name = ctx.get_drawImageMapID();
+		}
+
 		map.url = srcImg.src;
 		this._cb.fire(null, this);
 	};
@@ -496,8 +504,8 @@ exports = Class(lib.PubSub, function () {
 
 	this._renderImage = function(ctx, srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH) {
 		try {
-			ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
-		} catch(e) {}
+			ctx.drawImage(srcImg.__gl_name, srcX, srcY, srcW, srcH, destX, destY, destW, destH, srcImg.width, srcImg.height, 1);
+		} catch(e) { throw 'drawImage failed';}
 	};
 
 	this.getImageData = function (x, y, width, height) {
