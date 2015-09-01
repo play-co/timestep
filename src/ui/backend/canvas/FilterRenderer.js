@@ -22,15 +22,36 @@
 import cache.LRUCache as LRUCache;
 import device;
 
-exports = Class(function () {
+var FilterRenderer = Class(function () {
 
 	var Canvas = device.get('Canvas');
+	var noCacheCanvas = new Canvas();
 	var unusedCanvas = null;
 
 	var CACHE_SIZE = 1024;
+	var CACHE_FRAME_THRESHOLD = 3;
+
 	this.cache = new LRUCache(CACHE_SIZE);
 
+	var activeChecks = {};
+	var pendingChecks = {};
+	var currentFrame = 0;
+
+	var needsTick = true;
+
+	this.subscribeToTick = function() {
+		jsio('import ui.Engine').get().subscribe('Tick', this, this.onTick);
+		needsTick = false;
+	};
+
+	this.onTick = function(dt) {
+		currentFrame++;
+		activeChecks = pendingChecks;
+		pendingChecks = {};
+	};
+
 	this.renderFilter = function (ctx, srcImg, srcX, srcY, srcW, srcH) {
+		if (needsTick) { this.subscribeToTick(); }
 		var filterName;
 		var filter;
 		for (filterName in ctx.filters) {
@@ -44,40 +65,47 @@ exports = Class(function () {
 
 		if (resultImg) { return resultImg; }
 
+		var shouldCache = this.testShouldCache(cacheKey);
+		resultImg = shouldCache ? this.getCanvas(srcW, srcH) : noCacheCanvas;
+
 		switch (filterName) {
 			case "LinearAdd":
-				resultImg = this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter.get(), 'lighter');
+				this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter.get(), 'lighter', resultImg);
 				break;
 
 			case "Tint":
-				resultImg = this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter.get(), 'source-over');
+				this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter.get(), 'source-over', resultImg);
 				break;
 
 			case "Multiply":
-				resultImg = this.renderMultiply(ctx, srcImg, srcX, srcY, srcW, srcH, filter);
+				this.renderMultiply(ctx, srcImg, srcX, srcY, srcW, srcH, filter, resultImg);
 				break;
 
 			case "NegativeMask":
-				resultImg = this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(), 'source-in');
+				this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(), 'source-in', resultImg);
 				break;
 
 			case "PositiveMask":
-				resultImg = this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(), 'source-out');
+				this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(), 'source-out', resultImg);
 				break;
-
-			default:
-				return null;
 		}
 
-		var removedEntry = this.cache.put(cacheKey, resultImg);
-		unusedCanvas = removedEntry ? removedEntry.value : null;
+		if (shouldCache) {
+			var removedEntry = this.cache.put(cacheKey, resultImg);
+			unusedCanvas = removedEntry ? removedEntry.value : null;
+		}
 
 		return resultImg;
 	};
 
+	this.testShouldCache = function(key) {
+		var checkFrame = pendingChecks[key] = activeChecks[key] || currentFrame;
+		return (currentFrame - checkFrame) > CACHE_FRAME_THRESHOLD;
+	};
 
-	this.renderColorFilter = function (ctx, srcImg, srcX, srcY, srcW, srcH, color, op) {
-		var result = this.getCanvas(srcW, srcH);
+
+	this.renderColorFilter = function (ctx, srcImg, srcX, srcY, srcW, srcH, color, op, destCanvas) {
+		var result = destCanvas;
 		var resultCtx = result.getContext('2d');
 		// render the base image
 		resultCtx.globalCompositeOperation = 'source-over';
@@ -92,9 +120,9 @@ exports = Class(function () {
 		return result;
 	};
 
-	this.renderMultiply = function(ctx, srcImg, srcX, srcY, srcW, srcH, filter) {
+	this.renderMultiply = function(ctx, srcImg, srcX, srcY, srcW, srcH, filter, destCanvas) {
 		var color = filter.get();
-		var result = this.getCanvas(srcW, srcH);
+		var result = destCanvas;
 		var resultCtx = result.getContext('2d');
 		var imgData = srcImg.getImageData(srcX, srcY, srcW, srcH);
 		var data = imgData.data;
@@ -113,8 +141,8 @@ exports = Class(function () {
 		return result;
 	};
 
-	this.renderMask = function (ctx, srcImg, srcX, srcY, srcW, srcH, mask, op) {
-		var result = this.getCanvas(srcW, srcH);
+	this.renderMask = function (ctx, srcImg, srcX, srcY, srcW, srcH, mask, op, destCanvas) {
+		var result = destCanvas;
 		var resultCtx = result.getContext('2d');
 		// render the mask image
 		var srcMaskX = mask.getSourceX();
@@ -161,3 +189,5 @@ exports = Class(function () {
 	};
 
 });
+
+exports = FilterRenderer;
