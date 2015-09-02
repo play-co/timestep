@@ -9894,6 +9894,36 @@ function __ZN13NanoVGContext15set_globalAlphaEf($this,$a) {
  _nvgGlobalAlpha($5,$6);
  STACKTOP = sp;return;
 }
+function __ZN13NanoVGContext12setTransformEffffff($this,$a,$b,$c,$d,$e,$f) {
+ $this = $this|0;
+ $a = +$a;
+ $b = +$b;
+ $c = +$c;
+ $d = +$d;
+ $e = +$e;
+ $f = +$f;
+ var $0 = 0, $1 = 0.0, $10 = 0.0, $11 = 0.0, $12 = 0.0, $13 = 0.0, $14 = 0.0, $2 = 0.0, $3 = 0.0, $4 = 0.0, $5 = 0.0, $6 = 0.0, $7 = 0, $8 = 0, $9 = 0.0, label = 0, sp = 0;
+ sp = STACKTOP;
+ STACKTOP = STACKTOP + 32|0; if ((STACKTOP|0) >= (STACK_MAX|0)) abort();
+ $0 = $this;
+ $1 = $a;
+ $2 = $b;
+ $3 = $c;
+ $4 = $d;
+ $5 = $e;
+ $6 = $f;
+ $7 = HEAP32[88>>2]|0;
+ _nvgResetTransform($7);
+ $8 = HEAP32[88>>2]|0;
+ $9 = $1;
+ $10 = $2;
+ $11 = $3;
+ $12 = $4;
+ $13 = $5;
+ $14 = $6;
+ _nvgTransform($8,$9,$10,$11,$12,$13,$14);
+ STACKTOP = sp;return;
+}
 function __ZN13NanoVGContext8fillTextEPcii($this,$text,$x,$y) {
  $this = $this|0;
  $text = $text|0;
@@ -12025,6 +12055,34 @@ function _emscripten_bind_NanoVGContext_set_globalAlpha_1($self,$arg0) {
  $2 = $0;
  $3 = $1;
  __ZN13NanoVGContext15set_globalAlphaEf($2,$3);
+ STACKTOP = sp;return;
+}
+function _emscripten_bind_NanoVGContext_setTransform_6($self,$arg0,$arg1,$arg2,$arg3,$arg4,$arg5) {
+ $self = $self|0;
+ $arg0 = +$arg0;
+ $arg1 = +$arg1;
+ $arg2 = +$arg2;
+ $arg3 = +$arg3;
+ $arg4 = +$arg4;
+ $arg5 = +$arg5;
+ var $0 = 0, $1 = 0.0, $10 = 0.0, $11 = 0.0, $12 = 0.0, $13 = 0.0, $2 = 0.0, $3 = 0.0, $4 = 0.0, $5 = 0.0, $6 = 0.0, $7 = 0, $8 = 0.0, $9 = 0.0, label = 0, sp = 0;
+ sp = STACKTOP;
+ STACKTOP = STACKTOP + 32|0; if ((STACKTOP|0) >= (STACK_MAX|0)) abort();
+ $0 = $self;
+ $1 = $arg0;
+ $2 = $arg1;
+ $3 = $arg2;
+ $4 = $arg3;
+ $5 = $arg4;
+ $6 = $arg5;
+ $7 = $0;
+ $8 = $1;
+ $9 = $2;
+ $10 = $3;
+ $11 = $4;
+ $12 = $5;
+ $13 = $6;
+ __ZN13NanoVGContext12setTransformEffffff($7,$8,$9,$10,$11,$12,$13);
  STACKTOP = sp;return;
 }
 function _emscripten_bind_NanoVGContext_get_fillStyle_0($self) {
@@ -15923,6 +15981,65 @@ function _nvgGlobalAlpha($ctx,$alpha) {
  $5 = $state;
  $6 = ((($5)) + 168|0);
  HEAPF32[$6>>2] = $4;
+ STACKTOP = sp;return;
+}
+function _nvgTransform($ctx,$a,$b,$c,$d,$e,$f) {
+ $ctx = $ctx|0;
+ $a = +$a;
+ $b = +$b;
+ $c = +$c;
+ $d = +$d;
+ $e = +$e;
+ $f = +$f;
+ var $0 = 0, $1 = 0.0, $10 = 0, $11 = 0.0, $12 = 0, $13 = 0.0, $14 = 0, $15 = 0.0, $16 = 0, $17 = 0.0, $18 = 0, $19 = 0.0, $2 = 0.0, $20 = 0, $21 = 0, $3 = 0.0, $4 = 0.0, $5 = 0.0, $6 = 0.0, $7 = 0;
+ var $8 = 0, $9 = 0.0, $state = 0, $t = 0, label = 0, sp = 0;
+ sp = STACKTOP;
+ STACKTOP = STACKTOP + 64|0; if ((STACKTOP|0) >= (STACK_MAX|0)) abort();
+ $t = sp;
+ $0 = $ctx;
+ $1 = $a;
+ $2 = $b;
+ $3 = $c;
+ $4 = $d;
+ $5 = $e;
+ $6 = $f;
+ $7 = $0;
+ $8 = (_nvg__getState($7)|0);
+ $state = $8;
+ $9 = $1;
+ HEAPF32[$t>>2] = $9;
+ $10 = ((($t)) + 4|0);
+ $11 = $2;
+ HEAPF32[$10>>2] = $11;
+ $12 = ((($10)) + 4|0);
+ $13 = $3;
+ HEAPF32[$12>>2] = $13;
+ $14 = ((($12)) + 4|0);
+ $15 = $4;
+ HEAPF32[$14>>2] = $15;
+ $16 = ((($14)) + 4|0);
+ $17 = $5;
+ HEAPF32[$16>>2] = $17;
+ $18 = ((($16)) + 4|0);
+ $19 = $6;
+ HEAPF32[$18>>2] = $19;
+ $20 = $state;
+ $21 = ((($20)) + 172|0);
+ _nvgTransformPremultiply($21,$t);
+ STACKTOP = sp;return;
+}
+function _nvgResetTransform($ctx) {
+ $ctx = $ctx|0;
+ var $0 = 0, $1 = 0, $2 = 0, $3 = 0, $4 = 0, $state = 0, label = 0, sp = 0;
+ sp = STACKTOP;
+ STACKTOP = STACKTOP + 16|0; if ((STACKTOP|0) >= (STACK_MAX|0)) abort();
+ $0 = $ctx;
+ $1 = $0;
+ $2 = (_nvg__getState($1)|0);
+ $state = $2;
+ $3 = $state;
+ $4 = ((($3)) + 172|0);
+ _nvgTransformIdentity($4);
  STACKTOP = sp;return;
 }
 function _nvgTranslate($ctx,$x,$y) {
@@ -34755,7 +34872,7 @@ var FUNCTION_TABLE_iii = [b12,b12,b12,b12,b12,b12,b12,b12,b12,b12,b12,b12,b12,b1
 var FUNCTION_TABLE_viiiddii = [b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,b13,__ZL19glnvg__renderStrokePvP8NVGpaintP10NVGscissorffPK7NVGpathi
 ,b13,b13,b13];
 
-  return { _emscripten_bind_NanoVGContext_NanoVGContext_2: _emscripten_bind_NanoVGContext_NanoVGContext_2, _emscripten_bind_NanoVGContext_set_drawImageMapID_1: _emscripten_bind_NanoVGContext_set_drawImageMapID_1, _emscripten_bind_VoidPtr___destroy___0: _emscripten_bind_VoidPtr___destroy___0, _emscripten_bind_NanoVGContext_closePath_0: _emscripten_bind_NanoVGContext_closePath_0, _emscripten_bind_NanoVGContext_lineTo_2: _emscripten_bind_NanoVGContext_lineTo_2, _emscripten_bind_NanoVGContext_set_globalAlpha_1: _emscripten_bind_NanoVGContext_set_globalAlpha_1, _bitshift64Lshr: _bitshift64Lshr, _emscripten_bind_NanoVGContext_get_drawImageMapID_0: _emscripten_bind_NanoVGContext_get_drawImageMapID_0, _memcpy: _memcpy, _bitshift64Shl: _bitshift64Shl, _emscripten_bind_NanoVGContext_restore_0: _emscripten_bind_NanoVGContext_restore_0, _emscripten_bind_NanoVGContext_clearRect_4: _emscripten_bind_NanoVGContext_clearRect_4, _fflush: _fflush, _emscripten_bind_NanoVGContext_fillRect_4: _emscripten_bind_NanoVGContext_fillRect_4, _emscripten_bind_NanoVGContext_rotate_1: _emscripten_bind_NanoVGContext_rotate_1, _emscripten_bind_NanoVGContext_set_fillStyle_1: _emscripten_bind_NanoVGContext_set_fillStyle_1, _memset: _memset, _emscripten_bind_NanoVGContext_moveTo_2: _emscripten_bind_NanoVGContext_moveTo_2, _emscripten_bind_NanoVGContext_scissor_4: _emscripten_bind_NanoVGContext_scissor_4, _emscripten_bind_NanoVGContext_get_font_0: _emscripten_bind_NanoVGContext_get_font_0, _emscripten_bind_NanoVGContext_glEndLoop_0: _emscripten_bind_NanoVGContext_glEndLoop_0, _emscripten_bind_NanoVGContext_save_0: _emscripten_bind_NanoVGContext_save_0, _i64Subtract: _i64Subtract, _emscripten_bind_NanoVGContext_strokeText_3: _emscripten_bind_NanoVGContext_strokeText_3, _emscripten_bind_NanoVGContext_beginPath_0: _emscripten_bind_NanoVGContext_beginPath_0, _emscripten_bind_NanoVGContext_drawImage_12: _emscripten_bind_NanoVGContext_drawImage_12, _i64Add: _i64Add, _emscripten_bind_NanoVGContext_scale_2: _emscripten_bind_NanoVGContext_scale_2, _emscripten_bind_NanoVGContext_fill_0: _emscripten_bind_NanoVGContext_fill_0, _emscripten_bind_NanoVGContext_rect_4: _emscripten_bind_NanoVGContext_rect_4, _emscripten_bind_NanoVGContext_fillText_3: _emscripten_bind_NanoVGContext_fillText_3, ___errno_location: ___errno_location, _emscripten_bind_NanoVGContext_createTextureFromImage_2: _emscripten_bind_NanoVGContext_createTextureFromImage_2, _emscripten_bind_NanoVGContext_set_font_1: _emscripten_bind_NanoVGContext_set_font_1, _free: _free, _emscripten_bind_NanoVGContext_glBeginLoop_0: _emscripten_bind_NanoVGContext_glBeginLoop_0, _emscripten_bind_NanoVGContext_translate_2: _emscripten_bind_NanoVGContext_translate_2, _emscripten_bind_NanoVGContext_set_textAlign_1: _emscripten_bind_NanoVGContext_set_textAlign_1, _malloc: _malloc, _emscripten_bind_NanoVGContext_get_fillStyle_0: _emscripten_bind_NanoVGContext_get_fillStyle_0, _emscripten_bind_NanoVGContext_stroke_0: _emscripten_bind_NanoVGContext_stroke_0, _emscripten_bind_NanoVGContext___destroy___0: _emscripten_bind_NanoVGContext___destroy___0, _emscripten_bind_NanoVGContext_get_textAlign_0: _emscripten_bind_NanoVGContext_get_textAlign_0, runPostSets: runPostSets, stackAlloc: stackAlloc, stackSave: stackSave, stackRestore: stackRestore, establishStackSpace: establishStackSpace, setThrew: setThrew, setTempRet0: setTempRet0, getTempRet0: getTempRet0, dynCall_iiiiiiii: dynCall_iiiiiiii, dynCall_iiii: dynCall_iiii, dynCall_viiiiii: dynCall_viiiiii, dynCall_viiidiii: dynCall_viiidiii, dynCall_viiiii: dynCall_viiiii, dynCall_vi: dynCall_vi, dynCall_iiiiiii: dynCall_iiiiiii, dynCall_ii: dynCall_ii, dynCall_viii: dynCall_viii, dynCall_v: dynCall_v, dynCall_iiiii: dynCall_iiiii, dynCall_viiii: dynCall_viiii, dynCall_iii: dynCall_iii, dynCall_viiiddii: dynCall_viiiddii };
+  return { _emscripten_bind_NanoVGContext_NanoVGContext_2: _emscripten_bind_NanoVGContext_NanoVGContext_2, _emscripten_bind_NanoVGContext_setTransform_6: _emscripten_bind_NanoVGContext_setTransform_6, _emscripten_bind_VoidPtr___destroy___0: _emscripten_bind_VoidPtr___destroy___0, _emscripten_bind_NanoVGContext_closePath_0: _emscripten_bind_NanoVGContext_closePath_0, _emscripten_bind_NanoVGContext_lineTo_2: _emscripten_bind_NanoVGContext_lineTo_2, _emscripten_bind_NanoVGContext_set_globalAlpha_1: _emscripten_bind_NanoVGContext_set_globalAlpha_1, _bitshift64Lshr: _bitshift64Lshr, _emscripten_bind_NanoVGContext_get_drawImageMapID_0: _emscripten_bind_NanoVGContext_get_drawImageMapID_0, _memcpy: _memcpy, _bitshift64Shl: _bitshift64Shl, _emscripten_bind_NanoVGContext_restore_0: _emscripten_bind_NanoVGContext_restore_0, _emscripten_bind_NanoVGContext_clearRect_4: _emscripten_bind_NanoVGContext_clearRect_4, _fflush: _fflush, _emscripten_bind_NanoVGContext_fillRect_4: _emscripten_bind_NanoVGContext_fillRect_4, _emscripten_bind_NanoVGContext_rotate_1: _emscripten_bind_NanoVGContext_rotate_1, _emscripten_bind_NanoVGContext_set_fillStyle_1: _emscripten_bind_NanoVGContext_set_fillStyle_1, _memset: _memset, _emscripten_bind_NanoVGContext_moveTo_2: _emscripten_bind_NanoVGContext_moveTo_2, _emscripten_bind_NanoVGContext_scissor_4: _emscripten_bind_NanoVGContext_scissor_4, _emscripten_bind_NanoVGContext_get_font_0: _emscripten_bind_NanoVGContext_get_font_0, _emscripten_bind_NanoVGContext_glEndLoop_0: _emscripten_bind_NanoVGContext_glEndLoop_0, _emscripten_bind_NanoVGContext_save_0: _emscripten_bind_NanoVGContext_save_0, _i64Subtract: _i64Subtract, _emscripten_bind_NanoVGContext_strokeText_3: _emscripten_bind_NanoVGContext_strokeText_3, _emscripten_bind_NanoVGContext_beginPath_0: _emscripten_bind_NanoVGContext_beginPath_0, _emscripten_bind_NanoVGContext_drawImage_12: _emscripten_bind_NanoVGContext_drawImage_12, _i64Add: _i64Add, _emscripten_bind_NanoVGContext_scale_2: _emscripten_bind_NanoVGContext_scale_2, _emscripten_bind_NanoVGContext_set_drawImageMapID_1: _emscripten_bind_NanoVGContext_set_drawImageMapID_1, _emscripten_bind_NanoVGContext_fill_0: _emscripten_bind_NanoVGContext_fill_0, _emscripten_bind_NanoVGContext_rect_4: _emscripten_bind_NanoVGContext_rect_4, _emscripten_bind_NanoVGContext_fillText_3: _emscripten_bind_NanoVGContext_fillText_3, ___errno_location: ___errno_location, _emscripten_bind_NanoVGContext_createTextureFromImage_2: _emscripten_bind_NanoVGContext_createTextureFromImage_2, _emscripten_bind_NanoVGContext_set_font_1: _emscripten_bind_NanoVGContext_set_font_1, _free: _free, _emscripten_bind_NanoVGContext_glBeginLoop_0: _emscripten_bind_NanoVGContext_glBeginLoop_0, _emscripten_bind_NanoVGContext_translate_2: _emscripten_bind_NanoVGContext_translate_2, _emscripten_bind_NanoVGContext_set_textAlign_1: _emscripten_bind_NanoVGContext_set_textAlign_1, _malloc: _malloc, _emscripten_bind_NanoVGContext_get_fillStyle_0: _emscripten_bind_NanoVGContext_get_fillStyle_0, _emscripten_bind_NanoVGContext_stroke_0: _emscripten_bind_NanoVGContext_stroke_0, _emscripten_bind_NanoVGContext___destroy___0: _emscripten_bind_NanoVGContext___destroy___0, _emscripten_bind_NanoVGContext_get_textAlign_0: _emscripten_bind_NanoVGContext_get_textAlign_0, runPostSets: runPostSets, stackAlloc: stackAlloc, stackSave: stackSave, stackRestore: stackRestore, establishStackSpace: establishStackSpace, setThrew: setThrew, setTempRet0: setTempRet0, getTempRet0: getTempRet0, dynCall_iiiiiiii: dynCall_iiiiiiii, dynCall_iiii: dynCall_iiii, dynCall_viiiiii: dynCall_viiiiii, dynCall_viiidiii: dynCall_viiidiii, dynCall_viiiii: dynCall_viiiii, dynCall_vi: dynCall_vi, dynCall_iiiiiii: dynCall_iiiiiii, dynCall_ii: dynCall_ii, dynCall_viii: dynCall_viii, dynCall_v: dynCall_v, dynCall_iiiii: dynCall_iiiii, dynCall_viiii: dynCall_viiii, dynCall_iii: dynCall_iii, dynCall_viiiddii: dynCall_viiiddii };
 })
 // EMSCRIPTEN_END_ASM
 (Module.asmGlobalArg, Module.asmLibraryArg, buffer);
@@ -34763,6 +34880,12 @@ var real__emscripten_bind_NanoVGContext_NanoVGContext_2 = asm["_emscripten_bind_
 assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
 assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
 return real__emscripten_bind_NanoVGContext_NanoVGContext_2.apply(null, arguments);
+};
+
+var real__emscripten_bind_NanoVGContext_setTransform_6 = asm["_emscripten_bind_NanoVGContext_setTransform_6"]; asm["_emscripten_bind_NanoVGContext_setTransform_6"] = function() {
+assert(runtimeInitialized, 'you need to wait for the runtime to be ready (e.g. wait for main() to be called)');
+assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it alive after main() exits)');
+return real__emscripten_bind_NanoVGContext_setTransform_6.apply(null, arguments);
 };
 
 var real__emscripten_bind_VoidPtr___destroy___0 = asm["_emscripten_bind_VoidPtr___destroy___0"]; asm["_emscripten_bind_VoidPtr___destroy___0"] = function() {
@@ -35005,6 +35128,7 @@ assert(!runtimeExited, 'the runtime was exited (use NO_EXIT_RUNTIME to keep it a
 return real__emscripten_bind_NanoVGContext_get_textAlign_0.apply(null, arguments);
 };
 var _emscripten_bind_NanoVGContext_NanoVGContext_2 = Module["_emscripten_bind_NanoVGContext_NanoVGContext_2"] = asm["_emscripten_bind_NanoVGContext_NanoVGContext_2"];
+var _emscripten_bind_NanoVGContext_setTransform_6 = Module["_emscripten_bind_NanoVGContext_setTransform_6"] = asm["_emscripten_bind_NanoVGContext_setTransform_6"];
 var _emscripten_bind_VoidPtr___destroy___0 = Module["_emscripten_bind_VoidPtr___destroy___0"] = asm["_emscripten_bind_VoidPtr___destroy___0"];
 var _emscripten_bind_NanoVGContext_closePath_0 = Module["_emscripten_bind_NanoVGContext_closePath_0"] = asm["_emscripten_bind_NanoVGContext_closePath_0"];
 var _emscripten_bind_NanoVGContext_lineTo_2 = Module["_emscripten_bind_NanoVGContext_lineTo_2"] = asm["_emscripten_bind_NanoVGContext_lineTo_2"];
@@ -35581,6 +35705,17 @@ NanoVGContext.prototype['set_globalAlpha'] = NanoVGContext.prototype.set_globalA
   var self = this.ptr;
   if (arg0 && typeof arg0 === 'object') arg0 = arg0.ptr;
   _emscripten_bind_NanoVGContext_set_globalAlpha_1(self, arg0);
+};;
+
+NanoVGContext.prototype['setTransform'] = NanoVGContext.prototype.setTransform = function(arg0, arg1, arg2, arg3, arg4, arg5) {
+  var self = this.ptr;
+  if (arg0 && typeof arg0 === 'object') arg0 = arg0.ptr;
+  if (arg1 && typeof arg1 === 'object') arg1 = arg1.ptr;
+  if (arg2 && typeof arg2 === 'object') arg2 = arg2.ptr;
+  if (arg3 && typeof arg3 === 'object') arg3 = arg3.ptr;
+  if (arg4 && typeof arg4 === 'object') arg4 = arg4.ptr;
+  if (arg5 && typeof arg5 === 'object') arg5 = arg5.ptr;
+  _emscripten_bind_NanoVGContext_setTransform_6(self, arg0, arg1, arg2, arg3, arg4, arg5);
 };;
 
   NanoVGContext.prototype['get_fillStyle'] = NanoVGContext.prototype.get_fillStyle = function() {
