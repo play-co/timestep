@@ -169,7 +169,7 @@ var ImageView = exports = Class(View, function (supr) {
 
 	var _loc = window.location.toString();
 	var _host = window.location.hostname;
-	
+
 	this.getTag = function () {
 		var tag;
 		if (this._img) {
