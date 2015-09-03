@@ -23,6 +23,8 @@
 import device;
 import .FontRenderer;
 
+import ui.backend.webgl.nanovg as NanoVG;
+
 function setter(name) {
 	return (function (val) {
 		return (this[name] = val);
@@ -42,7 +44,7 @@ exports = function (opts) {
 	el.width = opts.width;
 	el.height = opts.height;
 
-	var ctx = el.getContext('2d');
+	var ctx = NanoVG.get(el.width, el.height);
 	ctx.font = '11px ' + device.defaultFontFamily;
 	ctx.getElement = function () { return el; };
 
