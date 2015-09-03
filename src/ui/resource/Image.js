@@ -421,9 +421,9 @@ exports = Class(lib.PubSub, function () {
 //			}
 //		}
 
-		try {
+		//try {
 			ctx.drawImage(srcImg.__gl_name, srcX, srcY, srcW, srcH, destX, destY, destW, destH, srcImg.width, srcImg.height, 1);			
-		} catch(e) { throw 'drawImage failed';}
+		//} catch(e) { throw 'drawImage failed';}
 	};
 
 	this.getImageData = function (x, y, width, height) {
