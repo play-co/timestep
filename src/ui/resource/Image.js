@@ -29,7 +29,7 @@ import lib.PubSub;
 import event.Callback as Callback;
 import ui.resource.loader as resourceLoader;
 import ui.backend.webgl.nanovg as NanoVG;
-import ui.backend.canvas.filterRenderer as filterRenderer;
+//import ui.backend.canvas.filterRenderer as filterRenderer;
 
 var ImageCache = {};
 
@@ -412,14 +412,14 @@ exports = Class(lib.PubSub, function () {
 			srcH = arguments[4];
 		}
 
-		if (!isNative && ctx.filters) {
-			var filterImg = filterRenderer.renderFilter(ctx, this, srcX, srcY, srcW, srcH);
-			if (filterImg) {
-				srcImg = filterImg;
-				srcX = 0;
-				srcY = 0;
-			}
-		}
+//		if (!isNative && ctx.filters) {
+//			var filterImg = filterRenderer.renderFilter(ctx, this, srcX, srcY, srcW, srcH);
+//			if (filterImg) {
+//				srcImg = filterImg;
+//				srcX = 0;
+//				srcY = 0;
+//			}
+//		}
 
 		try {
 			ctx.drawImage(srcImg.__gl_name, srcX, srcY, srcW, srcH, destX, destY, destW, destH, srcImg.width, srcImg.height, 1);			
