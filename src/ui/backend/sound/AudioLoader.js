@@ -14,6 +14,11 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
+var _ctx = null;
+var _bufferMap = {};
+var _loadingMap = {};
+var _onLoadMap = {};
+
 /**
  * AudioContextLoader Class designed to work with HTML5 AudioContext
  */
@@ -22,10 +27,7 @@ exports = Class(function () {
 	 * Requires an instance of AudioContext
 	 */
 	this.init = function (opts) {
-		this._ctx = opts.ctx;
-		this._bufferMap = {};
-		this._loadingMap = {};
-		this._onLoadMap = {};
+		_ctx = opts.ctx;
 	};
 
 	/**
@@ -50,10 +52,10 @@ exports = Class(function () {
 	 * Load an individual audio file asynchronously
 	 */
 	this._loadFile = function (url, index, batch) {
-		var ctx = this._ctx;
-		var bufferMap = this._bufferMap;
-		var loadingMap = this._loadingMap;
-		var onLoadMap = this._onLoadMap;
+		var ctx = _ctx;
+		var bufferMap = _bufferMap;
+		var loadingMap = _loadingMap;
+		var onLoadMap = _onLoadMap;
 		var request = new XMLHttpRequest();
 		request.open("GET", url, true);
 		request.responseType = "arraybuffer";
@@ -92,24 +94,24 @@ exports = Class(function () {
 	};
 
 	this.getAudioContext = function () {
-		return this._ctx;
+		return _ctx;
 	};
 
 	this.setAudioContext = function (ctx) {
-		this._ctx = ctx;
+		_ctx = ctx;
 	};
 
 	this.getBuffer = function (url) {
-		return this._bufferMap[url] || null;
+		return _bufferMap[url] || null;
 	};
 
 	this.isLoading = function (url) {
-		return this._loadingMap[url] || false;
+		return _loadingMap[url] || false;
 	};
 
 	this.doOnLoad = function (url, cb) {
 		if (this.isLoading(url)) {
-			this._onLoadMap[url] = cb;
+			_onLoadMap[url] = cb;
 		} else {
 			var buffer = this.getBuffer(url);
 			if (buffer) {
