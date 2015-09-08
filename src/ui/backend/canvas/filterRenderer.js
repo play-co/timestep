@@ -24,8 +24,8 @@ import device;
 
 var FilterRenderer = Class(function () {
 
-	var Canvas = device.get('Canvas');
-	var noCacheCanvas = new Canvas();
+	var Canvas = null;
+	var noCacheCanvas = null;
 	var unusedCanvas = null;
 
 	var CACHE_SIZE = 1024;
@@ -37,11 +37,13 @@ var FilterRenderer = Class(function () {
 	var pendingChecks = {};
 	var currentFrame = 0;
 
-	var needsTick = true;
+	var needsInitialization = true;
 
-	this.subscribeToTick = function() {
+	this.initialize = function() {
 		jsio('import ui.Engine').get().subscribe('Tick', this, this.onTick);
-		needsTick = false;
+		Canvas = device.get('Canvas');
+		noCacheCanvas = new Canvas();
+		needsInitialization = false;
 	};
 
 	this.onTick = function(dt) {
@@ -51,7 +53,7 @@ var FilterRenderer = Class(function () {
 	};
 
 	this.renderFilter = function (ctx, srcImg, srcX, srcY, srcW, srcH) {
-		if (needsTick) { this.subscribeToTick(); }
+		if (needsInitialization) { this.initialize(); }
 		var filterName;
 		var filter;
 		for (filterName in ctx.filters) {
