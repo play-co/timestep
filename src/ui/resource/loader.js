@@ -37,7 +37,17 @@ var MIME = {
 };
 
 var Loader = Class(function () {
+
+	var globalItemsToLoad = 0;
+	var globalItemsLoaded = 0;
+
 	this._map = {};
+
+	Object.defineProperty(this, "progress", {
+		get: function() {
+			return globalItemsToLoad > 0 ? globalItemsLoaded / globalItemsToLoad : 1
+		}
+	});
 
 	this.has = function (src) {
 		return this._map[src];
@@ -319,11 +329,12 @@ var Loader = Class(function () {
 		// do the preload asynchronously (note that base64 is synchronous, only downloads are asynchronous)
 		var nextIndexToLoad = 0;
 		var numResources = loadableResources.length;
+		globalItemsToLoad += numResources;
 		var parallel = Math.min(numResources, opts.parallel || 5); // how many should we try to download at a time?
 		var numLoaded = 0;
 
 		var loadResource = bind(this, function () {
-		    var currentIndex = nextIndexToLoad++;
+			var currentIndex = nextIndexToLoad++;
 			var src = loadableResources[currentIndex];
 			var res;
 			if (src) {
@@ -345,6 +356,10 @@ var Loader = Class(function () {
 
 				// The number of loads (success or failure) has increased.
 				++numLoaded;
+				++globalItemsLoaded;
+
+				// REALLY hacky progress tracker
+				if (globalItemsLoaded === globalItemsToLoad) { globalItemsLoaded = globalItemsToLoad = 0; }
 
 				// If we have loaded all of the resources,
 				if (numLoaded >= numResources) {
