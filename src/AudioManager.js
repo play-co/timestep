@@ -357,7 +357,7 @@ exports = Class(Emitter, function (supr) {
 				// most commonly due to hardware limits on AudioContext instances
 				logger.warn("HTML5 AudioContext init failed, falling back to Audio!");
 			}
-		} else {
+		} else if (_ctx === null) {
 			logger.warn("HTML5 AudioContext not supported, falling back to Audio!");
 		}
 		// pass the global AudioContext instance to AudioLoaders
