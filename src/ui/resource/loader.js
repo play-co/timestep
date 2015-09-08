@@ -115,7 +115,8 @@ var Loader = Class(function () {
 
 			// If no files were specified by the preload command,
 			if (files.length == 0) {
-				logger.log("WARNING: No files to preload from path:", pathPrefix, "-- A gamedev needs to update the code with the real resource paths.");
+				logger.warn("Preload Fail: No Files from Path", pathPrefix);
+				files = [pathPrefix];
 			}
 
 			var callback = this._loadGroup(merge({resources: files}, opts));
@@ -124,19 +125,21 @@ var Loader = Class(function () {
 		}
 	};
 
-	var soundLoader = null;
+	var _soundManager = null;
+	var _soundLoader = null;
 	this.getSound = function (src) {
-		if (!soundLoader) {
+		if (!_soundManager) {
 			import AudioManager;
-			soundLoader = new AudioManager();
+			_soundManager = new AudioManager({ preload: true });
+			_soundLoader = _soundManager.getAudioLoader();
 		}
 
 		if (GLOBAL.NATIVE && GLOBAL.NATIVE.sound && GLOBAL.NATIVE.sound.preloadSound) {
 			return NATIVE.sound.preloadSound(src);
 		} else {
-			soundLoader.addSound(src);
+			_soundManager.addSound(src);
 			//HACK to make the preloader continue in the browser
-			return { complete: true };
+			return { complete: true, loader: _soundLoader };
 		}
 	};
 
@@ -168,7 +171,9 @@ var Loader = Class(function () {
 			img.src = b64;
 			Image.set(src, img);
 		} else {
-			if (!noWarn) { logger.warn(src, 'may not be properly cached!'); }
+			if (!noWarn) {
+				logger.warn("Preload Warning:", src, "not properly cached!");
+			}
 			img.src = src;
 		}
 
@@ -246,7 +251,7 @@ var Loader = Class(function () {
 				res = this.getImage(src, noWarn);
 				break;
 			default:
-				logger.error('unknown type for preloader', type);
+				logger.error("Preload Error: Unknown Type", type);
 		}
 		return (_cache[src] = res);
 	};
@@ -277,6 +282,7 @@ var Loader = Class(function () {
 
 		// If no resources were loadable,
 		if (!loadableResources.length) {
+			logger.warn("Preload Fail: No Loadable Resources Found");
 			cb && callback.run(cb);
 			callback.fire();
 			return callback;
@@ -323,6 +329,7 @@ var Loader = Class(function () {
 					}
 
 					// Fire the completion callback chain
+					logger.log("Preload Complete: Firing Final Callback");
 					callback.fire();
 				} else {
 					// Call the progress callback with the current progress
@@ -364,10 +371,15 @@ var Loader = Class(function () {
 				// Start it reloading
 				res.reload();
 			} else if (res.complete) {
-				// Since the resource has already completed loading, go
-				// ahead and invoke the next callback indicating the previous
-				// success or failure.
-				next(res.failed === true);
+				if (res.loader) {
+					// real sound loading with AudioContext ...
+					res.loader.load([src.resource], next);
+				} else {
+					// Since the resource has already completed loading, go
+					// ahead and invoke the next callback indicating the previous
+					// success or failure.
+					next(res.failed === true);
+				}
 			} else {
 				// The comments above about onreload callback chaining equally
 				// apply here.  See above.
@@ -409,6 +421,7 @@ var Loader = Class(function () {
 			// register timeout call
 			if (timeout) {
 				_timeout = setTimeout(function () {
+					logger.warn("Preload Timeout: Something Failed to Load");
 					callback.fire();
 					numLoaded = numResources;
 				}, timeout)
