@@ -125,7 +125,6 @@ var Loader = Class(function () {
 
 			// If no files were specified by the preload command,
 			if (files.length == 0) {
-				logger.warn("Preload Fail: No Files from Path", pathPrefix);
 				files = [pathPrefix];
 			}
 
