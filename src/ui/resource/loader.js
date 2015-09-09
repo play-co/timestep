@@ -377,7 +377,7 @@ var Loader = Class(function () {
 					}
 
 					// Fire the completion callback chain
-					logger.log("Preload Complete: Firing Final Callback");
+					logger.log("Preload Complete:", src.resource);
 					callback.fire();
 				} else {
 					// Call the progress callback with the current progress
