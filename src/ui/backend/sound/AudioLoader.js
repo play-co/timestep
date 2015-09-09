@@ -48,48 +48,56 @@ exports = Class(function () {
 		}
 	};
 
+	/*
+	 * Private fn to react to buffer loading / errors; guarantees that preload
+	 * callbacks get fired regardless of success so that nothing gets held up;
+	 * however, does not call individual sound onload callbacks on errors
+	 */
+	function onResponse (url, index, batch, buffer) {
+		if (!buffer) {
+			logger.error("Error decoding audio file data:", url);
+		} else {
+			batch.buffers[index] = _bufferMap[url] = buffer;
+			// on load callbacks for individual sounds
+			var cb = _onLoadMap[url];
+			if (cb) {
+				cb([buffer]);
+				_onLoadMap[url] = null;
+			}
+		}
+
+		_loadingMap[url] = false;
+		// batch callback for preloading, called regardless of success
+		if (++batch.loadedCount === batch.fileCount) {
+			batch.callback(batch.buffers);
+		}
+	};
+
 	/**
 	 * Load an individual audio file asynchronously
 	 */
 	this._loadFile = function (url, index, batch) {
-		var ctx = _ctx;
-		var bufferMap = _bufferMap;
-		var loadingMap = _loadingMap;
-		var onLoadMap = _onLoadMap;
 		var request = new XMLHttpRequest();
 		request.open("GET", url, true);
 		request.responseType = "arraybuffer";
 		request.onload = function () {
-			ctx.decodeAudioData(
+			_ctx.decodeAudioData(
 				request.response,
 				function (buffer) {
-					if (!buffer) {
-						logger.error("Error decoding audio file data:", url);
-					} else {
-						loadingMap[url] = false;
-						batch.buffers[index] = bufferMap[url] = buffer;
-						// batch callback for preloading
-						if (++batch.loadedCount === batch.fileCount) {
-							batch.callback(batch.buffers);
-						}
-						// on load callbacks for individual sounds
-						var cb = onLoadMap[url];
-						if (cb) {
-							cb([buffer]);
-							onLoadMap[url] = null;
-						}
-					}
+					onResponse(url, index, batch, buffer);
 				},
-				function (error) {
-					logger.error("Error with AudioContext decodeAudioData:", error);
+				function (e) {
+					logger.error("Error with AudioContext decodeAudioData:", (e && e.err) || e);
+					onResponse(url, index, batch, null);
 				}
 			);
 		};
 		request.onerror = function () {
 			logger.error("Error with audio XHR on URL:", url);
+			onResponse(url, index, batch, null);
 		};
 
-		loadingMap[url] = true;
+		_loadingMap[url] = true;
 		request.send();
 	};
 
