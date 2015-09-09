@@ -21,10 +21,11 @@
  */
 
 import .Context2D;
+import device
 
 exports = Class(function () {
 	this.init = function (opts) {
-		opts = merge(opts, {width: 300, height: 200});
+		opts = merge(opts, {width: device.width, height: device.height});
 		var ctx = new Context2D(opts);
 		var el = this._el = ctx.getElement();
 		el.getContext = function () { return ctx; }

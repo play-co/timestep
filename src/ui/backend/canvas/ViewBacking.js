@@ -176,7 +176,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		this.updateGlobalTransform();
 		var gt = this._globalTransform;
 		ctx.setTransform(gt.a, gt.b, gt.c, gt.d, gt.tx, gt.ty);
-		ctx.globalAlpha = this._globalOpacity;
+		ctx.set_globalAlpha(this._globalOpacity);
 
 		if (this.clip) { ctx.clipRect(0, 0, width, height); }
 
