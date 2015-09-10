@@ -20,6 +20,8 @@ exports.resolve = function (env, opts) {
 		'.Audio',
 		'.Canvas',
 		'.Context2D',
+		'.WebGLContext2D',
+		'.CanvasContext2D',
 		'.dev_error',
 		'.FlashAPI',
 		'.FontBuffer',

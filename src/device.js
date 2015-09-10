@@ -185,13 +185,14 @@ if (exports.isMobile) {
 
 exports.useDOM = false;
 exports.setUseDOM = function (useDOM) {
+	console.warn("Attempting to set 'useDom' property, which is no longer supported.")
 	return;
-	if (exports.useDOM != useDOM) {
-		exports.useDOM = useDOM;
+}
 
-		import ui.View as View;
-		var backing = exports.importUI('ViewBacking');
-		View.setDefaultViewBacking(backing);
+exports.useWebGL = true;
+exports.setUseWebGL = function (useWebGL) {
+	if (exports.useWebGL !== useWebGL) {
+		exports.useWebGL = useWebGL;
 	}
 }
 
