@@ -38,17 +38,20 @@ exports = Class(function() {
 		this.font = '11px ' + device.defaultFontFamily;
 
 		var gl = this.ctx = this._canvasElement.getContext('webgl');
-		this.ctx.clearColor(1.0, 0.0, 0.0, 1.0);
+		gl.clearColor(0.0, 0.0, 0.0, 1.0);
+		gl.disable(gl.DEPTH_TEST);
+		gl.disable(gl.CULL_FACE);
+		gl.enable(gl.BLEND);
 
-		this._vertexCache = new ArrayBuffer(16);
+		this._vertexCache = new ArrayBuffer(16 * 4);
 		this._verticies = new Float32Array(this._vertexCache);
 		this._indexCache = new Uint16Array(6);
 		this._indexCache[0] = 0;
-		this._indexCache[1] = 1;
-		this._indexCache[2] = 2;
+		this._indexCache[1] = 2;
+		this._indexCache[2] = 3;
 		this._indexCache[3] = 0;
-		this._indexCache[4] = 2;
-		this._indexCache[5] = 3;
+		this._indexCache[4] = 1;
+		this._indexCache[5] = 2;
 
 		this._vertexBuffer = null;
 		this._uvBuffer = null;
@@ -70,14 +73,16 @@ exports = Class(function() {
 
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
 	    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._indexCache, gl.STATIC_DRAW);
+
 		gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, this._vertexCache, gl.DYNAMIC_DRAW);
 
 
 	    var positionIndex = gl.getAttribLocation(this._shaderProgram, "a_position");
 	    var uvIndex = gl.getAttribLocation(this._shaderProgram, "a_texture_coord");
 
-		gl.vertexAttribPointer(positionIndex, 2, gl.FLOAT, false, 0, 0);
-		gl.vertexAttribPointer(uvIndex, 2, gl.FLOAT, false, 0, 2 * 4);
+		gl.vertexAttribPointer(positionIndex, 2, gl.FLOAT, false, 16, 0);
+		gl.vertexAttribPointer(uvIndex, 2, gl.FLOAT, false, 16, 8);
 		gl.enableVertexAttribArray(0);
 	};
 
@@ -99,6 +104,9 @@ exports = Class(function() {
 
 		var resolutionLocation = gl.getUniformLocation(this._shaderProgram, "u_resolution");
 		gl.uniform2f(resolutionLocation, this._canvasElement.width, this._canvasElement.height);
+
+		var colorLocation = gl.getUniformLocation(this._shaderProgram, "u_color");
+		gl.uniform4f(colorLocation, 1.0, 1.0, 1.0, 1.0);
 	};
 
 	this.createVertexShader = function() {
@@ -128,9 +136,10 @@ exports = Class(function() {
 		    'precision mediump float;',
 			'varying highp vec2 v_texture_coord;',
 			'uniform sampler2D u_sampler;',
+			'uniform vec4 u_color;',
 		    'void main(void) {',
 		  	// '  gl_FragColor = texture2D(u_sampler, vec2(v_texture_coord.s, v_texture_coord.t));',
-		  	'  gl_FragColor = vec4(v_texture_coord, v_texture_coord);',
+		  	'  gl_FragColor = u_color;',
 		    '}'
 		].join("\n");
 
@@ -215,6 +224,7 @@ exports = Class(function() {
 		vc[1] = y0;
 		vc[2] = u0;
 		vc[3] = v0;
+		vc[4]
 
 		vc[4] = x1;
 		vc[5] = y1;
