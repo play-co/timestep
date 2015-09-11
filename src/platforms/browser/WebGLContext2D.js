@@ -50,8 +50,8 @@ exports = Class(function() {
 		this._indexCache[1] = 2;
 		this._indexCache[2] = 3;
 		this._indexCache[3] = 0;
-		this._indexCache[4] = 1;
-		this._indexCache[5] = 2;
+		this._indexCache[4] = 3;
+		this._indexCache[5] = 1;
 
 		this._vertexBuffer = null;
 		this._uvBuffer = null;
@@ -62,7 +62,7 @@ exports = Class(function() {
 		this._transform = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
 		this.textureCache = [];
 
-		this.ctx.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		// this.ctx.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	};
 
 	this._initializeBuffers = function() {
@@ -78,12 +78,13 @@ exports = Class(function() {
 		gl.bufferData(gl.ARRAY_BUFFER, this._vertexCache, gl.DYNAMIC_DRAW);
 
 
-	    var positionIndex = gl.getAttribLocation(this._shaderProgram, "a_position");
-	    var uvIndex = gl.getAttribLocation(this._shaderProgram, "a_texture_coord");
+	    var positionIndex = gl.getAttribLocation(this._shaderProgram, "aPosition");
+	    var uvIndex = gl.getAttribLocation(this._shaderProgram, "aTextureCoord");
 
 		gl.vertexAttribPointer(positionIndex, 2, gl.FLOAT, false, 16, 0);
 		gl.vertexAttribPointer(uvIndex, 2, gl.FLOAT, false, 16, 8);
 		gl.enableVertexAttribArray(0);
+		gl.enableVertexAttribArray(1);
 	};
 
 	this._initializeShaders = function() {
@@ -102,23 +103,20 @@ exports = Class(function() {
 
 	    gl.useProgram(this._shaderProgram);
 
-		var resolutionLocation = gl.getUniformLocation(this._shaderProgram, "u_resolution");
+		var resolutionLocation = gl.getUniformLocation(this._shaderProgram, "uResolution");
 		gl.uniform2f(resolutionLocation, this._canvasElement.width, this._canvasElement.height);
-
-		var colorLocation = gl.getUniformLocation(this._shaderProgram, "u_color");
-		gl.uniform4f(colorLocation, 1.0, 1.0, 1.0, 1.0);
 	};
 
 	this.createVertexShader = function() {
 		var gl = this.ctx;
 		var src = [
-			'attribute vec2 a_texture_coord;',
-			'attribute vec2 a_position;',
-			'uniform vec2 u_resolution;',
-			'varying highp vec2 v_texture_coord;',
+			'attribute vec2 aTextureCoord;',
+			'attribute vec2 aPosition;',
+			'uniform vec2 uResolution;',
+			'varying highp vec2 vTextureCoord;',
 			'void main() {',
-			'	v_texture_coord = a_texture_coord;',
-			'	vec2 clipSpace = (a_position / u_resolution) * 2.0 - 1.0;',
+			'	vTextureCoord = aTextureCoord;',
+			'	vec2 clipSpace = (aPosition / uResolution) * 2.0 - 1.0;',
 			'	gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);',
 			'}'
 		].join("\n");
@@ -134,12 +132,10 @@ exports = Class(function() {
 		var gl = this.ctx;
 		var src = [
 		    'precision mediump float;',
-			'varying highp vec2 v_texture_coord;',
-			'uniform sampler2D u_sampler;',
-			'uniform vec4 u_color;',
+			'varying highp vec2 vTextureCoord;',
+			'uniform sampler2D uSampler;',
 		    'void main(void) {',
-		  	// '  gl_FragColor = texture2D(u_sampler, vec2(v_texture_coord.s, v_texture_coord.t));',
-		  	'  gl_FragColor = u_color;',
+		  	'  gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));',
 		    '}'
 		].join("\n");
 
@@ -224,7 +220,6 @@ exports = Class(function() {
 		vc[1] = y0;
 		vc[2] = u0;
 		vc[3] = v0;
-		vc[4]
 
 		vc[4] = x1;
 		vc[5] = y1;
@@ -264,7 +259,7 @@ exports = Class(function() {
 		var gl = this.ctx;
 		gl.activeTexture(gl.TEXTURE0);
 		gl.bindTexture(gl.TEXTURE_2D, texture);
-		gl.uniform1i(gl.getUniformLocation(this._shaderProgram, "u_sampler"), 0);
+		gl.uniform1i(gl.getUniformLocation(this._shaderProgram, "uSampler"), 0);
   	};
 
 	this.setTransform = function(a, b, c, d, tx, ty) {
