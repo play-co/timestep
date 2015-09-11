@@ -22,6 +22,7 @@
 
 import device;
 import .FontRenderer;
+import .Matrix2D;
 
 exports = Class(function() {
 
@@ -62,7 +63,8 @@ exports = Class(function() {
 		this._initializeShaders();
 		this._initializeBuffers();
 
-		this._transform = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
+		this._helperTransform = new Matrix2D();
+		this._transform = new Matrix2D();
 		this.textureCache = [];
 
 		this._lastTextureId = -1;
@@ -162,6 +164,10 @@ exports = Class(function() {
 		return shader;
 	};
 
+	this.loadIdentity = function() {
+		this._transform.identity();
+	};
+
 	this.getElement = function() { return this._canvasElement; };
 
 	this.reset = function() {};
@@ -173,20 +179,6 @@ exports = Class(function() {
 	this.swap = function() {};
 
 	this.execSwap = function() {};
-
-	this.circle = function(x, y, radius) {};
-
-	this.drawPointSprites = function(x1, y1, x2, y2) {};
-
-	this.roundRect = function (x, y, width, height, radius) {};
-
-	this.loadIdentity = function() {};
-
-	this.measureText = function() {};
-
-	this.fillText = function() {};
-
-	this.strokeText = function() {};
 
 	this.setFilters = function(filters) {};
 
@@ -266,14 +258,33 @@ exports = Class(function() {
   	};
 
 	this.setTransform = function(a, b, c, d, tx, ty) {
-		var m = this._transform;
-		m.a = a;
-		m.b = b;
-		m.c = c;
-		m.d = d;
-		m.tx = tx;
-		m.ty = ty;
+		this._transform.setTo(a, b, c, d, tx, ty);
 	};
+
+	this.transform = function(a, b, c, d, tx, ty) {
+		this._helperTransform.setTo(a, b, c, d, tx, ty);
+		this._transform.transform(this._helperTransform);
+	};
+
+	this.scale = function(x, y) {
+		this._transform.scale(x, y);
+	};
+
+	this.translate = function(x, y) {
+		this._transform.translate(x, y);
+	};
+
+	this.rotate = function(angle) {
+		this._transform.rotate(angle);
+	};
+
+	this.strokeRect = function() {};
+	this.fillRect = function() {};
+	this.circle = function(x, y, radius) {};
+	this.drawPointSprites = function(x1, y1, x2, y2) {};
+	this.roundRect = function (x, y, width, height, radius) {};
+	this.fillText = function() {};
+	this.strokeText = function() {};
 
 	this.measureText = FontRenderer.wrapMeasureText;
 
