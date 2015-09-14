@@ -22,7 +22,7 @@ var Matrix2D = Class(function() {
         return result;
     };
 
-    Matrix2D.copy = function(matrix) {
+    this.copy = function(matrix) {
         this.a = matrix.a;
         this.b = matrix.b;
         this.c = matrix.c;

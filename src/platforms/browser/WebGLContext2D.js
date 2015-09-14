@@ -26,8 +26,8 @@ import .Matrix2D;
 
 exports = Class(function() {
 
-	var MAX_BATCH_SIZE = 2000;
-	var STRIDE = 32;
+	var MAX_BATCH_SIZE = 1;
+	var STRIDE = 20;
 
 	Object.defineProperty(this, 'canvas', {
 		get: function() { return this._canvasElement; }
@@ -49,11 +49,11 @@ exports = Class(function() {
 		gl.enable(gl.BLEND);
 
 		this._indexCache = new Uint16Array(MAX_BATCH_SIZE * 6);
-		this._vertexCache = new ArrayBuffer(MAX_BATCH_SIZE * 32 * 4);
+		this._vertexCache = new ArrayBuffer(MAX_BATCH_SIZE * STRIDE * 4);
 		this._verticies = new Float32Array(this._vertexCache);
+		this._colors = new Uint8Array(this._vertexCache);
 
 		this._vertexBuffer = null;
-		this._uvBuffer = null;
 		this._shaderProgram = null;
 		this._initializeShaders();
 		this._initializeBuffers();
@@ -98,7 +98,7 @@ exports = Class(function() {
 
 		gl.vertexAttribPointer(positionIndex, 2, gl.FLOAT, false, STRIDE, 0);
 		gl.vertexAttribPointer(uvIndex, 2, gl.FLOAT, false, STRIDE, 8);
-		gl.vertexAttribPointer(colorIndex, 4, gl.FLOAT, false, STRIDE, 16);
+		gl.vertexAttribPointer(colorIndex, 4, gl.UNSIGNED_BYTE, true, STRIDE, 16);
 
 		gl.enableVertexAttribArray(positionIndex);
 		gl.enableVertexAttribArray(uvIndex);
@@ -125,11 +125,14 @@ exports = Class(function() {
 		gl.uniform2f(resolutionLocation, this._canvasElement.width, this._canvasElement.height);
 
 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+		gl.activeTexture(gl.TEXTURE0);
+		gl.uniform1i(gl.getUniformLocation(this._shaderProgram, "uSampler"), 0);
 	};
 
 	this.createVertexShader = function() {
 		var gl = this.ctx;
 		var src = [
+		    'precision lowp float;',
 			'attribute vec2 aTextureCoord;',
 			'attribute vec2 aPosition;',
 			'attribute vec4 aColor;',
@@ -140,7 +143,7 @@ exports = Class(function() {
 			'	vTextureCoord = aTextureCoord;',
 			'	vec2 clipSpace = (aPosition / uResolution) * 2.0 - 1.0;',
 			'	vColor = aColor;',
-			'	gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);',
+			'	gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);',
 			'}'
 		].join("\n");
 
@@ -154,7 +157,7 @@ exports = Class(function() {
 	this.createFragmentShader = function() {
 		var gl = this.ctx;
 		var src = [
-		    'precision mediump float;',
+		    'precision lowp float;',
 			'varying vec2 vTextureCoord;',
 			'varying vec4 vColor;',
 			'uniform sampler2D uSampler;',
@@ -206,7 +209,7 @@ exports = Class(function() {
 
 		if (glId !== this._lastTextureId) {
 			this.flush();
-			this.setActiveTexture(this.textureCache[glId]);
+			gl.bindTexture(gl.TEXTURE_2D, this.textureCache[glId]);
 			this._lastTextureId = glId;
 		}
 
@@ -216,32 +219,34 @@ exports = Class(function() {
 		var m = this._transform;
 		var tw = image.width;
 		var th = image.height;
-		var i = this._batchIndex * STRIDE;
+		var i = this._batchIndex * 5 * 4;
 
 		vc[i + 0] = dx * m.a + dy * m.c + m.tx; // x0
 		vc[i + 1] = dx * m.b + dy * m.d + m.ty; // y0
 		vc[i + 2] = sx / tw; // u0
 		vc[i + 3] = sy / th; // v0
 
-		vc[i + 8] = dxW * m.a + dy * m.c + m.tx; // x1
-		vc[i + 9] = dxW * m.b + dy * m.d + m.ty; // y1
-		vc[i + 10] = (sx + sWidth) / tw; // u1
-		vc[i + 11] = vc[i + 3]; // v1
+		vc[i + 5] = dxW * m.a + dy * m.c + m.tx; // x1
+		vc[i + 6] = dxW * m.b + dy * m.d + m.ty; // y1
+		vc[i + 7] = (sx + sWidth) / tw; // u1
+		vc[i + 8] = vc[i + 3]; // v1
 
-		vc[i + 16] = dx * m.a + dyH * m.c + m.tx; // x2
-		vc[i + 17] = dx * m.b + dyH * m.d + m.ty; // y2
-		vc[i + 18] = vc[i + 2]; // u2
-		vc[i + 19] = (sy + sHeight) / th;  // v2
+		vc[i + 10] = dx * m.a + dyH * m.c + m.tx; // x2
+		vc[i + 11] = dx * m.b + dyH * m.d + m.ty; // y2
+		vc[i + 12] = vc[i + 2]; // u2
+		vc[i + 13] = (sy + sHeight) / th;  // v2
 
-		vc[i + 24] = dxW * m.a + dyH * m.c + m.tx; // x3
-		vc[i + 25] = dxW * m.b + dyH * m.d + m.ty; // y3
-		vc[i + 26] = vc[i + 10]; // u4
-		vc[i + 27] = vc[i + 19]; // v4
+		vc[i + 15] = dxW * m.a + dyH * m.c + m.tx; // x3
+		vc[i + 16] = dxW * m.b + dyH * m.d + m.ty; // y3
+		vc[i + 17] = vc[i + 7]; // u4
+		vc[i + 18] = vc[i + 13]; // v4
 
-		vc[i + 4] = vc[i + 12] = vc[i + 20] = vc[i + 28] = 1.0; // R
-		vc[i + 5] = vc[i + 13] = vc[i + 21] = vc[i + 29] = 1.0; // G
-		vc[i + 6] = vc[i + 14] = vc[i + 22] = vc[i + 30] = 1.0; // B
-		vc[i + 7] = vc[i + 15] = vc[i + 23] = vc[i + 31] = this.globalAlpha; // A
+		var ci = this._batchIndex * 4 * STRIDE;
+		var cc = this._colors;
+		cc[ci + 16] = cc[ci + 36] = cc[ci + 56] = cc[ci + 76] = 255; // R
+		cc[ci + 17] = cc[ci + 37] = cc[ci + 57] = cc[ci + 77] = 255; // G
+		cc[ci + 18] = cc[ci + 38] = cc[ci + 58] = cc[ci + 78] = 255; // B
+		cc[ci + 19] = cc[ci + 39] = cc[ci + 59] = cc[ci + 79] = 255 * this.globalAlpha; // A
 
 		if (++this._batchIndex >= MAX_BATCH_SIZE) { this.flush(); }
 	};
@@ -249,7 +254,12 @@ exports = Class(function() {
 	this.flush = function() {
 		if (this._batchIndex === 0) { return; }
 		var gl = this.ctx;
-		gl.bufferData(gl.ARRAY_BUFFER, this._vertexCache, gl.DYNAMIC_DRAW);
+		if (this._batchIndex < MAX_BATCH_SIZE * 0.5) {
+			var view = this._verticies.subarray(0, this._batchIndex * 5 * 4);
+			gl.bufferSubData(gl.ARRAY_BUFFER, 0, view);
+		} else {
+			gl.bufferSubData(gl.ARRAY_BUFFER, 0, this._vertexCache);
+		}
 		gl.drawElements(gl.TRIANGLES, this._batchIndex * 6, gl.UNSIGNED_SHORT, 0);
 		this._batchIndex = 0;
 	};
@@ -268,13 +278,6 @@ exports = Class(function() {
 		image.__GL_ID = id;
 		return id;
 	};
-
-	this.setActiveTexture = function(texture) {
-		var gl = this.ctx;
-		gl.activeTexture(gl.TEXTURE0);
-		gl.bindTexture(gl.TEXTURE_2D, texture);
-		gl.uniform1i(gl.getUniformLocation(this._shaderProgram, "uSampler"), 0);
-  	};
 
 	this.setTransform = function(a, b, c, d, tx, ty) {
 		this._transform.setTo(a, b, c, d, tx, ty);
