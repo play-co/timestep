@@ -29,6 +29,9 @@ exports = Class(function() {
 	var MAX_BATCH_SIZE = 1;
 	var STRIDE = 20;
 
+	var min = Math.min;
+	var max = Math.max;
+
 	Object.defineProperty(this, 'canvas', {
 		get: function() { return this._canvasElement; }
 	});
@@ -65,6 +68,9 @@ exports = Class(function() {
 		this._lastTextureId = -1;
 		this._batchIndex = 0;
 
+		this.width = this._canvasElement.width;
+		this.height = this._canvasElement.height;
+
 		// this.ctx.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	};
 
@@ -90,7 +96,6 @@ exports = Class(function() {
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, this._vertexCache, gl.DYNAMIC_DRAW);
-
 
 	    var positionIndex = gl.getAttribLocation(this._shaderProgram, "aPosition");
 	    var uvIndex = gl.getAttribLocation(this._shaderProgram, "aTextureCoord");
@@ -201,6 +206,30 @@ exports = Class(function() {
 
 	this.drawImage = function(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
 		var gl = this.ctx;
+		var m = this._transform;
+		var dxW = dx + dWidth;
+		var dyH = dy + dHeight;
+
+		// Calculate 4 vertex positions
+		var x0 = dx * m.a + dy * m.c + m.tx;
+		var y0 = dx * m.b + dy * m.d + m.ty;
+		var x1 = dxW * m.a + dy * m.c + m.tx;
+		var y1 = dxW * m.b + dy * m.d + m.ty;
+		var x2 = dx * m.a + dyH * m.c + m.tx;
+		var y2 = dx * m.b + dyH * m.d + m.ty;
+		var x3 = dxW * m.a + dyH * m.c + m.tx;
+		var y3 = dxW * m.b + dyH * m.d + m.ty;
+
+		// Calculate bounding box for simple culling
+		var minX = min(this.width, x0, x1, x2, x3);
+		var maxX = max(0, x0, x1, x2, x3);
+		var minY = min(this.height, y0, y1, y2, y3);
+		var maxY = max(0, y0, y1, y2, y3);
+
+		if (minX > this.width || maxX <= 0 || minY > this.height || maxY <= 0) {
+			// Offscreen, don't bother trying to draw it.
+			return;
+		}
 
 		var glId = image.__GL_ID;
 		if (glId === undefined) {
@@ -213,31 +242,28 @@ exports = Class(function() {
 			this._lastTextureId = glId;
 		}
 
-		var vc = this._verticies;
-		var dxW = dx + dWidth;
-		var dyH = dy + dHeight;
-		var m = this._transform;
 		var tw = image.width;
 		var th = image.height;
+		var vc = this._verticies;
 		var i = this._batchIndex * 5 * 4;
 
-		vc[i + 0] = dx * m.a + dy * m.c + m.tx; // x0
-		vc[i + 1] = dx * m.b + dy * m.d + m.ty; // y0
+		vc[i + 0] = x0;
+		vc[i + 1] = y0;
 		vc[i + 2] = sx / tw; // u0
 		vc[i + 3] = sy / th; // v0
 
-		vc[i + 5] = dxW * m.a + dy * m.c + m.tx; // x1
-		vc[i + 6] = dxW * m.b + dy * m.d + m.ty; // y1
+		vc[i + 5] = x1;
+		vc[i + 6] = y1;
 		vc[i + 7] = (sx + sWidth) / tw; // u1
 		vc[i + 8] = vc[i + 3]; // v1
 
-		vc[i + 10] = dx * m.a + dyH * m.c + m.tx; // x2
-		vc[i + 11] = dx * m.b + dyH * m.d + m.ty; // y2
+		vc[i + 10] = x2;
+		vc[i + 11] = y2;
 		vc[i + 12] = vc[i + 2]; // u2
 		vc[i + 13] = (sy + sHeight) / th;  // v2
 
-		vc[i + 15] = dxW * m.a + dyH * m.c + m.tx; // x3
-		vc[i + 16] = dxW * m.b + dyH * m.d + m.ty; // y3
+		vc[i + 15] = x3;
+		vc[i + 16] = y3;
 		vc[i + 17] = vc[i + 7]; // u4
 		vc[i + 18] = vc[i + 13]; // v4
 
@@ -254,12 +280,8 @@ exports = Class(function() {
 	this.flush = function() {
 		if (this._batchIndex === 0) { return; }
 		var gl = this.ctx;
-		if (this._batchIndex < MAX_BATCH_SIZE * 0.5) {
-			var view = this._verticies.subarray(0, this._batchIndex * 5 * 4);
-			gl.bufferSubData(gl.ARRAY_BUFFER, 0, view);
-		} else {
-			gl.bufferSubData(gl.ARRAY_BUFFER, 0, this._vertexCache);
-		}
+		var view = this._verticies.subarray(0, this._batchIndex * 5 * 4);
+		gl.bufferSubData(gl.ARRAY_BUFFER, 0, view);
 		gl.drawElements(gl.TRIANGLES, this._batchIndex * 6, gl.UNSIGNED_SHORT, 0);
 		this._batchIndex = 0;
 	};
