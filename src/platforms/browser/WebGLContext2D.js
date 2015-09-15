@@ -26,7 +26,7 @@ import .Matrix2D;
 
 exports = Class(function() {
 
-	var MAX_BATCH_SIZE = 1;
+	var MAX_BATCH_SIZE = 2000;
 	var STRIDE = 20;
 
 	var min = Math.min;
@@ -65,13 +65,18 @@ exports = Class(function() {
 		this._transform = new Matrix2D();
 		this.textureCache = [];
 
-		this._lastTextureId = -1;
-		this._batchIndex = 0;
 
 		this.width = this._canvasElement.width;
 		this.height = this._canvasElement.height;
 
 		// this.ctx.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+		this._batchIndex = -1;
+		this._textureQueueIndex = -1;
+		this._textureQueue = new Array(MAX_BATCH_SIZE);
+		for (var i = 0; i <= MAX_BATCH_SIZE; i++) {
+			this._textureQueue[i] = { textureId: 0, index: 0 };
+		}
 	};
 
 	this._initializeBuffers = function() {
@@ -96,6 +101,7 @@ exports = Class(function() {
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, this._vertexCache, gl.DYNAMIC_DRAW);
+
 
 	    var positionIndex = gl.getAttribLocation(this._shaderProgram, "aPosition");
 	    var uvIndex = gl.getAttribLocation(this._shaderProgram, "aTextureCoord");
@@ -236,11 +242,7 @@ exports = Class(function() {
 			glId = this.createTexture(image);
 		}
 
-		if (glId !== this._lastTextureId) {
-			this.flush();
-			gl.bindTexture(gl.TEXTURE_2D, this.textureCache[glId]);
-			this._lastTextureId = glId;
-		}
+		this.addToBatch(glId);
 
 		var tw = image.width;
 		var th = image.height;
@@ -273,17 +275,26 @@ exports = Class(function() {
 		cc[ci + 17] = cc[ci + 37] = cc[ci + 57] = cc[ci + 77] = 255; // G
 		cc[ci + 18] = cc[ci + 38] = cc[ci + 58] = cc[ci + 78] = 255; // B
 		cc[ci + 19] = cc[ci + 39] = cc[ci + 59] = cc[ci + 79] = 255 * this.globalAlpha; // A
-
-		if (++this._batchIndex >= MAX_BATCH_SIZE) { this.flush(); }
 	};
 
 	this.flush = function() {
-		if (this._batchIndex === 0) { return; }
+		if (this._textureQueueIndex === -1) { return; }
+
 		var gl = this.ctx;
-		var view = this._verticies.subarray(0, this._batchIndex * 5 * 4);
-		gl.bufferSubData(gl.ARRAY_BUFFER, 0, view);
-		gl.drawElements(gl.TRIANGLES, this._batchIndex * 6, gl.UNSIGNED_SHORT, 0);
-		this._batchIndex = 0;
+		gl.bufferSubData(gl.ARRAY_BUFFER, 0, this._vertexCache);
+
+		this._textureQueue[this._textureQueueIndex + 1].index = this._batchIndex + 1;
+
+		for (var i = 0; i <= this._textureQueueIndex; i++) {
+			var curQueueObj = this._textureQueue[i];
+			gl.bindTexture(gl.TEXTURE_2D, this.textureCache[curQueueObj.textureId]);
+			var start = curQueueObj.index;
+			var next = this._textureQueue[i + 1].index;
+			gl.drawElements(gl.TRIANGLES, (next - start) * 6, gl.UNSIGNED_SHORT, start * 12);
+		}
+
+		this._batchIndex = -1;
+		this._textureQueueIndex = -1;
 	};
 
 	this.createTexture = function(image) {
@@ -331,5 +342,16 @@ exports = Class(function() {
 	this.strokeText = function() {};
 
 	this.measureText = FontRenderer.wrapMeasureText;
+
+	this.addToBatch = function(textureId) {
+		if (this._batchIndex >= MAX_BATCH_SIZE - 1) { this.flush(); }
+		this._batchIndex++;
+		var currentTextureId = this._textureQueueIndex > -1 ? this._textureQueue[this._textureQueueIndex].textureId : -1;
+		if (textureId !== currentTextureId) {
+			var queueObject = this._textureQueue[++this._textureQueueIndex];
+			queueObject.textureId = textureId;
+			queueObject.index = this._batchIndex;
+		}
+	};
 
 });
