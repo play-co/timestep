@@ -95,9 +95,8 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 	this.wrapTick = function (dt, app) {
 		this._view._tick && this._view._tick(dt, app);
 
-		var viewCount = this._childCount;
 		var views = this._subviews;
-		for (var i = 0; i < viewCount; ++i) {
+		for (var i = 0; i < this._childCount; ++i) {
 			views[i].wrapTick(dt, app);
 		}
 
