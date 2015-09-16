@@ -209,8 +209,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 
 	this._renderSubviews = function (ctx, opts) {
 		var subviews = this._subviews;
-		var viewCount = this._childCount;
-		for (var i = 0; i < viewCount; i++) {
+		for (var i = 0; i < this._childCount; i++) {
 			subviews[i].wrapRender(ctx, opts);
 		}
 	}
