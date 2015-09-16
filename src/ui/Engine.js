@@ -91,6 +91,7 @@ var Engine = exports = Class(Emitter, function (supr) {
 			var Canvas = device.get('Canvas');
 			this._rootElement = new Canvas({
 				el: canvas, // use an existing canvas if one was provided, but wrap the 2D context
+				useWebGL: true, // use WebGL if supported
 				width: opts.width,
 				height: opts.height,
 				offscreen: false
