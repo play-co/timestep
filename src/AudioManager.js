@@ -264,12 +264,6 @@ var MultiSound = Class(function () {
 
 	this.play = function (opts) {
 		opts = opts || {};
-		if (!this._isPaused) {
-			this.stop();
-		} else {
-			this._isPaused = false;
-		}
-
 		var loop = opts.loop || this.loop;
 		var time = opts.time || 0;
 		var duration = opts.duration ? opts.duration * 1000 : undefined;
@@ -305,16 +299,18 @@ var MultiSound = Class(function () {
 	};
 
 	this._playFromBuffer = function (buffer, loop, time, duration) {
-		var src = _ctx.createBufferSource();
-		src.buffer = buffer;
-		src.loop = loop;
-		src.connect(this._gainNode);
-		if (duration !== undefined) {
-			src.start(_ctx.currentTime, time, duration);
-		} else {
-			src.start(_ctx.currentTime, time);
+		if (buffer) {
+			var src = _ctx.createBufferSource();
+			src.buffer = buffer;
+			src.loop = loop;
+			src.connect(this._gainNode);
+			if (duration !== undefined) {
+				src.start(_ctx.currentTime, time, duration);
+			} else {
+				src.start(_ctx.currentTime, time);
+			}
+			this._lastSrc = src;
 		}
-		this._lastSrc = src;
 	};
 
 	this._getRandom = function () {
