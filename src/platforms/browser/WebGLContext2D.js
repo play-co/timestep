@@ -24,6 +24,43 @@ import device;
 import .FontRenderer;
 import .Matrix2D;
 
+var ContextStateStack = Class(function() {
+
+	this.init = function() {
+		this._states = [this.getObject()];
+		this._stateIndex = 0;
+	};
+
+	this.save = function() {
+		var lastState = this.state;
+		if (++this._stateIndex >= this._states.length) {
+			this._states[this._stateIndex] = this.getObject();
+		}
+		this.state.globalCompositeOperation = lastState.globalCompositeOperation;
+		this.state.globalAlpha = lastState.globalAlpha;
+		this.state.transform.copy(lastState.transform);
+	};
+
+	this.restore = function() {
+		if (this._stateIndex > 0) {
+			this._stateIndex--;
+		}
+	};
+
+	this.getObject = function() {
+		return {
+			globalCompositeOperation: "source-over",
+			globalAlpha: 1,
+			transform: new Matrix2D()
+		}
+	};
+
+	Object.defineProperty(this, 'state', {
+		get: function() { return this._states[this._stateIndex]; }
+	});
+
+});
+
 exports = Class(function() {
 
 	var MAX_BATCH_SIZE = 2000;
@@ -32,50 +69,64 @@ exports = Class(function() {
 	var min = Math.min;
 	var max = Math.max;
 
-	Object.defineProperty(this, 'canvas', {
-		get: function() { return this._canvasElement; }
+	Object.defineProperties(this, {
+		canvas: {
+			get: function() { return this._canvas; }
+		},
+		transform: {
+			get: function() { return this.stack.state.transform; }
+		},
+		globalAlpha: {
+			get: function() { return this.stack.state.globalAlpha; },
+			set: function(value) { this.stack.state.globalAlpha = value; }
+		},
+		globalCompositeOperation: {
+			get: function() { return this.stack.state.globalCompositeOperation; },
+			set: function(value) {
+				this.stack.state.globalCompositeOperation = value;
+			}
+		}
 	});
 
 	this.init = function(opts) {
 		opts = opts || {};
-		this._canvasElement = opts.el || document.createElement('canvas');
-		this._canvasElement.width = opts.width || device.width;
-		this._canvasElement.height = opts.height || device.height;
+		this.width = opts.width || device.width;
+		this.height = opts.height || device.height;
+		this._canvas = opts.el || document.createElement('canvas');
+		this._canvas.width = this.width;
+		this._canvas.height = this.height;
+
+		this.stack = new ContextStateStack();
+
 		this.font = '11px ' + device.defaultFontFamily;
 
-		this.globalAlpha = 1;
-
-		var gl = this.ctx = this._canvasElement.getContext('webgl');
+		var gl = this.ctx = this._canvas.getContext('webgl');
 		gl.clearColor(0.0, 0.0, 0.0, 1.0);
 		gl.disable(gl.DEPTH_TEST);
 		gl.disable(gl.CULL_FACE);
 		gl.enable(gl.BLEND);
+
+		this.setActiveCompositeOperation('source-over');
 
 		this._indexCache = new Uint16Array(MAX_BATCH_SIZE * 6);
 		this._vertexCache = new ArrayBuffer(MAX_BATCH_SIZE * STRIDE * 4);
 		this._verticies = new Float32Array(this._vertexCache);
 		this._colors = new Uint8Array(this._vertexCache);
 
-		this._vertexBuffer = null;
-		this._shaderProgram = null;
 		this._initializeShaders();
 		this._initializeBuffers();
 
 		this._helperTransform = new Matrix2D();
-		this._transform = new Matrix2D();
 		this.textureCache = [];
-
-
-		this.width = this._canvasElement.width;
-		this.height = this._canvasElement.height;
-
-		// this.ctx.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 		this._batchIndex = -1;
 		this._textureQueueIndex = -1;
 		this._textureQueue = new Array(MAX_BATCH_SIZE);
 		for (var i = 0; i <= MAX_BATCH_SIZE; i++) {
-			this._textureQueue[i] = { textureId: 0, index: 0 };
+			this._textureQueue[i] = {
+				textureId: 0,
+				index: 0
+			};
 		}
 	};
 
@@ -133,9 +184,9 @@ exports = Class(function() {
 	    gl.useProgram(this._shaderProgram);
 
 		var resolutionLocation = gl.getUniformLocation(this._shaderProgram, "uResolution");
-		gl.uniform2f(resolutionLocation, this._canvasElement.width, this._canvasElement.height);
+		gl.uniform2f(resolutionLocation, this._canvas.width, this._canvas.height);
 
-		gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+		gl.blendEquation(gl.FUNC_ADD);
 		gl.activeTexture(gl.TEXTURE0);
 		gl.uniform1i(gl.getUniformLocation(this._shaderProgram, "uSampler"), 0);
 	};
@@ -185,14 +236,22 @@ exports = Class(function() {
 	};
 
 	this.loadIdentity = function() {
-		this._transform.identity();
+		this.transform.identity();
 	};
 
-	this.getElement = function() { return this._canvasElement; };
+	this.getElement = function() { return this._canvas; };
 
 	this.reset = function() {};
 
-	this.clear = function() {};
+	this.clear = function() {
+		this.ctx.clear(this.ctx.COLOR_BUFFER_BIT);
+	};
+
+	this.resize = function(width, height) {
+		this.width = this.canvas.width  = width;
+		this.height = this.canvas.height = height;
+		this.ctx.viewport(0, 0, width, height);
+	};
 
 	this.clipRect = function(x, y, width, height) {};
 
@@ -206,13 +265,17 @@ exports = Class(function() {
 
 	this.clearFilters = function() {};
 
-	this.save = function() {};
+	this.save = function() {
+		this.stack.save();
+	};
 
-	this.restore = function() {};
+	this.restore = function() {
+		this.stack.restore();
+	};
 
 	this.drawImage = function(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
 		var gl = this.ctx;
-		var m = this._transform;
+		var m = this.transform;
 		var dxW = dx + dWidth;
 		var dyH = dy + dHeight;
 
@@ -277,6 +340,72 @@ exports = Class(function() {
 		cc[ci + 19] = cc[ci + 39] = cc[ci + 59] = cc[ci + 79] = 255 * this.globalAlpha; // A
 	};
 
+	this.setActiveCompositeOperation = function(op) {
+
+		op = op || 'source-over';
+		if (this._activeCompositeOperation === op) { return; }
+		this._activeCompositeOperation = op;
+
+		var gl = this.ctx;
+		var source;
+		var destination;
+
+		switch(op) {
+		    case 'source_atop':
+			        source = gl.DST_ALPHA;
+			        destination = gl.ONE_MINUS_SRC_ALPHA;
+			        break;
+
+			    case 'source_in':
+			        source = gl.DST_ALPHA;
+			        destination = gl.ZERO;
+			        break;
+
+			    case 'source_out':
+			        source = gl.ONE_MINUS_DST_ALPHA;
+			        destination = gl.ZERO;
+			        break;
+
+			    case 'source_over':
+			        source = gl.ONE;
+			        destination = gl.ONE_MINUS_SRC_ALPHA;
+			        break;
+
+			    case 'destination_atop':
+			        source = gl.DST_ALPHA;
+			        destination = gl.SRC_ALPHA;
+			        break;
+
+			    case 'destination_in':
+			        source = gl.ZERO;
+			        destination = gl.SRC_ALPHA;
+			        break;
+
+			    case 'destination_out':
+			        source = gl.ONE_MINUS_SRC_ALPHA;
+			        destination = gl.ONE_MINUS_SRC_ALPHA;
+			        break;
+
+			    case 'destination_over':
+			        source = gl.DST_ALPHA;
+			        destination = gl.SRC_ALPHA;
+			        break;
+
+			    case 'lighter':
+			        source = gl.ONE;
+			        destination = gl.ONE;
+			        break;
+
+			    case 'xor':
+			    case 'copy':
+			    default:
+			        source = gl.ONE;
+			        destination = gl.ONE_MINUS_SRC_ALPHA;
+			        break;
+		}
+		gl.blendFunc(source, destination);
+	};
+
 	this.flush = function() {
 		if (this._textureQueueIndex === -1) { return; }
 
@@ -288,6 +417,7 @@ exports = Class(function() {
 		for (var i = 0; i <= this._textureQueueIndex; i++) {
 			var curQueueObj = this._textureQueue[i];
 			gl.bindTexture(gl.TEXTURE_2D, this.textureCache[curQueueObj.textureId]);
+			this.setActiveCompositeOperation(curQueueObj.globalCompositeOperation);
 			var start = curQueueObj.index;
 			var next = this._textureQueue[i + 1].index;
 			gl.drawElements(gl.TRIANGLES, (next - start) * 6, gl.UNSIGNED_SHORT, start * 12);
@@ -313,24 +443,24 @@ exports = Class(function() {
 	};
 
 	this.setTransform = function(a, b, c, d, tx, ty) {
-		this._transform.setTo(a, b, c, d, tx, ty);
+		this.transform.setTo(a, b, c, d, tx, ty);
 	};
 
 	this.transform = function(a, b, c, d, tx, ty) {
 		this._helperTransform.setTo(a, b, c, d, tx, ty);
-		this._transform.transform(this._helperTransform);
+		this.transform.transform(this._helperTransform);
 	};
 
 	this.scale = function(x, y) {
-		this._transform.scale(x, y);
+		this.transform.scale(x, y);
 	};
 
 	this.translate = function(x, y) {
-		this._transform.translate(x, y);
+		this.transform.translate(x, y);
 	};
 
 	this.rotate = function(angle) {
-		this._transform.rotate(angle);
+		this.transform.rotate(angle);
 	};
 
 	this.strokeRect = function() {};
@@ -346,11 +476,18 @@ exports = Class(function() {
 	this.addToBatch = function(textureId) {
 		if (this._batchIndex >= MAX_BATCH_SIZE - 1) { this.flush(); }
 		this._batchIndex++;
-		var currentTextureId = this._textureQueueIndex > -1 ? this._textureQueue[this._textureQueueIndex].textureId : -1;
-		if (textureId !== currentTextureId) {
+
+		var stateChanged = this._textureQueueIndex === -1;
+		if (!stateChanged) {
+			var currentState = this._textureQueue[this._textureQueueIndex];
+			stateChanged = currentState.textureId !== textureId || currentState.globalCompositeOperation !== this.globalCompositeOperation;
+		}
+
+		if (stateChanged) {
 			var queueObject = this._textureQueue[++this._textureQueueIndex];
 			queueObject.textureId = textureId;
 			queueObject.index = this._batchIndex;
+			queueObject.globalCompositeOperation = this.globalCompositeOperation;
 		}
 	};
 
