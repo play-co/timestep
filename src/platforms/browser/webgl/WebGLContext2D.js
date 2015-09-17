@@ -51,7 +51,8 @@ var ContextStateStack = Class(function() {
 		return {
 			globalCompositeOperation: "source-over",
 			globalAlpha: 1,
-			transform: new Matrix2D()
+			transform: new Matrix2D(),
+			filter: null
 		}
 	};
 
@@ -64,7 +65,13 @@ var ContextStateStack = Class(function() {
 exports = Class(function() {
 
 	var MAX_BATCH_SIZE = 2000;
-	var STRIDE = 20;
+	var STRIDE = 24;
+
+	var FILTERMAP = {
+		LinearAdd: 1,
+		Tint: 2,
+		Multiply: 3
+	};
 
 	var min = Math.min;
 	var max = Math.max;
@@ -148,40 +155,42 @@ exports = Class(function() {
 		this._vertexBuffer = gl.createBuffer();
 
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-	    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._indexCache, gl.STATIC_DRAW);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._indexCache, gl.STATIC_DRAW);
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, this._vertexCache, gl.DYNAMIC_DRAW);
 
-
-	    var positionIndex = gl.getAttribLocation(this._shaderProgram, "aPosition");
-	    var uvIndex = gl.getAttribLocation(this._shaderProgram, "aTextureCoord");
-	    var colorIndex = gl.getAttribLocation(this._shaderProgram, "aColor");
+		var positionIndex = gl.getAttribLocation(this._shaderProgram, "aPosition");
+		var uvIndex = gl.getAttribLocation(this._shaderProgram, "aTextureCoord");
+		var alphaIndex = gl.getAttribLocation(this._shaderProgram, "aAlpha");
+		var colorIndex = gl.getAttribLocation(this._shaderProgram, "aColor");
 
 		gl.vertexAttribPointer(positionIndex, 2, gl.FLOAT, false, STRIDE, 0);
 		gl.vertexAttribPointer(uvIndex, 2, gl.FLOAT, false, STRIDE, 8);
-		gl.vertexAttribPointer(colorIndex, 4, gl.UNSIGNED_BYTE, true, STRIDE, 16);
+		gl.vertexAttribPointer(alphaIndex, 1, gl.FLOAT, false, STRIDE, 16);
+		gl.vertexAttribPointer(colorIndex, 4, gl.UNSIGNED_BYTE, true, STRIDE, 20);
 
 		gl.enableVertexAttribArray(positionIndex);
 		gl.enableVertexAttribArray(uvIndex);
+		gl.enableVertexAttribArray(alphaIndex);
 		gl.enableVertexAttribArray(colorIndex);
 	};
 
 	this._initializeShaders = function() {
-	  	var gl = this.ctx;
-	    var vertexShader = this.createVertexShader();
-	    var fragmentShader = this.createFragmentShader();
+		var gl = this.ctx;
+		var vertexShader = this.createVertexShader();
+		var fragmentShader = this.createFragmentShader();
 
-	    this._shaderProgram = gl.createProgram();
-	    gl.attachShader(this._shaderProgram, vertexShader);
-	    gl.attachShader(this._shaderProgram, fragmentShader);
-	    gl.linkProgram(this._shaderProgram);
+		this._shaderProgram = gl.createProgram();
+		gl.attachShader(this._shaderProgram, vertexShader);
+		gl.attachShader(this._shaderProgram, fragmentShader);
+		gl.linkProgram(this._shaderProgram);
 
-	    if (!gl.getProgramParameter(this._shaderProgram, gl.LINK_STATUS)) {
-	      console.log("Could not initialize shaders");
-	    }
+		if (!gl.getProgramParameter(this._shaderProgram, gl.LINK_STATUS)) {
+			console.log("Could not initialize shaders");
+		}
 
-	    gl.useProgram(this._shaderProgram);
+		gl.useProgram(this._shaderProgram);
 
 		var resolutionLocation = gl.getUniformLocation(this._shaderProgram, "uResolution");
 		gl.uniform2f(resolutionLocation, this._canvas.width, this._canvas.height);
@@ -189,22 +198,27 @@ exports = Class(function() {
 		gl.blendEquation(gl.FUNC_ADD);
 		gl.activeTexture(gl.TEXTURE0);
 		gl.uniform1i(gl.getUniformLocation(this._shaderProgram, "uSampler"), 0);
+
+		this._filterLocation = gl.getUniformLocation(this._shaderProgram, "uFilterType");
 	};
 
 	this.createVertexShader = function() {
 		var gl = this.ctx;
 		var src = [
-		    'precision lowp float;',
+			'precision lowp float;',
 			'attribute vec2 aTextureCoord;',
 			'attribute vec2 aPosition;',
 			'attribute vec4 aColor;',
+			'attribute float aAlpha;',
 			'uniform vec2 uResolution;',
 			'varying vec2 vTextureCoord;',
+			'varying float vAlpha;',
 			'varying vec4 vColor;',
 			'void main() {',
 			'	vTextureCoord = aTextureCoord;',
 			'	vec2 clipSpace = (aPosition / uResolution) * 2.0 - 1.0;',
 			'	vColor = aColor;',
+			'	vAlpha = aAlpha;',
 			'	gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);',
 			'}'
 		].join("\n");
@@ -218,19 +232,35 @@ exports = Class(function() {
 
 	this.createFragmentShader = function() {
 		var gl = this.ctx;
+
 		var src = [
-		    'precision lowp float;',
+			'precision lowp float;',
 			'varying vec2 vTextureCoord;',
+			'varying float vAlpha;',
 			'varying vec4 vColor;',
 			'uniform sampler2D uSampler;',
-		    'void main(void) {',
-		  	'  gl_FragColor = texture2D(uSampler, vTextureCoord) * vColor;',
-		    '}'
+			'uniform int uFilterType;',
+			'void main(void) {',
+			'	vec4 vSample = texture2D(uSampler, vTextureCoord);',
+			'	if (uFilterType == 0) {',
+			'		gl_FragColor = vec4(vSample.rgb, vSample.a * vAlpha);', // 0 - No filter
+			'	} else if (uFilterType == 1) {',
+			'		gl_FragColor = vec4(vSample.rgb + vColor.rgb, vSample.a * vAlpha);', // 1 - LinearAdd
+			'	} else if (uFilterType == 2) {',
+			'		gl_FragColor = vec4(vSample.rgb * (1.0 - vColor.a) + (vColor.rgb * vColor.a), vSample.a * vAlpha);', // 2 - Tint
+			'	} else if (uFilterType == 3) {',
+			'		gl_FragColor = vSample * vColor * vec4(1.0, 1.0, 1.0, vAlpha);', // 3 - Multiply
+			'	}',
+			'}'
 		].join("\n");
 
 		var shader = gl.createShader(gl.FRAGMENT_SHADER);
 		gl.shaderSource(shader, src);
 		gl.compileShader(shader);
+
+		if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+		  console.error(gl.getShaderInfoLog(shader));
+		}
 
 		return shader;
 	};
@@ -261,9 +291,15 @@ exports = Class(function() {
 
 	this.execSwap = function() {};
 
-	this.setFilters = function(filters) {};
+	this.setFilters = function(filters) {
+		for (var filterId in filters) {
+			this.stack.state.filter = filters[filterId];
+		}
+	};
 
-	this.clearFilters = function() {};
+	this.clearFilters = function() {
+		this.stack.state.filter = null;
+	};
 
 	this.save = function() {
 		this.stack.save();
@@ -310,34 +346,51 @@ exports = Class(function() {
 		var tw = image.width;
 		var th = image.height;
 		var vc = this._verticies;
-		var i = this._batchIndex * 5 * 4;
+		var i = this._batchIndex * 6 * 4;
 
 		vc[i + 0] = x0;
 		vc[i + 1] = y0;
 		vc[i + 2] = sx / tw; // u0
 		vc[i + 3] = sy / th; // v0
+		vc[i + 4] = this.globalAlpha;
 
-		vc[i + 5] = x1;
-		vc[i + 6] = y1;
-		vc[i + 7] = (sx + sWidth) / tw; // u1
-		vc[i + 8] = vc[i + 3]; // v1
+		vc[i + 6] = x1;
+		vc[i + 7] = y1;
+		vc[i + 8] = (sx + sWidth) / tw; // u1
+		vc[i + 9] = vc[i + 3]; // v1
+		vc[i + 10] = this.globalAlpha;
 
-		vc[i + 10] = x2;
-		vc[i + 11] = y2;
-		vc[i + 12] = vc[i + 2]; // u2
-		vc[i + 13] = (sy + sHeight) / th;  // v2
+		vc[i + 12] = x2;
+		vc[i + 13] = y2;
+		vc[i + 14] = vc[i + 2]; // u2
+		vc[i + 15] = (sy + sHeight) / th;  // v2
+		vc[i + 16] = this.globalAlpha;
 
-		vc[i + 15] = x3;
-		vc[i + 16] = y3;
-		vc[i + 17] = vc[i + 7]; // u4
-		vc[i + 18] = vc[i + 13]; // v4
+		vc[i + 18] = x3;
+		vc[i + 19] = y3;
+		vc[i + 20] = vc[i + 8]; // u4
+		vc[i + 21] = vc[i + 15]; // v4
+		vc[i + 22] = this.globalAlpha;
+
+		var filterR = 0;
+		var filterG = 0;
+		var filterB = 0;
+		var filterA = 0;
+
+		if (this.stack.state.filter) {
+			var color = this.stack.state.filter.get();
+			filterR = color.r;
+			filterG = color.g;
+			filterB = color.b;
+			filterA = color.a * 255;
+		}
 
 		var ci = this._batchIndex * 4 * STRIDE;
 		var cc = this._colors;
-		cc[ci + 16] = cc[ci + 36] = cc[ci + 56] = cc[ci + 76] = 255; // R
-		cc[ci + 17] = cc[ci + 37] = cc[ci + 57] = cc[ci + 77] = 255; // G
-		cc[ci + 18] = cc[ci + 38] = cc[ci + 58] = cc[ci + 78] = 255; // B
-		cc[ci + 19] = cc[ci + 39] = cc[ci + 59] = cc[ci + 79] = 255 * this.globalAlpha; // A
+		cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = filterR; // R
+		cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = filterG; // G
+		cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = filterB; // B
+		cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = filterA; // A
 	};
 
 	this.setActiveCompositeOperation = function(op) {
@@ -351,61 +404,61 @@ exports = Class(function() {
 		var destination;
 
 		switch(op) {
-			    case 'source_over':
-			        source = gl.SRC_ALPHA;
-			        destination = gl.ONE_MINUS_SRC_ALPHA;
-			        break;
+			case 'source_over':
+				source = gl.SRC_ALPHA;
+				destination = gl.ONE_MINUS_SRC_ALPHA;
+				break;
 
-		    case 'source_atop':
-			        source = gl.DST_ALPHA;
-			        destination = gl.ONE_MINUS_SRC_ALPHA;
-			        break;
+			case 'source_atop':
+				source = gl.DST_ALPHA;
+				destination = gl.ONE_MINUS_SRC_ALPHA;
+				break;
 
-			    case 'source_in':
-			        source = gl.DST_ALPHA;
-			        destination = gl.ZERO;
-			        break;
+			case 'source_in':
+				source = gl.DST_ALPHA;
+				destination = gl.ZERO;
+				break;
 
-			    case 'source_out':
-			        source = gl.ONE_MINUS_DST_ALPHA;
-			        destination = gl.ZERO;
-			        break;
+			case 'source_out':
+				source = gl.ONE_MINUS_DST_ALPHA;
+				destination = gl.ZERO;
+				break;
 
-			    case 'destination_atop':
-			        source = gl.DST_ALPHA;
-			        destination = gl.SRC_ALPHA;
-			        break;
+			case 'destination_atop':
+				source = gl.DST_ALPHA;
+				destination = gl.SRC_ALPHA;
+				break;
 
-			    case 'destination_in':
-			        source = gl.ZERO;
-			        destination = gl.SRC_ALPHA;
-			        break;
+			case 'destination_in':
+				source = gl.ZERO;
+				destination = gl.SRC_ALPHA;
+				break;
 
-			    case 'destination_out':
-			        source = gl.ONE_MINUS_SRC_ALPHA;
-			        destination = gl.ONE_MINUS_SRC_ALPHA;
-			        break;
+			case 'destination_out':
+				source = gl.ONE_MINUS_SRC_ALPHA;
+				destination = gl.ONE_MINUS_SRC_ALPHA;
+				break;
 
-			    case 'destination_over':
-			        source = gl.DST_ALPHA;
-			        destination = gl.SRC_ALPHA;
-			        break;
+			case 'destination_over':
+				source = gl.DST_ALPHA;
+				destination = gl.SRC_ALPHA;
+				break;
 
-			    case 'lighter':
-			        source = gl.SRC_ALPHA;
-			        destination = gl.ONE;
-			        break;
+			case 'lighter':
+				source = gl.SRC_ALPHA;
+				destination = gl.ONE;
+				break;
 
-			    case 'xor':
-			    case 'copy':
-			        source = gl.ONE;
-			        destination = gl.ONE_MINUS_SRC_ALPHA;
-			        break;
+			case 'xor':
+			case 'copy':
+				source = gl.ONE;
+				destination = gl.ONE_MINUS_SRC_ALPHA;
+				break;
 
-			    default:
-			        source = gl.SRC_ALPHA;
-			        destination = gl.ONE_MINUS_SRC_ALPHA;
-			        break;
+			default:
+				source = gl.SRC_ALPHA;
+				destination = gl.ONE_MINUS_SRC_ALPHA;
+				break;
 		}
 		gl.blendFunc(source, destination);
 	};
@@ -415,13 +468,13 @@ exports = Class(function() {
 
 		var gl = this.ctx;
 		gl.bufferSubData(gl.ARRAY_BUFFER, 0, this._vertexCache);
-
 		this._textureQueue[this._textureQueueIndex + 1].index = this._batchIndex + 1;
 
 		for (var i = 0; i <= this._textureQueueIndex; i++) {
 			var curQueueObj = this._textureQueue[i];
 			gl.bindTexture(gl.TEXTURE_2D, this.textureCache[curQueueObj.textureId]);
 			this.setActiveCompositeOperation(curQueueObj.globalCompositeOperation);
+			gl.uniform1i(this._filterLocation, curQueueObj.filterId);
 			var start = curQueueObj.index;
 			var next = this._textureQueue[i + 1].index;
 			gl.drawElements(gl.TRIANGLES, (next - start) * 6, gl.UNSIGNED_SHORT, start * 12);
@@ -473,7 +526,6 @@ exports = Class(function() {
 	this.circle = function(x, y, radius) {};
 	this.drawPointSprites = function(x1, y1, x2, y2) {};
 	this.roundRect = function (x, y, width, height, radius) {};
-
 	this.measureText = function() { return {}; };//FontRenderer.wrapMeasureText(this.measureText);
 	this.fillText = function() {};//FontRenderer.wrapFillText(this.fillText);
 	this.strokeText = function() {};//FontRenderer.wrapStrokeText(this.strokeText);
@@ -482,10 +534,14 @@ exports = Class(function() {
 		if (this._batchIndex >= MAX_BATCH_SIZE - 1) { this.flush(); }
 		this._batchIndex++;
 
+		var currentFilter = this.stack.state.filter;
+
 		var stateChanged = this._textureQueueIndex === -1;
 		if (!stateChanged) {
 			var currentState = this._textureQueue[this._textureQueueIndex];
-			stateChanged = currentState.textureId !== textureId || currentState.globalCompositeOperation !== this.globalCompositeOperation;
+			stateChanged = currentState.textureId !== textureId
+				|| currentState.globalCompositeOperation !== this.globalCompositeOperation
+				|| currentState.filter !== currentFilter;
 		}
 
 		if (stateChanged) {
@@ -493,19 +549,21 @@ exports = Class(function() {
 			queueObject.textureId = textureId;
 			queueObject.index = this._batchIndex;
 			queueObject.globalCompositeOperation = this.globalCompositeOperation;
+			queueObject.filterId = currentFilter ? FILTERMAP[currentFilter.getType()] : 0;
+			queueObject.filter = currentFilter;
 		}
 	};
 
 	this.isPowerOfTwo = function (width, height) {
-	    return width > 0 && (width & (width - 1)) === 0 && height > 0 && (height & (height - 1)) === 0;
+		return width > 0 && (width & (width - 1)) === 0 && height > 0 && (height & (height - 1)) === 0;
 	};
 
 });
 
 var webglSupported = false;
 try {
-  var testCanvas = document.createElement('canvas');
-  webglSupported = !!(window.WebGLRenderingContext && testCanvas.getContext('webgl'));
+	var testCanvas = document.createElement('canvas');
+	webglSupported = !!(window.WebGLRenderingContext && testCanvas.getContext('webgl'));
 } catch(e) {}
 
 exports.isSupported = webglSupported;
