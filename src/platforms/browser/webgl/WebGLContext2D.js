@@ -23,6 +23,7 @@
 import device;
 // import .FontRenderer;
 import .Matrix2D;
+import ui.resource.loader as loader;
 
 var ContextStateStack = Class(function() {
 
@@ -135,6 +136,13 @@ exports = Class(function() {
 				index: 0
 			};
 		}
+
+		loader.on(loader.IMAGE_LOADED, function(image) {
+			var glId = image.__GL_ID;
+			if (glId === undefined) {
+				glId = this.createTexture(image);
+			}
+		}.bind(this));
 	};
 
 	this._initializeBuffers = function() {
