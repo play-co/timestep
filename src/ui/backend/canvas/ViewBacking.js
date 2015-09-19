@@ -184,6 +184,8 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 			var filters = {};
 			filters[filter.getType()] = filter;
 			ctx.setFilters(filters);
+		} else {
+			ctx.clearFilters();
 		}
 
 //		try {

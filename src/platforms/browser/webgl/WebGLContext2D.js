@@ -53,7 +53,9 @@ var ContextStateStack = Class(function() {
 			globalCompositeOperation: "source-over",
 			globalAlpha: 1,
 			transform: new Matrix2D(),
-			filter: null
+			filter: null,
+			clip: false,
+			clipRect: { x: 0, y: 0, width: 0, height: 0 }
 		}
 	};
 
@@ -65,7 +67,7 @@ var ContextStateStack = Class(function() {
 
 exports = Class(function() {
 
-	var MAX_BATCH_SIZE = 2000;
+	var MAX_BATCH_SIZE = 1024;
 	var STRIDE = 24;
 
 	var FILTERMAP = {
@@ -114,6 +116,9 @@ exports = Class(function() {
 		gl.disable(gl.CULL_FACE);
 		gl.enable(gl.BLEND);
 
+		this._scissorEnabled = false;
+		this._activeScissor = { x: 0, y: 0, width: 0, height: 0 };
+
 		this.setActiveCompositeOperation('source-over');
 
 		this._indexCache = new Uint16Array(MAX_BATCH_SIZE * 6);
@@ -127,13 +132,16 @@ exports = Class(function() {
 		this._helperTransform = new Matrix2D();
 		this.textureCache = [];
 
+		this._drawIndex = -1;
 		this._batchIndex = -1;
-		this._textureQueueIndex = -1;
-		this._textureQueue = new Array(MAX_BATCH_SIZE);
+		this._batchQueue = new Array(MAX_BATCH_SIZE);
 		for (var i = 0; i <= MAX_BATCH_SIZE; i++) {
-			this._textureQueue[i] = {
+			this._batchQueue[i] = {
 				textureId: 0,
-				index: 0
+				index: 0,
+				clip: false,
+				filter: null,
+				clipRect: { x: 0, y: 0, width: 0, height: 0 }
 			};
 		}
 
@@ -253,7 +261,7 @@ exports = Class(function() {
 			'	if (uFilterType == 0) {',
 			'		gl_FragColor = vec4(vSample.rgb, vSample.a * vAlpha);', // 0 - No filter
 			'	} else if (uFilterType == 1) {',
-			'		gl_FragColor = vec4(vSample.rgb + vColor.rgb, vSample.a * vAlpha);', // 1 - LinearAdd
+			'		gl_FragColor = vec4(vSample.rgb + (vColor.rgb * vColor.a), vSample.a * vAlpha);', // 1 - LinearAdd
 			'	} else if (uFilterType == 2) {',
 			'		gl_FragColor = vec4(vSample.rgb * (1.0 - vColor.a) + (vColor.rgb * vColor.a), vSample.a * vAlpha);', // 2 - Tint
 			'	} else if (uFilterType == 3) {',
@@ -291,7 +299,31 @@ exports = Class(function() {
 		this.ctx.viewport(0, 0, width, height);
 	};
 
-	this.clipRect = function(x, y, width, height) {};
+	this.clipRect = function(x, y, width, height) {
+		var m = this.stack.state.transform;
+		var xW = x + width;
+		var yH = y + height;
+		var x0 = x * m.a + y * m.c + m.tx;
+		var y0 = x * m.b + y * m.d + m.ty;
+		var x1 = xW * m.a + y * m.c + m.tx;
+		var y1 = xW * m.b + y * m.d + m.ty;
+		var x2 = x * m.a + yH * m.c + m.tx;
+		var y2 = x * m.b + yH * m.d + m.ty;
+		var x3 = xW * m.a + yH * m.c + m.tx;
+		var y3 = xW * m.b + yH * m.d + m.ty;
+
+		var minX = min(this.width, x0, x1, x2, x3);
+		var maxX = max(0, x0, x1, x2, x3);
+		var minY = min(this.height, y0, y1, y2, y3);
+		var maxY = max(0, y0, y1, y2, y3);
+
+		this.stack.state.clip = true;
+		var r = this.stack.state.clipRect;
+		r.x = minX;
+		r.y = minY;
+		r.width = maxX - minX;
+		r.height = maxY - minY;
+	};
 
 	this.swap = function() {
 		this.flush();
@@ -302,7 +334,9 @@ exports = Class(function() {
 	this.setFilters = function(filters) {
 		for (var filterId in filters) {
 			this.stack.state.filter = filters[filterId];
+			return;
 		}
+		this.stack.state.filter = null;
 	};
 
 	this.clearFilters = function() {
@@ -314,10 +348,14 @@ exports = Class(function() {
 	};
 
 	this.restore = function() {
+		this.stack.state.clip = false;
+		this.stack.state.filter = null;
 		this.stack.restore();
 	};
 
 	this.drawImage = function(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
+		// if (this.globalAlpha === 0) { return; }
+
 		var gl = this.ctx;
 		var m = this.transform;
 		var dxW = dx + dWidth;
@@ -354,7 +392,7 @@ exports = Class(function() {
 		var tw = image.width;
 		var th = image.height;
 		var vc = this._verticies;
-		var i = this._batchIndex * 6 * 4;
+		var i = this._drawIndex * 6 * 4;
 
 		vc[i + 0] = x0;
 		vc[i + 1] = y0;
@@ -393,7 +431,7 @@ exports = Class(function() {
 			filterA = color.a * 255;
 		}
 
-		var ci = this._batchIndex * 4 * STRIDE;
+		var ci = this._drawIndex * 4 * STRIDE;
 		var cc = this._colors;
 		cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = filterR; // R
 		cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = filterG; // G
@@ -472,24 +510,30 @@ exports = Class(function() {
 	};
 
 	this.flush = function() {
-		if (this._textureQueueIndex === -1) { return; }
+		if (this._batchIndex === -1) { return; }
 
 		var gl = this.ctx;
 		gl.bufferSubData(gl.ARRAY_BUFFER, 0, this._vertexCache);
-		this._textureQueue[this._textureQueueIndex + 1].index = this._batchIndex + 1;
+		this._batchQueue[this._batchIndex + 1].index = this._drawIndex + 1;
 
-		for (var i = 0; i <= this._textureQueueIndex; i++) {
-			var curQueueObj = this._textureQueue[i];
+		for (var i = 0; i <= this._batchIndex; i++) {
+			var curQueueObj = this._batchQueue[i];
+			if (curQueueObj.clip) {
+				var r = curQueueObj.clipRect;
+				this.enableScissor(r.x, r.y, r.width, r.height);
+			} else {
+				this.disableScissor();
+			}
 			gl.bindTexture(gl.TEXTURE_2D, this.textureCache[curQueueObj.textureId]);
 			this.setActiveCompositeOperation(curQueueObj.globalCompositeOperation);
 			gl.uniform1i(this._filterLocation, curQueueObj.filterId);
 			var start = curQueueObj.index;
-			var next = this._textureQueue[i + 1].index;
+			var next = this._batchQueue[i + 1].index;
 			gl.drawElements(gl.TRIANGLES, (next - start) * 6, gl.UNSIGNED_SHORT, start * 12);
 		}
 
+		this._drawIndex = -1;
 		this._batchIndex = -1;
-		this._textureQueueIndex = -1;
 	};
 
 	this.createTexture = function(image) {
@@ -506,6 +550,31 @@ exports = Class(function() {
 		this.textureCache[id] = texture;
 		image.__GL_ID = id;
 		return id;
+	};
+
+	this.enableScissor = function(x, y, width, height) {
+		var gl = this.ctx;
+		if (!this._scissorEnabled) {
+			gl.enable(gl.SCISSOR_TEST);
+			this._scissorEnabled = true;
+		}
+		var s = this._activeScissor;
+		if (x !== s.x || y !== s.y || width !== s.width || height !== s.height) {
+			s.x = x;
+			s.y = y;
+			s.width = width;
+			s.height = height;
+			gl.scissor(x, this.height - height - y, width, height);
+		}
+	};
+
+	this.disableScissor = function() {
+		if (this._scissorEnabled) {
+			var gl = this.ctx;
+			this._scissorEnabled = false;
+			gl.disable(gl.SCISSOR_TEST);
+			gl.scissor(0, 0, this.width, this.height);
+		}
 	};
 
 	this.setTransform = function(a, b, c, d, tx, ty) {
@@ -539,26 +608,37 @@ exports = Class(function() {
 	this.strokeText = function() {};//FontRenderer.wrapStrokeText(this.strokeText);
 
 	this.addToBatch = function(textureId) {
-		if (this._batchIndex >= MAX_BATCH_SIZE - 1) { this.flush(); }
-		this._batchIndex++;
+		if (this._drawIndex >= MAX_BATCH_SIZE - 1) { this.flush(); }
+		this._drawIndex++;
 
-		var currentFilter = this.stack.state.filter;
+		var ctxState = this.stack.state;
+		var filter = ctxState.filter;
+		var clip = ctxState.clip;
+		var clipRect = ctxState.clipRect;
 
-		var stateChanged = this._textureQueueIndex === -1;
-		if (!stateChanged) {
-			var currentState = this._textureQueue[this._textureQueueIndex];
-			stateChanged = currentState.textureId !== textureId
-				|| currentState.globalCompositeOperation !== this.globalCompositeOperation
-				|| currentState.filter !== currentFilter;
-		}
+		var queuedState = this._batchIndex > -1 ? this._batchQueue[this._batchIndex] : null;
+		var stateChanged = !queuedState
+				|| queuedState.textureId !== textureId
+				|| queuedState.globalCompositeOperation !== this.globalCompositeOperation
+				|| queuedState.filter !== filter
+				|| queuedState.clip !== clip
+				|| queuedState.clipRect.x !== clipRect.x
+				|| queuedState.clipRect.y !== clipRect.y
+				|| queuedState.clipRect.width !== clipRect.width
+				|| queuedState.clipRect.height !== clipRect.height;
 
 		if (stateChanged) {
-			var queueObject = this._textureQueue[++this._textureQueueIndex];
+			var queueObject = this._batchQueue[++this._batchIndex];
 			queueObject.textureId = textureId;
-			queueObject.index = this._batchIndex;
+			queueObject.index = this._drawIndex;
 			queueObject.globalCompositeOperation = this.globalCompositeOperation;
-			queueObject.filterId = currentFilter ? FILTERMAP[currentFilter.getType()] : 0;
-			queueObject.filter = currentFilter;
+			queueObject.filterId = filter ? FILTERMAP[filter.getType()] : 0;
+			queueObject.filter = filter;
+			queueObject.clip = clip;
+			queueObject.clipRect.x = clipRect.x;
+			queueObject.clipRect.y = clipRect.y;
+			queueObject.clipRect.width = clipRect.width;
+			queueObject.clipRect.height = clipRect.height;
 		}
 	};
 
