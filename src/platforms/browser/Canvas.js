@@ -26,13 +26,25 @@ import .webgl.WebGLContext2D as WebGLContext2D;
 exports = Class(function () {
 	this.init = function (opts) {
 		opts = merge(opts, {width: 300, height: 200});
-		var ctx = (opts.useWebGL && WebGLContext2D.isSupported) ? new WebGLContext2D(opts) : new Context2D(opts);
+
+		this.width = opts.width;
+		this.height = opts.height;
+
+		var ctx;
+		if (opts.useWebGL && WebGLContext2D.isSupported) {
+			ctx = WebGLContext2D.getContext(this, opts);
+		} else {
+			ctx = new Context2D(opts);
+		}
+
 		var el = this._el = ctx.getElement();
-		el.getContext = function () { return ctx; }
+		el.complete = true;
 		el.style.userSelect =
 		el.style.webkitUserSelect =
 		el.style.webkitTouchCallout = 'none';
-		el.complete = true;
+
+		el.getContext = function () { return ctx; };
+
 		return el;
-	}
+	};
 });

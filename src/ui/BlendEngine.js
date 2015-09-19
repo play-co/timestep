@@ -137,7 +137,7 @@ exports = Class(View, function(supr) {
 		this._canvY = 0;
 		this._canvW = 1;
 		this._canvH = 1;
-		this._canvas = new Canvas({ width: MAX_TEX_WIDTH, height: MAX_TEX_HEIGHT });
+		this._canvas = new Canvas({ width: MAX_TEX_WIDTH, height: MAX_TEX_HEIGHT, useWebGL: true });
 		this._img = new Image({ srcImage: this._canvas });
 	};
 
@@ -400,7 +400,7 @@ exports = Class(View, function(supr) {
 			this._img.setSourceHeight(canvH);
 
 			// render our particle images to the canvas's context
-			var ctx = this._canvas.getContext("2D");
+			var ctx = this._canvas.getContext("webgl");
 			ctx.clear();
 
 			var _ctx = ctx._ctx || ctx;
@@ -447,6 +447,8 @@ exports = Class(View, function(supr) {
 			this._canvY = canvY;
 			this._canvW = canvW;
 			this._canvH = canvH;
+
+			// _ctx.canvas.__needsUpload = true;
 		}
 	};
 

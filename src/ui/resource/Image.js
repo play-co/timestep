@@ -144,7 +144,7 @@ exports = Class(lib.PubSub, function () {
 
 		this._srcImg = img;
 
-		if (img instanceof HTMLCanvasElement) {
+		if (img instanceof HTMLCanvasElement || img instanceof Canvas) {
 			this._onLoad(false, img); // no error
 		} else {
 			// if it's already loaded, we call _onLoad immediately. Note that

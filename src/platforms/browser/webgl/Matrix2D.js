@@ -52,8 +52,8 @@ var Matrix2D = Class(function() {
     };
 
     this.translate = function(x, y) {
-        this.tx += this.a * this.x + this.c * this.y;
-        this.ty += this.b * this.x + this.d * this.y;
+        this.tx += this.a * x + this.c * y;
+        this.ty += this.b * x + this.d * y;
     };
 
     this.transform = function(matrix) {
