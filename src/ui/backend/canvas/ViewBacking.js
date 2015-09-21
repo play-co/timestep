@@ -188,24 +188,22 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 			ctx.clearFilters();
 		}
 
-//		try {
-			if (this.compositeOperation) {
-				ctx.globalCompositeOperation = this.compositeOperation;
-			}
+		if (this.compositeOperation) {
+			ctx.globalCompositeOperation = this.compositeOperation;
+		}
 
-			if (this._backgroundColor) {
-				ctx.fillStyle = this._backgroundColor;
-				ctx.fillRect(0, 0, width, height);
-			}
+		if (this._backgroundColor) {
+			ctx.fillStyle = this._backgroundColor;
+			ctx.fillRect(0, 0, width, height);
+		}
 
-			var viewport = opts.viewport;
-			this._view._render && this._view._render(ctx, opts);
-			this._renderSubviews(ctx, opts);
-			opts.viewport = viewport;
-//		} finally {
-			ctx.clearFilters();
-			if (saveContext) { ctx.restore(); }
-//		}
+		var viewport = opts.viewport;
+		this._view._render && this._view._render(ctx, opts);
+		this._renderSubviews(ctx, opts);
+		opts.viewport = viewport;
+		ctx.clearFilters();
+
+		if (saveContext) { ctx.restore(); }
 	}
 
 	this._renderSubviews = function (ctx, opts) {

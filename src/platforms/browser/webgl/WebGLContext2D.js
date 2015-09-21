@@ -480,20 +480,19 @@ var GLManager = Class(function() {
 	};
 
 	this.activate = function (ctx) {
+		if (ctx === this._activeCtx) { return; }
 		var gl = this.gl;
-		if (ctx != this._activeCtx) {
-			this.flush();
-			gl.finish();
-			gl.bindFramebuffer(gl.FRAMEBUFFER, ctx.frameBuffer);
-			if (ctx._texture) {
-				gl.bindTexture(gl.TEXTURE_2D, ctx._texture);
-				gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, ctx._texture, 0);
-			}
-			gl.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
-			gl.uniform2f(this._resolutionLocation, ctx.canvas.width, ctx.canvas.height);
-			this._activeCtx = ctx;
-		}
-	};
+		this.flush();
+		gl.finish();
+		gl.bindFramebuffer(gl.FRAMEBUFFER, ctx.frameBuffer);
+		// if (ctx._texture) {
+		// 	gl.bindTexture(gl.TEXTURE_2D, ctx._texture);
+		// 	gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, ctx._texture, 0);
+		// }
+		gl.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
+		gl.uniform2f(this._resolutionLocation, ctx.canvas.width, ctx.canvas.height);
+		this._activeCtx = ctx;
+	}
 });
 
 var Context2D = Class(function () {
@@ -523,26 +522,13 @@ var Context2D = Class(function () {
 
 	this.createOffscreenFrameBuffer = function () {
 		var gl = this._gl;
-
-	  this.frameBuffer = gl.createFramebuffer();
-		gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
-
-		// this.canvas.width = 1024;
-		// this.canvas.height = 1024;
 		var id = this._manager.createTexture(this.canvas);
 		this._texture = this._manager.getTexture(id);
-
+	  this.frameBuffer = gl.createFramebuffer();
+		gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
 		gl.bindTexture(gl.TEXTURE_2D, this._texture);
-
-		// var renderbuffer = gl.createRenderbuffer();
-		// gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-		// gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.canvas.width, this.canvas.height);
-
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._texture, 0);
-		// gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-
 		this.clear();
-
 		gl.bindTexture(gl.TEXTURE_2D, null);
 		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
