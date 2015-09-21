@@ -485,10 +485,6 @@ var GLManager = Class(function() {
 		this.flush();
 		gl.finish();
 		gl.bindFramebuffer(gl.FRAMEBUFFER, ctx.frameBuffer);
-		// if (ctx._texture) {
-		// 	gl.bindTexture(gl.TEXTURE_2D, ctx._texture);
-		// 	gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, ctx._texture, 0);
-		// }
 		gl.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
 		gl.uniform2f(this._resolutionLocation, ctx.canvas.width, ctx.canvas.height);
 		this._activeCtx = ctx;
@@ -575,9 +571,13 @@ var Context2D = Class(function () {
 	};
 
 	this.resize = function(width, height) {
-		this.width = this.canvas.width  = width;
-		this.height = this.canvas.height = height;
-		this._gl.viewport(0, 0, width, height);
+		this.width = width;
+		this.height = height;
+		var gl = this._gl;
+		if (this._texture) {
+			gl.bindTexture(gl.TEXTURE_2D, this._texture);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+		}
 	};
 
 	this.clipRect = function(x, y, width, height) {

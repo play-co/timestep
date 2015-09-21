@@ -27,11 +27,13 @@ exports = Class(function () {
 	this.init = function (opts) {
 		opts = merge(opts, {width: 300, height: 200});
 
-		this.width = opts.width;
-		this.height = opts.height;
+		this._width = opts.width;
+		this._height = opts.height;
+		this.isWebGL = opts.useWebGL && WebGLContext2D.isSupported;
 
 		var ctx;
-		if (opts.useWebGL && WebGLContext2D.isSupported) {
+
+		if (this.isWebGL) {
 			ctx = WebGLContext2D.getContext(this, opts);
 		} else {
 			ctx = new Context2D(opts);
@@ -47,4 +49,26 @@ exports = Class(function () {
 
 		return el;
 	};
+
+	Object.defineProperties(this, {
+		width: {
+			get: function() { return this._width; },
+			set: function(value) {
+				this._width = value;
+				if (this.isWebGL) {
+					this.getContext().resize(this.width, this.height);
+				}
+			},
+		},
+		height: {
+			get: function() { return this._height; },
+			set: function(value) {
+				this._height = value;
+				if (this.isWebGL) {
+					this.getContext().resize(this.width, this.height);
+				}
+			},
+		}
+	});
+
 });
