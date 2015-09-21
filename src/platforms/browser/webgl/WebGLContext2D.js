@@ -98,7 +98,7 @@ var GLManager = Class(function() {
 
 		var gl = this.gl = this._canvas.getContext('webgl', {
 			alpha: true,
-			// premultipliedAlpha: true
+			premultipliedAlpha: true
 		});
 
 		gl.clearColor(0.0, 0.0, 0.0, 0.0);
@@ -116,7 +116,7 @@ var GLManager = Class(function() {
 		this._vertices = new Float32Array(this._vertexCache);
 		this._colors = new Uint8Array(this._vertexCache);
 
-		// gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
 		this._initializeShaders();
 		this._initializeBuffers();
@@ -217,8 +217,7 @@ var GLManager = Class(function() {
 
 		gl.useProgram(this._shaderProgram);
 
-		var resolutionLocation = gl.getUniformLocation(this._shaderProgram, "uResolution");
-		gl.uniform2f(resolutionLocation, this._canvas.width, this._canvas.height);
+		this._resolutionLocation = gl.getUniformLocation(this._shaderProgram, "uResolution");
 
 		gl.blendEquation(gl.FUNC_ADD);
 		gl.activeTexture(gl.TEXTURE0);
@@ -302,7 +301,7 @@ var GLManager = Class(function() {
 
 		switch(op) {
 			case 'source_over':
-				source = gl.SRC_ALPHA;
+				source = gl.ONE;
 				destination = gl.ONE_MINUS_SRC_ALPHA;
 				break;
 
@@ -342,7 +341,7 @@ var GLManager = Class(function() {
 				break;
 
 			case 'lighter':
-				source = gl.SRC_ALPHA;
+				source = gl.ONE;
 				destination = gl.ONE;
 				break;
 
@@ -491,6 +490,7 @@ var GLManager = Class(function() {
 				gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, ctx._texture, 0);
 			}
 			gl.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
+			gl.uniform2f(this._resolutionLocation, ctx.canvas.width, ctx.canvas.height);
 			this._activeCtx = ctx;
 		}
 	};
