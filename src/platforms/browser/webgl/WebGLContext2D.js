@@ -267,7 +267,7 @@ var GLManager = Class(function() {
 			'void main(void) {',
 			'	vec4 vSample = texture2D(uSampler, vTextureCoord);',
 			'	if (uFilterType == 0) {',
-			'		gl_FragColor = vec4(vSample.rgb, vSample.a * vAlpha);', // 0 - No filter
+			'		gl_FragColor = vec4(vSample.rgb * vAlpha, vSample.a * vAlpha);', // 0 - No filter
 			'	} else if (uFilterType == 1) {',
 			'		gl_FragColor = vec4(vSample.rgb + (vColor.rgb * vColor.a), vSample.a * vAlpha);', // 1 - LinearAdd
 			'	} else if (uFilterType == 2) {',
@@ -352,7 +352,7 @@ var GLManager = Class(function() {
 				break;
 
 			default:
-				source = gl.SRC_ALPHA;
+				source = gl.ONE;
 				destination = gl.ONE_MINUS_SRC_ALPHA;
 				break;
 		}
