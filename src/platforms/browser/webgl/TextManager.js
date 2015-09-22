@@ -16,7 +16,7 @@ exports = Class(function () {
   this.get = function (ctx, text, stroked) {
     var font = ctx.font;
     var fontData = Font.parse(font);
-    if (!isFontLoaded(fontData.getName())) { return; }
+    if (!isFontLoaded(fontData.getOrigName())) { return; }
 
     var key = (stroked
           ? ctx.lineWidth + '|' + ctx.strokeStyle + '|'
