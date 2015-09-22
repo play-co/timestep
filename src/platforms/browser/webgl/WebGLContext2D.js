@@ -726,6 +726,8 @@ var Context2D = Class(function () {
 
 		var glId = image.__GL_ID;
 		if (glId === undefined || image.__needsUpload) {
+			// Invalid image? Early out if so.
+			if (image.width === 0 || image.height === 0) { return; }
 			image.__needsUpload = false;
 			glId = manager.createTexture(image, glId);
 		}
