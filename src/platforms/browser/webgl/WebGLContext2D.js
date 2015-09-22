@@ -24,6 +24,7 @@ import device;
 // import .FontRenderer;
 import .Matrix2D;
 import ui.resource.loader as loader;
+import .TextManager;
 
 var ContextStateStack = Class(function() {
 
@@ -37,9 +38,20 @@ var ContextStateStack = Class(function() {
 		if (++this._stateIndex >= this._states.length) {
 			this._states[this._stateIndex] = this.getObject();
 		}
-		this.state.globalCompositeOperation = lastState.globalCompositeOperation;
-		this.state.globalAlpha = lastState.globalAlpha;
-		this.state.transform.copy(lastState.transform);
+		var s = this.state;
+		s.globalCompositeOperation = lastState.globalCompositeOperation;
+		s.globalAlpha = lastState.globalAlpha;
+		s.transform.copy(lastState.transform);
+		s.textBaseLine = lastState.textBaseLine;
+		s.lineWidth = lastState.lineWidth;
+		s.strokeStyle = lastState.strokeStyle;
+		s.fillStyle = lastState.fillStyle;
+		s.filter = lastState.filter;
+		s.clip = lastState.clip;
+		s.clipRect.x = lastState.clipRect.x;
+		s.clipRect.y = lastState.clipRect.y;
+		s.clipRect.width = lastState.clipRect.width;
+		s.clipRect.height = lastState.clipRect.height;
 	};
 
 	this.restore = function() {
@@ -89,6 +101,8 @@ var GLManager = Class(function() {
 		if (this.isSupported) {
 			this._initGL();
 		}
+
+		this.textManager = new TextManager();
 	};
 
 	this._initGL = function () {
@@ -410,8 +424,14 @@ var GLManager = Class(function() {
 		return id;
 	};
 
-	this.getTexture = function (id) {
+	this.getTexture = function(id) {
 		return this.textureCache[id];
+	};
+
+	this.deleteTexture = function(id) {
+		var texture = this.textureCache[id];
+		this._gl.deleteTexture(texture);
+		delete this.textureCache[id];
 	};
 
 	this.enableScissor = function(x, y, width, height) {
@@ -491,20 +511,31 @@ var GLManager = Class(function() {
 	}
 });
 
+// Create a context to measure text
+var textCtx = document.createElement("canvas").getContext("2d");
+
 var Context2D = Class(function () {
 
-	Object.defineProperties(this, {
-		globalAlpha: {
-			get: function() { return this.stack.state.globalAlpha; },
-			set: function(value) { this.stack.state.globalAlpha = value; }
-		},
-		globalCompositeOperation: {
-			get: function() { return this.stack.state.globalCompositeOperation; },
-			set: function(value) {
-				this.stack.state.globalCompositeOperation = value;
-			}
-		}
-	});
+	var createContextProperty = function(ctx, name) {
+		Object.defineProperty(ctx, name, {
+			get: function() { return this.stack.state[name]; },
+			set: function(value) { this.stack.state[name] = value; }
+		});
+	};
+
+	var contextProperties = [
+		'globalAlpha',
+		'globalCompositeOperation',
+		'textBaseLine',
+		'lineWidth',
+		'strokeStyle',
+		'fillStyle',
+		'font'
+	];
+
+	for (var i = 0; i < contextProperties.length; i++) {
+		createContextProperty(this, contextProperties[i]);
+	}
 
 	this.init = function (manager, canvas) {
 		this._manager = manager;
@@ -629,8 +660,6 @@ var Context2D = Class(function () {
 	};
 
 	this.restore = function() {
-		this.stack.state.clip = false;
-		this.stack.state.filter = null;
 		this.stack.restore();
 	};
 
@@ -639,9 +668,27 @@ var Context2D = Class(function () {
 	this.circle = function(x, y, radius) {};
 	this.drawPointSprites = function(x1, y1, x2, y2) {};
 	this.roundRect = function (x, y, width, height, radius) {};
-	this.measureText = function() { return {}; };//FontRenderer.wrapMeasureText(this.measureText);
-	this.fillText = function() {};//FontRenderer.wrapFillText(this.fillText);
-	this.strokeText = function() {};//FontRenderer.wrapStrokeText(this.strokeText);
+
+	this.fillText = function(text, x, y) {
+		var textData = this._manager.textManager.get(this, text, false);
+		if (!textData) { return; }
+		var w = textData.image.width;
+		var h = textData.image.height;
+		this.drawImage(textData.image, 0, 0, w, h, x, y, w, h);
+	};
+
+	this.strokeText = function(text, x, y) {
+		var textData = this._manager.textManager.get(this, text, true);
+		if (!textData) { return; }
+		var w = textData.image.width;
+		var h = textData.image.height;
+		this.drawImage(textData.image, 0, 0, w, h, x - this.lineWidth * 0.5, y - this.lineWidth * 0.5, w, h);
+	};
+
+	this.measureText = function(text) {
+		textCtx.font = this.font;
+		return textCtx.measureText(text);
+	};
 
 	this.drawImage = function(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
 
@@ -734,6 +781,10 @@ var Context2D = Class(function () {
 		cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = filterG; // G
 		cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = filterB; // B
 		cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = filterA; // A
+	};
+
+	this.deleteTextureForImage = function(canvas) {
+		this._manager.deleteTextureById(canvas.__GL_ID);
 	};
 
 });
