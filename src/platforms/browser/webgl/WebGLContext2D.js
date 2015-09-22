@@ -281,13 +281,13 @@ var GLManager = Class(function() {
 			'void main(void) {',
 			'	vec4 vSample = texture2D(uSampler, vTextureCoord);',
 			'	if (uFilterType == 0) {',
-			'		gl_FragColor = vec4(vSample.rgb * vAlpha, vSample.a * vAlpha);', // 0 - No filter
+			'		gl_FragColor = vSample * vAlpha;', // 0 - No filter
 			'	} else if (uFilterType == 1) {',
-			'		gl_FragColor = vec4(vSample.rgb + (vColor.rgb * vColor.a), vSample.a * vAlpha);', // 1 - LinearAdd
+			'		gl_FragColor = vec4((vSample.rgb + vColor.rgb * vColor.a) * vSample.a, vSample.a) * vAlpha;', // 1 - LinearAdd
 			'	} else if (uFilterType == 2) {',
-			'		gl_FragColor = vec4(vSample.rgb * (1.0 - vColor.a) + (vColor.rgb * vColor.a), vSample.a * vAlpha);', // 2 - Tint
+			'		gl_FragColor = vec4((vSample.rgb * (1.0 - vColor.a) + (vColor.rgb * vColor.a)) * vSample.a, vSample.a * vAlpha);', // 2 - Tint
 			'	} else if (uFilterType == 3) {',
-			'		gl_FragColor = vSample * vColor * vec4(1.0, 1.0, 1.0, vAlpha);', // 3 - Multiply
+			'		gl_FragColor = vec4(vSample.rgb * (vColor.rgb * vColor.a), vSample.a) * vAlpha;', // 3 - Multiply
 			'	}',
 			'}'
 		].join("\n");
@@ -753,7 +753,7 @@ var Context2D = Class(function () {
 		vc[i + 12] = x2;
 		vc[i + 13] = y2;
 		vc[i + 14] = vc[i + 2]; // u2
-		vc[i + 15] = (sy + sHeight) / th;  // v2
+		vc[i + 15] = (sy + sHeight) / th; // v2
 		vc[i + 16] = this.globalAlpha;
 
 		vc[i + 18] = x3;
