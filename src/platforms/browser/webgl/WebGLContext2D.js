@@ -124,6 +124,7 @@ var GLManager = Class(function() {
 		this._activeScissor = { x: 0, y: 0, width: 0, height: 0 };
 
 		this.setActiveCompositeOperation('source-over');
+		this._activeFilterId = 0;
 
 		this._indexCache = new Uint16Array(MAX_BATCH_SIZE * 6);
 		this._vertexCache = new ArrayBuffer(MAX_BATCH_SIZE * STRIDE * 4);
@@ -303,6 +304,12 @@ var GLManager = Class(function() {
 		return shader;
 	};
 
+	this.setActiveFilter = function(id) {
+		if (this._activeFilterId === id) { return; }
+		this._activeFilterId = id;
+		gl.uniform1i(this._filterLocation, id);
+	};
+
 	this.setActiveCompositeOperation = function(op) {
 
 		op = op || 'source-over';
@@ -390,7 +397,7 @@ var GLManager = Class(function() {
 			}
 			gl.bindTexture(gl.TEXTURE_2D, this.textureCache[curQueueObj.textureId]);
 			this.setActiveCompositeOperation(curQueueObj.globalCompositeOperation);
-			gl.uniform1i(this._filterLocation, curQueueObj.filterId);
+			this.setActiveFilter(curQueueObj.filterId);
 			var start = curQueueObj.index;
 			var next = this._batchQueue[i + 1].index;
 			gl.drawElements(gl.TRIANGLES, (next - start) * 6, gl.UNSIGNED_SHORT, start * 12);
@@ -455,7 +462,6 @@ var GLManager = Class(function() {
 			var gl = this.gl;
 			this._scissorEnabled = false;
 			gl.disable(gl.SCISSOR_TEST);
-			gl.scissor(0, 0, this.width, this.height);
 		}
 	};
 
