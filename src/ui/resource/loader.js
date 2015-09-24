@@ -80,6 +80,7 @@ var Loader = Class(function () {
 					y: info.y,
 					w: info.w,
 					h: info.h,
+					scale: info.s || 1,
 					marginTop: info.t || 0,
 					marginRight: info.r || 0,
 					marginBottom: info.b || 0,
