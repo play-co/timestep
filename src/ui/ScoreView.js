@@ -66,8 +66,8 @@ exports = Class(View, function(supr) {
 			var d = data[i];
 			d.img = new Image({ url: d.image });
 			var map = d.img.getMap();
-			d.width = d.width || map.width + map.marginLeft + map.marginRight;
-			var h = map.height + map.marginTop + map.marginBottom;
+			d.width = d.width || (map.width + map.marginLeft + map.marginRight) / map.scale;
+			var h = (map.height + map.marginTop + map.marginBottom) / map.scale;
 			if (srcHeight === 0 && h > 0) {
 				// accept the first height we find and use it
 				srcHeight = h;
