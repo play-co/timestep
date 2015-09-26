@@ -40,10 +40,14 @@ exports = Class(function () {
 		}
 
 		var el = this._el = ctx.getElement();
+
 		el.complete = true;
-		el.style.userSelect =
-		el.style.webkitUserSelect =
-		el.style.webkitTouchCallout = 'none';
+
+		if (el.style) {
+			el.style.userSelect =
+			el.style.webkitUserSelect =
+			el.style.webkitTouchCallout = 'none';
+		}
 
 		el.getContext = function () { return ctx; };
 
