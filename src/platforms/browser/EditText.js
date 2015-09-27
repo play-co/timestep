@@ -83,12 +83,12 @@ var InputField = Class(squill.Widget, function (supr) {
 			ev.height = device.screen.height;
 			window.dispatchEvent(ev);
 		}
+		_focused && _focused.closeEditField();
 		_focused = null;
-		//_focused && _focused.closeEditField();
 	}
 
 	this.setFontColor = function (color) {
-		this._el.style.color = this._opts.color;
+		this._el.style.color = color;
 	}
 
 	this.setHorizontalPadding = function (left, right) {
