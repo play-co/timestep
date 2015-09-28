@@ -377,6 +377,7 @@ exports = Class(View, function (supr) {
 			this.startDrag({radius: this._opts.dragRadius * this._snapPixels});
 
 			if (this._anim && this._anim.hasFrames()) {
+				this._contentView.getInput().blockEvents = false;
 				this._anim.clear();
 			}
 
