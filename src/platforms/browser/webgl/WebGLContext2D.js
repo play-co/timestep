@@ -510,8 +510,8 @@ var GLManager = Class(function() {
 		return width > 0 && (width & (width - 1)) === 0 && height > 0 && (height & (height - 1)) === 0;
 	};
 
-	this.activate = function (ctx) {
-		// if (ctx === this._activeCtx) { return; }
+	this.activate = function (ctx, forceActivate) {
+		if (!forceActivate && ctx === this._activeCtx) { return; }
 		var gl = this.gl;
 		this.flush();
 		gl.finish();
@@ -615,7 +615,7 @@ var Context2D = Class(function () {
 	this.resize = function(width, height) {
 		this.width = width;
 		this.height = height;
-		this._manager.activate(this);
+		this._manager.activate(this, true);
 		if (this._texture) {
 			var gl = this._gl;
 			gl.bindTexture(gl.TEXTURE_2D, this._texture);
