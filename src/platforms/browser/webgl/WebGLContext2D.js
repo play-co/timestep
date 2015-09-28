@@ -100,6 +100,7 @@ var GLManager = Class(function() {
 		this.isSupported = webglSupported;
 		if (this.isSupported) {
 			this._initGL();
+			window.addEventListener('resize', this.updateCanvasDimensions.bind(this), false);
 		}
 
 		this.textManager = new TextManager();
@@ -160,6 +161,10 @@ var GLManager = Class(function() {
 		}.bind(this));
 
 		this._primaryContext = new Context2D(this, this._canvas);
+	};
+
+	this.updateCanvasDimensions = function() {
+		this._primaryContext.resize(this._canvas.width, this._canvas.height);
 	};
 
 	this.getContext = function(canvas, opts) {
@@ -506,7 +511,7 @@ var GLManager = Class(function() {
 	};
 
 	this.activate = function (ctx) {
-		if (ctx === this._activeCtx) { return; }
+		// if (ctx === this._activeCtx) { return; }
 		var gl = this.gl;
 		this.flush();
 		gl.finish();
@@ -610,8 +615,9 @@ var Context2D = Class(function () {
 	this.resize = function(width, height) {
 		this.width = width;
 		this.height = height;
-		var gl = this._gl;
+		this._manager.activate(this);
 		if (this._texture) {
+			var gl = this._gl;
 			gl.bindTexture(gl.TEXTURE_2D, this._texture);
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 		}
