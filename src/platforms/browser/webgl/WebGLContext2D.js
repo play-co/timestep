@@ -25,6 +25,8 @@ import device;
 import .Matrix2D;
 import ui.resource.loader as loader;
 import .TextManager;
+import .Shaders;
+import ui.Color as Color;
 
 var ContextStateStack = Class(function() {
 
@@ -67,7 +69,8 @@ var ContextStateStack = Class(function() {
 			transform: new Matrix2D(),
 			filter: null,
 			clip: false,
-			clipRect: { x: 0, y: 0, width: 0, height: 0 }
+			clipRect: { x: 0, y: 0, width: 0, height: 0 },
+			fillStyle: ""
 		};
 	};
 
@@ -78,15 +81,27 @@ var ContextStateStack = Class(function() {
 
 var STRIDE = 24;
 
+var RENDER_MODES = {
+	Default: 0,
+	LinearAdd: 1,
+	Tint: 2,
+	Multiply: 3,
+	Rect: 4
+};
+
+var COLOR_MAP = {};
+
+var getColor = function(key) {
+	var result = COLOR_MAP[key];
+	if (!result) {
+		result = COLOR_MAP[key] = Color.parse(key);
+	}
+	return result;
+};
+
 var GLManager = Class(function() {
 
 	var MAX_BATCH_SIZE = 1024;
-
-	var FILTERMAP = {
-		LinearAdd: 1,
-		Tint: 2,
-		Multiply: 3
-	};
 
 	this.init = function () {
 		var webglSupported = false;
@@ -125,7 +140,7 @@ var GLManager = Class(function() {
 		this._activeScissor = { x: 0, y: 0, width: 0, height: 0 };
 
 		this.setActiveCompositeOperation('source-over');
-		this._activeFilterId = 0;
+		this._activeRenderMode = -1;
 
 		this._indexCache = new Uint16Array(MAX_BATCH_SIZE * 6);
 		this._vertexCache = new ArrayBuffer(MAX_BATCH_SIZE * STRIDE * 4);
@@ -134,8 +149,8 @@ var GLManager = Class(function() {
 
 		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
-		this._initializeShaders();
 		this._initializeBuffers();
+		this._initializeShaders();
 
 		this._helperTransform = new Matrix2D();
 		this.textureCache = [];
@@ -149,7 +164,8 @@ var GLManager = Class(function() {
 				index: 0,
 				clip: false,
 				filter: null,
-				clipRect: { x: 0, y: 0, width: 0, height: 0 }
+				clipRect: { x: 0, y: 0, width: 0, height: 0 },
+				renderMode: 0
 			};
 		}
 
@@ -204,115 +220,32 @@ var GLManager = Class(function() {
 
 		gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, this._vertexCache, gl.DYNAMIC_DRAW);
-
-		var positionIndex = gl.getAttribLocation(this._shaderProgram, "aPosition");
-		var uvIndex = gl.getAttribLocation(this._shaderProgram, "aTextureCoord");
-		var alphaIndex = gl.getAttribLocation(this._shaderProgram, "aAlpha");
-		var colorIndex = gl.getAttribLocation(this._shaderProgram, "aColor");
-
-		gl.vertexAttribPointer(positionIndex, 2, gl.FLOAT, false, STRIDE, 0);
-		gl.vertexAttribPointer(uvIndex, 2, gl.FLOAT, false, STRIDE, 8);
-		gl.vertexAttribPointer(alphaIndex, 1, gl.FLOAT, false, STRIDE, 16);
-		gl.vertexAttribPointer(colorIndex, 4, gl.UNSIGNED_BYTE, true, STRIDE, 20);
-
-		gl.enableVertexAttribArray(positionIndex);
-		gl.enableVertexAttribArray(uvIndex);
-		gl.enableVertexAttribArray(alphaIndex);
-		gl.enableVertexAttribArray(colorIndex);
 	};
 
 	this._initializeShaders = function() {
 		var gl = this.gl;
-		var vertexShader = this.createVertexShader();
-		var fragmentShader = this.createFragmentShader();
 
-		this._shaderProgram = gl.createProgram();
-		gl.attachShader(this._shaderProgram, vertexShader);
-		gl.attachShader(this._shaderProgram, fragmentShader);
-		gl.linkProgram(this._shaderProgram);
-
-		if (!gl.getProgramParameter(this._shaderProgram, gl.LINK_STATUS)) {
-			console.log("Could not initialize shaders");
-		}
-
-		gl.useProgram(this._shaderProgram);
-
-		this._resolutionLocation = gl.getUniformLocation(this._shaderProgram, "uResolution");
+		this.shaders = [];
+		this.shaders[RENDER_MODES.Default] = new Shaders.DefaultShader({ gl: gl });
+		this.shaders[RENDER_MODES.LinearAdd] = new Shaders.LinearAddShader({ gl: gl });
+		this.shaders[RENDER_MODES.Tint] = new Shaders.TintShader({ gl: gl });
+		this.shaders[RENDER_MODES.Multiply] = new Shaders.MultiplyShader({ gl: gl });
+		this.shaders[RENDER_MODES.Rect] = new Shaders.RectShader({ gl: gl });
 
 		gl.blendEquation(gl.FUNC_ADD);
 		gl.activeTexture(gl.TEXTURE0);
-		gl.uniform1i(gl.getUniformLocation(this._shaderProgram, "uSampler"), 0);
-
-		this._filterLocation = gl.getUniformLocation(this._shaderProgram, "uFilterType");
 	};
 
-	this.createVertexShader = function() {
-		var gl = this.gl;
-		var src = [
-			'precision lowp float;',
-			'attribute vec2 aTextureCoord;',
-			'attribute vec2 aPosition;',
-			'attribute vec4 aColor;',
-			'attribute float aAlpha;',
-			'uniform vec2 uResolution;',
-			'varying vec2 vTextureCoord;',
-			'varying float vAlpha;',
-			'varying vec4 vColor;',
-			'void main() {',
-			'	vTextureCoord = aTextureCoord;',
-			'	vec2 clipSpace = (aPosition / uResolution) * 2.0 - 1.0;',
-			'	vColor = aColor;',
-			'	vAlpha = aAlpha;',
-			'	gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);',
-			'}'
-		].join("\n");
-
-		var shader = gl.createShader(gl.VERTEX_SHADER);
-		gl.shaderSource(shader, src);
-		gl.compileShader(shader);
-
-		return shader;
-	};
-
-	this.createFragmentShader = function() {
-		var gl = this.gl;
-
-		var src = [
-			'precision lowp float;',
-			'varying vec2 vTextureCoord;',
-			'varying float vAlpha;',
-			'varying vec4 vColor;',
-			'uniform sampler2D uSampler;',
-			'uniform int uFilterType;',
-			'void main(void) {',
-			'	vec4 vSample = texture2D(uSampler, vTextureCoord);',
-			'	if (uFilterType == 0) {',
-			'		gl_FragColor = vSample * vAlpha;', // 0 - No filter
-			'	} else if (uFilterType == 1) {',
-			'		gl_FragColor = vec4((vSample.rgb + vColor.rgb * vColor.a) * vSample.a, vSample.a) * vAlpha;', // 1 - LinearAdd
-			'	} else if (uFilterType == 2) {',
-			'		gl_FragColor = vec4((vSample.rgb * (1.0 - vColor.a) + (vColor.rgb * vColor.a)) * vSample.a, vSample.a * vAlpha);', // 2 - Tint
-			'	} else if (uFilterType == 3) {',
-			'		gl_FragColor = vec4(vSample.rgb * (vColor.rgb * vColor.a), vSample.a) * vAlpha;', // 3 - Multiply
-			'	}',
-			'}'
-		].join("\n");
-
-		var shader = gl.createShader(gl.FRAGMENT_SHADER);
-		gl.shaderSource(shader, src);
-		gl.compileShader(shader);
-
-		if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-			console.error(gl.getShaderInfoLog(shader));
+	this.setActiveRenderMode = function(id) {
+		if (this._activeRenderMode === id) { return; }
+		var ctx = this._activeCtx;
+		this._activeRenderMode = id;
+		var shader = this.shaders[id];
+		gl.useProgram(shader.program);
+		gl.uniform2f(shader.uniforms.uResolution, ctx.width, ctx.height);
+		if (shader.uniforms.uSampler !== -1) {
+			gl.uniform1i(shader.uniforms.uSampler, 0);
 		}
-
-		return shader;
-	};
-
-	this.setActiveFilter = function(id) {
-		if (this._activeFilterId === id) { return; }
-		this._activeFilterId = id;
-		gl.uniform1i(this._filterLocation, id);
 	};
 
 	this.setActiveCompositeOperation = function(op) {
@@ -400,9 +333,12 @@ var GLManager = Class(function() {
 			} else {
 				this.disableScissor();
 			}
-			gl.bindTexture(gl.TEXTURE_2D, this.textureCache[curQueueObj.textureId]);
+			var textureId = curQueueObj.textureId;
+			if (textureId !== -1) {
+				gl.bindTexture(gl.TEXTURE_2D, this.textureCache[curQueueObj.textureId]);
+			}
 			this.setActiveCompositeOperation(curQueueObj.globalCompositeOperation);
-			this.setActiveFilter(curQueueObj.filterId);
+			this.setActiveRenderMode(curQueueObj.renderMode);
 			var start = curQueueObj.index;
 			var next = this._batchQueue[i + 1].index;
 			gl.drawElements(gl.TRIANGLES, (next - start) * 6, gl.UNSIGNED_SHORT, start * 12);
@@ -481,6 +417,7 @@ var GLManager = Class(function() {
 		var queuedState = this._batchIndex > -1 ? this._batchQueue[this._batchIndex] : null;
 		var stateChanged = !queuedState
 				|| queuedState.textureId !== textureId
+				|| (textureId === -1 && queuedState.fillStyle !== state.fillStyle)
 				|| queuedState.globalCompositeOperation !== state.globalCompositeOperation
 				|| queuedState.filter !== filter
 				|| queuedState.clip !== clip
@@ -494,13 +431,19 @@ var GLManager = Class(function() {
 			queueObject.textureId = textureId;
 			queueObject.index = this._drawIndex;
 			queueObject.globalCompositeOperation = state.globalCompositeOperation;
-			queueObject.filterId = filter ? FILTERMAP[filter.getType()] : 0;
 			queueObject.filter = filter;
 			queueObject.clip = clip;
 			queueObject.clipRect.x = clipRect.x;
 			queueObject.clipRect.y = clipRect.y;
 			queueObject.clipRect.width = clipRect.width;
 			queueObject.clipRect.height = clipRect.height;
+			if (textureId === -1) {
+				queueObject.renderMode = RENDER_MODES.Rect;
+			} else if (filter) {
+				queueObject.renderMode = RENDER_MODES[filter.getType()];
+			} else {
+				queueObject.renderMode = RENDER_MODES.Default;
+			}
 		}
 
 		return this._drawIndex;
@@ -516,14 +459,21 @@ var GLManager = Class(function() {
 		this.flush();
 		gl.finish();
 		gl.bindFramebuffer(gl.FRAMEBUFFER, ctx.frameBuffer);
-		gl.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
-		gl.uniform2f(this._resolutionLocation, ctx.canvas.width, ctx.canvas.height);
+		gl.viewport(0, 0, ctx.width, ctx.height);
 		this._activeCtx = ctx;
+		this._activeRenderMode = -1;
 	}
 });
 
 // Create a context to measure text
 var textCtx = document.createElement("canvas").getContext("2d");
+
+
+
+
+// ---------------------------------------------------------------------------
+// CONTEXT2D
+// ---------------------------------------------------------------------------
 
 var Context2D = Class(function () {
 
@@ -553,6 +503,8 @@ var Context2D = Class(function () {
 		this._gl = manager.gl;
 		this.canvas = canvas;
 
+		this.width = canvas.width;
+		this.height = canvas.height;
 		this.stack = new ContextStateStack();
 		this.font = '11px ' + device.defaultFontFamily;
 		this.frameBuffer = null;
@@ -676,7 +628,6 @@ var Context2D = Class(function () {
 	};
 
 	this.strokeRect = function() {};
-	this.fillRect = function() {};
 	this.circle = function(x, y, radius) {};
 	this.drawPointSprites = function(x1, y1, x2, y2) {};
 	this.roundRect = function (x, y, width, height, radius) {};
@@ -706,10 +657,8 @@ var Context2D = Class(function () {
 
 		if (this.globalAlpha === 0) { return; }
 
-		var manager = this._manager;
 		var width = this.canvas.width;
 		var height = this.canvas.height;
-		manager.activate(this);
 
 		var m = this.stack.state.transform;
 		var dxW = dx + dWidth;
@@ -735,6 +684,9 @@ var Context2D = Class(function () {
 			// Offscreen, don't bother trying to draw it.
 			return;
 		}
+
+		var manager = this._manager;
+		manager.activate(this);
 
 		var glId = image.__GL_ID;
 		if (glId === undefined || image.__needsUpload) {
@@ -795,6 +747,68 @@ var Context2D = Class(function () {
 		cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = filterG; // G
 		cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = filterB; // B
 		cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = filterA; // A
+	};
+
+	this.fillRect = function(x, y, width, height) {
+
+		if (this.globalAlpha === 0) { return; }
+
+		var m = this.stack.state.transform;
+		var xW = x + width;
+		var yH = y + height;
+
+		// Calculate 4 vertex positions
+		var x0 = x * m.a + y * m.c + m.tx;
+		var y0 = x * m.b + y * m.d + m.ty;
+		var x1 = xW * m.a + y * m.c + m.tx;
+		var y1 = xW * m.b + y * m.d + m.ty;
+		var x2 = x * m.a + yH * m.c + m.tx;
+		var y2 = x * m.b + yH * m.d + m.ty;
+		var x3 = xW * m.a + yH * m.c + m.tx;
+		var y3 = xW * m.b + yH * m.d + m.ty;
+
+		// Calculate bounding box for simple culling
+		var minX = min(width, x0, x1, x2, x3);
+		var maxX = max(0, x0, x1, x2, x3);
+		var minY = min(height, y0, y1, y2, y3);
+		var maxY = max(0, y0, y1, y2, y3);
+
+		if (minX > width || maxX <= 0 || minY > height || maxY <= 0) {
+			// Offscreen, don't bother trying to draw it.
+			return;
+		}
+
+		var manager = this._manager;
+		manager.activate(this);
+		var drawIndex = manager.addToBatch(this.stack.state, -1);
+
+		// TOOD: remove private access to _vertices
+		var vc = manager._vertices;
+		var i = drawIndex * 6 * 4;
+
+		vc[i + 0] = x0;
+		vc[i + 1] = y0;
+		vc[i + 4] = this.globalAlpha;
+
+		vc[i + 6] = x1;
+		vc[i + 7] = y1;
+		vc[i + 10] = this.globalAlpha;
+
+		vc[i + 12] = x2;
+		vc[i + 13] = y2;
+		vc[i + 16] = this.globalAlpha;
+
+		vc[i + 18] = x3;
+		vc[i + 19] = y3;
+		vc[i + 22] = this.globalAlpha;
+
+		var fillColor = getColor(this.stack.state.fillStyle);
+		var ci = drawIndex * 4 * STRIDE;
+		var cc = manager._colors;
+		cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = fillColor.r; // R
+		cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = fillColor.g; // G
+		cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = fillColor.b; // B
+		cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = fillColor.a * 255; // A
 	};
 
 	this.deleteTextureForImage = function(canvas) {

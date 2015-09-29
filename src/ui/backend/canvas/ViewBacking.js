@@ -192,8 +192,8 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 			ctx.globalCompositeOperation = this.compositeOperation;
 		}
 
-		if (this._backgroundColor) {
-			ctx.fillStyle = this._backgroundColor;
+		if (this.backgroundColor) {
+			ctx.fillStyle = this.backgroundColor;
 			ctx.fillRect(0, 0, width, height);
 		}
 
