@@ -655,12 +655,13 @@ var Context2D = Class(function () {
 
 	this.drawImage = function(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
 
-		if (this.globalAlpha === 0) { return; }
+		var state = this.stack.state;
+		var alpha = state.globalAlpha;
+		if (alpha === 0) { return; }
 
-		var width = this.canvas.width;
-		var height = this.canvas.height;
-
-		var m = this.stack.state.transform;
+		var width = this.width;
+		var height = this.height;
+		var m = state.transform;
 		var dxW = dx + dWidth;
 		var dyH = dy + dHeight;
 
@@ -673,17 +674,6 @@ var Context2D = Class(function () {
 		var y2 = dx * m.b + dyH * m.d + m.ty;
 		var x3 = dxW * m.a + dyH * m.c + m.tx;
 		var y3 = dxW * m.b + dyH * m.d + m.ty;
-
-		// Calculate bounding box for simple culling
-		var minX = min(width, x0, x1, x2, x3);
-		var maxX = max(0, x0, x1, x2, x3);
-		var minY = min(height, y0, y1, y2, y3);
-		var maxY = max(0, y0, y1, y2, y3);
-
-		if (minX > width || maxX <= 0 || minY > height || maxY <= 0) {
-			// Offscreen, don't bother trying to draw it.
-			return;
-		}
 
 		var manager = this._manager;
 		manager.activate(this);
@@ -699,54 +689,44 @@ var Context2D = Class(function () {
 		var drawIndex = manager.addToBatch(this.stack.state, glId);
 
 		// TOOD: remove private access to _vertices
-		var tw = image.width;
-		var th = image.height;
+		var tw = 1 / image.width;
+		var th = 1 / image.height;
 		var vc = manager._vertices;
 		var i = drawIndex * 6 * 4;
 
 		vc[i + 0] = x0;
 		vc[i + 1] = y0;
-		vc[i + 2] = sx / tw; // u0
-		vc[i + 3] = sy / th; // v0
-		vc[i + 4] = this.globalAlpha;
+		vc[i + 2] = sx * tw; // u0
+		vc[i + 3] = sy * th; // v0
+		vc[i + 4] = alpha;
 
 		vc[i + 6] = x1;
 		vc[i + 7] = y1;
-		vc[i + 8] = (sx + sWidth) / tw; // u1
+		vc[i + 8] = (sx + sWidth) * tw; // u1
 		vc[i + 9] = vc[i + 3]; // v1
-		vc[i + 10] = this.globalAlpha;
+		vc[i + 10] = alpha;
 
 		vc[i + 12] = x2;
 		vc[i + 13] = y2;
 		vc[i + 14] = vc[i + 2]; // u2
-		vc[i + 15] = (sy + sHeight) / th; // v2
-		vc[i + 16] = this.globalAlpha;
+		vc[i + 15] = (sy + sHeight) * th; // v2
+		vc[i + 16] = alpha;
 
 		vc[i + 18] = x3;
 		vc[i + 19] = y3;
 		vc[i + 20] = vc[i + 8]; // u4
 		vc[i + 21] = vc[i + 15]; // v4
-		vc[i + 22] = this.globalAlpha;
+		vc[i + 22] = alpha;
 
-		var filterR = 0;
-		var filterG = 0;
-		var filterB = 0;
-		var filterA = 0;
-
-		if (this.stack.state.filter) {
-			var color = this.stack.state.filter.get();
-			filterR = color.r;
-			filterG = color.g;
-			filterB = color.b;
-			filterA = color.a * 255;
+		if (state.filter) {
+			var color = state.filter.get();
+			var ci = drawIndex * 4 * STRIDE;
+			var cc = manager._colors;
+			cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = color.r; // R
+			cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = color.g; // G
+			cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = color.b; // B
+			cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255; // A
 		}
-
-		var ci = drawIndex * 4 * STRIDE;
-		var cc = manager._colors;
-		cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = filterR; // R
-		cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = filterG; // G
-		cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = filterB; // B
-		cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = filterA; // A
 	};
 
 	this.fillRect = function(x, y, width, height) {
@@ -767,22 +747,11 @@ var Context2D = Class(function () {
 		var x3 = xW * m.a + yH * m.c + m.tx;
 		var y3 = xW * m.b + yH * m.d + m.ty;
 
-		// Calculate bounding box for simple culling
-		var minX = min(width, x0, x1, x2, x3);
-		var maxX = max(0, x0, x1, x2, x3);
-		var minY = min(height, y0, y1, y2, y3);
-		var maxY = max(0, y0, y1, y2, y3);
-
-		if (minX > width || maxX <= 0 || minY > height || maxY <= 0) {
-			// Offscreen, don't bother trying to draw it.
-			return;
-		}
-
 		var manager = this._manager;
 		manager.activate(this);
 		var drawIndex = manager.addToBatch(this.stack.state, -1);
 
-		// TOOD: remove private access to _vertices
+		// TODO: remove private access to _vertices
 		var vc = manager._vertices;
 		var i = drawIndex * 6 * 4;
 
