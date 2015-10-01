@@ -21,12 +21,13 @@
  */
 
 import device;
-// import .FontRenderer;
-import .Matrix2D;
+
 import ui.resource.loader as loader;
+import ui.Color as Color;
+
 import .TextManager;
 import .Shaders;
-import ui.Color as Color;
+import .Matrix2D;
 
 var ContextStateStack = Class(function() {
 
@@ -105,6 +106,7 @@ var GLManager = Class(function() {
 
 	this.init = function () {
 		var webglSupported = false;
+
 		try {
 			var testCanvas = document.createElement('canvas');
 			webglSupported = !!(window.WebGLRenderingContext && testCanvas.getContext('webgl'));
@@ -113,51 +115,35 @@ var GLManager = Class(function() {
 		this.width = device.width;
 		this.height = device.height;
 		this.isSupported = webglSupported;
-		if (this.isSupported) {
-			this._initGL();
-			window.addEventListener('resize', this.updateCanvasDimensions.bind(this), false);
-		}
+
+		if (!this.isSupported) { return; }
 
 		this.textManager = new TextManager();
-	};
 
-	this._initGL = function () {
+		this._helperTransform = new Matrix2D();
+
 		this._canvas = document.createElement('canvas');
 		this._canvas.width = this.width;
 		this._canvas.height = this.height;
-
-		var gl = this.gl = this._canvas.getContext('webgl', {
-			alpha: true,
-			premultipliedAlpha: true
-		});
-
-		gl.clearColor(0.0, 0.0, 0.0, 0.0);
-		gl.disable(gl.DEPTH_TEST);
-		gl.disable(gl.CULL_FACE);
-		gl.enable(gl.BLEND);
-
-		this._scissorEnabled = false;
-		this._activeScissor = { x: 0, y: 0, width: 0, height: 0 };
-
-		this.setActiveCompositeOperation('source-over');
-		this._activeRenderMode = -1;
+		this._canvas.getWebGLContext = this._canvas.getContext.bind(this._canvas, 'webgl', { alpha: true, premultipliedAlpha: true });
 
 		this._indexCache = new Uint16Array(MAX_BATCH_SIZE * 6);
 		this._vertexCache = new ArrayBuffer(MAX_BATCH_SIZE * STRIDE * 4);
 		this._vertices = new Float32Array(this._vertexCache);
 		this._colors = new Uint8Array(this._vertexCache);
 
-		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+		var indexCount = MAX_BATCH_SIZE * 6;
+		for (var i = 0, j = 0; i < indexCount; i += 6, j += 4) {
+			this._indexCache[i] = j;
+			this._indexCache[i + 1] = j + 2;
+			this._indexCache[i + 2] = j + 3;
+			this._indexCache[i + 3] = j;
+			this._indexCache[i + 4] = j + 3;
+			this._indexCache[i + 5] = j + 1;
+		}
 
-		this._initializeBuffers();
-		this._initializeShaders();
-
-		this._helperTransform = new Matrix2D();
-		this.textureCache = [];
-
-		this._drawIndex = -1;
-		this._batchIndex = -1;
 		this._batchQueue = new Array(MAX_BATCH_SIZE);
+
 		for (var i = 0; i <= MAX_BATCH_SIZE; i++) {
 			this._batchQueue[i] = {
 				textureId: 0,
@@ -169,6 +155,11 @@ var GLManager = Class(function() {
 			};
 		}
 
+		this.contexts = [];
+		this.initGL();
+		this._primaryContext = new Context2D(this, this._canvas);
+		this.activate(this._primaryContext);
+
 		loader.on(loader.IMAGE_LOADED, function(image) {
 			var glId = image.__GL_ID;
 			if (glId === undefined) {
@@ -176,7 +167,80 @@ var GLManager = Class(function() {
 			}
 		}.bind(this));
 
-		this._primaryContext = new Context2D(this, this._canvas);
+		this.contextActive = true;
+
+		window.addEventListener('resize', this.updateCanvasDimensions.bind(this), false);
+		this._canvas.addEventListener('webglcontextlost', this.handleContextLost.bind(this), false);
+		this._canvas.addEventListener('webglcontextrestored', this.handleContextRestored.bind(this), false);
+	};
+
+	this.handleContextLost = function(e) {
+		e.preventDefault();
+		this.contextActive = false;
+		this.gl = null;
+	};
+
+	this.handleContextRestored = function() {
+		this.initGL();
+		this.contextActive = true;
+	};
+
+	this.initGL = function () {
+		var gl = this.gl = this._canvas.getWebGLContext();
+
+		gl.clearColor(0.0, 0.0, 0.0, 0.0);
+		gl.disable(gl.DEPTH_TEST);
+		gl.disable(gl.CULL_FACE);
+		gl.enable(gl.BLEND);
+		gl.blendEquation(gl.FUNC_ADD);
+		gl.activeTexture(gl.TEXTURE0);
+
+		this._scissorEnabled = false;
+		this._activeScissor = { x: 0, y: 0, width: 0, height: 0 };
+
+		this.setActiveCompositeOperation('source-over');
+		this._activeRenderMode = -1;
+
+		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+
+		this.textureCache = [];
+		this._drawIndex = -1;
+		this._batchIndex = -1;
+
+		// Initialize Buffers
+		this._indexBuffer = gl.createBuffer();
+		this._vertexBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
+		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._indexCache, gl.STATIC_DRAW);
+		gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, this._vertexCache, gl.DYNAMIC_DRAW);
+
+		// Initialize Shaders
+		this.shaders = [];
+		this.shaders[RENDER_MODES.Default] = new Shaders.DefaultShader({ gl: gl });
+		this.shaders[RENDER_MODES.LinearAdd] = new Shaders.LinearAddShader({ gl: gl });
+		this.shaders[RENDER_MODES.Tint] = new Shaders.TintShader({ gl: gl });
+		this.shaders[RENDER_MODES.Multiply] = new Shaders.MultiplyShader({ gl: gl });
+		this.shaders[RENDER_MODES.Rect] = new Shaders.RectShader({ gl: gl });
+
+		this.reloadTextures();
+		this.updateContexts();
+	};
+
+	this.reloadTextures = function() {
+		var oldCanvases = this.canvasCache;
+		this.canvasCache = [];
+		if (oldCanvases) {
+			for (var i = 0; i < oldCanvases.length; i++) {
+				this.createTexture(oldCanvases[i]);
+			}
+		}
+	};
+
+	this.updateContexts = function() {
+		for (var i = 0; i < this.contexts.length; i++) {
+			this.contexts[i].createOffscreenFrameBuffer();
+		}
 	};
 
 	this.updateCanvasDimensions = function() {
@@ -193,51 +257,14 @@ var GLManager = Class(function() {
 		} else {
 			ctx = new Context2D(this, canvas);
 			ctx.createOffscreenFrameBuffer();
+			this.contexts.push(ctx);
 		}
 
 		return ctx;
 	};
 
-	this._initializeBuffers = function() {
-		var gl = this.gl;
-
-		var indexCount = MAX_BATCH_SIZE * 6;
-
-		for (var i = 0, j = 0; i < indexCount; i += 6, j += 4) {
-			this._indexCache[i] = j;
-			this._indexCache[i + 1] = j + 2;
-			this._indexCache[i + 2] = j + 3;
-			this._indexCache[i + 3] = j;
-			this._indexCache[i + 4] = j + 3;
-			this._indexCache[i + 5] = j + 1;
-		}
-
-		this._indexBuffer = gl.createBuffer();
-		this._vertexBuffer = gl.createBuffer();
-
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indexBuffer);
-		gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this._indexCache, gl.STATIC_DRAW);
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, this._vertexBuffer);
-		gl.bufferData(gl.ARRAY_BUFFER, this._vertexCache, gl.DYNAMIC_DRAW);
-	};
-
-	this._initializeShaders = function() {
-		var gl = this.gl;
-
-		this.shaders = [];
-		this.shaders[RENDER_MODES.Default] = new Shaders.DefaultShader({ gl: gl });
-		this.shaders[RENDER_MODES.LinearAdd] = new Shaders.LinearAddShader({ gl: gl });
-		this.shaders[RENDER_MODES.Tint] = new Shaders.TintShader({ gl: gl });
-		this.shaders[RENDER_MODES.Multiply] = new Shaders.MultiplyShader({ gl: gl });
-		this.shaders[RENDER_MODES.Rect] = new Shaders.RectShader({ gl: gl });
-
-		gl.blendEquation(gl.FUNC_ADD);
-		gl.activeTexture(gl.TEXTURE0);
-	};
-
 	this.setActiveRenderMode = function(id) {
-		if (this._activeRenderMode === id) { return; }
+		if (this._activeRenderMode === id || !this.gl) { return; }
 		var ctx = this._activeCtx;
 		this._activeRenderMode = id;
 		var shader = this.shaders[id];
@@ -251,7 +278,7 @@ var GLManager = Class(function() {
 	this.setActiveCompositeOperation = function(op) {
 
 		op = op || 'source-over';
-		if (this._activeCompositeOperation === op) { return; }
+		if (this._activeCompositeOperation === op || !this.gl) { return; }
 		this._activeCompositeOperation = op;
 
 		var gl = this.gl;
@@ -319,7 +346,7 @@ var GLManager = Class(function() {
 	};
 
 	this.flush = function() {
-		if (this._batchIndex === -1) { return; }
+		if (this._batchIndex === -1 || !this.gl) { return; }
 
 		var gl = this.gl;
 		gl.bufferSubData(gl.ARRAY_BUFFER, 0, this._vertexCache);
@@ -350,6 +377,7 @@ var GLManager = Class(function() {
 
 	this.createTexture = function(image, id) {
 		var gl = this.gl;
+		if (!gl) { return -1; }
 
 		if (!id) { id = this.textureCache.length; }
 		var texture = this.textureCache[id] || gl.createTexture();
@@ -366,6 +394,7 @@ var GLManager = Class(function() {
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 		this.textureCache[id] = texture;
+		this.canvasCache[id] = image;
 		image.__GL_ID = id;
 		return id;
 	};
@@ -381,6 +410,7 @@ var GLManager = Class(function() {
 	};
 
 	this.enableScissor = function(x, y, width, height) {
+		if (!this.gl) { return; }
 		var gl = this.gl;
 		if (!this._scissorEnabled) {
 			gl.enable(gl.SCISSOR_TEST);
@@ -397,6 +427,7 @@ var GLManager = Class(function() {
 	};
 
 	this.disableScissor = function() {
+		if (!this.gl) { return; }
 		if (this._scissorEnabled) {
 			var gl = this.gl;
 			this._scissorEnabled = false;
@@ -452,8 +483,8 @@ var GLManager = Class(function() {
 	};
 
 	this.activate = function (ctx, forceActivate) {
-		if (!forceActivate && ctx === this._activeCtx) { return; }
 		var gl = this.gl;
+		if ((!forceActivate && ctx === this._activeCtx) || !gl) { return; }
 		this.flush();
 		gl.finish();
 		gl.bindFramebuffer(gl.FRAMEBUFFER, ctx.frameBuffer);
@@ -465,9 +496,6 @@ var GLManager = Class(function() {
 
 // Create a context to measure text
 var textCtx = document.createElement("canvas").getContext("2d");
-
-
-
 
 // ---------------------------------------------------------------------------
 // CONTEXT2D
@@ -498,9 +526,7 @@ var Context2D = Class(function () {
 
 	this.init = function (manager, canvas) {
 		this._manager = manager;
-		this._gl = manager.gl;
 		this.canvas = canvas;
-
 		this.width = canvas.width;
 		this.height = canvas.height;
 		this.stack = new ContextStateStack();
@@ -509,7 +535,8 @@ var Context2D = Class(function () {
 	};
 
 	this.createOffscreenFrameBuffer = function () {
-		var gl = this._gl;
+		var gl = this._manager.gl;
+		if (!gl) { return; }
 		var id = this._manager.createTexture(this.canvas);
 		this._texture = this._manager.getTexture(id);
 	  this.frameBuffer = gl.createFramebuffer();
@@ -557,17 +584,18 @@ var Context2D = Class(function () {
 	this.clear = function() {
 		this._manager.activate(this);
 		this._manager.flush();
-
-		var gl = this._gl;
-		gl.clear(gl.COLOR_BUFFER_BIT);
+		var gl = this._manager.gl;
+		if (gl) {
+			gl.clear(gl.COLOR_BUFFER_BIT);
+		}
 	};
 
 	this.resize = function(width, height) {
 		this.width = width;
 		this.height = height;
 		this._manager.activate(this, true);
-		if (this._texture) {
-			var gl = this._gl;
+		if (this._texture && this._manager.gl) {
+			var gl = this._manager.gl;
 			gl.bindTexture(gl.TEXTURE_2D, this._texture);
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
 		}
@@ -631,6 +659,7 @@ var Context2D = Class(function () {
 	this.roundRect = function (x, y, width, height, radius) {};
 
 	this.fillText = function(text, x, y) {
+		if (!this._manager.gl) { return; }
 		var textData = this._manager.textManager.get(this, text, false);
 		if (!textData) { return; }
 		var w = textData.image.width;
@@ -639,6 +668,7 @@ var Context2D = Class(function () {
 	};
 
 	this.strokeText = function(text, x, y) {
+		if (!this._manager.gl) { return; }
 		var textData = this._manager.textManager.get(this, text, true);
 		if (!textData) { return; }
 		var w = textData.image.width;
@@ -652,6 +682,8 @@ var Context2D = Class(function () {
 	};
 
 	this.drawImage = function(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
+
+		if (!this._manager.gl) { return; }
 
 		var state = this.stack.state;
 		var alpha = state.globalAlpha;
@@ -679,7 +711,7 @@ var Context2D = Class(function () {
 		var glId = image.__GL_ID;
 		if (glId === undefined || image.__needsUpload) {
 			// Invalid image? Early out if so.
-			if (image.width === 0 || image.height === 0) { return; }
+			if (image.width === 0 || image.height === 0 || !image.complete) { return; }
 			image.__needsUpload = false;
 			glId = manager.createTexture(image, glId);
 		}
@@ -779,6 +811,7 @@ var Context2D = Class(function () {
 	};
 
 	this.deleteTextureForImage = function(canvas) {
+		if (!this._manager.gl) { return; }
 		this._manager.deleteTextureById(canvas.__GL_ID);
 	};
 
