@@ -28,11 +28,20 @@ var _styleKeys = {};
 
 var ViewBacking = exports = Class(BaseBacking, function () {
 
-	this.constructor.absScale = 1;
+	var IDENTITY_MATRIX = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
+
+	var sin = Math.sin;
+	var cos = Math.cos;
 
 	this.init = function (view) {
+		this._globalTransform = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
+		this._cachedRotation = 0;
+		this._cachedSin = 0;
+		this._cachedCos = 1;
+		this._globalOpacity = 1;
 		this._view = view;
 		this._subviews = [];
+		this._childCount = 0;
 	}
 
 	this.getSuperview = function () { return this._superview; }
@@ -60,6 +69,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 
 		backing._superview = this._view;
 		backing._setAddedAt(++ADD_COUNTER);
+		this._childCount++;
 
 		if (n && backing.__sortKey < this._subviews[n - 1].__sortKey) {
 			this._needsSort = true;
@@ -72,6 +82,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		var index = this._subviews.indexOf(targetView.__view);
 		if (index != -1) {
 			this._subviews.splice(index, 1);
+			this._childCount--;
 			// this._view.needsRepaint();
 
 			targetView.__view._superview = null;
@@ -82,10 +93,11 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 	}
 
 	this.wrapTick = function (dt, app) {
-		this._view.tick && this._view.tick(dt, app);
+		this._view._tick && this._view._tick(dt, app);
 
-		for (var i = 0, view; view = this._subviews[i]; ++i) {
-			view.wrapTick(dt, app);
+		var views = this._subviews;
+		for (var i = 0; i < this._childCount; ++i) {
+			views[i].wrapTick(dt, app);
 		}
 
 		// TODO: support partial repaints?
@@ -95,93 +107,109 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		// }
 	}
 
+	this.updateGlobalTransform = function() {
+		var parent = this._view.__parent ? this._view.__parent.__view : null;
+		this._globalOpacity = parent ? parent._globalOpacity * this.opacity : this.opacity;
+
+		var flipX = this.flipX ? -1 : 1;
+		var flipY = this.flipY ? -1 : 1;
+
+		var pgt = parent ? parent._globalTransform : IDENTITY_MATRIX;
+		var gt = this._globalTransform;
+		var sx = this.scaleX * this.scale * flipX;
+		var sy = this.scaleY * this.scale * flipY;
+		var ax = this.flipX ? this._width - this.anchorX : this.anchorX;
+		var ay = this.flipY ? this._height - this.anchorY : this.anchorY;
+		var tx = this.x + this.offsetX + this.anchorX;
+		var ty = this.y + this.offsetY + this.anchorY;
+
+		if (this.r === 0) {
+			tx -= ax * sx;
+			ty -= ay * sy;
+			gt.a = pgt.a * sx;
+			gt.b = pgt.b * sx;
+			gt.c = pgt.c * sy;
+			gt.d = pgt.d * sy;
+			gt.tx = tx * pgt.a + ty * pgt.c + pgt.tx;
+			gt.ty = tx * pgt.b + ty * pgt.d + pgt.ty;
+		} else {
+			if (this.r !== this._cachedRotation) {
+				this._cachedRotation = this.r;
+				this._cachedSin = sin(this.r);
+				this._cachedCos = cos(this.r);
+			}
+			var a  =  this._cachedCos * sx;
+			var b  =  this._cachedSin * sx;
+			var c  = -this._cachedSin * sy;
+			var d  =  this._cachedCos * sy;
+
+			if (ax || ay) {
+				tx -= a * ax + c * ay;
+				ty -= b * ax + d * ay;
+			}
+
+			gt.a = a * pgt.a + b * pgt.c;
+			gt.b = a * pgt.b + b * pgt.d;
+			gt.c = c * pgt.a + d * pgt.c;
+			gt.d = c * pgt.b + d * pgt.d;
+			gt.tx = tx * pgt.a + ty * pgt.c + pgt.tx;
+			gt.ty = tx * pgt.b + ty * pgt.d + pgt.ty;
+		}
+	};
+
 	this.wrapRender = function (ctx, opts) {
 		if (!this.visible) { return; }
-		if (this._needsSort) { this._needsSort = false; this._subviews.sort(); }
+
+		if (this._needsSort) {
+			this._needsSort = false;
+			this._subviews.sort();
+		}
 
 		var width = this._width;
 		var height = this._height;
 		if (width < 0 || height < 0) { return; }
 
-		ctx.save();
+		var saveContext = this.clip || this.compositeOperation || !this._view.__parent;
+		if (saveContext) { ctx.save(); }
 
-		ctx.translate(this.x + this.anchorX + this.offsetX, this.y + this.anchorY + this.offsetY);
-
-		if (this.r) { ctx.rotate(this.r); }
-
-		// clip this render to be within its view;
-		if (this.scale != 1) {
-			ctx.scale(this.scale, this.scale);
-			ViewBacking.absScale *= this.scale;
-		}
-
-		// scale dimensions individually
-		if (this.scaleX != 1) {
-			ctx.scale(this.scaleX, 1);
-		}
-		if (this.scaleY != 1) {
-			ctx.scale(1, this.scaleY);
-		}
-
-		this.absScale = ViewBacking.absScale;
-
-		if (this.opacity != 1) { ctx.globalAlpha *= this.opacity; }
-
-		ctx.translate(-this.anchorX, -this.anchorY);
+		this.updateGlobalTransform();
+		var gt = this._globalTransform;
+		ctx.setTransform(gt.a, gt.b, gt.c, gt.d, gt.tx, gt.ty);
+		ctx.globalAlpha = this._globalOpacity;
 
 		if (this.clip) { ctx.clipRect(0, 0, width, height); }
 
-		var filters = {};
 		var filter = this._view.getFilter();
 		if (filter) {
+			var filters = {};
 			filters[filter.getType()] = filter;
-		}
-		ctx.setFilters(filters);
-
-		if (this.flipX || this.flipY) {
-			ctx.translate(
-				this.flipX ? width / 2 : 0,
-				this.flipY ? height / 2 : 0
-			);
-
-			ctx.scale(
-				this.flipX ? -1 : 1,
-				this.flipY ? -1 : 1
-			);
-
-			ctx.translate(
-				this.flipX ? -width / 2 : 0,
-				this.flipY ? -height / 2 : 0
-			);
+			ctx.setFilters(filters);
 		}
 
-		try {
-			if (this.compositeOperation) {
+//		try {
+			if (this._compositeOperation) {
 				ctx.globalCompositeOperation = this.compositeOperation;
 			}
 
-			if (this.backgroundColor) {
-				ctx.fillStyle = this.backgroundColor;
+			if (this._backgroundColor) {
+				ctx.fillStyle = this._backgroundColor;
 				ctx.fillRect(0, 0, width, height);
 			}
 
 			var viewport = opts.viewport;
-			this._view.render && this._view.render(ctx, opts);
+			this._view._render && this._view._render(ctx, opts);
 			this._renderSubviews(ctx, opts);
 			opts.viewport = viewport;
-		} finally {
+//		} finally {
 			ctx.clearFilters();
-			ctx.restore();
-			ViewBacking.absScale /= this.scale;
-		}
+			if (saveContext) { ctx.restore(); }
+//		}
 	}
 
 	this._renderSubviews = function (ctx, opts) {
-		var i = 0;
-		var view;
 		var subviews = this._subviews;
-		while (view = subviews[i++]) {
-			view.wrapRender(ctx, opts);
+		for (var i = 0; i < this._childCount; i++) {
+			subviews[i].wrapRender(ctx, opts);
 		}
 	}
 
