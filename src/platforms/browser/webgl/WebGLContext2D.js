@@ -171,7 +171,7 @@ var GLManager = Class(function() {
 
 		this.contextActive = true;
 
-		window.addEventListener('resize', this.updateCanvasDimensions.bind(this), false);
+		device.screen.on('Resize', this.updateCanvasDimensions.bind(this));
 		this._canvas.addEventListener('webglcontextlost', this.handleContextLost.bind(this), false);
 		this._canvas.addEventListener('webglcontextrestored', this.handleContextRestored.bind(this), false);
 	};
@@ -246,7 +246,7 @@ var GLManager = Class(function() {
 	};
 
 	this.updateCanvasDimensions = function() {
-		this._primaryContext.resize(this._canvas.width, this._canvas.height);
+		this._primaryContext.resize(device.screen.width, device.screen.height);
 	};
 
 	this.getContext = function(canvas, opts) {
