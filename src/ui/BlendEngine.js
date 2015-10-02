@@ -400,7 +400,7 @@ exports = Class(View, function(supr) {
 			this._img.setSourceHeight(canvH);
 
 			// render our particle images to the canvas's context
-			var ctx = this._canvas.getContext("webgl");
+			var ctx = this._canvas.getContext("2D");
 			ctx.clear();
 
 			var _ctx = ctx._ctx || ctx;
@@ -447,8 +447,6 @@ exports = Class(View, function(supr) {
 			this._canvY = canvY;
 			this._canvW = canvW;
 			this._canvH = canvH;
-
-			// _ctx.canvas.__needsUpload = true;
 		}
 	};
 
