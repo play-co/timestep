@@ -18,9 +18,9 @@ var Shader = Class(function() {
 			'varying vec4 vColor;',
 			'void main() {',
 			'	vTextureCoord = aTextureCoord;',
-			'	vec2 clipSpace = (aPosition / uResolution) * 2.0 - 1.0;',
 			'	vColor = aColor;',
 			'	vAlpha = aAlpha;',
+			'	vec2 clipSpace = (aPosition / uResolution) * 2.0 - 1.0;',
 			'	gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);',
 			'}'
 		].join("\n");

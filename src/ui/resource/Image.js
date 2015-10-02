@@ -81,7 +81,7 @@ if (!ImageMap) {
 exports = Class(lib.PubSub, function () {
 
 	var isNative = GLOBAL.NATIVE && !device.isNativeSimulator;
-	var isWebGL = device.useWebGL;
+	var isWebGL = CONFIG.useWebGL;
 	var Canvas = device.get('Canvas');
 
 	// helper canvases for image data, initialized when/if needed
@@ -405,7 +405,7 @@ exports = Class(lib.PubSub, function () {
 			srcH = arguments[4];
 		}
 
-		if (!isWebGL && !isNative && ctx.filters) {
+		if (!isNative && ctx.filters) {
 			var filterImg = filterRenderer.renderFilter(ctx, this, srcX, srcY, srcW, srcH);
 			if (filterImg) {
 				srcImg = filterImg;

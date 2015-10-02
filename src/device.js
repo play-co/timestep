@@ -189,13 +189,6 @@ exports.setUseDOM = function (useDOM) {
 	return;
 }
 
-exports.useWebGL = true;
-exports.setUseWebGL = function (useWebGL) {
-	if (exports.useWebGL !== useWebGL) {
-		exports.useWebGL = useWebGL;
-	}
-}
-
 exports.getDimensions = function (isLandscape) {
 	var dMin = Math.min(exports.width, exports.height),
 		dMax = Math.max(exports.width, exports.height);

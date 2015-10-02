@@ -40,10 +40,15 @@ var FilterRenderer = Class(function () {
 	var needsInitialization = true;
 
 	this.initialize = function() {
-		jsio('import ui.Engine').get().subscribe('Tick', this, this.onTick);
 		Canvas = device.get('Canvas');
-		noCacheCanvas = new Canvas();
+		noCacheCanvas = new Canvas({ useWebGL: CONFIG.useWebGL });
 		needsInitialization = false;
+		this.useCache = !device.isNative && !CONFIG.useWebGL;
+		this.useWebGL = CONFIG.useWebGL;
+		if (this.useCache) {
+			// If we're using canvas caching, set up the tick subscription
+			jsio('import ui.Engine').get().subscribe('Tick', this, this.onTick);
+		}
 	};
 
 	this.onTick = function(dt) {
@@ -60,15 +65,26 @@ var FilterRenderer = Class(function () {
 			filter = ctx.filters[filterName];
 			break;
 		}
-		if (!filter) { return null; }
 
-		var cacheKey = this.getCacheKey(srcImg.getURL(), srcX, srcY, srcW, srcH, filter);
-		var resultImg = this.cache.get(cacheKey);
+		// Ugly hack, but WebGL still needs this class, for now, for masking.
+		// The other filters are handled by the WebGL context itself.
+		var filterNotSupported = this.useWebGL && filterName !== "NegativeMask" && filterName !== "PositiveMask";
+		if (!filter || filterNotSupported) { return null; }
 
-		if (resultImg) { return resultImg; }
+		if (this.useCache) {
+			var cacheKey = this.getCacheKey(srcImg.getURL(), srcX, srcY, srcW, srcH, filter);
+			var resultImg = this.cache.get(cacheKey);
+			if (resultImg) { return resultImg; }
+		}
 
-		var shouldCache = this.testShouldCache(cacheKey);
-		resultImg = shouldCache ? this.getCanvas(srcW, srcH) : noCacheCanvas;
+		var shouldCache = this.useCache && this.testShouldCache(cacheKey);
+		if (shouldCache) {
+			resultImg = this.getCanvas(srcW, srcH);
+		} else {
+			resultImg = noCacheCanvas;
+			resultImg.width = srcW;
+			resultImg.height = srcH;
+		}
 
 		switch (filterName) {
 			case "LinearAdd":

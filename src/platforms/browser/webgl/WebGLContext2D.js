@@ -87,7 +87,9 @@ var RENDER_MODES = {
 	LinearAdd: 1,
 	Tint: 2,
 	Multiply: 3,
-	Rect: 4
+	Rect: 4,
+	PositiveMask: 0,
+	NegativeMask: 0
 };
 
 var COLOR_MAP = {};
@@ -286,42 +288,42 @@ var GLManager = Class(function() {
 		var destination;
 
 		switch(op) {
-			case 'source_over':
+			case 'source-over':
 				source = gl.ONE;
 				destination = gl.ONE_MINUS_SRC_ALPHA;
 				break;
 
-			case 'source_atop':
+			case 'source-atop':
 				source = gl.DST_ALPHA;
 				destination = gl.ONE_MINUS_SRC_ALPHA;
 				break;
 
-			case 'source_in':
+			case 'source-in':
 				source = gl.DST_ALPHA;
 				destination = gl.ZERO;
 				break;
 
-			case 'source_out':
+			case 'source-out':
 				source = gl.ONE_MINUS_DST_ALPHA;
 				destination = gl.ZERO;
 				break;
 
-			case 'destination_atop':
+			case 'destination-atop':
 				source = gl.DST_ALPHA;
 				destination = gl.SRC_ALPHA;
 				break;
 
-			case 'destination_in':
+			case 'destination-in':
 				source = gl.ZERO;
 				destination = gl.SRC_ALPHA;
 				break;
 
-			case 'destination_out':
+			case 'destination-out':
 				source = gl.ONE_MINUS_SRC_ALPHA;
 				destination = gl.ONE_MINUS_SRC_ALPHA;
 				break;
 
-			case 'destination_over':
+			case 'destination-over':
 				source = gl.DST_ALPHA;
 				destination = gl.SRC_ALPHA;
 				break;
@@ -532,6 +534,8 @@ var Context2D = Class(function () {
 		this.stack = new ContextStateStack();
 		this.font = '11px ' + device.defaultFontFamily;
 		this.frameBuffer = null;
+		this.filters = {};
+		this.flip = false;
 	};
 
 	this.createOffscreenFrameBuffer = function () {
@@ -547,6 +551,7 @@ var Context2D = Class(function () {
 		gl.bindTexture(gl.TEXTURE_2D, null);
 		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		this.flip = true;
 	};
 
 	var min = Math.min;
@@ -634,14 +639,19 @@ var Context2D = Class(function () {
 	this.execSwap = function() {};
 
 	this.setFilters = function(filters) {
+		this.clearFilters();
 		for (var filterId in filters) {
 			this.stack.state.filter = filters[filterId];
+			this.filters[filterId] = filters[filterId];
 			return;
 		}
 		this.stack.state.filter = null;
 	};
 
 	this.clearFilters = function() {
+		for (var name in this.filters) {
+			delete this.filters[name];
+		}
 		this.stack.state.filter = null;
 	};
 
@@ -689,22 +699,6 @@ var Context2D = Class(function () {
 		var alpha = state.globalAlpha;
 		if (alpha === 0) { return; }
 
-		var width = this.width;
-		var height = this.height;
-		var m = state.transform;
-		var dxW = dx + dWidth;
-		var dyH = dy + dHeight;
-
-		// Calculate 4 vertex positions
-		var x0 = dx * m.a + dy * m.c + m.tx;
-		var y0 = dx * m.b + dy * m.d + m.ty;
-		var x1 = dxW * m.a + dy * m.c + m.tx;
-		var y1 = dxW * m.b + dy * m.d + m.ty;
-		var x2 = dx * m.a + dyH * m.c + m.tx;
-		var y2 = dx * m.b + dyH * m.d + m.ty;
-		var x3 = dxW * m.a + dyH * m.c + m.tx;
-		var y3 = dxW * m.b + dyH * m.d + m.ty;
-
 		var manager = this._manager;
 		manager.activate(this);
 
@@ -717,35 +711,82 @@ var Context2D = Class(function () {
 		}
 
 		var drawIndex = manager.addToBatch(this.stack.state, glId);
+		var width = this.width;
+		var height = this.height;
+		var imageWidth = image.width;
+		var imageHeight = image.height;
+		var m = state.transform;
+		var sxW = sx + sWidth;
+		var syH = sy + sHeight;
+		var dxW = dx + dWidth;
+		var dyH = dy + dHeight;
+
+		var needsTrim = sx < 0 || sxW > imageWidth || sy < 0 || syH > imageHeight;
+
+		if (needsTrim) {
+			var newSX = max(0, sx);
+			var newSY = max(0, sy);
+			var newSXW = min(sxW, imageWidth);
+			var newSYH = min(syH, imageHeight);
+			var scaleX = dWidth / sWidth;
+			var scaleY = dHeight / sHeight;
+			var trimLeft = (newSX - sx) * scaleX;
+			var trimRight = (sxW - newSXW) * scaleX;
+			var trimTop = (newSY - sy) * scaleY;
+			var trimBottom = (syH - newSYH) * scaleY;
+			dx += trimLeft;
+			dxW -= trimRight;
+			dy += trimTop;
+			dyH -= trimBottom;
+			sx = newSX;
+			sy = newSY;
+			sxW = newSXW;
+			syH = newSYH;
+		}
+
+		// Calculate 4 vertex positions
+		var x0 = dx * m.a + dy * m.c + m.tx;
+		var y0 = dx * m.b + dy * m.d + m.ty;
+		var x1 = dxW * m.a + dy * m.c + m.tx;
+		var y1 = dxW * m.b + dy * m.d + m.ty;
+		var x2 = dx * m.a + dyH * m.c + m.tx;
+		var y2 = dx * m.b + dyH * m.d + m.ty;
+		var x3 = dxW * m.a + dyH * m.c + m.tx;
+		var y3 = dxW * m.b + dyH * m.d + m.ty;
 
 		// TOOD: remove private access to _vertices
-		var tw = 1 / image.width;
-		var th = 1 / image.height;
+		var tw = 1 / imageWidth;
+		var th = 1 / imageHeight;
 		var vc = manager._vertices;
 		var i = drawIndex * 6 * 4;
 
+		var uLeft = sx * tw;
+		var uRight = sxW * tw;
+		var vTop = this.flip ? syH * th : sy * th;
+		var vBottom = this.flip ? sy * th : syH * th;
+
 		vc[i + 0] = x0;
 		vc[i + 1] = y0;
-		vc[i + 2] = sx * tw; // u0
-		vc[i + 3] = sy * th; // v0
+		vc[i + 2] = uLeft; // u0
+		vc[i + 3] = vTop; // v0
 		vc[i + 4] = alpha;
 
 		vc[i + 6] = x1;
 		vc[i + 7] = y1;
-		vc[i + 8] = (sx + sWidth) * tw; // u1
-		vc[i + 9] = vc[i + 3]; // v1
+		vc[i + 8] = uRight; // u1
+		vc[i + 9] = vTop; // v1
 		vc[i + 10] = alpha;
 
 		vc[i + 12] = x2;
 		vc[i + 13] = y2;
-		vc[i + 14] = vc[i + 2]; // u2
-		vc[i + 15] = (sy + sHeight) * th; // v2
+		vc[i + 14] = uLeft; // u2
+		vc[i + 15] = vBottom; // v2
 		vc[i + 16] = alpha;
 
 		vc[i + 18] = x3;
 		vc[i + 19] = y3;
-		vc[i + 20] = vc[i + 8]; // u4
-		vc[i + 21] = vc[i + 15]; // v4
+		vc[i + 20] = uRight; // u4
+		vc[i + 21] = vBottom; // v4
 		vc[i + 22] = alpha;
 
 		if (state.filter) {
