@@ -75,11 +75,11 @@ var Loader = Class(function () {
 			var sheet = sheets[name];
 			sheet.forEach(function (info) {
 				this._map[info.f] = {
-					sheet: 'spritesheets/' + name,
-					x: info.x,
-					y: info.y,
-					w: info.w,
-					h: info.h,
+					sheet: name,
+					x: info.x || 0,
+					y: info.y || 0,
+					w: info.w || 0,
+					h: info.h || 0,
 					scale: info.s || 1,
 					marginTop: info.t || 0,
 					marginRight: info.r || 0,
