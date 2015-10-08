@@ -63,6 +63,9 @@ exports = Class(function () {
       defaultBrowserStyles: get('defaultBrowserStyles', true)
     }, opts);
 
+    this.onChange = opts.onChange;
+    this.onSubmit = opts.onSubmit;
+
     if (DEBUG) {
       jsio("import .debug.types").check('InputPrompt', {
         'title': {value: this._opts.title, type: 'string', required: true},
