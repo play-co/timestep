@@ -16,6 +16,7 @@
 
 import .i18n;
 import lib.Callback;
+import event.Emitter as Emitter;
 
 var _cache = {};
 
@@ -36,8 +37,18 @@ var MIME = {
 	'.wav': 'audio'
 };
 
-var Loader = Class(function () {
+var Loader = Class(Emitter, function () {
+
+	var globalItemsToLoad = 0;
+	var globalItemsLoaded = 0;
+
 	this._map = {};
+
+	Object.defineProperty(this, "progress", {
+		get: function() {
+			return globalItemsToLoad > 0 ? globalItemsLoaded / globalItemsToLoad : 1
+		}
+	});
 
 	this.has = function (src) {
 		return this._map[src];
@@ -149,7 +160,7 @@ var Loader = Class(function () {
 
 			// If no files were specified by the preload command,
 			if (files.length == 0) {
-				logger.log("WARNING: No files to preload from path:", pathPrefix, "-- A gamedev needs to update the code with the real resource paths.");
+				files = [pathPrefix];
 			}
 
 			var callback = this._loadGroup(merge({resources: files}, opts));
@@ -158,19 +169,21 @@ var Loader = Class(function () {
 		}
 	};
 
-	var soundLoader = null;
+	var _soundManager = null;
+	var _soundLoader = null;
 	this.getSound = function (src) {
-		if (!soundLoader) {
+		if (!_soundManager) {
 			import AudioManager;
-			soundLoader = new AudioManager();
+			_soundManager = new AudioManager({ preload: true });
+			_soundLoader = _soundManager.getAudioLoader();
 		}
 
 		if (GLOBAL.NATIVE && GLOBAL.NATIVE.sound && GLOBAL.NATIVE.sound.preloadSound) {
 			return NATIVE.sound.preloadSound(src);
 		} else {
-			soundLoader.addSound(src);
+			_soundManager.addSound(src);
 			//HACK to make the preloader continue in the browser
-			return { complete: true };
+			return { complete: true, loader: _soundLoader };
 		}
 	};
 
@@ -202,7 +215,9 @@ var Loader = Class(function () {
 			img.src = b64;
 			Image.set(src, img);
 		} else {
-			if (!noWarn) { logger.warn(src, 'may not be properly cached!'); }
+			if (!noWarn) {
+				logger.warn("Preload Warning:", src, "not properly cached!");
+			}
 			img.src = src;
 		}
 
@@ -280,7 +295,7 @@ var Loader = Class(function () {
 				res = this.getImage(src, noWarn);
 				break;
 			default:
-				logger.error('unknown type for preloader', type);
+				logger.error("Preload Error: Unknown Type", type);
 		}
 		return (_cache[src] = res);
 	};
@@ -294,6 +309,7 @@ var Loader = Class(function () {
 	this._loadGroup = function (opts, cb) {
 		var timeout = opts.timeout;
 		var callback = new lib.Callback();
+		var that = this;
 
 		// compute a list of images using file extensions
 		var resources = opts.resources || [];
@@ -311,6 +327,7 @@ var Loader = Class(function () {
 
 		// If no resources were loadable,
 		if (!loadableResources.length) {
+			logger.warn("Preload Fail: No Loadable Resources Found");
 			cb && callback.run(cb);
 			callback.fire();
 			return callback;
@@ -319,11 +336,12 @@ var Loader = Class(function () {
 		// do the preload asynchronously (note that base64 is synchronous, only downloads are asynchronous)
 		var nextIndexToLoad = 0;
 		var numResources = loadableResources.length;
+		globalItemsToLoad += numResources;
 		var parallel = Math.min(numResources, opts.parallel || 5); // how many should we try to download at a time?
 		var numLoaded = 0;
 
 		var loadResource = bind(this, function () {
-		    var currentIndex = nextIndexToLoad++;
+			var currentIndex = nextIndexToLoad++;
 			var src = loadableResources[currentIndex];
 			var res;
 			if (src) {
@@ -345,6 +363,10 @@ var Loader = Class(function () {
 
 				// The number of loads (success or failure) has increased.
 				++numLoaded;
+				++globalItemsLoaded;
+
+				// REALLY hacky progress tracker
+				if (globalItemsLoaded === globalItemsToLoad) { globalItemsLoaded = globalItemsToLoad = 0; }
 
 				// If we have loaded all of the resources,
 				if (numLoaded >= numResources) {
@@ -357,6 +379,7 @@ var Loader = Class(function () {
 					}
 
 					// Fire the completion callback chain
+					logger.log("Preload Complete:", src.resource);
 					callback.fire();
 				} else {
 					// Call the progress callback with the current progress
@@ -398,10 +421,15 @@ var Loader = Class(function () {
 				// Start it reloading
 				res.reload();
 			} else if (res.complete) {
-				// Since the resource has already completed loading, go
-				// ahead and invoke the next callback indicating the previous
-				// success or failure.
-				next(res.failed === true);
+				if (res.loader) {
+					// real sound loading with AudioContext ...
+					res.loader.load([src.resource], next);
+				} else {
+					// Since the resource has already completed loading, go
+					// ahead and invoke the next callback indicating the previous
+					// success or failure.
+					next(res.failed === true);
+				}
 			} else {
 				// The comments above about onreload callback chaining equally
 				// apply here.  See above.
@@ -417,6 +445,11 @@ var Loader = Class(function () {
 
 					// Reset fail flag
 					res.failed = false;
+
+					// Let subscribers know an image was loaded
+					if (res instanceof Image) {
+						that.emit(Loader.IMAGE_LOADED, res);
+					}
 
 					// React to successful load of this resource
 					next(false);
@@ -443,6 +476,7 @@ var Loader = Class(function () {
 			// register timeout call
 			if (timeout) {
 				_timeout = setTimeout(function () {
+					logger.warn("Preload Timeout: Something Failed to Load");
 					callback.fire();
 					numLoaded = numResources;
 				}, timeout);
@@ -453,4 +487,8 @@ var Loader = Class(function () {
 
 });
 
+Loader.IMAGE_LOADED = "imageLoaded";
+
 exports = new Loader();
+
+exports.IMAGE_LOADED = Loader.IMAGE_LOADED;

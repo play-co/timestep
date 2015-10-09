@@ -31,7 +31,8 @@
  */
 
 import ui.Color as Color;
-import ui.resource.Image as Image;
+
+var Image;
 
 var Filter = exports.Filter = Class(function () {
 
@@ -135,6 +136,7 @@ exports.PositiveMaskFilter = Class(Filter, function (supr) {
 		supr(this, 'init', arguments);
 		this._type = 'PositiveMask';
 		if (opts.image) {
+			Image = Image || jsio('import ui.resource.Image');
 			this._mask = new Image({ url: opts.image });
 		}
 	};
@@ -153,6 +155,7 @@ exports.NegativeMaskFilter = Class(Filter, function (supr) {
 		supr(this, 'init', arguments);
 		this._type = 'NegativeMask';
 		if (opts.image) {
+			Image = Image || jsio('import ui.resource.Image');
 			this._mask = new Image({ url: opts.image });
 		}
 	};

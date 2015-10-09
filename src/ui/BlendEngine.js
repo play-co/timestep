@@ -137,7 +137,7 @@ exports = Class(View, function(supr) {
 		this._canvY = 0;
 		this._canvW = 1;
 		this._canvH = 1;
-		this._canvas = new Canvas({ width: MAX_TEX_WIDTH, height: MAX_TEX_HEIGHT });
+		this._canvas = new Canvas({ width: MAX_TEX_WIDTH, height: MAX_TEX_HEIGHT, useWebGL: true });
 		this._img = new Image({ srcImage: this._canvas });
 	};
 

@@ -28,13 +28,16 @@ import device;
 import lib.PubSub;
 import event.Callback as Callback;
 import ui.resource.loader as resourceLoader;
+import ui.backend.canvas.filterRenderer as filterRenderer;
 
+var ImageCache = {};
+
+var GET_IMAGE_DATA_NOT_SUPPORTED = (!GLOBAL.document || !document.createElement);
 /**
  * Callback when images are loaded. This has a failsafe that runs up to a certain
  * threshold asynchronously, attempting to read the image size, before dying.
  */
 
-var ImageCache = {};
 
 // `imageOnLoad` is called when a DOM image object fires a `load` or `error`
 // event.  Fire the internal `cb` with the error status.
@@ -78,11 +81,10 @@ if (!ImageMap) {
 exports = Class(lib.PubSub, function () {
 
 	var isNative = GLOBAL.NATIVE && !device.isNativeSimulator;
+	var isWebGL = CONFIG.useWebGL;
 	var Canvas = device.get('Canvas');
 
-	// helper canvases for filters and image data, initialized when/if needed
-	var _filterCanvas = null;
-	var _filterCtx = null;
+	// helper canvases for image data, initialized when/if needed
 	var _imgDataCanvas = null;
 	var _imgDataCtx = null;
 
@@ -142,7 +144,7 @@ exports = Class(lib.PubSub, function () {
 
 		this._srcImg = img;
 
-		if (img instanceof HTMLCanvasElement) {
+		if (img instanceof HTMLCanvasElement || img instanceof Canvas) {
 			this._onLoad(false, img); // no error
 		} else {
 			// if it's already loaded, we call _onLoad immediately. Note that
@@ -370,90 +372,10 @@ exports = Class(lib.PubSub, function () {
 		return !this._isError && this._cb.fired();
 	};
 
-	this._renderFilter = function (ctx, srcX, srcY, srcW, srcH, color, op) {
-		_filterCanvas.width = srcW;
-		_filterCanvas.height = srcH;
-		// render the base image
-		_filterCtx.globalCompositeOperation = 'source-over';
-		this.render(_filterCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
-		// render the filter color
-		_filterCtx.globalCompositeOperation = op;
-		_filterCtx.fillStyle = "rgba(" + color.r  + "," + color.g + "," + color.b + "," + color.a + ")";
-		_filterCtx.fillRect(0, 0, srcW, srcH);
-		// use our base image to cut out the image shape from the rect
-		_filterCtx.globalCompositeOperation = 'destination-in';
-		this.render(_filterCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
-		return _filterCanvas;
-	};
 
-	this._renderMultiply = function (ctx, srcX, srcY, srcW, srcH, color) {
-		// multiply rgb channels
-		var imgData = this.getImageData(srcX, srcY, srcW, srcH);
-		var data = imgData.data;
-		// simplified multiply math outside of the massive for loop
-		var a = color.a;
-		var mr = 1 + a * ((color.r / 255) - 1);
-		var mg = 1 + a * ((color.g / 255) - 1);
-		var mb = 1 + a * ((color.b / 255) - 1);
-		for (var i = 0, len = data.length; i < len; i += 4) {
-			data[i] *= mr;
-			data[i + 1] *= mg;
-			data[i + 2] *= mb;
-		}
-		// put the updated rgb data into our filter canvas
-		_filterCanvas.width = imgData.width;
-		_filterCanvas.height = imgData.height;
-		_filterCtx.putImageData(imgData, 0, 0);
-		return _filterCanvas;
-	};
-
-	this._renderMask = function (ctx, srcX, srcY, srcW, srcH, mask, op) {
-		_filterCanvas.width = srcW;
-		_filterCanvas.height = srcH;
-		// render the mask image
-		var srcMaskX = mask.getSourceX();
-		var srcMaskY = mask.getSourceY();
-		var srcMaskW = mask.getSourceW();
-		var srcMaskH = mask.getSourceH();
-		_filterCtx.globalCompositeOperation = 'source-over';
-		mask.render(_filterCtx, srcMaskX, srcMaskY, srcMaskW, srcMaskH, 0, 0, srcW, srcH);
-		// render the base image
-		_filterCtx.globalCompositeOperation = op;
-		this.render(_filterCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
-		return _filterCanvas;
-	};
-
-	this._applyFilters = function (ctx, srcX, srcY, srcW, srcH) {
-		// initialize a shared filterCanvas when/if needed
-		if (_filterCanvas === null) {
-			_filterCanvas = new Canvas();
-			_filterCtx = _filterCanvas.getContext('2d');
-		}
-
-		var resultImg = this._srcImg;
-		var filters = ctx.filters;
-		var linearAdd = filters.LinearAdd;
-		var tint = filters.Tint;
-		var mult = filters.Multiply;
-		var negMask = filters.NegativeMask;
-		var posMask = filters.PositiveMask;
-		// only one filter can actually be applied at a time
-		if (linearAdd) {
-			resultImg = this._renderFilter(ctx, srcX, srcY, srcW, srcH, linearAdd.get(), 'lighter');
-		} else if (tint) {
-			resultImg = this._renderFilter(ctx, srcX, srcY, srcW, srcH, tint.get(), 'source-over');
-		} else if (mult) {
-			resultImg = this._renderMultiply(ctx, srcX, srcY, srcW, srcH, mult.get());
-		} else if (negMask) {
-			resultImg = this._renderMask(ctx, srcX, srcY, srcW, srcH, negMask.getMask(), 'source-in');
-		} else if (posMask) {
-			resultImg = this._renderMask(ctx, srcX, srcY, srcW, srcH, posMask.getMask(), 'source-out');
-		}
-		return resultImg;
-	};
 
 	this.render = function (ctx) {
-		if (!this._cb.fired()) {
+		if (!this._cb.fired() || this._isError) {
 			return;
 		}
 
@@ -484,20 +406,15 @@ exports = Class(lib.PubSub, function () {
 		}
 
 		if (!isNative && ctx.filters) {
-			srcImg = this._applyFilters(ctx, srcX, srcY, srcW, srcH);
-			if (srcImg !== this._srcImg) {
+			var filterImg = filterRenderer.renderFilter(ctx, this, srcX, srcY, srcW, srcH);
+			if (filterImg) {
+				srcImg = filterImg;
 				srcX = 0;
 				srcY = 0;
 			}
 		}
 
-		this._renderImage(ctx, srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
-	};
-
-	this._renderImage = function(ctx, srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH) {
-		try {
-			ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
-		} catch(e) {}
+		ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
 	};
 
 	this.getImageData = function (x, y, width, height) {
@@ -508,7 +425,7 @@ exports = Class(lib.PubSub, function () {
 		}
 
 		var map = this._map;
-		if (!GLOBAL.document || !document.createElement) { throw 'Not supported'; }
+		if (GET_IMAGE_DATA_NOT_SUPPORTED) { throw 'Not supported'; }
 		if (!map.width || !map.height) { throw 'Not loaded'; }
 
 		x = x || 0;
@@ -532,5 +449,5 @@ exports = Class(lib.PubSub, function () {
 });
 
 exports.__clearCache__ = function () {
-	ImageCache = {};
+  ImageCache = {};
 };

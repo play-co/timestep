@@ -86,18 +86,29 @@ function parseFont(fontStr) {
 		value: parseFloat(match[3]),
 		unit: match[4]
 	};
-	res.names = match[5]
-		.split(',')
-		.map(function (str) {
-			return str.replace(/[\-_]/g, ' ')
-				.replace(/\s+/g, ' ')
-				.replace(/['"]/g, '')
-				.replace(/^\s+|\s+$/g, '')
-		});
+
+	var splitStrings = match[5].split(',');
+
+	res.names = splitStrings.map(function (str) {
+		return str.replace(/[\-_]/g, ' ')
+			.replace(/\s+/g, ' ')
+			.replace(/['"]/g, '')
+			.replace(/^\s+|\s+$/g, '');
+	});
 
 	res.name = res.names[0];
+
+	var origNames = splitStrings.map(function (str) {
+		return str.replace(/\s+/g, ' ')
+			.replace(/['"]/g, '')
+			.replace(/^\s+|\s+$/g, '');
+	});
+
+	res.origName = origNames[0];
+
 	return res;
 };
+
 
 var Font = exports = Class(function () {
 	
@@ -128,6 +139,7 @@ var Font = exports = Class(function () {
 		}
 		
 		this._name = opts.name;
+		this._origName = opts.origName;
 		this._style = opts.style;
 		this.size = opts.size;
 		this.sizePx = toPx(this.size).value;
@@ -140,6 +152,7 @@ var Font = exports = Class(function () {
 	this.getSize = function () { return this.sizePx; }
 
 	this.getName = function () { return this._name; }
+	this.getOrigName = function () { return this._origName; }
 	this.getWeight = function () { return this._weight; }
 });
 
