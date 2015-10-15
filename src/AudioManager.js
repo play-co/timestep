@@ -488,9 +488,8 @@ exports = Class(Emitter, function (supr) {
 		this._persist();
 		// resume music on unmute
 		if (this._currentMusic) {
-			if (isMusicMuted) {
-				this._currentMusic.pause();
-			} else {
+			this._currentMusic.pause();
+			if (!isMusicMuted) {
 				this._currentMusic.play();
 			}
 		}
