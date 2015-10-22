@@ -175,7 +175,6 @@ var GLManager = Class(function() {
 
 		this.contextActive = true;
 
-		// device.screen.on('Resize', this.updateCanvasDimensions.bind(this));
 		this._canvas.addEventListener('webglcontextlost', this.handleContextLost.bind(this), false);
 		this._canvas.addEventListener('webglcontextrestored', this.handleContextRestored.bind(this), false);
 	};

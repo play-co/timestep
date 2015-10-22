@@ -20,7 +20,6 @@
  * Canvas implementation for browsers. Wraps a Context2D.
  */
 
-import device;
 import .Context2D;
 import .webgl.WebGLContext2D as WebGLContext2D;
 

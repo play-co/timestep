@@ -82,14 +82,22 @@ var ctx = document.createElement('Canvas').getContext('2d');
 // Provide a pixel ratio for our canvas
 Object.defineProperty(exports.screen, 'devicePixelRatio', {
 	get: function() {
-		if (exports.isSimulator) { return 1; }
-			var devicePixelRatio = window.devicePixelRatio || 1;
-			var backingStoreRatio = ctx.webkitBackingStorePixelRatio ||
-			ctx.mozBackingStorePixelRatio ||
-			ctx.msBackingStorePixelRatio ||
-			ctx.oBackingStorePixelRatio ||
-			ctx.backingStorePixelRatio || 1;
+		if (exports.isSimulator) {
+			return 1;
+		}
+		var devicePixelRatio = window.devicePixelRatio || 1;
+		var backingStoreRatio = ctx.webkitBackingStorePixelRatio ||
+		ctx.mozBackingStorePixelRatio ||
+		ctx.msBackingStorePixelRatio ||
+		ctx.oBackingStorePixelRatio ||
+		ctx.backingStorePixelRatio || 1;
 		return devicePixelRatio / backingStoreRatio;
+	}
+});
+
+Object.defineProperty(exports, 'devicePixelRatio', {
+	get: function() {
+ 		return exports.screen.devicePixelRatio;
 	}
 });
 
