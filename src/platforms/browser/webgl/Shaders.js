@@ -58,9 +58,16 @@ var Shader = Class(function() {
 		var gl = this._gl;
 		var attr = this.attributes;
 		gl.vertexAttribPointer(attr.aPosition, 2, gl.FLOAT, false, STRIDE, 0);
-		gl.vertexAttribPointer(attr.aTextureCoord, 2, gl.FLOAT, false, STRIDE, 8);
+
+		if (this.attributes.aTextureCoord !== -1) {
+			gl.vertexAttribPointer(attr.aTextureCoord, 2, gl.FLOAT, false, STRIDE, 8);
+		}
+
 		gl.vertexAttribPointer(attr.aAlpha, 1, gl.FLOAT, false, STRIDE, 16);
-		gl.vertexAttribPointer(attr.aColor, 4, gl.UNSIGNED_BYTE, true, STRIDE, 20);
+
+		if (this.attributes.aColor !== -1) {
+			gl.vertexAttribPointer(attr.aColor, 4, gl.UNSIGNED_BYTE, true, STRIDE, 20);
+		}
 	};
 
 	this.updateLocations = function() {
@@ -68,7 +75,9 @@ var Shader = Class(function() {
 		for (var attrib in this.attributes) {
 			if (this.attributes[attrib] !== -1) {
 				this.attributes[attrib] = gl.getAttribLocation(this.program, attrib);
-				gl.enableVertexAttribArray(this.attributes[attrib]);
+				if (this.attributes[attrib] !== -1) {
+					gl.enableVertexAttribArray(this.attributes[attrib]);
+				}
 			}
 		}
 		for (var uniform in this.uniforms) {

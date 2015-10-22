@@ -78,6 +78,10 @@ var ContextStateStack = Class(function() {
 	Object.defineProperty(this, 'state', {
 		get: function() { return this._states[this._stateIndex]; }
 	});
+
+	Object.defineProperty(this, 'parentState', {
+		get: function() { return this._stateIndex > 0 ? this._states[this._stateIndex - 1] : null; }
+	});
 });
 
 var STRIDE = 24;
@@ -114,8 +118,8 @@ var GLManager = Class(function() {
 			webglSupported = !!(window.WebGLRenderingContext && testCanvas.getContext('webgl'));
 		} catch(e) {}
 
-		this.width = device.width;
-		this.height = device.height;
+		this.width = device.screen.width;
+		this.height = device.screen.height;
 		this.isSupported = webglSupported;
 
 		if (!this.isSupported) { return; }
@@ -171,7 +175,7 @@ var GLManager = Class(function() {
 
 		this.contextActive = true;
 
-		device.screen.on('Resize', this.updateCanvasDimensions.bind(this));
+		// device.screen.on('Resize', this.updateCanvasDimensions.bind(this));
 		this._canvas.addEventListener('webglcontextlost', this.handleContextLost.bind(this), false);
 		this._canvas.addEventListener('webglcontextrestored', this.handleContextRestored.bind(this), false);
 	};
@@ -246,7 +250,7 @@ var GLManager = Class(function() {
 	};
 
 	this.updateCanvasDimensions = function() {
-		this._primaryContext.resize(device.screen.width, device.screen.height);
+		this._primaryContext.resize(this._canvas.width, this._canvas.height);
 	};
 
 	this.getContext = function(canvas, opts) {
@@ -419,12 +423,13 @@ var GLManager = Class(function() {
 			this._scissorEnabled = true;
 		}
 		var s = this._activeScissor;
-		if (x !== s.x || y !== s.y || width !== s.width || height !== s.height) {
+		var invertedY = this._activeCtx.height - height - y;
+		if (x !== s.x || invertedY !== s.y || width !== s.width || height !== s.height) {
 			s.x = x;
-			s.y = y;
+			s.y = invertedY;
 			s.width = width;
 			s.height = height;
-			gl.scissor(x, this.height - height - y, width, height);
+			gl.scissor(x, invertedY, width, height);
 		}
 	};
 
@@ -556,6 +561,8 @@ var Context2D = Class(function () {
 
 	var min = Math.min;
 	var max = Math.max;
+	var floor = Math.floor;
+	var ceil = Math.ceil;
 
 	this.loadIdentity = function() {
 		this.stack.state.transform.identity();
@@ -598,6 +605,10 @@ var Context2D = Class(function () {
 	this.resize = function(width, height) {
 		this.width = width;
 		this.height = height;
+		if (this.canvas instanceof HTMLCanvasElement) {
+			this.canvas.width = width;
+			this.canvas.height = height;
+		}
 		this._manager.activate(this, true);
 		if (this._texture && this._manager.gl) {
 			var gl = this._manager.gl;
@@ -619,10 +630,26 @@ var Context2D = Class(function () {
 		var x3 = xW * m.a + yH * m.c + m.tx;
 		var y3 = xW * m.b + yH * m.d + m.ty;
 
-		var minX = min(this.width, x0, x1, x2, x3);
-		var maxX = max(0, x0, x1, x2, x3);
-		var minY = min(this.height, y0, y1, y2, y3);
-		var maxY = max(0, y0, y1, y2, y3);
+		var minX, maxX, minY, maxY;
+		var parent = this.stack.parentState;
+		var parentClipRect = parent && parent.clip && parent.clipRect;
+
+		if (parentClipRect) {
+			minX = parentClipRect.x;
+			maxX = parentClipRect.y;
+			minY = parentClipRect.x + parentClipRect.width;
+			maxY = parentClipRect.x + parentClipRect.height;
+		} else {
+			minX = this.width;
+			maxX = 0;
+			minY = this.height;
+			maxY = 0;
+		}
+
+		minX = min(minX, x0, x1, x2, x3);
+		maxX = max(maxX, x0, x1, x2, x3);
+		minY = min(minY, y0, y1, y2, y3);
+		maxY = max(maxY, y0, y1, y2, y3);
 
 		this.stack.state.clip = true;
 		var r = this.stack.state.clipRect;
