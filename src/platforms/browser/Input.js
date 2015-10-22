@@ -263,7 +263,9 @@ exports = Class(function () {
       }
     }
 
-    var inputEvent = new input.InputEvent(id, type, x, y);
+    var dpr = device.screen.devicePixelRatio;
+
+    var inputEvent = new input.InputEvent(id, type, x * dpr, y * dpr);
     if (device.useDOM) {
       while (target && !target._view) {
         target = target.parentNode;
