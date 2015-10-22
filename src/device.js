@@ -73,10 +73,6 @@ logger.log(exports.isMobile ? 'on mobile device' : 'in web browser');
 exports.screen = new Emitter();
 
 var devicePixelRatio = window.originalDevicePixelRatio || window.devicePixelRatio || 1;
-
-// @deprecated
-exports.devicePixelRatio = devicePixelRatio;
-
 var ctx = document.createElement('Canvas').getContext('2d');
 
 // Provide a pixel ratio for our canvas
