@@ -72,34 +72,14 @@ logger.log(exports.isMobile ? 'on mobile device' : 'in web browser');
 
 exports.screen = new Emitter();
 
-var devicePixelRatio = window.originalDevicePixelRatio || window.devicePixelRatio || 1;
-var ctx = document.createElement('Canvas').getContext('2d');
+var devicePixelRatio = window.devicePixelRatio || 1;
 
-// Provide a pixel ratio for our canvas
-Object.defineProperty(exports.screen, 'devicePixelRatio', {
-	get: function() {
-		if (exports.isSimulator) {
-			return 1;
-		}
-		var devicePixelRatio = window.devicePixelRatio || 1;
-		var backingStoreRatio = ctx.webkitBackingStorePixelRatio ||
-		ctx.mozBackingStorePixelRatio ||
-		ctx.msBackingStorePixelRatio ||
-		ctx.oBackingStorePixelRatio ||
-		ctx.backingStorePixelRatio || 1;
-		return devicePixelRatio / backingStoreRatio;
-	}
-});
+// @deprecated
+exports.devicePixelRatio = devicePixelRatio;
 
-Object.defineProperty(exports, 'devicePixelRatio', {
-	get: function() {
- 		return exports.screen.devicePixelRatio;
-	}
-});
-
-var devicePixelRatio = exports.screen.devicePixelRatio;
-exports.screen.width = window.screen.width * devicePixelRatio;
-exports.screen.height = window.screen.height * devicePixelRatio;
+exports.screen.devicePixelRatio = devicePixelRatio;
+exports.screen.width = window.innerWidth;
+exports.screen.height = window.innerHeight;
 
 // This is stubbed out unless available on the current device.
 exports.hideAddressBar = function () {};
