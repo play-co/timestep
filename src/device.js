@@ -78,8 +78,8 @@ var devicePixelRatio = window.devicePixelRatio || 1;
 exports.devicePixelRatio = devicePixelRatio;
 
 exports.screen.devicePixelRatio = devicePixelRatio;
-exports.screen.width = window.innerWidth;
-exports.screen.height = window.innerHeight;
+exports.screen.width = window.innerWidth * devicePixelRatio;
+exports.screen.height = window.innerHeight * devicePixelRatio;
 
 // This is stubbed out unless available on the current device.
 exports.hideAddressBar = function () {};
