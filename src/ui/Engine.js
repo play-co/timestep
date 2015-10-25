@@ -87,30 +87,29 @@ var Engine = exports = Class(Emitter, function (supr) {
 		this._doubleBuffered = true;
 		this._countdown = null;
 
-		if (!device.useDOM) {
-			var Canvas = device.get('Canvas');
-			this._rootElement = new Canvas({
-				el: canvas, // use an existing canvas if one was provided, but wrap the 2D context
-				useWebGL: true, // use WebGL if supported
-				width: opts.width,
-				height: opts.height,
-				offscreen: false
-			});
+		var Canvas = device.get('Canvas');
+		this._rootElement = new Canvas({
+			el: canvas, // use an existing canvas if one was provided, but wrap the 2D context
+			useWebGL: true, // use WebGL if supported
+			width: opts.width,
+			height: opts.height,
+			offscreen: false
+		});
 
-			this._rootElement.id = "timestep_onscreen_canvas";
-			this._ctx = this._rootElement.getContext('2d');
-			this._ctx.font = '11px ' + device.defaultFontFamily;
-		}
+		canvas = this._rootElement;
+
+		var dpr = device.screen.devicePixelRatio;
+		this._rootElement.style.width = (opts.width / dpr) + 'px';
+		this._rootElement.style.height = (opts.height / dpr) + 'px';
+		this._rootElement.id = "timestep_onscreen_canvas";
+		this._ctx = this._rootElement.getContext('2d');
+		this._ctx.font = '11px ' + device.defaultFontFamily;
 
 		this._view = opts.view || new StackView();
 		this._view.style.update({
 			width: opts.width,
 			height: opts.height
 		});
-
-		if (device.useDOM) {
-			this._rootElement = this._view.getBacking().getElement();
-		}
 
 		// __root is a pointer to the Engine instance that a view
 		// is currently attached to.  If __root is null, the view
@@ -137,16 +136,13 @@ var Engine = exports = Class(Emitter, function (supr) {
 		// configure auto-layout in the browser (expand
 		// to fill the viewport)
 		if (device.name == 'browser') {
-			if (canvas) {
-				device.width = canvas.width;
-				device.height = canvas.height;
-				device.screen.width = canvas.width;
-				device.screen.height = canvas.height;
-			} else {
-				var doc = device.get('doc');
-				if (doc) {
-					doc.setEngine(this);
-				}
+			device.width = opts.width;
+			device.height = opts.height;
+			device.screen.width = opts.width;
+			device.screen.height = opts.height;
+			var doc = device.get('doc');
+			if (doc) {
+				doc.setEngine(this);
 			}
 		}
 

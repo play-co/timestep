@@ -72,14 +72,14 @@ logger.log(exports.isMobile ? 'on mobile device' : 'in web browser');
 
 exports.screen = new Emitter();
 
-var devicePixelRatio = window.originalDevicePixelRatio || window.devicePixelRatio || 1;
+var devicePixelRatio = window.devicePixelRatio || 1;
 
 // @deprecated
 exports.devicePixelRatio = devicePixelRatio;
 
 exports.screen.devicePixelRatio = devicePixelRatio;
-exports.screen.width = window.screen.width * devicePixelRatio;
-exports.screen.height = window.screen.height * devicePixelRatio;
+exports.screen.width = window.innerWidth * devicePixelRatio;
+exports.screen.height = window.innerHeight * devicePixelRatio;
 
 // This is stubbed out unless available on the current device.
 exports.hideAddressBar = function () {};

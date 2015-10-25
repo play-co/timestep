@@ -31,10 +31,10 @@ var Document = Class(lib.PubSub, function () {
 		if (!$) {
 			return;
 		}
-		
+
 		var doc = GLOBAL.document,
 			body = doc && doc.body;
-		
+
 		this._el = $({
 			parent: body,
 			style: {
@@ -44,20 +44,20 @@ var Document = Class(lib.PubSub, function () {
 				height: '100%'
 			}
 		});
-		
+
 		device.screen.subscribe('Resize', this, 'onResize');
-		
+
 		if (exports.postCreateHook) { exports.postCreateHook(this); }
 		this.setScalingMode(defaultScalingMode);
 	}
-	
+
 	this.unsubscribeResize = function () {
 		device.screen.unsubscribe('Resize', this, 'onResize');
 	}
-	
+
 	this.setEngine = function (engine) {
 		if (engine == this._engine) { return; }
-		
+
 		this._engine = engine;
 		this._canvas = this._engine.getCanvas();
 		this.appendChild(this._canvas);
@@ -69,17 +69,17 @@ var Document = Class(lib.PubSub, function () {
 			}
 		}
 	}
-	
+
 	this.getElement = function () {
 		return this._el;
 	};
-	
+
 	this.setScalingMode = function (scalingMode, opts) {
 		this._scalingMode = scalingMode;
-		
+
 		var el = this._el,
 			s = el.style;
-		
+
 		switch (scalingMode) {
 			case SCALING.FIXED:
 				opts = merge(opts, {
@@ -100,70 +100,82 @@ var Document = Class(lib.PubSub, function () {
 				s.height = '100%';
 				break;
 		}
-		
+
 		this._scalingOpts = opts;
 		this.onResize();
 		setTimeout(bind(this, 'onResize'), 1000);
 	}
-	
+
 	this.onResize = function () {
 		var el = this._el;
 		var s = this._el.style;
-		
+
 		el.className = device.screen.orientation;
 		logger.log('resize', device.width, device.height);
-		
+
 		var width = device.width;
 		var height = device.height;
 		var mode = this._scalingMode;
 		var opts = this._scalingOpts;
-		
+
 		if (mode == SCALING.FIXED) {
 			width = opts.width;
 			height = opts.height;
 		}
-		
+
 		// enforce maxWidth/maxHeight
 		// if maxWidth/maxHeight is met, switch a RESIZE scaling mode to FIXED (center the document on the screen)
 		if (opts.maxWidth && width > opts.maxWidth) {
 			width = opts.maxWidth;
 			if (mode == SCALING.RESIZE) { mode = SCALING.FIXED; }
 		}
-		
+
 		if (opts.maxHeight && height > opts.maxHeight) {
 			height = opts.maxHeight;
 			if (mode == SCALING.RESIZE) { mode = SCALING.FIXED; }
 		}
-		
+
 		switch (mode) {
 			case SCALING.MANUAL:
 				break; // do nothing
+
 			case SCALING.FIXED:
 				// try to center the container
 				el.style.top = Math.round(Math.max(0, (window.innerHeight - height) / 2)) + 'px';
 				el.style.left = Math.round(Math.max(0, (window.innerWidth - width) / 2)) + 'px';
-				
+
 				s.width = width + 'px';
 				s.height = height + 'px';
 				break;
+
 			case SCALING.RESIZE:
+				var cs = this._canvas && this._canvas.style;
+				var dpr = device.screen.devicePixelRatio;
+				var scaledWidth = width / dpr;
+				var scaledHeight = height / dpr;
 				// if we have a canvas element, scale it
 				if (opts.resizeCanvas && this._canvas
-						&& (this._canvas.width != width || this._canvas.height != height)) {
+						&& (cs.width != scaledWidth|| cs.height != scaledHeight)) {
+					cs.width = scaledWidth + 'px';
+					cs.height = scaledHeight + 'px';
 					this._canvas.width = width;
 					this._canvas.height = height;
+					var ctx = this._canvas.getContext();
+					if (ctx.resize) {
+						ctx.resize(width, height);
+					}
 				}
-				
-				s.width = width + 'px';
-				s.height = height + 'px';
+
+				s.width = scaledWidth + 'px';
+				s.height = scaledHeight + 'px';
 				break;
 		}
-		
+
 		// make sure to force a render immediately (should we use needsRepaint instead?)
 		this._setDim(width, height);
 		if (this._engine) { this._engine.render(); }
 	}
-	
+
 	this._setDim = function (width, height) {
 		if (this.width != width || this.height != height) {
 			this.width = width;
@@ -171,18 +183,18 @@ var Document = Class(lib.PubSub, function () {
 			this.publish('Resize', width, height);
 		}
 	}
-	
+
 	this.setColors = function (bgColor, engineColor) {
 		if (this._el) {
 			this._el.style.background = engineColor;
 			document.documentElement.style.background = document.body.style.background = bgColor;
 		}
 	}
-	
+
 	this.appendChild = function (el) {
 		this._el.appendChild(el);
 	}
-	
+
 	this.getOffset = function () {
 		return {
 			x: this._el.offsetLeft,
@@ -197,14 +209,14 @@ exports.SCALING = SCALING;
 exports.setDocStyle = function () {
 	var doc = GLOBAL.document,
 		body = doc && doc.body;
-	
+
 	if (body) {
 		var docStyle = {
 			height: '100%',
 			margin: '0px',
 			padding: '0px'
 		};
-	
+
 		$.style(document.documentElement, docStyle);
 		$.style(document.body, docStyle);
 	}
