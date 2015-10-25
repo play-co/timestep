@@ -635,27 +635,32 @@ var Context2D = Class(function () {
 
 		if (parentClipRect) {
 			minX = parentClipRect.x;
-			maxX = parentClipRect.y;
-			minY = parentClipRect.x + parentClipRect.width;
+			minY = parentClipRect.y;
+			maxX = parentClipRect.x + parentClipRect.width;
 			maxY = parentClipRect.x + parentClipRect.height;
 		} else {
-			minX = this.width;
-			maxX = 0;
-			minY = this.height;
-			maxY = 0;
+			minX = 0;
+			minY = 0;
+			maxX = this.width;
+			maxY = this.height;
 		}
 
-		minX = min(minX, x0, x1, x2, x3);
-		maxX = max(maxX, x0, x1, x2, x3);
-		minY = min(minY, y0, y1, y2, y3);
-		maxY = max(maxY, y0, y1, y2, y3);
+		var left = min(maxX, x0, x1, x2, x3);
+		var right = max(minX, x0, x1, x2, x3);
+		var top = min(maxY, y0, y1, y2, y3);
+		var bottom = max(minY, y0, y1, y2, y3);
+
+		if (left < minX) { left = minX; }
+		if (right > maxX) { right = maxX; }
+		if (top < minY) { top = minY; }
+		if (bottom > maxY) { bottom = maxY; }
 
 		this.stack.state.clip = true;
 		var r = this.stack.state.clipRect;
-		r.x = minX;
-		r.y = minY;
-		r.width = maxX - minX;
-		r.height = maxY - minY;
+		r.x = left;
+		r.y = top;
+		r.width = right - left;
+		r.height = bottom - top;
 	};
 
 	this.swap = function() {
