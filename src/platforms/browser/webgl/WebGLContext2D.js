@@ -637,7 +637,7 @@ var Context2D = Class(function () {
 			minX = parentClipRect.x;
 			minY = parentClipRect.y;
 			maxX = parentClipRect.x + parentClipRect.width;
-			maxY = parentClipRect.x + parentClipRect.height;
+			maxY = parentClipRect.y + parentClipRect.height;
 		} else {
 			minX = 0;
 			minY = 0;
