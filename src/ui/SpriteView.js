@@ -241,6 +241,11 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
 		}
 	};
 
+	// does the animation exist for this url?
+	this.hasAnimation = function (name) {
+		return !!this._animations[name];
+	};
+
 	this.setFramerate = function (fps) {
 		this.frameRate = fps || 0.00001;
 	};
