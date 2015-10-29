@@ -539,7 +539,6 @@ var Context2D = Class(function () {
 		this.font = '11px ' + device.defaultFontFamily;
 		this.frameBuffer = null;
 		this.filters = {};
-		this.flip = false;
 	};
 
 	this.createOffscreenFrameBuffer = function () {
@@ -555,7 +554,7 @@ var Context2D = Class(function () {
 		gl.bindTexture(gl.TEXTURE_2D, null);
 		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		this.flip = true;
+		this.canvas.__glFlip = true;
 	};
 
 	var min = Math.min;
@@ -726,6 +725,7 @@ var Context2D = Class(function () {
 
 		if (!this._manager.gl) { return; }
 
+		var flip = !!image.__glFlip;
 		var state = this.stack.state;
 		var alpha = state.globalAlpha;
 		if (alpha === 0) { return; }
@@ -751,6 +751,11 @@ var Context2D = Class(function () {
 		var syH = sy + sHeight;
 		var dxW = dx + dWidth;
 		var dyH = dy + dHeight;
+
+		if (flip) {
+			sy = imageHeight - sy;
+			syH = sy - sHeight;
+		}
 
 		var needsTrim = sx < 0 || sxW > imageWidth || sy < 0 || syH > imageHeight;
 
@@ -793,8 +798,8 @@ var Context2D = Class(function () {
 
 		var uLeft = sx * tw;
 		var uRight = sxW * tw;
-		var vTop = this.flip ? syH * th : sy * th;
-		var vBottom = this.flip ? sy * th : syH * th;
+		var vTop = sy * th;
+		var vBottom = syH * th;
 
 		vc[i + 0] = x0;
 		vc[i + 1] = y0;
