@@ -31,7 +31,7 @@ var sin = Math.sin;
 var cos = Math.cos;
 var max = Math.max;
 var min = Math.min;
-var MIN_VALUE = Number.MIN_VALUE;
+var MIN_VALUE = -Number.MAX_VALUE;
 var MAX_VALUE = Number.MAX_VALUE;
 
 // class-wide image cache
@@ -138,7 +138,6 @@ exports = Class(View, function(supr) {
 		this._canvW = 1;
 		this._canvH = 1;
 		this._canvas = new Canvas({ width: MAX_TEX_WIDTH, height: MAX_TEX_HEIGHT, useWebGL: true });
-		this._img = new Image({ srcImage: this._canvas });
 	};
 
 	this.obtainParticleArray = function(count) {
@@ -219,7 +218,7 @@ exports = Class(View, function(supr) {
 		var count = particleDataArray.length;
 		var active = this._activeParticleObjects;
 		for (var i = 0; i < count; i++) {
-			var data = particleDataArray.pop();
+			var data = particleDataArray[i];
 			var img = imageCache[data.image];
 			if (!img) {
 				img = imageCache[data.image] = new Image({ url: data.image });
@@ -229,6 +228,7 @@ exports = Class(View, function(supr) {
 			!data.delay && data.onStart && data.onStart(data);
 			active.push(data);
 		}
+		particleDataArray.length = 0;
 	};
 
 	this._killParticle = function(index) {
@@ -382,6 +382,14 @@ exports = Class(View, function(supr) {
 
 		// establish canvas size and position, bounded by max texture size
 		if (shouldUpdate) {
+			if (minX > maxX) {
+				minX = 0;
+				maxX = MAX_TEX_WIDTH;
+			}
+			if (minY > maxY) {
+				minY = 0;
+				maxY = MAX_TEX_HEIGHT;
+			}
 			var canvX = minX;
 			var canvY = minY;
 			var canvW = maxX - minX;
@@ -396,8 +404,6 @@ exports = Class(View, function(supr) {
 				canvY = cy - MAX_TEX_HEIGHT / 2;
 				canvH = MAX_TEX_HEIGHT;
 			}
-			this._img.setSourceWidth(canvW);
-			this._img.setSourceHeight(canvH);
 
 			// render our particle images to the canvas's context
 			var ctx = this._canvas.getContext("2D");
@@ -451,18 +457,17 @@ exports = Class(View, function(supr) {
 	};
 
 	this.render = function(ctx) {
-		this._img.render(ctx, this._canvX, this._canvY, this._canvW, this._canvH);
+		ctx.drawImage(this._canvas, 0, 0, this._canvW, this._canvH, this._canvX, this._canvY, this._canvW, this._canvH);
 	};
 
 	this.getActiveParticles = function() {
 		return this._activeParticleObjects;
 	};
 
-	// same as ParticleEngine, except passes particle objects instead of views
 	this.forEachActiveParticle = function(fn, ctx) {
 		var active = this._activeParticleObjects;
 		var f = bind(ctx, fn);
-		for (var i = 0, len = active.length; i < len; i++) {
+		for (var i = active.length - 1; i >= 0; i--) {
 			f(active[i], i);
 		}
 	};
