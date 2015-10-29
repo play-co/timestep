@@ -218,7 +218,7 @@ exports = Class(View, function(supr) {
 		var count = particleDataArray.length;
 		var active = this._activeParticleObjects;
 		for (var i = 0; i < count; i++) {
-			var data = particleDataArray.pop();
+			var data = particleDataArray[i];
 			var img = imageCache[data.image];
 			if (!img) {
 				img = imageCache[data.image] = new Image({ url: data.image });
@@ -228,6 +228,7 @@ exports = Class(View, function(supr) {
 			!data.delay && data.onStart && data.onStart(data);
 			active.push(data);
 		}
+		particleDataArray.length = 0;
 	};
 
 	this._killParticle = function(index) {
@@ -381,17 +382,14 @@ exports = Class(View, function(supr) {
 
 		// establish canvas size and position, bounded by max texture size
 		if (shouldUpdate) {
-
 			if (minX > maxX) {
 				minX = 0;
 				maxX = MAX_TEX_WIDTH;
 			}
-
 			if (minY > maxY) {
 				minY = 0;
 				maxY = MAX_TEX_HEIGHT;
 			}
-
 			var canvX = minX;
 			var canvY = minY;
 			var canvW = maxX - minX;
@@ -466,11 +464,10 @@ exports = Class(View, function(supr) {
 		return this._activeParticleObjects;
 	};
 
-	// same as ParticleEngine, except passes particle objects instead of views
 	this.forEachActiveParticle = function(fn, ctx) {
 		var active = this._activeParticleObjects;
 		var f = bind(ctx, fn);
-		for (var i = 0, len = active.length; i < len; i++) {
+		for (var i = active.length - 1; i >= 0; i--) {
 			f(active[i], i);
 		}
 	};

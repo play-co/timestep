@@ -546,7 +546,7 @@ var Context2D = Class(function () {
 		if (!gl) { return; }
 		var id = this._manager.createTexture(this.canvas);
 		this._texture = this._manager.getTexture(id);
-	  this.frameBuffer = gl.createFramebuffer();
+		this.frameBuffer = gl.createFramebuffer();
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
 		gl.bindTexture(gl.TEXTURE_2D, this._texture);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._texture, 0);

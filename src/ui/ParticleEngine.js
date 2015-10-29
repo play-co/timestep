@@ -598,7 +598,7 @@ exports = Class(View, function (supr) {
 	 */
 	this.forEachActiveParticle = function(fn, ctx) {
 		var views = this._activeParticles;
-		for (var i = 0, len = views.length; i < len; i++) {
+		for (var i = views.length - 1; i >= 0; i--) {
 			fn.call(ctx, views[i], i);
 		}
 	};
