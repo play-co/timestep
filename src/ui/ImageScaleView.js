@@ -43,6 +43,15 @@ exports = Class(ui.View, function (supr) {
 		return this._scaleMethod;
 	};
 
+	function adjustMiddleSlice(slices) {
+		if (slices[1] < 0) {
+			var overshoot = -slices[1] + 1;
+			slices[1] = 1;
+			slices[0] -= Math.floor(overshoot / 2);
+			slices[2] -= Math.ceil(overshoot / 2);
+		}
+	}
+
 	this.updateSlices = function (opts) {
 		opts = opts || this._opts;
 
@@ -94,6 +103,7 @@ exports = Class(ui.View, function (supr) {
 			if (src.center == undefined && this._img) { // also captures null, but ignores 0
 				var width = this._img.getWidth();
 				slices[1] = width ? width - slices[0] - slices[2] : 0;
+				adjustMiddleSlice(slices);
 			}
 
 			this._sourceSlicesHor = slices;
@@ -113,6 +123,7 @@ exports = Class(ui.View, function (supr) {
 			if (src.middle == undefined && this._img) {
 				var height = this._img.getHeight();
 				slices[1] = height ? height - slices[0] - slices[2] : 0;
+				adjustMiddleSlice(slices);
 			}
 
 			this._sourceSlicesVer = slices;
