@@ -103,16 +103,18 @@ var PARTICLE_KEYS = Object.keys(PARTICLE_DEFAULTS);
 /**
  * @extends ui.View
  */
-exports = Class(View, function (supr) {
+exports = Class(View, function () {
+	var superProto = View.prototype;
 
 	/**
 	 * initCount (integer) initialize particle views and objects
 	 */
 	this.init = function (opts) {
+		opts = opts || {};
 		// particle engines don't allow input events
 		opts.canHandleEvents = false;
 		opts.blockEvents = true;
-		supr(this, 'init', arguments);
+		superProto.init.call(this, opts);
 
 		// particle view constructor
 		this._ctor = opts.ctor || ImageView;
@@ -139,7 +141,7 @@ exports = Class(View, function (supr) {
 	 *
 	 * count (integer)
 	 */
-	this._initParticlePool = function(count) {
+	this._initParticlePool = function (count) {
 		for (var i = 0; i < count; i++) {
 			// initialize particle views
 			this._freeParticles.push(new this._ctor({
@@ -394,7 +396,7 @@ exports = Class(View, function (supr) {
 	 *
 	 * data (object)
 	 */
-	this._prepareTriggers = function(data) {
+	this._prepareTriggers = function (data) {
 		var triggers = data.triggers;
 		for (var i = 0, len = triggers.length; i < len; i++) {
 			var trig = triggers[i];
@@ -585,7 +587,7 @@ exports = Class(View, function (supr) {
 	/**
 	 * public accessor for particle views (object data attached to each as pData)
 	 */
-	this.getActiveParticles = function() {
+	this.getActiveParticles = function () {
 		return this._activeParticles;
 	};
 
@@ -596,7 +598,7 @@ exports = Class(View, function (supr) {
 	 *
 	 * like Array.forEach, call a function for each active particle view
 	 */
-	this.forEachActiveParticle = function(fn, ctx) {
+	this.forEachActiveParticle = function (fn, ctx) {
 		var views = this._activeParticles;
 		for (var i = views.length - 1; i >= 0; i--) {
 			fn.call(ctx, views[i], i);

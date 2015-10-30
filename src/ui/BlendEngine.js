@@ -113,13 +113,15 @@ var MAX_TEX_HEIGHT = 1024;
 /**
  * @extends ui.View, same API as ui.ParticleEngine.js
  */
-exports = Class(View, function(supr) {
+exports = Class(View, function () {
+	var superProto = View.prototype;
 
-	this.init = function(opts) {
+	this.init = function (opts) {
+		opts = opts || {};
 		// blend engines don't allow input events
 		opts.canHandleEvents = false;
 		opts.blockEvents = true;
-		supr(this, 'init', arguments);
+		superProto.init.call(this, opts);
 
 		// particle data array passed to user
 		this._particleDataArray = [];
@@ -140,7 +142,7 @@ exports = Class(View, function(supr) {
 		this._canvas = new Canvas({ width: MAX_TEX_WIDTH, height: MAX_TEX_HEIGHT, useWebGL: true });
 	};
 
-	this.obtainParticleArray = function(count) {
+	this.obtainParticleArray = function (count) {
 		for (var i = 0; i < count; i++) {
 			// duplicate copy of default properties for optimal performance
 			this._particleDataArray.push(this._freeParticleObjects.pop() || {
@@ -205,7 +207,7 @@ exports = Class(View, function(supr) {
 		return this._particleDataArray;
 	};
 
-	this._cleanObject = function(obj) {
+	this._cleanObject = function (obj) {
 		for (var i = 0, len = PARTICLE_KEYS.length; i < len; i++) {
 			var key = PARTICLE_KEYS[i];
 			obj[key] = PARTICLE_DEFAULTS[key];
@@ -214,7 +216,7 @@ exports = Class(View, function(supr) {
 		return obj;
 	};
 
-	this.emitParticles = function(particleDataArray) {
+	this.emitParticles = function (particleDataArray) {
 		var count = particleDataArray.length;
 		var active = this._activeParticleObjects;
 		for (var i = 0; i < count; i++) {
@@ -231,13 +233,13 @@ exports = Class(View, function(supr) {
 		particleDataArray.length = 0;
 	};
 
-	this._killParticle = function(index) {
+	this._killParticle = function (index) {
 		var data = this._activeParticleObjects.splice(index, 1)[0];
 		data.onDeath && data.onDeath(data);
 		this._freeParticleObjects.push(this._cleanObject(data));
 	};
 
-	this.killAllParticles = function() {
+	this.killAllParticles = function () {
 		// protect against canvas context clear before native texture is ready
 		if (this._activeParticleObjects.length) {
 			while (this._activeParticleObjects.length) {
@@ -251,7 +253,7 @@ exports = Class(View, function(supr) {
 		}
 	};
 
-	this.runTick = function(dt) {
+	this.runTick = function (dt) {
 		var active = this._activeParticleObjects;
 		var free = this._freeParticleObjects;
 		var i = 0;
@@ -456,15 +458,15 @@ exports = Class(View, function(supr) {
 		}
 	};
 
-	this.render = function(ctx) {
+	this.render = function (ctx) {
 		ctx.drawImage(this._canvas, 0, 0, this._canvW, this._canvH, this._canvX, this._canvY, this._canvW, this._canvH);
 	};
 
-	this.getActiveParticles = function() {
+	this.getActiveParticles = function () {
 		return this._activeParticleObjects;
 	};
 
-	this.forEachActiveParticle = function(fn, ctx) {
+	this.forEachActiveParticle = function (fn, ctx) {
 		var active = this._activeParticleObjects;
 		var f = bind(ctx, fn);
 		for (var i = active.length - 1; i >= 0; i--) {
