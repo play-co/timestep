@@ -24,6 +24,7 @@
 import ui.View;
 import ui.resource.Image as Image;
 import ui.resource.loader as resourceLoader;
+import ui.resource.ImageViewCache as ImageViewCache;
 
 exports = Class(ui.View, function (supr) {
 
@@ -317,12 +318,13 @@ exports = Class(ui.View, function (supr) {
 		return this._img;
 	};
 
-	this.setImage = function (img) {
+	this.setImage = function (img, opts) {
 		this._renderCacheKey = {};
 
 		var autoSized = false;
 		var sw, sh, iw, ih, bounds;
-		var opts = this._opts;
+		var viewOpts = this._opts;
+		var forceReload = opts && opts.forceReload;
 
 		if (typeof img == 'string') {
 			bounds = resourceLoader.getMap()[img];
@@ -330,26 +332,27 @@ exports = Class(ui.View, function (supr) {
 				iw = bounds.w + bounds.marginLeft + bounds.marginRight;
 				ih = bounds.h + bounds.marginTop + bounds.marginBottom;
 			}
-		} else if (img instanceof Image && img.isLoaded()) {
-			bounds = img.getBounds();
-			iw = bounds.width + bounds.marginLeft + bounds.marginRight;
-			ih = bounds.height + bounds.marginTop + bounds.marginBottom;
-		}
 
-		if (!bounds) {
-			if (typeof img == 'string') {
-				img = new Image({url: img});
-			}
-
-			if (img) {
-				if (!img.isError()) {
-					img.doOnLoad(this, 'setImage', img);
-				}
-				return;
+			// resolve to object
+			img = ImageViewCache.getImage(img, forceReload);
+		} else if (img instanceof Image) {
+			if (forceReload) {
+				img.reload();
+			} else if (img.isLoaded()) {
+				bounds = img.getBounds();
+				iw = bounds.width + bounds.marginLeft + bounds.marginRight;
+				ih = bounds.height + bounds.marginTop + bounds.marginBottom;
 			}
 		}
 
-		if (opts.autoSize && this._scaleMethod == 'stretch' && !((opts.width || opts.layoutWidth) && (opts.height || opts.layoutHeight))) {
+		if (img && !bounds) {
+			if (!img.isError()) {
+				img.doOnLoad(this, 'setImage', img);
+			}
+			return;
+		}
+
+		if (viewOpts.autoSize && this._scaleMethod == 'stretch' && !((viewOpts.width || viewOpts.layoutWidth) && (viewOpts.height || viewOpts.layoutHeight))) {
 			autoSized = true;
 			if (this.style.fixedAspectRatio) {
 				this.style.enforceAspectRatio(iw, ih);
@@ -359,9 +362,9 @@ exports = Class(ui.View, function (supr) {
 			}
 		}
 
-		this._opts.image = this._img = (typeof img == 'string') ? new Image({url: img}) : img;
+		viewOpts.image = this._img = img;
 
-		if (this._img) {
+		if (img) {
 			if (this._isSlice) {
 				this.updateSlices();
 
@@ -393,11 +396,11 @@ exports = Class(ui.View, function (supr) {
 				});
 			}
 
-			if (opts && opts.autoSize && !autoSized) {
-				this._img.doOnLoad(this, 'autoSize');
+			if (viewOpts.autoSize && !autoSized) {
+				img.doOnLoad(this, 'autoSize');
 			}
 
-			this._img.doOnLoad(this, 'needsRepaint');
+			img.doOnLoad(this, 'needsRepaint');
 		}
 	};
 

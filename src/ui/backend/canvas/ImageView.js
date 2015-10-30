@@ -23,17 +23,16 @@
 import util.path;
 import std.uri as URI;
 
-import ui.View as View
+import ui.View as View;
 import ui.resource.Image as Image;
-
-var imageCache = {};
+import ui.resource.ImageViewCache as ImageViewCache;
 
 /**
  * @extends ui.View
  */
 var ImageView = exports = Class(View, function (supr) {
 
-	/** 
+	/**
 	 * Options:
 	 *   autoSize - See .setImage()
 	 */
@@ -46,23 +45,14 @@ var ImageView = exports = Class(View, function (supr) {
 		return this._img;
 	};
 
+	// @deprecated
 	this.getImageFromCache = function(url, forceReload) {
-		var img;
-		if (!forceReload) {
-			img = imageCache[url];
-		}
-		if (!img) {
-			imageCache[url] = img = new Image({
-				url: url,
-				forceReload: !!forceReload
-			});
-		}
-		return img;
+		return ImageViewCache.getImage(url, forceReload);
 	};
 
 	this.updateOpts = function (opts) {
 		var opts = supr(this, 'updateOpts', arguments);
-		
+
 		if ('autoSize' in opts) {
 			this._autoSize = !!opts.autoSize;
 		}
@@ -74,7 +64,7 @@ var ImageView = exports = Class(View, function (supr) {
 		}
 
 		return opts;
-	}
+	};
 
 	/**
 	 * Set the image of the view from an Image object or string.
@@ -85,7 +75,9 @@ var ImageView = exports = Class(View, function (supr) {
 	this.setImage = function (img, opts) {
 		var forceReload = opts && opts.forceReload;
 		if (typeof img == 'string') {
-			img = this.getImageFromCache(img, forceReload);
+			img = ImageViewCache.getImage(img, forceReload);
+		} else if (forceReload) {
+			img.reload();
 		}
 
 		this._img = img;
@@ -109,7 +101,7 @@ var ImageView = exports = Class(View, function (supr) {
 	 * Pass a function to load once the Image object is loaded, or a list of
 	 * arguments that call lib.Callback::run() implicitly.
 	 */
-	
+
 	this.doOnLoad = function () {
 		if (arguments.length == 1) {
 			this._img.doOnLoad(this, arguments[0]);
@@ -122,7 +114,7 @@ var ImageView = exports = Class(View, function (supr) {
 	/**
 	 * Automatically resize the view to the size of the image.
 	 */
-	
+
 	this.autoSize = function () {
 		if (this._img) {
 			this.style.width = this._img.getWidth();
@@ -137,7 +129,7 @@ var ImageView = exports = Class(View, function (supr) {
 	/**
 	 * Get original width of the Image object.
 	 */
-	
+
 	this.getOrigWidth = this.getOrigW = function () {
 		return this._img.getOrigW();
 	};
