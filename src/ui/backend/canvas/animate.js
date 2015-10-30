@@ -294,6 +294,9 @@ var Frame = Class(function () {
 		this.duration = opts.duration === 0 ? 0 : (opts.duration || 500);
 		this.transition = getTransition(opts.transition);
 		this.onTick = opts.onTick;
+		if (this.duration < 0) {
+			throw new Error("Animations cannot have negative durations!");
+		}
 	};
 
 	this.exec = function () {};

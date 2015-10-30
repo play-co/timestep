@@ -381,6 +381,12 @@ exports = Class(View, function () {
 			if (!data.delay) {
 				s.visible = true;
 				data.onStart && data.onStart(particle);
+			} else if (data.delay < 0) {
+				throw new Error("Particles cannot have negative delay values!");
+			}
+
+			if (data.ttl < 0) {
+				throw new Error("Particles cannot have negative time-to-live values!");
 			}
 
 			// and finally emit the particle

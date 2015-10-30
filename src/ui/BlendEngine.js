@@ -227,7 +227,17 @@ exports = Class(View, function () {
 				img._invScaleX = 1 / (img._map.marginLeft + img._map.width + img._map.marginRight);
 				img._invScaleY = 1 / (img._map.marginTop + img._map.height + img._map.marginBottom);
 			}
-			!data.delay && data.onStart && data.onStart(data);
+
+			if (!data.delay) {
+				data.onStart && data.onStart(data);
+			} else if (data.delay < 0) {
+				throw new Error("Particles cannot have negative delay values!");
+			}
+
+			if (data.ttl < 0) {
+				throw new Error("Particles cannot have negative time-to-live values!");
+			}
+
 			active.push(data);
 		}
 		particleDataArray.length = 0;
