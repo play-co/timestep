@@ -40,8 +40,6 @@ import animate;
 
 import util.setProperty;
 
-var KeyListener = device.get('KeyListener');
-
 var EventScheduler = Class(function () {
 	this.init = function () {
 		this._queue = [];
@@ -70,7 +68,6 @@ var scheduler = new EventScheduler();
  */
 var FocusMgr = new (Class(function () {
 	this.init = function (opts) {
-		this._keyListener = KeyListener && (new KeyListener());
 		this._target = null;
 		this._canChange = true;
 	};
@@ -94,13 +91,6 @@ var FocusMgr = new (Class(function () {
 	this.blur = function (target) {
 		target.onBlur && target.onBlur(this);
 		this._target = false;
-	};
-
-	/**
-	 * Return the keylistener used by the focus manager.
-	 */
-	this.getKeyListener = function () {
-		return this._keyListener;
 	};
 
 	this.get = function () {
