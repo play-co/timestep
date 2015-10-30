@@ -36,10 +36,6 @@ exports = Class(ui.View, function (supr) {
 
 	this.init = function (opts) {
 		supr(this, 'init', [merge(opts, defaults)]);
-		if (this._imgUrlChangeListenerFn) {
-			this._img.removeListener('urlChanged', this._imgUrlChangeListenerFn);
-			this._imgUrlChangeListenerFn = null;
-		}
 	};
 
 	this.getScaleMethod = function () {
@@ -324,11 +320,6 @@ exports = Class(ui.View, function (supr) {
 	this.setImage = function (img) {
 		this._renderCacheKey = {};
 
-		if (this._imgUrlChangeListenerFn) {
-			this._img.removeListener('urlChanged', this._imgUrlChangeListenerFn);
-			this._imgUrlChangeListenerFn = null;
-		}
-
 		var autoSized = false;
 		var sw, sh, iw, ih, bounds;
 		var opts = this._opts;
@@ -407,9 +398,6 @@ exports = Class(ui.View, function (supr) {
 			}
 
 			this._img.doOnLoad(this, 'needsRepaint');
-
-			this._imgUrlChangeListenerFn = bind(this, 'setImage', this._img);
-			this._img.on('urlChanged', this._imgUrlChangeListenerFn);
 		}
 	};
 
