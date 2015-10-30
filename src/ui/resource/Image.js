@@ -108,6 +108,7 @@ exports = Class(lib.PubSub, function () {
 
 	this._setSrcImg = function (img, url, forceReload) {
 		this._cb.reset();
+		this._isError = false;
 
 		// if we haven't found an image, look in the image cache
 		if (!img && url && !forceReload && ImageCache[url]) {
