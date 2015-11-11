@@ -205,6 +205,7 @@ var GLManager = Class(function() {
 
 		this.setActiveCompositeOperation('source-over');
 		this._activeRenderMode = -1;
+		this._activeShader = null;
 
 		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
@@ -273,7 +274,14 @@ var GLManager = Class(function() {
 		var ctx = this._activeCtx;
 		this._activeRenderMode = id;
 		var shader = this.shaders[id];
+
+		if (this._activeShader && this._activeShader !== shader) {
+			this._activeShader.disableVertexAttribArrays();
+		}
+
+		this._activeShader = shader;
 		gl.useProgram(shader.program);
+		shader.enableVertexAttribArrays();
 		gl.uniform2f(shader.uniforms.uResolution, ctx.width, ctx.height);
 		if (shader.uniforms.uSampler !== -1) {
 			gl.uniform1i(shader.uniforms.uSampler, 0);
