@@ -25,6 +25,7 @@ import ui.resource.Image as Image;
 import ui.Color as Color;
 import ui.filter as filter;
 import ui.resource.Font as Font;
+import ui.backend.webgl.nanovg as NanoVG
 
 var max = Math.max;
 
@@ -270,7 +271,11 @@ exports.wrapMeasureText = function (origMeasureText) {
 	return function (text) {
 		var fontInfo = exports.findFontInfo(this);
 		if (!fontInfo) {
-			return origMeasureText.apply(this, arguments);
+
+            var hello = {};
+            hello.width = origMeasureText.apply(this, arguments);
+			// so we can hook here to handle the .width issue we are having going from c++ to js
+			return hello;
 		}
 		var measureInfo = measure(this, fontInfo, text);
 		if (measureInfo.failed) {
@@ -284,6 +289,25 @@ exports.wrapFillText = function (origFillText) {
 	return function (text, x, y, maxWidth) {
 		var fontInfo = exports.findFontInfo(this);
 		if (!fontInfo) {
+            //var ctx = NanoVG.get();
+			//if(ctx.currentTextImage.__gl_name === undefined) {
+			//	var ctx = NanoVG.get();
+				//ctx.currentText=???
+			//ctx.currentTextImage
+			//ctx.createTextureFromText(srcImg.width, srcImg.height);
+			//}
+            this.set_text(text);
+
+            if (isNaN(x)) {
+				x = 0;
+			}
+			if (isNaN(y)) {
+				y = 0;
+			}
+
+            this.fontx = x;
+			this.fonty = y;
+			// we hook this and store the data for fill text in a texture
 			return origFillText.apply(this, arguments);
 		}
 		if (loadingCustomFont(fontInfo.customFont)) {

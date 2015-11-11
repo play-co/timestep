@@ -100,7 +100,7 @@ var Engine = exports = Class(Emitter, function (supr) {
 				ctx.setFilters = function() {};
 				ctx.clearFilters = function() {};
 				// stub to keep simulator happy
-				ctx.strokeRect = function() {};
+				//ctx.strokeRect = function() {};
 				canvas = ctx.canvas;
 				canvas.getContext = function () { return ctx; }
 			}
