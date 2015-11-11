@@ -205,6 +205,7 @@ var GLManager = Class(function() {
 
 		this.setActiveCompositeOperation('source-over');
 		this._activeRenderMode = -1;
+		this._activeShader = null;
 
 		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
@@ -273,7 +274,14 @@ var GLManager = Class(function() {
 		var ctx = this._activeCtx;
 		this._activeRenderMode = id;
 		var shader = this.shaders[id];
+
+		if (this._activeShader && this._activeShader !== shader) {
+			this._activeShader.disableVertexAttribArrays();
+		}
+
+		this._activeShader = shader;
 		gl.useProgram(shader.program);
+		shader.enableVertexAttribArrays();
 		gl.uniform2f(shader.uniforms.uResolution, ctx.width, ctx.height);
 		if (shader.uniforms.uSampler !== -1) {
 			gl.uniform1i(shader.uniforms.uSampler, 0);
@@ -544,17 +552,15 @@ var Context2D = Class(function () {
 	this.createOffscreenFrameBuffer = function () {
 		var gl = this._manager.gl;
 		if (!gl) { return; }
+		var activeCtx = this._manager._activeCtx;
 		var id = this._manager.createTexture(this.canvas);
 		this._texture = this._manager.getTexture(id);
 		this.frameBuffer = gl.createFramebuffer();
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
 		gl.bindTexture(gl.TEXTURE_2D, this._texture);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._texture, 0);
-		this.clear();
-		gl.bindTexture(gl.TEXTURE_2D, null);
-		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		this.canvas.__glFlip = true;
+		this._manager.activate(activeCtx, true);
 	};
 
 	var min = Math.min;
