@@ -544,17 +544,15 @@ var Context2D = Class(function () {
 	this.createOffscreenFrameBuffer = function () {
 		var gl = this._manager.gl;
 		if (!gl) { return; }
+		var activeCtx = this._manager._activeCtx;
 		var id = this._manager.createTexture(this.canvas);
 		this._texture = this._manager.getTexture(id);
 		this.frameBuffer = gl.createFramebuffer();
 		gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
 		gl.bindTexture(gl.TEXTURE_2D, this._texture);
 		gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._texture, 0);
-		this.clear();
-		gl.bindTexture(gl.TEXTURE_2D, null);
-		gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		this.canvas.__glFlip = true;
+		this._manager.activate(activeCtx, true);
 	};
 
 	var min = Math.min;
