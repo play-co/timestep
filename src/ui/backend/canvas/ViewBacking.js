@@ -175,7 +175,13 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		this.updateGlobalTransform();
 		var gt = this._globalTransform;
 		ctx.setTransform(gt.a, gt.b, gt.c, gt.d, gt.tx, gt.ty);
-		ctx.globalAlpha = this._globalOpacity;
+
+		var isNanoVG = CONFIG.useNanoVG;
+		if(isNanoVG) {
+			ctx.set_globalAlpha(this.opacity);
+		} else {
+			ctx.globalAlpha = this._globalOpacity;
+		}
 
 		if (this.clip) { ctx.clipRect(0, 0, width, height); }
 

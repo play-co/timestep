@@ -91,6 +91,7 @@ var Engine = exports = Class(Emitter, function (supr) {
 		this._rootElement = new Canvas({
 			el: canvas, // use an existing canvas if one was provided, but wrap the 2D context
 			useWebGL: true, // use WebGL if supported
+			useNanoVG: true,
 			width: opts.width,
 			height: opts.height,
 			offscreen: false
@@ -369,6 +370,11 @@ var Engine = exports = Class(Emitter, function (supr) {
 	};
 
 	this.render = function (dt) {
+		var isNanoVG = CONFIG.useNanoVG;
+		if(isNanoVG) {
+			this._ctx.glBeginLoop();
+		}
+
 		if (this._opts.clearEachFrame) {
 			this._ctx && this._ctx.clear();
 		}
@@ -382,7 +388,11 @@ var Engine = exports = Class(Emitter, function (supr) {
 				this._renderFPS(this._ctx, dt);
 			}
 
-			this._ctx.swap();
+			if(!isNanoVG) {
+				this._ctx.swap();
+			} else {
+				this._ctx.glEndLoop();
+			}
 		}
 	};
 

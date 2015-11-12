@@ -29,6 +29,7 @@ import lib.PubSub;
 import event.Callback as Callback;
 import ui.resource.loader as resourceLoader;
 import ui.backend.canvas.filterRenderer as filterRenderer;
+import platforms.browser.webgl.nanovg as NanoVG;
 
 var ImageCache = {};
 
@@ -361,6 +362,14 @@ exports = Class(lib.PubSub, function () {
 			}
 		}
 
+		var isNanoVG = CONFIG.useNanoVG;
+		if(isNanoVG && srcImg.__gl_name === undefined) {
+			var ctx = NanoVG.get();
+			ctx.currentImage= srcImg;
+			ctx.createTextureFromImage(srcImg.width, srcImg.height);
+			srcImg.__gl_name = ctx.get_drawImageMapID();
+		}
+
 		map.url = srcImg.src;
 		this._cb.fire(null, this);
 	};
@@ -415,7 +424,8 @@ exports = Class(lib.PubSub, function () {
 			}
 		}
 
-		ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
+		ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH, srcImg.width, srcImg.height, 1);
+
 	};
 
 	this.getImageData = function (x, y, width, height) {

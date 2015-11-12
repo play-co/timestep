@@ -49,7 +49,8 @@ exports = Class(ui.View, function (supr) {
 		this._renderCacheKey = {};
 		this._sliceCache = [];
 		for (var i = 0; i < 9; ++i) {
-			var row = [this._img.getSource(), 0, 0, 0, 0, 0, 0, 0, 0];
+			var imageSource = this._img.getSource();
+			var row = [imageSource, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1];
 			row.render = false;
 			this._sliceCache.push(row);
 		}
@@ -298,6 +299,8 @@ exports = Class(ui.View, function (supr) {
 					cache[6] = dy;
 					cache[7] = dw;
 					cache[8] = dh;
+					cache[9] = cache[0].width;
+					cache[10] = cache[0].width;
 					cache.render = true;
 				} else {
 					cache.render = false;

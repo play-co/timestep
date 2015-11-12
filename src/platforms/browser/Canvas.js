@@ -22,6 +22,7 @@
 
 import .Context2D;
 import .webgl.WebGLContext2D as WebGLContext2D;
+import .webgl.nanovg as NanoVG;
 
 exports = Class(function () {
 	this.init = function (opts) {
@@ -30,10 +31,16 @@ exports = Class(function () {
 		this._width = opts.width;
 		this._height = opts.height;
 		this.isWebGL = opts.useWebGL && CONFIG.useWebGL && WebGLContext2D.isSupported;
-
+		this.isNanoVG = opts.useNanoVG && CONFIG.useNanoVG && WebGLContext2D.isSupported;
 		var ctx;
 
-		if (this.isWebGL) {
+		if (this.isNanoVG) {
+			ctx = NanoVG.get(this._width,this._height);
+			ctx.getElement = function(){return ctx.canvas;};
+			ctx.setFilters = function() {};
+			ctx.clearFilters = function() {};
+		}
+		else if (this.isWebGL) {
 			ctx = WebGLContext2D.getContext(this, opts);
 		} else {
 			ctx = new Context2D(opts);

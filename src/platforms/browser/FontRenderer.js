@@ -283,17 +283,25 @@ exports.wrapMeasureText = function (origMeasureText) {
 exports.wrapFillText = function (origFillText) {
 	return function (text, x, y, maxWidth) {
 		var fontInfo = exports.findFontInfo(this);
-		if (!fontInfo) {
-			return origFillText.apply(this, arguments);
-		}
-		if (loadingCustomFont(fontInfo.customFont)) {
-			return;
-		}
 		if (isNaN(x)) {
 			x = 0;
 		}
 		if (isNaN(y)) {
 			y = 0;
+		}
+
+		var isNanoVG = CONFIG.useNanoVG;
+		if(isNanoVG) {
+			this.set_text(text);
+			this.fontx = x;
+			this.fonty = y;
+		}
+
+		if (!fontInfo) {
+			return origFillText.apply(this, arguments);
+		}
+		if (loadingCustomFont(fontInfo.customFont)) {
+			return;
 		}
 
 		// apply color filters if necessary
