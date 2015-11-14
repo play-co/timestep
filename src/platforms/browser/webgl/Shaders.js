@@ -185,7 +185,7 @@ var RectShader = Class(Shader, function(supr) {
 			'varying float vAlpha;',
 			'varying vec4 vColor;',
 			'void main(void) {',
-			'	gl_FragColor = vColor * vAlpha;',
+			'	gl_FragColor = vColor * vColor.a * vAlpha;',
 			'}'
 		].join("\n");
 		opts.useTexture = false;
