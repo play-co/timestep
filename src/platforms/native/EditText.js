@@ -142,7 +142,7 @@ exports = Class(function() {
 				closeOnDone: closeOnDone
 		});
 		//FIXME HACK: cursorPos property above doesn't seem to set the cursor position correctly.
-		//This sets the cursor at the last position if TextEditView contains some text while focussing.
+		//This sets the cursor at the last position if TextEditView contains some text while focusing.
 		NATIVE.call('editText.setText', {
            		text: currentVal
         	});
