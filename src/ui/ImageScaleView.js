@@ -523,6 +523,7 @@ exports = Class(ui.View, function (supr) {
 
 		if (this.debug) {
 			ctx.strokeStyle = debugColors[0];
+			ctx.lineWidth = 1;
 			ctx.strokeRect(0, 0, s.width, s.height);
 		}
 	}
@@ -613,6 +614,7 @@ exports = Class(ui.View, function (supr) {
 		ctx.drawImage.apply(ctx, sliceData);
 		if (this.debug) {
 			ctx.strokeStyle = debugColors[i % 3];
+			ctx.lineWidth = 1;
 			ctx.strokeRect(sliceData[5] + 0.5, sliceData[6] + 0.5,
 				sliceData[7] - 1, sliceData[8] - 1);
 		}
