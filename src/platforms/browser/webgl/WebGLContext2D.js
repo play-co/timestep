@@ -68,10 +68,12 @@ var ContextStateStack = Class(function() {
 			globalCompositeOperation: "source-over",
 			globalAlpha: 1,
 			transform: new Matrix2D(),
+			lineWidth: 1,
 			filter: null,
 			clip: false,
 			clipRect: { x: 0, y: 0, width: 0, height: 0 },
-			fillStyle: ""
+			fillStyle: "",
+			strokeStyle: ""
 		};
 	};
 
@@ -699,7 +701,6 @@ var Context2D = Class(function () {
 		this.stack.restore();
 	};
 
-	this.strokeRect = function() {};
 	this.circle = function(x, y, radius) {};
 	this.drawPointSprites = function(x1, y1, x2, y2) {};
 	this.roundRect = function (x, y, width, height, radius) {};
@@ -846,6 +847,21 @@ var Context2D = Class(function () {
 
 		if (this.globalAlpha === 0) { return; }
 
+		this._fillRect(x, y, width, height, getColor(this.stack.state.fillStyle));
+	};
+
+	this.strokeRect = function (x, y, width, height) {
+		var lineWidth = this.stack.state.lineWidth;
+		var halfWidth = lineWidth / 2;
+		var strokeColor = getColor(this.stack.state.strokeStyle);
+		this._fillRect(x + halfWidth, y - halfWidth, width - lineWidth, lineWidth, strokeColor);
+		this._fillRect(x + halfWidth, y + height - halfWidth, width - lineWidth, lineWidth, strokeColor);
+
+		this._fillRect(x - halfWidth, y - halfWidth, lineWidth, height + lineWidth, strokeColor);
+		this._fillRect(x + width - halfWidth, y - halfWidth, lineWidth, height + lineWidth, strokeColor);
+	};
+
+	this._fillRect = function (x, y, width, height, color) {
 		var m = this.stack.state.transform;
 		var xW = x + width;
 		var yH = y + height;
@@ -884,13 +900,12 @@ var Context2D = Class(function () {
 		vc[i + 19] = y3;
 		vc[i + 22] = this.globalAlpha;
 
-		var fillColor = getColor(this.stack.state.fillStyle);
 		var ci = drawIndex * 4 * STRIDE;
 		var cc = manager._colors;
-		cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = fillColor.r; // R
-		cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = fillColor.g; // G
-		cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = fillColor.b; // B
-		cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = fillColor.a * 255; // A
+		cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = color.r; // R
+		cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = color.g; // G
+		cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = color.b; // B
+		cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255; // A
 	};
 
 	this.deleteTextureForImage = function(canvas) {
