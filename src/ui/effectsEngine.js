@@ -105,6 +105,12 @@ var EffectsEngine = Class(View, function () {
     effect.reset(data, opts);
   };
 
+  this.clearEffects = function() {
+    effectPool.forEachActive(function (effect) {
+      effect.stop();
+    });
+  }
+
   this.tick = function (dt) {
     particlePool.forEachActive(function (particle) {
       particle.step(dt);
@@ -149,12 +155,12 @@ var Effect = Class("Effect", function () {
     var params = data.parameters;
     if (params) {
       for (var i = 0; i < params.length; i++) {
+        var paramData = params[i];
         var paramID = paramData.id;
         if (this.activeParameters[paramID]) {
           throw new Error("Duplicate parameter ID defined:", paramID, data);
         }
         var param = parameterPool.obtain();
-        var paramData = params[i];
         param.reset(this, paramData);
         this.activeParameters[paramID] = param;
       }
@@ -666,7 +672,7 @@ function getValueFromRange (effect, range) {
     var paramID = range[2];
     var param = effect.activeParameters[paramID];
     if (param) {
-      value = param.getValue(minVal, maxVal);
+      value = param.getValueBetween(minVal, maxVal);
     } else {
       throw new Error("Invalid parameter ID for effect:", effect, range);
     }
