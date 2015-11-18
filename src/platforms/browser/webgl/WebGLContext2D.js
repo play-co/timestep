@@ -111,6 +111,7 @@ var getColor = function(key) {
 var GLManager = Class(function() {
 
 	var MAX_BATCH_SIZE = 1024;
+	var CACHE_UID = 0;
 
 	this.init = function () {
 		var webglSupported = false;
@@ -211,7 +212,7 @@ var GLManager = Class(function() {
 
 		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
-		this.textureCache = [];
+		this.textureCache = {};
 		this._drawIndex = -1;
 		this._batchIndex = -1;
 
@@ -394,7 +395,7 @@ var GLManager = Class(function() {
 		var gl = this.gl;
 		if (!gl) { return -1; }
 
-		if (!id) { id = this.textureCache.length; }
+		if (!id) { id = CACHE_UID++; }
 		var texture = this.textureCache[id] || gl.createTexture();
 
 		gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -420,7 +421,7 @@ var GLManager = Class(function() {
 
 	this.deleteTexture = function(id) {
 		var texture = this.textureCache[id];
-		this._gl.deleteTexture(texture);
+		this.gl.deleteTexture(texture);
 		delete this.textureCache[id];
 	};
 
@@ -910,7 +911,9 @@ var Context2D = Class(function () {
 
 	this.deleteTextureForImage = function(canvas) {
 		if (!this._manager.gl) { return; }
+		this._manager.flush();
 		this._manager.deleteTexture(canvas.__GL_ID);
+		canvas.__GL_ID = undefined;
 	};
 
 });
