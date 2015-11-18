@@ -35,7 +35,7 @@ exports = Class(function () {
           }
         }
 
-        ctx.deleteTextureForImage(this._buffers[oldestKey].canvas);
+        ctx.deleteTextureForImage(this._buffers[oldestKey].image);
         delete this._buffers[oldestKey];
       } else {
         ++this._numBuffers;
