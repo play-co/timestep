@@ -15,9 +15,11 @@ var rollFloat = function (n, x) { return n + random() * (x - n); };
 var STYLE_DEFAULTS = {
   x: 0,
   y: 0,
+  // be careful animating zIndex, re-sorting views may be expensive
   zIndex: 0,
-  offsetX: 0,
-  offsetY: 0,
+  // offset coordinates reserved for polar effects
+  // offsetX: 0,
+  // offsetY: 0,
   anchorX: 0,
   anchorY: 0,
   r: 0,
@@ -42,6 +44,7 @@ var OTHER_DEFAULTS = {
   flipX: false,
   flipY: false,
   compositeOperation: "",
+  // TODO: ttl and delay should support ranges
   ttl: 1000,
   delay: 0,
   image: ""
@@ -61,7 +64,7 @@ var OTHER_KEY_COUNT = OTHER_KEYS.length;
 /**
  * EffectsEngine Notes
  *  this engine is designed to
- *    expand on the original timestep ParticleEngine while fixing its problems
+ *    expand on the original timestep ParticleEngine
  *    take advantage of timestep animate's
  *      API (target values over time with easing functions)
  *      and native acceleration
@@ -128,10 +131,14 @@ var Effect = Class("Effect", function () {
     this.opts = null;
     this.activeParticleCount = 0;
     this.activeParameters = {};
+    // ObjectPool book-keeping
+    this._poolIndex = 0;
+    this._obtainedFromPool = false;
   };
 
   this.reset = function (data, opts) {
     this.id = opts.id;
+    // TODO: count should support random range
     this.count = data.count || 1;
     this.continuous = data.continuous || false;
     this.data = data;
@@ -242,6 +249,7 @@ var Particle = Class("Particle", function () {
       this[key] = OTHER_DEFAULTS[key];
     }
 
+    // ObjectPool book-keeping
     this._poolIndex = 0;
     this._obtainedFromPool = false;
   };
@@ -259,7 +267,7 @@ var Particle = Class("Particle", function () {
     for (var i = 0; i < PROPERTY_KEY_COUNT; i++) {
       var key = PROPERTY_KEYS[i];
       var prop = this[key];
-      prop.reset(effect, key, data[key]);
+      prop.reset(this, key, data[key]);
       if (prop.delta) {
         this.hasDeltas = true;
       }
@@ -293,11 +301,8 @@ var Particle = Class("Particle", function () {
 
     // determine whether this particle is in polar or cartesian coordinates
     for (var i = 0; i < POLAR_KEY_COUNT; i++) {
-      var key = POLAR_KEYS[i];
-      var prop = this[key];
-      if (prop.value !== POLAR_DEFAULTS[key] || prop.delta || prop.targets.length) {
-        this.isPolar = true;
-        break;
+      if (!this[POLAR_KEYS[i]].isStatic) {
+        this.isPolar = true; break;
       }
     }
 
@@ -307,14 +312,8 @@ var Particle = Class("Particle", function () {
       var prop = this[key];
       var value = prop.value;
       if (key === 'x') {
-        if (this.isPolar) {
-          value = this.radius.value * cos(this.theta.value);
-        }
         value += opts.x;
       } else if (key === 'y') {
-        if (this.isPolar) {
-          value = this.radius.value * sin(this.theta.value);
-        }
         value += opts.y;
       }
       s[key] = value;
@@ -323,7 +322,14 @@ var Particle = Class("Particle", function () {
     s.flipY = this.flipY;
     s.compositeOperation = this.compositeOperation;
 
-    // TODO: apply any animations found in targets
+    // apply polar offsets or clear them
+    if (this.isPolar) {
+      s.offsetX = this.radius.value * cos(this.theta.value);
+      s.offsetY = this.radius.value * sin(this.theta.value);
+    } else {
+      s.offsetX = 0;
+      s.offsetY = 0;
+    }
 
     if (this.delay === 0) {
       s.visible = true;
@@ -362,12 +368,28 @@ var Particle = Class("Particle", function () {
       this.recycle();
     }
 
-    if (this.isPolar) {
-      // TODO: polar particle updates to x and y
+    if (this.hasDeltas) {
+      for (var i = 0; i < STYLE_KEY_COUNT; i++) {
+        var key = STYLE_KEYS[i];
+        var prop = this[key];
+        if (prop.delta) {
+          prop.applyDelta(dt);
+          s[key] = prop.value;
+        }
+      }
+
+      if (this.isPolar) {
+        for (var i = 0; i < POLAR_KEY_COUNT; i++) {
+          var key = POLAR_KEYS[i];
+          var prop = this[key];
+          prop.delta && prop.applyDelta(dt);
+        }
+      }
     }
 
-    if (this.hasDeltas) {
-      // TODO: iterate and update deltas
+    if (this.isPolar) {
+      s.offsetX = this.radius.value * cos(this.theta.value);
+      s.offsetY = this.radius.value * sin(this.theta.value);
     }
   };
 });
@@ -377,94 +399,119 @@ var Particle = Class("Particle", function () {
 /**
  * Property Notes
  *  properties represent a value on a particle that can update over time
- *  they can be stepped by delta values (i.e. velocity) or by targets to aniamte
+ *  they can be stepped by delta values (i.e. velocity) or by timestep animate
+ *  properties on the root particle are never recycled, so they animate the view
+ *  properties used as deltas on other properties are always recycled
  */
 var Property = Class("Property", function () {
   this.init = function () {
     this.value = 0;
     this.delta = null;
-    this.targets = [];
+    this.animator = null;
+    this.isStatic = true;
+    // ObjectPool book-keeping
     this._poolIndex = 0;
     this._obtainedFromPool = false;
   };
 
-  this.reset = function (effect, key, data) {
+  this.reset = function (particle, key, data) {
     this.value = 0;
     this.delta = null;
-    this.targets.length = 0;
 
-    // setting values based on a random or parameterized range
-    if (data.range && data.range.length >= 2) {
-      this.value = getValueFromRange(effect, data.range);
-    } else if (data.value !== void 0) {
-      this.value = data.value;
-    } else if (key !== 'delta') {
-      this.value = PROPERTY_DEFAULTS[key];
+    // create an animator with the proper subject (it never changes, see notes)
+    var isStyleProp = !(key === 'delta' || POLAR_KEYS.indexOf(key) >= 0);
+    if (!this.animator) {
+      this.animator = animate(isStyleProp ? particle.view : this, key);
+    } else {
+      this.animator.clear();
     }
 
-    // animate to target values or apply deltas over time
-    if (data.targets && data.targets.length) {
-      for (var i = 0; i < data.targets.length; i++) {
-        var target = targetPool.obtain();
-        target.reset(effect, data.targets[i]);
-        this.targets.push(target);
+    if (typeof data === 'object') {
+      // setting values based on a random or parameterized range
+      var value = data.value;
+      var range = data.range;
+      if (range && range.length >= 2) {
+        this.value = getValueFromRange(particle.effect, range);
+      } else if (value !== void 0) {
+        this.value = value;
+      } else if (key !== 'delta') {
+        this.value = PROPERTY_DEFAULTS[key];
       }
-    } else if (data.delta) {
-      this.delta = propertyPool.obtain();
-      this.delta.reset('delta', data.delta);
+
+      // animate to target values or apply deltas over time
+      var targets = data.targets;
+      var delta = data.delta;
+      if (targets && targets.length) {
+        // make sure we animate the correct key
+        var animKey = isStyleProp ? key : 'value';
+        // chain the animations once the particle has begun to live
+        this.animator.wait(particle.delay);
+        for (var i = 0; i < targets.length; i++) {
+          this.addTargetAnimation(particle.effect, targets[i], animKey);
+        }
+        this.isStatic = false;
+      } else if (delta) {
+        this.delta = propertyPool.obtain();
+        this.delta.reset(particle, 'delta', delta);
+        this.isStatic = this.delta.isStatic;
+      } else {
+        this.isStatic = this.value === 0;
+      }
+    } else if (data !== void 0) {
+      // allow simple values in the data format
+      this.value = data;
+      this.isStatic = this.value === 0;
+    } else {
+      // if the property was missing from the data, just apply its default
+      this.value = PROPERTY_DEFAULTS[key];
+      this.isStatic = true;
     }
   };
 
-  this.recycle = function (isFree) {
-    for (var i = 0; i < this.targets.length; i++) {
-      this.targets[i].recycle();
+  this.addTargetAnimation = function (effect, target, animKey) {
+    var value = target.value || 0;
+    // TODO: these should be percentages of the total particle ttl
+    var delay = target.delay || 0;
+    var duration = target.duration || 0;
+
+    // setting values based on a random or parameterized range
+    var range = target.range;
+    if (range && range.length >= 2) {
+      value = getValueFromRange(effect, range);
     }
+
+    // find the appropriate animate easing function ID
+    var easing = target.easing;
+    if (easing) {
+      if (easing in easingFunctions) {
+        easing = animate[easing];
+      } else {
+        throw new Error("Invalid easing function name:", easing);
+      }
+    } else {
+      easing = animate.linear;
+    }
+
+    // append the animation to the chain
+    var animObj = {};
+    animObj[animKey] = value;
+    this.animator.wait(delay).then(animObj, duration, easing);
+  };
+
+  this.applyDelta = function (dt) {
+    // deltas are measured in units per second
+    var seconds = dt / 1000;
+    // apply deltas half before and half after delta deltas for smoother frames
+    this.value += seconds * this.delta.value / 2;
+    this.delta.delta && this.delta.applyDelta(dt);
+    this.value += seconds * this.delta.value / 2;
+  };
+
+  this.recycle = function (isFree) {
     if (this.delta) {
       this.delta.recycle(true);
     }
     isFree && propertyPool.release(this);
-  };
-});
-
-
-
-/**
- * Target Notes
- *  targets represent a value to step towards over time
- *  they are designed to be used by timestep animate
- */
-var Target = Class("Target", function () {
-  this.init = function () {
-    this.value = 0;
-    this.delay = 0;
-    this.duration = 0;
-    this.easing = animate.linear;
-  };
-
-  this.reset = function (effect, data) {
-    this.value = data.value || 0;
-    this.delay = data.delay || 0;
-    this.duration = data.duration || 0;
-    this.easing = animate.linear;
-
-    // setting values based on a random or parameterized range
-    if (data.range && data.range.length >= 2) {
-      this.value = getValueFromRange(effect, data.range);
-    }
-
-    // find the appropriate animate easing function ID
-    var easing = data.easing;
-    if (easing) {
-      if (easing in easingFunctions) {
-        this.easing = animate[easing];
-      } else {
-        throw new Error("Invalid easing function name:", easing);
-      }
-    }
-  };
-
-  this.recycle = function () {
-    targetPool.release(this);
   };
 });
 
@@ -491,6 +538,9 @@ var Parameter = Class("Parameter", function () {
     this.elapsed = 0;
     this.resetInterval = 16;
     this.distribution = easingFunctions["linear"];
+    // ObjectPool book-keeping
+    this._poolIndex = 0;
+    this._obtainedFromPool = false;
   };
 
   this.reset = function (effect, data) {
@@ -630,7 +680,6 @@ function getValueFromRange (effect, range) {
 
 // private class-wide pools and singleton exports
 var parameterPool = new ObjectPool(Parameter);
-var targetPool = new ObjectPool(Target);
 var propertyPool = new ObjectPool(Property);
 var particlePool = new ObjectPool(Particle);
 var effectPool = new ObjectPool(Effect);
