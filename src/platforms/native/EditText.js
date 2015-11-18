@@ -116,7 +116,9 @@ exports = Class(function() {
 		if (this._opts.closeOnDone === false) {
 			closeOnDone = false;
 		} 
-
+		//Makes sure soft keyboard is opened on first tap.
+		NATIVE.call('softKeyboard.open', {});
+		
 		NATIVE.call('editText.focus', {
 				id: this._id,
 				paddingLeft: this._opts.paddingLeft * scale,
@@ -139,8 +141,11 @@ exports = Class(function() {
 				hasForward: hasForward,
 				closeOnDone: closeOnDone
 		});
-
-		//cursorPos);
+		//FIXME HACK: cursorPos property above doesn't seem to set the cursor position correctly.
+		//This sets the cursor at the last position if TextEditView contains some text while focusing.
+		NATIVE.call('editText.setText', {
+           		text: currentVal
+        	});
     }
 
     this.hasFocus = function() {
