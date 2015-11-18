@@ -910,7 +910,7 @@ var Context2D = Class(function () {
 
 	this.deleteTextureForImage = function(canvas) {
 		if (!this._manager.gl) { return; }
-		this._manager.deleteTextureById(canvas.__GL_ID);
+		this._manager.deleteTexture(canvas.__GL_ID);
 	};
 
 });
