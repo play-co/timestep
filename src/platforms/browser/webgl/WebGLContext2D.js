@@ -212,7 +212,7 @@ var GLManager = Class(function() {
 
 		gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
-		this.textureCache = [];
+		this.textureCache = {};
 		this._drawIndex = -1;
 		this._batchIndex = -1;
 
