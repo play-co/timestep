@@ -44,7 +44,6 @@ var OTHER_DEFAULTS = {
   flipX: false,
   flipY: false,
   compositeOperation: "",
-  // TODO: ttl and delay should support ranges
   ttl: 1000,
   delay: 0,
   image: ""
@@ -105,11 +104,47 @@ var EffectsEngine = Class(View, function () {
     effect.reset(data, opts);
   };
 
-  this.clearEffects = function() {
+  this.pauseEffectByID = function (id) {
     effectPool.forEachActive(function (effect) {
-      effect.stop();
+      if (effect.id === id) {
+        effect.pause();
+      }
     });
-  }
+  };
+
+  this.pauseAllEffects = function () {
+    effectPool.forEachActive(function (effect) {
+      effect.pause();
+    });
+  };
+
+  this.resumeEffectByID = function (id) {
+    effectPool.forEachActive(function (effect) {
+      if (effect.id === id) {
+        effect.resume();
+      }
+    });
+  };
+
+  this.resumeAllEffects = function () {
+    effectPool.forEachActive(function (effect) {
+      effect.resume();
+    });
+  };
+
+  this.clearEffectByID = function (id) {
+    effectPool.forEachActive(function (effect) {
+      if (effect.id === id) {
+        effect.clear();
+      }
+    });
+  };
+
+  this.clearAllEffects = function () {
+    effectPool.forEachActive(function (effect) {
+      effect.clear();
+    });
+  };
 
   this.tick = function (dt) {
     particlePool.forEachActive(function (particle) {
@@ -132,7 +167,8 @@ var Effect = Class("Effect", function () {
   this.init = function () {
     this.id = "";
     this.count = 0;
-    this.continuous = false;
+    this.isPaused = false;
+    this.isContinuous = false;
     this.data = null;
     this.opts = null;
     this.activeParticleCount = 0;
@@ -144,9 +180,8 @@ var Effect = Class("Effect", function () {
 
   this.reset = function (data, opts) {
     this.id = opts.id;
-    // TODO: count should support random range
-    this.count = data.count || 1;
-    this.continuous = data.continuous || false;
+    this.isPaused = false;
+    this.isContinuous = data.continuous || false;
     this.data = data;
     this.opts = opts;
     this.activeParticleCount = 0;
@@ -166,8 +201,11 @@ var Effect = Class("Effect", function () {
       }
     }
 
+    // support value, range, and params for particle count
+    this.count = getNumericValueFromData(this, data.count, 1);
+
     // emit immediately if not a continuous effect
-    if (!this.continuous) {
+    if (!this.isContinuous) {
       this.emitParticles();
     }
   };
@@ -183,15 +221,32 @@ var Effect = Class("Effect", function () {
   };
 
   this.pause = function () {
-    // TODO: pause all related particles
+    var effect = this;
+    particlePool.forEachActive(function (particle) {
+      if (particle.effect === effect) {
+        particle.pause();
+      }
+    });
+    this.isPaused = true;
   };
 
   this.resume = function () {
-    // TODO: resume all related particles
+    var effect = this;
+    particlePool.forEachActive(function (particle) {
+      if (particle.effect === effect) {
+        particle.resume();
+      }
+    });
+    this.isPaused = false;
   };
 
-  this.stop = function () {
-    // TODO: recycle all related particles, params, etc. and the effect itself
+  this.clear = function () {
+    var effect = this;
+    particlePool.forEachActive(function (particle) {
+      if (particle.effect === effect) {
+        particle.recycle();
+      }
+    });
     this.recycle();
   };
 
@@ -205,7 +260,7 @@ var Effect = Class("Effect", function () {
       particle.reset(this);
       this.activeParticleCount++;
 
-      if (!this.continuous) {
+      if (!this.isContinuous) {
         for (var j = 0; j < paramCount; j++) {
           var param = this.activeParameters[paramKeys[j]];
           param && param.update(i / count);
@@ -215,7 +270,11 @@ var Effect = Class("Effect", function () {
   };
 
   this.step = function (dt) {
-    if (this.continuous) {
+    if (this.isPaused) {
+      return;
+    }
+
+    if (this.isContinuous) {
       // step continuous parameters each tick
       var paramKeys = Object.keys(this.activeParameters);
       var paramCount = paramKeys.length;
@@ -244,7 +303,9 @@ var Particle = Class("Particle", function () {
     this.currentImageURL = "";
     this.isPolar = false;
     this.hasDeltas = false;
+    this.isPaused = false;
     this.effect = null;
+    this.elapsed = 0;
 
     for (var i = 0; i < PROPERTY_KEY_COUNT; i++) {
       this[PROPERTY_KEYS[i]] = propertyPool.obtain();
@@ -263,11 +324,25 @@ var Particle = Class("Particle", function () {
   this.reset = function (effect) {
     this.isPolar = false;
     this.hasDeltas = false;
+    this.isPaused = false;
     this.effect = effect;
+    this.elapsed = 0;
 
     var s = this.view.style;
     var data = effect.data;
     var opts = effect.opts;
+
+    // reset other properties first, animated props are dependent on ttl
+    for (var i = 0; i < OTHER_KEY_COUNT; i++) {
+      var key = OTHER_KEYS[i];
+      var defaultValue = OTHER_DEFAULTS[key];
+      if (typeof defaultValue === 'number') {
+        // support value, range, and params for ttl and delay
+        this[key] = getNumericValueFromData(effect, data[key], defaultValue);
+      } else {
+        this[key] = data[key] || defaultValue;
+      }
+    }
 
     // reset animated properties with data or to their defaults
     for (var i = 0; i < PROPERTY_KEY_COUNT; i++) {
@@ -277,12 +352,6 @@ var Particle = Class("Particle", function () {
       if (prop.delta) {
         this.hasDeltas = true;
       }
-    }
-
-    // reset other properties with data or to their defaults
-    for (var i = 0; i < OTHER_KEY_COUNT; i++) {
-      var key = OTHER_KEYS[i];
-      this[key] = data[key] || OTHER_DEFAULTS[key];
     }
 
     // prepare the image url for this particle
@@ -307,7 +376,7 @@ var Particle = Class("Particle", function () {
 
     // determine whether this particle is in polar or cartesian coordinates
     for (var i = 0; i < POLAR_KEY_COUNT; i++) {
-      if (!this[POLAR_KEYS[i]].isStatic) {
+      if (this[POLAR_KEYS[i]].isModified) {
         this.isPolar = true; break;
       }
     }
@@ -357,7 +426,25 @@ var Particle = Class("Particle", function () {
     particlePool.release(this);
   };
 
+  this.pause = function () {
+    for (var i = 0; i < PROPERTY_KEY_COUNT; i++) {
+      this[PROPERTY_KEYS[i]].pause();
+    }
+    this.isPaused = true;
+  };
+
+  this.resume = function () {
+    for (var i = 0; i < PROPERTY_KEY_COUNT; i++) {
+      this[PROPERTY_KEYS[i]].resume();
+    }
+    this.isPaused = false;
+  };
+
   this.step = function (dt) {
+    if (this.isPaused) {
+      return;
+    }
+
     var s = this.view.style;
 
     if (this.delay > 0) {
@@ -369,8 +456,8 @@ var Particle = Class("Particle", function () {
       }
     }
 
-    this.ttl -= dt;
-    if (this.ttl <= 0) {
+    this.elapsed += dt;
+    if (this.elapsed >= this.ttl) {
       this.recycle();
     }
 
@@ -414,15 +501,15 @@ var Property = Class("Property", function () {
     this.value = 0;
     this.delta = null;
     this.animator = null;
-    this.isStatic = true;
+    this.isModified = false;
     // ObjectPool book-keeping
     this._poolIndex = 0;
     this._obtainedFromPool = false;
   };
 
   this.reset = function (particle, key, data) {
-    this.value = 0;
     this.delta = null;
+    this.isModified = false;
 
     // create an animator with the proper subject (it never changes, see notes)
     var isStyleProp = !(key === 'delta' || POLAR_KEYS.indexOf(key) >= 0);
@@ -432,18 +519,12 @@ var Property = Class("Property", function () {
       this.animator.clear();
     }
 
-    if (typeof data === 'object') {
-      // setting values based on a random or parameterized range
-      var value = data.value;
-      var range = data.range;
-      if (range && range.length >= 2) {
-        this.value = getValueFromRange(particle.effect, range);
-      } else if (value !== void 0) {
-        this.value = value;
-      } else if (key !== 'delta') {
-        this.value = PROPERTY_DEFAULTS[key];
-      }
+    // set the initial value of the property
+    var defaultValue = key !== 'delta' ? PROPERTY_DEFAULTS[key] : 0;
+    this.value = getNumericValueFromData(particle.effect, data, defaultValue);
 
+    // change over time represented by animated target values or deltas
+    if (typeof data === 'object') {
       // animate to target values or apply deltas over time
       var targets = data.targets;
       var delta = data.delta;
@@ -453,37 +534,30 @@ var Property = Class("Property", function () {
         // chain the animations once the particle has begun to live
         this.animator.wait(particle.delay);
         for (var i = 0; i < targets.length; i++) {
-          this.addTargetAnimation(particle.effect, targets[i], animKey);
+          this.addTargetAnimation(particle, targets[i], animKey);
         }
-        this.isStatic = false;
+        this.isModified = true;
       } else if (delta) {
+        // apply a delta each tick (usually measured in pixels per second)
         this.delta = propertyPool.obtain();
         this.delta.reset(particle, 'delta', delta);
-        this.isStatic = this.delta.isStatic;
-      } else {
-        this.isStatic = this.value === 0;
+        this.isModified = this.delta.isModified;
       }
-    } else if (data !== void 0) {
-      // allow simple values in the data format
-      this.value = data;
-      this.isStatic = this.value === 0;
-    } else {
-      // if the property was missing from the data, just apply its default
-      this.value = PROPERTY_DEFAULTS[key];
-      this.isStatic = true;
     }
+
+    // whether this value was or will be changed from its default
+    this.isModified = this.isModified || this.value !== defaultValue;
   };
 
-  this.addTargetAnimation = function (effect, target, animKey) {
-    var value = target.value || 0;
-    // TODO: these should be percentages of the total particle ttl
-    var delay = target.delay || 0;
-    var duration = target.duration || 0;
-
-    // setting values based on a random or parameterized range
-    var range = target.range;
-    if (range && range.length >= 2) {
-      value = getValueFromRange(effect, range);
+  this.addTargetAnimation = function (particle, target, animKey) {
+    // these time values are percentages of the particle's ttl
+    var delay = getNumericValueFromData(particle.effect, target.delay, 0);
+    var duration = getNumericValueFromData(particle.effect, target.duration, 0);
+    if (delay < 0) {
+      throw new Error("Animations cannot have negative delays!");
+    }
+    if (duration < 0) {
+      throw new Error("Animations cannot have negative durations!");
     }
 
     // find the appropriate animate easing function ID
@@ -498,10 +572,13 @@ var Property = Class("Property", function () {
       easing = animate.linear;
     }
 
-    // append the animation to the chain
+    // prepare an animation object
     var animObj = {};
-    animObj[animKey] = value;
-    this.animator.wait(delay).then(animObj, duration, easing);
+    animObj[animKey] = getNumericValueFromData(particle.effect, target, 0);
+    // append the animation to the chain
+    this.animator
+      .wait(delay * particle.ttl)
+      .then(animObj, duration * particle.ttl, easing);
   };
 
   this.applyDelta = function (dt) {
@@ -518,6 +595,14 @@ var Property = Class("Property", function () {
       this.delta.recycle(true);
     }
     isFree && propertyPool.release(this);
+  };
+
+  this.pause = function () {
+    this.animator.pause();
+  };
+
+  this.resume = function () {
+    this.animator.resume();
   };
 });
 
@@ -661,23 +746,37 @@ var ObjectPool = Class("ObjectPool", function () {
  *    [min, max] - a random float between min and max
  *    [min, max, paramID] - a parameterized float between min and max
  */
-function getValueFromRange (effect, range) {
-  var value = 0;
-  var minVal = range[0];
-  var maxVal = range[1];
-  if (minVal > maxVal) {
-    throw new Error("Invalid range in effect, min > max:", effect, range);
-  }
-  if (range.length === 3) {
-    var paramID = range[2];
-    var param = effect.activeParameters[paramID];
-    if (param) {
-      value = param.getValueBetween(minVal, maxVal);
-    } else {
-      throw new Error("Invalid parameter ID for effect:", effect, range);
+function getNumericValueFromData (effect, data, defaultValue) {
+  var value = defaultValue;
+  var dataType = typeof data;
+  if (dataType === 'object') {
+    var range = data.range;
+    if (range && range.length >= 2) {
+      var minVal = range[0];
+      var maxVal = range[1];
+      if (minVal > maxVal) {
+        throw new Error("Invalid range in effect, min > max:", effect, range);
+      }
+      if (range.length === 3) {
+        // set value based on a parameterized range
+        var paramID = range[2];
+        var param = effect.activeParameters[paramID];
+        if (param) {
+          value = param.getValueBetween(minVal, maxVal);
+        } else {
+          throw new Error("Invalid parameter ID for effect:", effect, range);
+        }
+      } else {
+        // set value based on a random range
+        value = rollFloat(minVal, maxVal);
+      }
+    } else if (typeof data.value === 'number') {
+      // value can also be a number within the data object
+      value = data.value;
     }
-  } else {
-    value = rollFloat(minVal, maxVal);
+  } else if (dataType === 'number') {
+    // the data itself might be a number intended as the value
+    value = data;
   }
   return value;
 };
