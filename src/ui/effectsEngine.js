@@ -308,7 +308,8 @@ var Particle = Class("Particle", function () {
     this.elapsed = 0;
 
     for (var i = 0; i < PROPERTY_KEY_COUNT; i++) {
-      this[PROPERTY_KEYS[i]] = propertyPool.obtain();
+      // particle properties are never recycled, so ignore the propertyPool
+      this[PROPERTY_KEYS[i]] = new Property();
     }
 
     for (var i = 0; i < OTHER_KEY_COUNT; i++) {
