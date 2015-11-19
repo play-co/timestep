@@ -600,10 +600,12 @@ var Property = Class("Property", function () {
 
   this.pause = function () {
     this.animator.pause();
+    this.delta && this.delta.pause();
   };
 
   this.resume = function () {
     this.animator.resume();
+    this.delta && this.delta.resume();
   };
 });
 
