@@ -81,6 +81,14 @@ var EffectsEngine = Class(View, function () {
     });
   };
 
+  this.loadDataFromJSON = function (url) {
+    // TODO: return a parsed JSON data object from a given URL
+  };
+
+  this.validateData = function (data) {
+    // TODO: move data validation here, and add option to opt out
+  };
+
   this.emitEffectsFromData = function (data, opts) {
     opts = opts || {};
     opts.id = opts.id || "" + effectUID++;
@@ -259,12 +267,10 @@ var Effect = Class("Effect", function () {
       var particle = particlePool.obtain();
       particle.reset(this);
       this.activeParticleCount++;
-
-      if (!this.isContinuous) {
-        for (var j = 0; j < paramCount; j++) {
-          var param = this.activeParameters[paramKeys[j]];
-          param && param.update(i / count);
-        }
+      // update parameters for each particle emission
+      for (var j = 0; j < paramCount; j++) {
+        var param = this.activeParameters[paramKeys[j]];
+        param && param.update(1 / count, true);
       }
     }
   };
@@ -274,14 +280,15 @@ var Effect = Class("Effect", function () {
       return;
     }
 
+    // step parameters each tick
+    var paramKeys = Object.keys(this.activeParameters);
+    var paramCount = paramKeys.length;
+    for (var i = 0; i < paramCount; i++) {
+      var param = this.activeParameters[paramKeys[i]];
+      param && param.step(dt);
+    }
+
     if (this.isContinuous) {
-      // step continuous parameters each tick
-      var paramKeys = Object.keys(this.activeParameters);
-      var paramCount = paramKeys.length;
-      for (var i = 0; i < paramCount; i++) {
-        var param = this.activeParameters[paramKeys[i]];
-        param && param.step(dt);
-      }
       // emit particles for continuous effects each tick
       this.emitParticles();
     } else if (this.activeParticleCount <= 0) {
@@ -628,10 +635,11 @@ var Parameter = Class("Parameter", function () {
   this.init = function () {
     this.id = "";
     this.value = 0;
-    this.random = false;
     this.elapsed = 0;
     this.resetInterval = 16;
-    this.distribution = easingFunctions["linear"];
+    this.reverseReset = false;
+    this.distributionType = "indexOverTime";
+    this.distributionFunction = easingFunctions["linear"];
     // ObjectPool book-keeping
     this._poolIndex = 0;
     this._obtainedFromPool = false;
@@ -640,46 +648,74 @@ var Parameter = Class("Parameter", function () {
   this.reset = function (effect, data) {
     this.id = "" + data.id;
     this.value = 0;
-    this.random = data.random || false;
     this.elapsed = 0;
     this.resetInterval = data.resetInterval || 16;
-    this.distribution = easingFunctions["linear"];
+    this.reverseReset = data.reverseReset || false;
+    this.distributionType = data.distributionType || "indexOverTime";
+    this.distributionFunction = easingFunctions["linear"];
 
     // find the appropriate animate easing function
-    var distribution = data.distribution;
-    if (distribution) {
-      if (distribution in easingFunctions) {
-        this.distribution = easingFunctions[distribution];
+    var distFnName = data.distributionFunction;
+    if (distFnName) {
+      if (distFnName in easingFunctions) {
+        this.distributionFunction = easingFunctions[distFnName];
       } else {
-        throw new Error("Invalid distribution function name:", distribution);
+        throw new Error("Invalid distributionFunction:", distFnName);
       }
     }
 
-    this.update(0);
+    this.update(0, false);
   };
 
   this.recycle = function () {
     parameterPool.release(this);
   };
 
-  this.update = function (value) {
-    if (this.random) {
+  this.update = function (value, fromEmission) {
+    var type = this.distributionType;
+    if (fromEmission && type === "time") {
+      return;
+    }
+
+    if (type === "random") {
       this.value = random();
     } else {
-      this.value = value;
+      value += fromEmission ? this.value : 0;
+      if (this.reverseReset) {
+        // value moves back and forth between 1 and 0
+        while (value > 1 || value < 0) {
+          if (value > 1) {
+            value = 1 - (value - 1);
+          } else {
+            value *= -1;
+          }
+        }
+        this.value = value;
+      } else {
+        // value resets to 0 when it exceeds 1
+        this.value = value % 1;
+      }
     }
   };
 
   // only continuous effects step their parameters
   this.step = function (dt) {
-    this.elapsed += dt;
-    this.elapsed = this.elapsed % this.resetInterval;
-    this.update(this.elapsed / this.resetInterval);
+    var type = this.distributionType;
+    if (type === "time" || type === "indexOverTime") {
+      this.elapsed += dt;
+      // keep elapsed small so update's while loop doesn't grow over time
+      if (this.reverseReset) {
+        this.elapsed = this.elapsed % (2 * this.resetInterval);
+      } else {
+        this.elapsed = this.elapsed % this.resetInterval;
+      }
+      this.update(this.elapsed / this.resetInterval, false);
+    }
   };
 
   this.getValueBetween = function (minVal, maxVal) {
     var diff = maxVal - minVal;
-    return minVal + diff * this.distribution(this.value);
+    return minVal + diff * this.distributionFunction(this.value);
   };
 });
 
