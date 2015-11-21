@@ -399,7 +399,7 @@ var Particle = Class("Particle", function () {
       } else if (key === 'y') {
         value += opts.y;
       }
-      s[key] = value;
+      s[key] = prop.value = value;
     }
     s.flipX = this.flipX;
     s.flipY = this.flipY;
