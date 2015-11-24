@@ -196,6 +196,8 @@ var EffectsEngine = Class(View, function () {
 var Effect = Class("Effect", function () {
   this.init = function () {
     this.id = "";
+    this.x = 0;
+    this.y = 0;
     this.count = 0;
     this.isPaused = false;
     this.isContinuous = false;
@@ -210,6 +212,8 @@ var Effect = Class("Effect", function () {
 
   this.reset = function (data, opts) {
     this.id = opts.id;
+    this.x = opts.x;
+    this.y = opts.y;
     this.isPaused = false;
     this.isContinuous = data.continuous || false;
     this.data = data;
@@ -427,26 +431,19 @@ var Particle = Class("Particle", function () {
     // apply initial view style properties
     for (var i = 0; i < STYLE_KEY_COUNT; i++) {
       var key = STYLE_KEYS[i];
-      var prop = this[key];
-      var value = prop.value;
-      if (key === 'x') {
-        value += opts.x;
-      } else if (key === 'y') {
-        value += opts.y;
-      }
-      s[key] = prop.value = value;
+      s[key] = this[key].value;
     }
     s.flipX = this.flipX;
     s.flipY = this.flipY;
     s.compositeOperation = this.compositeOperation;
 
-    // apply polar offsets or clear them
+    // apply polar offsets and effect positioning offsets
     if (this.isPolar) {
-      s.offsetX = this.radius.value * cos(this.theta.value);
-      s.offsetY = this.radius.value * sin(this.theta.value);
+      s.offsetX = effect.x + this.radius.value * cos(this.theta.value);
+      s.offsetY = effect.y + this.radius.value * sin(this.theta.value);
     } else {
-      s.offsetX = 0;
-      s.offsetY = 0;
+      s.offsetX = effect.x;
+      s.offsetY = effect.y;
     }
 
     if (this.delay === 0) {
@@ -524,8 +521,8 @@ var Particle = Class("Particle", function () {
     }
 
     if (this.isPolar) {
-      s.offsetX = this.radius.value * cos(this.theta.value);
-      s.offsetY = this.radius.value * sin(this.theta.value);
+      s.offsetX = this.effect.x + this.radius.value * cos(this.theta.value);
+      s.offsetY = this.effect.y + this.radius.value * sin(this.theta.value);
     }
 
     this.filterType && this.updateFilter();
