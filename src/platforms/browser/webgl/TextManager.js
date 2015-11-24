@@ -18,12 +18,12 @@ exports = Class(function () {
     var fontData = Font.parse(font);
     if (!isFontLoaded(fontData.getOrigName())) { return; }
 
-    var key = (stroked
+    var bufferKey = (stroked
           ? ctx.lineWidth + '|' + ctx.strokeStyle + '|'
           : '-|' + ctx.fillStyle)
       + '|' + font + '|' + text;
 
-    if (!this._buffers[key]) {
+    if (!this._buffers[bufferKey]) {
       if (this._numBuffers > MAX_BUFFERS) {
         var oldest = Infinity;
         var oldestKey = null;
@@ -43,15 +43,15 @@ exports = Class(function () {
 
       var canvas = document.createElement('canvas');
       canvas.complete = true;
-      this._buffers[key] = {
+      this._buffers[bufferKey] = {
         lastUsed: 0,
         image: canvas,
         metrics: this._render(canvas, text, font, stroked, ctx.fillStyle, ctx.strokeStyle, ctx.lineWidth)
       };
     }
 
-    this._buffers[key].lastUsed = timer.now;
-    return this._buffers[key];
+    this._buffers[bufferKey].lastUsed = timer.now;
+    return this._buffers[bufferKey];
   };
 
   this._render = function (canvas, text, font, stroked, fillStyle, strokeStyle, lineWidth) {
