@@ -2,6 +2,7 @@ import animate;
 import animate.transitions as easingFunctions;
 import ui.View as View;
 import ui.ImageView as ImageView;
+import ui.filter as filter;
 
 var sin = Math.sin;
 var cos = Math.cos;
@@ -36,27 +37,44 @@ var POLAR_DEFAULTS = {
   radius: 0
 };
 
+var FILTER_DEFAULTS = {
+  filterRed: 0,
+  filterGreen: 0,
+  filterBlue: 0,
+  filterAlpha: 1
+};
+
 var PROPERTY_DEFAULTS = {};
 merge(PROPERTY_DEFAULTS, STYLE_DEFAULTS);
 merge(PROPERTY_DEFAULTS, POLAR_DEFAULTS);
+merge(PROPERTY_DEFAULTS, FILTER_DEFAULTS);
 
 var OTHER_DEFAULTS = {
   flipX: false,
   flipY: false,
-  compositeOperation: "",
-  ttl: 1000,
   delay: 0,
-  image: ""
+  ttl: 1000,
+  image: "",
+  filterType: "",
+  compositeOperation: ""
 };
 
 var STYLE_KEYS = Object.keys(STYLE_DEFAULTS);
 var STYLE_KEY_COUNT = STYLE_KEYS.length;
 var POLAR_KEYS = Object.keys(POLAR_DEFAULTS);
 var POLAR_KEY_COUNT = POLAR_KEYS.length;
+var FILTER_KEYS = Object.keys(FILTER_DEFAULTS);
+var FILTER_KEY_COUNT = FILTER_KEYS.length;
 var PROPERTY_KEYS = Object.keys(PROPERTY_DEFAULTS);
 var PROPERTY_KEY_COUNT = PROPERTY_KEYS.length;
 var OTHER_KEYS = Object.keys(OTHER_DEFAULTS);
 var OTHER_KEY_COUNT = OTHER_KEYS.length;
+
+var FILTER_TYPES = [
+  "LinearAdd",
+  "Multiply",
+  "Tint"
+];
 
 
 
@@ -161,6 +179,10 @@ var EffectsEngine = Class(View, function () {
     effectPool.forEachActive(function (effect) {
       effect.step(dt);
     });
+  };
+
+  this.getActiveCount = function () {
+    return particlePool._freshIndex;
   };
 });
 
@@ -307,6 +329,8 @@ var Effect = Class("Effect", function () {
 var Particle = Class("Particle", function () {
   this.init = function () {
     this.view = new ImageView({ visible: false });
+    this.filter = new filter.Filter({});
+    this.filterData = { type: "", r: 0, g: 0, b: 0, a: 0 };
     this.currentImageURL = "";
     this.isPolar = false;
     this.hasDeltas = false;
@@ -330,6 +354,7 @@ var Particle = Class("Particle", function () {
   };
 
   this.reset = function (effect) {
+    this.view.removeFilter();
     this.isPolar = false;
     this.hasDeltas = false;
     this.isPaused = false;
@@ -360,6 +385,16 @@ var Particle = Class("Particle", function () {
       if (prop.delta) {
         this.hasDeltas = true;
       }
+    }
+
+    // apply the proper initial color filter
+    if (this.filterType) {
+      if (FILTER_TYPES.indexOf(this.filterType) === -1) {
+        throw new Error("Invalid filter type:", this.filterType);
+      }
+      this.filterData.type = this.filterType;
+      this.updateFilter();
+      this.view.setFilter(this.filter);
     }
 
     // prepare the image url for this particle
@@ -492,6 +527,16 @@ var Particle = Class("Particle", function () {
       s.offsetX = this.radius.value * cos(this.theta.value);
       s.offsetY = this.radius.value * sin(this.theta.value);
     }
+
+    this.filterType && this.updateFilter();
+  };
+
+  this.updateFilter = function () {
+    this.filterData.r = max(0, min(255, ~~(this.filterRed.value + 0.5)));
+    this.filterData.g = max(0, min(255, ~~(this.filterGreen.value + 0.5)));
+    this.filterData.b = max(0, min(255, ~~(this.filterBlue.value + 0.5)));
+    this.filterData.a = max(0, min(1, this.filterAlpha.value));
+    this.filter.update(this.filterData);
   };
 });
 
@@ -520,7 +565,7 @@ var Property = Class("Property", function () {
     this.isModified = false;
 
     // create an animator with the proper subject (it never changes, see notes)
-    var isStyleProp = !(key === 'delta' || POLAR_KEYS.indexOf(key) >= 0);
+    var isStyleProp = STYLE_KEYS.indexOf(key) >= 0;
     if (!this.animator) {
       this.animator = animate(isStyleProp ? particle.view : this, key);
     } else {
@@ -793,9 +838,6 @@ function getNumericValueFromData (effect, data, defaultValue) {
     if (range && range.length >= 2) {
       var minVal = range[0];
       var maxVal = range[1];
-      if (minVal > maxVal) {
-        throw new Error("Invalid range in effect, min > max:", effect, range);
-      }
       if (range.length === 3) {
         // set value based on a parameterized range
         var paramID = range[2];
