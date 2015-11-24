@@ -187,11 +187,11 @@ exports.wrapFillText = function (origFillText) {
 		if (this.__compositeColor !== color) {
 			this.__compositeColor = color;
 			if (!this.__compositeFilter) {
-				this.__compositeFilter = [];
+				this.__compositeFilter = new filter.MultiplyFilter(color);
 			}
-			this.__compositeFilter[0] = new filter.MultiplyFilter(color);
+			this.__compositeFilter.update(color);
 		}
-		this.setFilters(this.__compositeFilter);
+		this.setFilter(this.__compositeFilter);
 
 		if (!this._ctx.fillTextBitmap(this, x, y, text + '', maxWidth, this.fillStyle, fontInfo, 0)) {
 			return origFillText.apply(this, arguments);
@@ -214,11 +214,11 @@ exports.wrapStrokeText = function (origStrokeText) {
 		if (this.__compositeStrokeColor !== color) {
 			this.__compositeStrokeColor = color;
 			if (!this.__compositeStrokeFilter) {
-				this.__compositeStrokeFilter = [];
+				this.__compositeStrokeFilter = new filter.MultiplyFilter(color);
 			}
-			this.__compositeStrokeFilter[0] = new filter.MultiplyFilter(color);
+			this.__compositeStrokeFilter.update(color);
 		}
-		this.setFilters(this.__compositeStrokeFilter);
+		this.setFilter(this.__compositeStrokeFilter);
 
 		if (!this._ctx.fillTextBitmap(this, x, y, text + '', maxWidth, this.strokeStyle, fontInfo, 1)) {
 			return origStrokeText.apply(this, arguments);

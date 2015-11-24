@@ -406,7 +406,7 @@ exports = Class(lib.PubSub, function () {
 			srcH = arguments[4];
 		}
 
-		if (!isNative && ctx.filters) {
+		if (!isNative && ctx.filter) {
 			var filterImg = filterRenderer.renderFilter(ctx, this, srcX, srcY, srcW, srcH);
 			if (filterImg) {
 				srcImg = filterImg;

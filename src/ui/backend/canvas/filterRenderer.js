@@ -59,12 +59,8 @@ var FilterRenderer = Class(function () {
 
 	this.renderFilter = function (ctx, srcImg, srcX, srcY, srcW, srcH) {
 		if (needsInitialization) { this.initialize(); }
-		var filterName;
-		var filter;
-		for (filterName in ctx.filters) {
-			filter = ctx.filters[filterName];
-			break;
-		}
+		var filter = ctx.filter;
+		var filterName = filter.getType();
 
 		// Ugly hack, but WebGL still needs this class, for now, for masking.
 		// The other filters are handled by the WebGL context itself.
@@ -88,11 +84,11 @@ var FilterRenderer = Class(function () {
 
 		switch (filterName) {
 			case "LinearAdd":
-				this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter.get(), 'lighter', resultImg);
+				this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter, 'lighter', resultImg);
 				break;
 
 			case "Tint":
-				this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter.get(), 'source-over', resultImg);
+				this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter, 'source-over', resultImg);
 				break;
 
 			case "Multiply":
@@ -122,7 +118,7 @@ var FilterRenderer = Class(function () {
 	};
 
 
-	this.renderColorFilter = function (ctx, srcImg, srcX, srcY, srcW, srcH, color, op, destCanvas) {
+	this.renderColorFilter = function (ctx, srcImg, srcX, srcY, srcW, srcH, filter, op, destCanvas) {
 		var result = destCanvas;
 		var resultCtx = result.getContext('2d');
 		// render the base image
@@ -130,7 +126,7 @@ var FilterRenderer = Class(function () {
 		srcImg.render(resultCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
 		// render the filter color
 		resultCtx.globalCompositeOperation = op;
-		resultCtx.fillStyle = "rgba(" + color.r  + "," + color.g + "," + color.b + "," + color.a + ")";
+		resultCtx.fillStyle = filter.getColorString();
 		resultCtx.fillRect(0, 0, srcW, srcH);
 		// use our base image to cut out the image shape from the rect
 		resultCtx.globalCompositeOperation = 'destination-in';

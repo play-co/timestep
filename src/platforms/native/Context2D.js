@@ -191,24 +191,34 @@ exports = Class(BufferedCanvas, function (supr) {
 		}
 	};
 
-	this.translate = function (x, y) { this._ctx.translate(x, y); }
-	this.rotate = function (r) { this._ctx.rotate(r); }
-	this.scale = function (x, y) { this._ctx.scale(x, y); }
+	this.translate = function (x, y) { this._ctx.translate(x, y); };
+	this.rotate = function (r) { this._ctx.rotate(r); };
+	this.scale = function (x, y) { this._ctx.scale(x, y); };
+
+	this.setFilter = function (filter) {
+		this._ctx.addFilter(filter.getType(), filter.get());
+	};
 
 	this.setFilters = function (filters) {
+		logger.warn("ctx.setFilters is deprecated, use ctx.setFilter instead.");
 		for (var name in filters) {
 			var filter = filters[name];
 			this._ctx.addFilter(name, filter.get());
 		}
-	}
+	};
+
+	this.clearFilter = function () {
+		this._ctx.clearFilters();
+	};
 
 	this.clearFilters = function () {
+		logger.warn("ctx.clearFilters is deprecated, use ctx.clearFilter instead.");
 		this._ctx.clearFilters();
-	}
+	};
 
-    this.setTransform = function(m11, m12, m21, m22, dx, dy) {
-        this._ctx.setTransform(m11, m12, m21, m22, dx, dy);
-    }
+	this.setTransform = function(m11, m12, m21, m22, dx, dy) {
+		this._ctx.setTransform(m11, m12, m21, m22, dx, dy);
+	};
 
 	util.setProperty(this, 'globalAlpha', {
 		get: function () {
