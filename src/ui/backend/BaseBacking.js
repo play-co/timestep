@@ -57,6 +57,7 @@ var BaseBacking = exports = Class(function () {
 		'clip': {value: false},
 		'backgroundColor': {value: ''},
 		'compositeOperation': {value: undefined},
+		'color': {value: ''}
 	};
 
 	this.constructor.addProperty = function (key, def) {
