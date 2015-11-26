@@ -110,7 +110,7 @@ var getColor = function(key) {
 
 var GLManager = Class(function() {
 
-	var MAX_BATCH_SIZE = 1024;
+	var MAX_BATCH_SIZE = 512;
 	var CACHE_UID = 0;
 
 	this.init = function () {
@@ -206,6 +206,7 @@ var GLManager = Class(function() {
 		this._scissorEnabled = false;
 		this._activeScissor = { x: 0, y: 0, width: 0, height: 0 };
 
+		this._activeCompositeOperation = '';
 		this.setActiveCompositeOperation('source-over');
 		this._activeRenderMode = -1;
 		this._activeShader = null;
