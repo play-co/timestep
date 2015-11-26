@@ -125,7 +125,8 @@ var Engine = exports = Class(Emitter, function (supr) {
 		this._inputListener = new dispatch.InputListener({
 			rootView: this._view,
 			el: this._rootElement,
-			keyListener: this._keyListener
+			keyListener: this._keyListener,
+			engine: this
 		});
 
 		this._reflowMgr = ReflowManager.get();
@@ -147,6 +148,10 @@ var Engine = exports = Class(Emitter, function (supr) {
 		}
 
 		this.updateOpts(this._opts);
+	};
+
+	this.getOpt = function (key) {
+		return this._opts[key];
 	};
 
 	this.updateOpts = function (opts) {

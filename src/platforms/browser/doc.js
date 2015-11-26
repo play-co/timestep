@@ -20,6 +20,10 @@ from util.browser import $;
 
 import device;
 
+var isIOS7 = device.iosVersion === 7;
+var isIOSSafari = device.iosVersion >= 7 && !device.isIpad && !device.isStandalone && !device.isUIWebView;
+var enableLandscapeScroll = isIOSSafari;
+
 var SCALING = Enum('FIXED', 'RESIZE', 'MANUAL');
 var defaultScalingMode = !device.isMobileNative || device.simulating ? SCALING.RESIZE : SCALING.FIXED;
 
@@ -32,8 +36,8 @@ var Document = Class(lib.PubSub, function () {
 			return;
 		}
 
-		var doc = GLOBAL.document,
-			body = doc && doc.body;
+		var doc = GLOBAL.document;
+		var body = doc && doc.body;
 
 		this._el = $({
 			parent: body,
@@ -46,20 +50,29 @@ var Document = Class(lib.PubSub, function () {
 		});
 
 		device.screen.subscribe('Resize', this, 'onResize');
-
 		if (exports.postCreateHook) { exports.postCreateHook(this); }
 		this.setScalingMode(defaultScalingMode);
-	}
+	};
 
 	this.unsubscribeResize = function () {
 		device.screen.unsubscribe('Resize', this, 'onResize');
-	}
+	};
 
 	this.setEngine = function (engine) {
 		if (engine == this._engine) { return; }
 
+		if (engine.getOpt('minIOSLandscapeScroll') > device.iosVersion
+				|| engine.getOpt('disableIOSLandscapeScroll')) {
+			enableLandscapeScroll = false;
+		}
+
 		this._engine = engine;
 		this._canvas = this._engine.getCanvas();
+
+		if (enableLandscapeScroll) {
+			this._canvas.style.position = 'fixed';
+		}
+
 		this.appendChild(this._canvas);
 
 		if (this._canvas.getContext) {
@@ -68,7 +81,7 @@ var Document = Class(lib.PubSub, function () {
 				ctx.setParentNode(this._el);
 			}
 		}
-	}
+	};
 
 	this.getElement = function () {
 		return this._el;
@@ -104,13 +117,21 @@ var Document = Class(lib.PubSub, function () {
 		this._scalingOpts = opts;
 		this.onResize();
 		setTimeout(bind(this, 'onResize'), 1000);
-	}
+	};
 
 	this.onResize = function () {
 		var el = this._el;
 		var s = this._el.style;
+		var orientation = device.screen.orientation;
+		el.className = orientation;
 
-		el.className = device.screen.orientation;
+		if (enableLandscapeScroll) {
+			// on phones, ios7 will only ever be 320px high max (does not change until the 6+)
+			var isLandscape = orientation === 'landscape';
+			document.documentElement.style.height = isLandscape && isIOS7 ? window.innerHeight == 320 ? '320px' : '640px' : '100%';
+			document.body.style.height = isIOS7 ? '100%' : '150%';
+		}
+
 		logger.log('resize', device.width, device.height);
 
 		var width = device.width;
@@ -174,7 +195,7 @@ var Document = Class(lib.PubSub, function () {
 		// make sure to force a render immediately (should we use needsRepaint instead?)
 		this._setDim(width, height);
 		if (this._engine) { this._engine.render(); }
-	}
+	};
 
 	this._setDim = function (width, height) {
 		if (this.width != width || this.height != height) {
@@ -182,25 +203,25 @@ var Document = Class(lib.PubSub, function () {
 			this.height = height;
 			this.publish('Resize', width, height);
 		}
-	}
+	};
 
 	this.setColors = function (bgColor, engineColor) {
 		if (this._el) {
 			this._el.style.background = engineColor;
 			document.documentElement.style.background = document.body.style.background = bgColor;
 		}
-	}
+	};
 
 	this.appendChild = function (el) {
 		this._el.appendChild(el);
-	}
+	};
 
 	this.getOffset = function () {
 		return {
 			x: this._el.offsetLeft,
 			y: this._el.offsetTop
 		};
-	}
+	};
 });
 
 exports = new Document();
@@ -220,7 +241,7 @@ exports.setDocStyle = function () {
 		$.style(document.documentElement, docStyle);
 		$.style(document.body, docStyle);
 	}
-}
+};
 
 exports.defaultParent = null;
 exports.postCreateHook = null;

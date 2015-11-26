@@ -632,7 +632,7 @@ var View = exports = Class(Emitter, function () {
 	 */
 	this.getEngine = this.getApp = function () {
 		return this.__root;
-	}
+	};
 
 	/**
 	 * Returns an array of all ancestors of the current view.
