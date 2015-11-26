@@ -97,14 +97,11 @@ var EffectsEngine = Class(View, function () {
       canHandleEvents: false,
       blockEvents: true
     });
-  };
 
-  this.loadDataFromJSON = function (url) {
-    // TODO: return a parsed JSON data object from a given URL
-  };
-
-  this.validateData = function (data) {
-    // TODO: move data validation here, and add option to opt out
+    // wait until engine initialization completes before subscribing to tick
+    setTimeout(function () {
+      jsio('import ui.Engine').get().on('Tick', onTick);
+    }, 0);
   };
 
   this.emitEffectsFromData = function (data, opts) {
@@ -114,20 +111,16 @@ var EffectsEngine = Class(View, function () {
     opts.x = opts.x || 0;
     opts.y = opts.y || 0;
 
+    // allow data to be an array of effects
     if (isArray(data)) {
       data.forEach(function (effect) {
-        emitEffect(effect, opts);
+        emitEffect.call(this, effect, opts);
       });
     } else {
-      emitEffect(data, opts);
+      emitEffect.call(this, data, opts);
     }
 
     return opts.id;
-  };
-
-  function emitEffect (data, opts) {
-    var effect = effectPool.obtain();
-    effect.reset(data, opts);
   };
 
   this.pauseEffectByID = function (id) {
@@ -172,17 +165,105 @@ var EffectsEngine = Class(View, function () {
     });
   };
 
-  this.tick = function (dt) {
-    particlePool.forEachActive(function (particle) {
-      particle.step(dt);
-    });
-    effectPool.forEachActive(function (effect) {
-      effect.step(dt);
-    });
+  this.validateData = function (data) {
+    if (typeof data === 'string') {
+      data = this.loadDataFromJSON(data);
+    }
+
+    // all image URLs should be non-empty strings
+    var image = data.image;
+    if (isArray(image)) {
+      if (!image.length) {
+        throw new Error("Empty array found, expected image URL strings:", data);
+      } else {
+        image.forEach(function (url) {
+          validateImage(url, data);
+        });
+      }
+    } else {
+      validateImage(image, data);
+    }
+
+    // if a filter type exists, it should be one of the supported types
+    if (data.filterType) {
+      if (FILTER_TYPES.indexOf(data.filterType) === -1) {
+        throw new Error("Invalid filter type:", data.filterType, data);
+      }
+    }
+
+    // TODO: validate other property variables
+
+    var params = data.parameters;
+    if (params) {
+      if (!isArray(params)) {
+        throw new Error("Parameters should be an array:", params, data);
+      }
+
+      // check each parameter individually and guarantee no duplicates
+      var paramList = {};
+      for (var i = 0; i < params.length; i++) {
+        validateParameter(params[i], paramList, data);
+      }
+    }
+
+    // TODO: move data validation here
   };
 
-  this.getActiveCount = function () {
+  this.loadDataFromJSON = function (url) {
+    try {
+      var data = CACHE[url];
+      if (typeof data === 'string') {
+        data = CACHE[url] = JSON.parse(data);
+      }
+      if (typeof data !== 'object') {
+        throw new Error("JSON file not found in your project:", url);
+      }
+      return data;
+    } catch (e) { throw e; }
+  };
+
+  this.getActiveParticleCount = function () {
     return particlePool._freshIndex;
+  };
+
+  function emitEffect (data, opts) {
+    // allow data to be a JSON URL string
+    if (typeof data === 'string') {
+      data = this.loadDataFromJSON(data);
+    }
+
+    // allow data validation to be skipped for performance or other reasons
+    if (!opts.skipDataValidation) {
+      this.validateData(data);
+    }
+
+    effectPool.obtain().reset(data, opts);
+  };
+
+  function onTick (dt) {
+    particlePool.forEachActive(function (particle) { particle.step(dt); });
+    effectPool.forEachActive(function (effect) { effect.step(dt); });
+  };
+
+  function validateImage (url, data) {
+    if (!url || typeof url !== 'string') {
+      throw new Error("Invalid image URL:", url, data);
+    }
+  };
+
+  function validateParameter (paramData, paramList, data) {
+    var paramID = paramData.id;
+    if (paramID === void 0) {
+      throw new Error("Undefined parameter ID:", paramData, data);
+    }
+
+    if (paramList[paramID]) {
+      throw new Error("Duplicate parameter ID defined:", paramID, data);
+    }
+
+    // TODO: validate other parameter variables
+
+    paramList[paramID] = paramData;
   };
 });
 
@@ -225,13 +306,9 @@ var Effect = Class("Effect", function () {
     if (params) {
       for (var i = 0; i < params.length; i++) {
         var paramData = params[i];
-        var paramID = paramData.id;
-        if (this.activeParameters[paramID]) {
-          throw new Error("Duplicate parameter ID defined:", paramID, data);
-        }
         var param = parameterPool.obtain();
         param.reset(this, paramData);
-        this.activeParameters[paramID] = param;
+        this.activeParameters[paramData.id] = param;
       }
     }
 
@@ -393,25 +470,14 @@ var Particle = Class("Particle", function () {
 
     // apply the proper initial color filter
     if (this.filterType) {
-      if (FILTER_TYPES.indexOf(this.filterType) === -1) {
-        throw new Error("Invalid filter type:", this.filterType);
-      }
       this.filterData.type = this.filterType;
       this.updateFilter();
       this.view.setFilter(this.filter);
     }
 
     // prepare the image url for this particle
-    var imageURL = "";
     var image = data.image;
-    var imageType = typeof image;
-    if (imageType === 'string') {
-      imageURL = image;
-    } else if (isArray(image) && image.length > 0) {
-      imageURL = choose(image);
-    } else {
-      throw new Error("Invalid image URL data:", data.image);
-    }
+    var imageURL = isArray(image) ? choose(image) : image;
     // only update the image if necessary
     if (this.currentImageURL !== imageURL) {
       this.currentImageURL = imageURL;
@@ -525,7 +591,15 @@ var Particle = Class("Particle", function () {
       s.offsetY = this.effect.y + this.radius.value * sin(this.theta.value);
     }
 
-    this.filterType && this.updateFilter();
+    // update filter each tick if its values change over time
+    if (this.filterType
+      && (!this.filterRed.isStatic
+        || !this.filterGreen.isStatic
+        || !this.filterBlue.isStatic
+        || !this.filterAlpha.isStatic))
+    {
+      this.updateFilter();
+    }
   };
 
   this.updateFilter = function () {
@@ -551,6 +625,7 @@ var Property = Class("Property", function () {
     this.value = 0;
     this.delta = null;
     this.animator = null;
+    this.isStatic = true;
     this.isModified = false;
     // ObjectPool book-keeping
     this._poolIndex = 0;
@@ -559,6 +634,7 @@ var Property = Class("Property", function () {
 
   this.reset = function (particle, key, data) {
     this.delta = null;
+    this.isStatic = true;
     this.isModified = false;
 
     // create an animator with the proper subject (it never changes, see notes)
@@ -587,11 +663,13 @@ var Property = Class("Property", function () {
           this.addTargetAnimation(particle, targets[i], animKey);
         }
         this.isModified = true;
+        this.isStatic = false;
       } else if (delta) {
         // apply a delta each tick (usually measured in pixels per second)
         this.delta = propertyPool.obtain();
         this.delta.reset(particle, 'delta', delta);
         this.isModified = this.delta.isModified;
+        this.isStatic = !this.isModified;
       }
     }
 
