@@ -76,6 +76,13 @@ var FILTER_TYPES = [
   "Tint"
 ];
 
+var PARAMETER_TYPES = [
+  "indexOverTime",
+  "index",
+  "time",
+  "random"
+];
+
 
 
 /**
@@ -113,9 +120,9 @@ var EffectsEngine = Class(View, function () {
 
     // allow data to be an array of effects
     if (isArray(data)) {
-      data.forEach(function (effect) {
+      data.forEach(bind(this, function (effect) {
         emitEffect.call(this, effect, opts);
-      });
+      }));
     } else {
       emitEffect.call(this, data, opts);
     }
@@ -191,8 +198,7 @@ var EffectsEngine = Class(View, function () {
       }
     }
 
-    // TODO: validate other property variables
-
+    var paramList = {};
     var params = data.parameters;
     if (params) {
       if (!isArray(params)) {
@@ -200,13 +206,30 @@ var EffectsEngine = Class(View, function () {
       }
 
       // check each parameter individually and guarantee no duplicates
-      var paramList = {};
       for (var i = 0; i < params.length; i++) {
         validateParameter(params[i], paramList, data);
       }
     }
 
-    // TODO: move data validation here
+    // validate particle delay
+    validateNumericValue.call(this, data.delay, paramList, data, function (v) {
+      if (v < 0) {
+        throw new Error("Particles cannot have negative delay values!");
+      }
+    });
+
+    // validate particle time-to-live
+    validateNumericValue.call(this, data.ttl, paramList, data, function (v) {
+      if (v < 0) {
+        throw new Error("Particles cannot have negative time-to-live values!");
+      }
+    });
+
+    // validate particle properties
+    for (var i = 0; i < PROPERTY_KEY_COUNT; i++) {
+      var key = PROPERTY_KEYS[i];
+      validateProperty.call(this, data[key], key, paramList, data);
+    }
   };
 
   this.loadDataFromJSON = function (url) {
@@ -245,6 +268,36 @@ var EffectsEngine = Class(View, function () {
     effectPool.forEachActive(function (effect) { effect.step(dt); });
   };
 
+  function validateNumericValue (value, paramList, data, testConstraints) {
+    var valueType = typeof value;
+    if (valueType === 'object') {
+      var range = value.range;
+      if (range && range.length >= 2) {
+        validateNumber.call(this, range[0], testConstraints, data);
+        validateNumber.call(this, range[1], testConstraints, data);
+        if (range.length === 3) {
+          var paramID = range[2];
+          if (!paramList[paramID]) {
+            throw new Error("Invalid parameter ID:", paramID, data);
+          }
+        } else if (range.length !== 2) {
+          throw new Error("Ranges can only have 2 or 3 elements:", range, data);
+        }
+      } else {
+        validateNumber.call(this, value.value, testConstraints, data);
+      }
+    } else if (valueType !== 'undefined') {
+      validateNumber.call(this, value, testConstraints, data);
+    }
+  };
+
+  function validateNumber (value, testConstraints, data) {
+    if (typeof value !== 'number') {
+      throw new Error("Expected a number, but found:", value, data);
+    }
+    testConstraints && testConstraints(value, data);
+  };
+
   function validateImage (url, data) {
     if (!url || typeof url !== 'string') {
       throw new Error("Invalid image URL:", url, data);
@@ -258,12 +311,68 @@ var EffectsEngine = Class(View, function () {
     }
 
     if (paramList[paramID]) {
-      throw new Error("Duplicate parameter ID defined:", paramID, data);
+      throw new Error("Duplicate parameter ID defined:", paramData, data);
     }
 
-    // TODO: validate other parameter variables
+    if (paramData.resetInterval !== void 0) {
+      validateNumericValue.call(this, paramData.resetInterval, paramList, data, function (v) {
+        if (v < 0) {
+          throw new Error("Parameter reset interval cannot be negative:", paramData, data);
+        }
+      });
+    }
+
+    if (paramData.distributionType) {
+      if (PARAMETER_TYPES.indexOf(paramData.distributionType) === -1) {
+        throw new Error("Invalid parameter type:", paramData, data);
+      }
+    }
+
+    var distFnName = paramData.distributionFunction;
+    if (distFnName && easingFunctions[distFnName] === void 0) {
+      throw new Error("Invalid distribution function:", paramData, data);
+    }
 
     paramList[paramID] = paramData;
+  };
+
+  function validateProperty (propData, propKey, paramList, data) {
+    validateNumericValue.call(this, propData, paramList, data, null);
+
+    if (typeof propData === 'object') {
+      var targets = propData.targets;
+      var delta = propData.delta;
+
+      // recursively validate any deltas
+      delta && validateProperty.call(this, delta, 'delta', paramList, data);
+
+      // validate animation targets
+      if (targets && targets.length) {
+        for (var i = 0; i < targets.length; i++) {
+          var target = targets[i];
+
+          // validate animation target delay (fraction of particle delay)
+          validateNumericValue.call(this, propData.delay, paramList, data, function (v) {
+            if (v < 0 || v > 1) {
+              throw new Error("Target delay is a fraction of particle delay (must be between [0, 1]", target);
+            }
+          });
+
+          // validate animation target time-to-live (fraction of particle ttl)
+          validateNumericValue.call(this, propData.ttl, paramList, data, function (v) {
+            if (v < 0 || v > 1) {
+              throw new Error("Target time-to-live is a fraction of particle ttl (must be between [0, 1]", target);
+            }
+          });
+
+          // validate against supported easing functions
+          var easing = target.easing;
+          if (easing && easingFunctions[easing] === void 0) {
+            throw new Error("Invalid easing function name:", easing);
+          }
+        }
+      }
+    }
   };
 });
 
@@ -514,12 +623,6 @@ var Particle = Class("Particle", function () {
 
     if (this.delay === 0) {
       s.visible = true;
-    } else if (this.delay < 0) {
-      throw new Error("Particles cannot have negative delay values!");
-    }
-
-    if (this.ttl < 0) {
-      throw new Error("Particles cannot have negative time-to-live values!");
     }
   };
 
@@ -681,32 +784,19 @@ var Property = Class("Property", function () {
     // these time values are percentages of the particle's ttl
     var delay = getNumericValueFromData(particle.effect, target.delay, 0);
     var duration = getNumericValueFromData(particle.effect, target.duration, 0);
-    if (delay < 0) {
-      throw new Error("Animations cannot have negative delays!");
-    }
-    if (duration < 0) {
-      throw new Error("Animations cannot have negative durations!");
-    }
-
     // find the appropriate animate easing function ID
     var easing = target.easing;
-    if (easing) {
-      if (easing in easingFunctions) {
-        easing = animate[easing];
-      } else {
-        throw new Error("Invalid easing function name:", easing);
-      }
-    } else {
-      easing = animate.linear;
+    var easingID = animate.linear;
+    if (easing && easing in easingFunctions) {
+      easingID = animate[easing];
     }
-
     // prepare an animation object
     var animObj = {};
     animObj[animKey] = getNumericValueFromData(particle.effect, target, 0);
     // append the animation to the chain
     this.animator
       .wait(delay * particle.ttl)
-      .then(animObj, duration * particle.ttl, easing);
+      .then(animObj, duration * particle.ttl, easingID);
   };
 
   this.applyDelta = function (dt) {
@@ -776,12 +866,8 @@ var Parameter = Class("Parameter", function () {
 
     // find the appropriate animate easing function
     var distFnName = data.distributionFunction;
-    if (distFnName) {
-      if (distFnName in easingFunctions) {
-        this.distributionFunction = easingFunctions[distFnName];
-      } else {
-        throw new Error("Invalid distributionFunction:", distFnName);
-      }
+    if (distFnName && distFnName in easingFunctions) {
+      this.distributionFunction = easingFunctions[distFnName];
     }
 
     this.update(0, false);
@@ -919,8 +1005,6 @@ function getNumericValueFromData (effect, data, defaultValue) {
         var param = effect.activeParameters[paramID];
         if (param) {
           value = param.getValueBetween(minVal, maxVal);
-        } else {
-          throw new Error("Invalid parameter ID for effect:", effect, range);
         }
       } else {
         // set value based on a random range
