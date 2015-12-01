@@ -181,7 +181,7 @@ var EffectsEngine = Class(View, function () {
     var image = data.image;
     if (isArray(image)) {
       if (!image.length) {
-        throw new Error("Empty array found, expected image URL strings:", data);
+        throw new Error("Empty array found, expected image URL strings");
       } else {
         image.forEach(function (url) {
           validateImage(url, data);
@@ -194,7 +194,7 @@ var EffectsEngine = Class(View, function () {
     // if a filter type exists, it should be one of the supported types
     if (data.filterType) {
       if (FILTER_TYPES.indexOf(data.filterType) === -1) {
-        throw new Error("Invalid filter type:", data.filterType, data);
+        throw new Error("Invalid filter type: " + data.filterType);
       }
     }
 
@@ -202,7 +202,7 @@ var EffectsEngine = Class(View, function () {
     var params = data.parameters;
     if (params) {
       if (!isArray(params)) {
-        throw new Error("Parameters should be an array:", params, data);
+        throw new Error("Parameters should be an array");
       }
 
       // check each parameter individually and guarantee no duplicates
@@ -239,7 +239,7 @@ var EffectsEngine = Class(View, function () {
         data = CACHE[url] = JSON.parse(data);
       }
       if (typeof data !== 'object') {
-        throw new Error("JSON file not found in your project:", url);
+        throw new Error("JSON file not found in your project: " + url);
       }
       return data;
     } catch (e) { throw e; }
@@ -277,60 +277,61 @@ var EffectsEngine = Class(View, function () {
         validateNumber.call(this, range[1], testConstraints, data);
         if (range.length === 3) {
           var paramID = range[2];
-          if (!paramList[paramID]) {
-            throw new Error("Invalid parameter ID:", paramID, data);
+          if (paramID && !paramList[paramID]) {
+            throw new Error("Invalid parameter ID: " + paramID);
           }
         } else if (range.length !== 2) {
-          throw new Error("Ranges can only have 2 or 3 elements:", range, data);
+          throw new Error("Range arrays can only have 2 or 3 elements");
         }
       } else {
         validateNumber.call(this, value.value, testConstraints, data);
       }
-    } else if (valueType !== 'undefined') {
+    } else {
       validateNumber.call(this, value, testConstraints, data);
     }
   };
 
   function validateNumber (value, testConstraints, data) {
-    if (typeof value !== 'number') {
-      throw new Error("Expected a number, but found:", value, data);
+    // note: undefined is accepted and replaced by default values
+    var valueType = typeof value;
+    if (valueType !== 'number' && valueType !== 'undefined') {
+      throw new Error("Expected a number, but found: " + value);
     }
     testConstraints && testConstraints(value, data);
   };
 
   function validateImage (url, data) {
     if (!url || typeof url !== 'string') {
-      throw new Error("Invalid image URL:", url, data);
+      throw new Error("Invalid image URL: " + url);
     }
   };
 
   function validateParameter (paramData, paramList, data) {
     var paramID = paramData.id;
     if (paramID === void 0) {
-      throw new Error("Undefined parameter ID:", paramData, data);
+      throw new Error("Undefined parameter ID");
     }
 
     if (paramList[paramID]) {
-      throw new Error("Duplicate parameter ID defined:", paramData, data);
+      throw new Error("Duplicate parameter ID defined: " + paramID);
     }
 
     if (paramData.resetInterval !== void 0) {
       validateNumericValue.call(this, paramData.resetInterval, paramList, data, function (v) {
         if (v < 0) {
-          throw new Error("Parameter reset interval cannot be negative:", paramData, data);
+          throw new Error("Parameter reset interval cannot be negative: " + paramID);
         }
       });
     }
 
-    if (paramData.distributionType) {
-      if (PARAMETER_TYPES.indexOf(paramData.distributionType) === -1) {
-        throw new Error("Invalid parameter type:", paramData, data);
-      }
+    var distType = paramData.distributionType;
+    if (distType && PARAMETER_TYPES.indexOf(distType) === -1) {
+      throw new Error("Invalid parameter type: " + distType + ", for param: " + paramID);
     }
 
     var distFnName = paramData.distributionFunction;
     if (distFnName && easingFunctions[distFnName] === void 0) {
-      throw new Error("Invalid distribution function:", paramData, data);
+      throw new Error("Invalid distribution function: " + distFnName + ", for param: " + paramID);
     }
 
     paramList[paramID] = paramData;
@@ -352,23 +353,23 @@ var EffectsEngine = Class(View, function () {
           var target = targets[i];
 
           // validate animation target delay (fraction of particle delay)
-          validateNumericValue.call(this, propData.delay, paramList, data, function (v) {
+          validateNumericValue.call(this, target.delay, paramList, data, function (v) {
             if (v < 0 || v > 1) {
-              throw new Error("Target delay is a fraction of particle delay (must be between [0, 1]", target);
+              throw new Error("Target delay is a fraction of particle delay (must be between [0, 1]");
             }
           });
 
           // validate animation target time-to-live (fraction of particle ttl)
-          validateNumericValue.call(this, propData.ttl, paramList, data, function (v) {
+          validateNumericValue.call(this, target.duration, paramList, data, function (v) {
             if (v < 0 || v > 1) {
-              throw new Error("Target time-to-live is a fraction of particle ttl (must be between [0, 1]", target);
+              throw new Error("Target time-to-live is a fraction of particle ttl (must be between [0, 1]");
             }
           });
 
           // validate against supported easing functions
           var easing = target.easing;
           if (easing && easingFunctions[easing] === void 0) {
-            throw new Error("Invalid easing function name:", easing);
+            throw new Error("Invalid easing function name: " + easing);
           }
         }
       }
@@ -999,13 +1000,14 @@ function getNumericValueFromData (effect, data, defaultValue) {
     if (range && range.length >= 2) {
       var minVal = range[0];
       var maxVal = range[1];
+      var param = null;
       if (range.length === 3) {
-        // set value based on a parameterized range
         var paramID = range[2];
-        var param = effect.activeParameters[paramID];
-        if (param) {
-          value = param.getValueBetween(minVal, maxVal);
-        }
+        param = effect.activeParameters[paramID];
+      }
+      if (param) {
+        // set value based on a parameterized range
+        value = param.getValueBetween(minVal, maxVal);
       } else {
         // set value based on a random range
         value = rollFloat(minVal, maxVal);
