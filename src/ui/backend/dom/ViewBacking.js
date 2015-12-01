@@ -214,9 +214,6 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		var height = this._computed.height;
 		if (width < 0 || height < 0) { return; }
 
-		// var filters = this._view.getFilters();
-		// ctx.setFilters(filters);
-
 		try {
 			var render = this._view.render;
 			if (render && !render.isFake) {

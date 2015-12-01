@@ -181,11 +181,9 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 
 		var filter = this._view.getFilter();
 		if (filter) {
-			var filters = {};
-			filters[filter.getType()] = filter;
-			ctx.setFilters(filters);
+			ctx.setFilter(filter);
 		} else {
-			ctx.clearFilters();
+			ctx.clearFilter();
 		}
 
 		if (this.compositeOperation) {
@@ -201,7 +199,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 		this._view._render && this._view._render(ctx, opts);
 		this._renderSubviews(ctx, opts);
 		opts.viewport = viewport;
-		ctx.clearFilters();
+		ctx.clearFilter();
 
 		if (saveContext) { ctx.restore(); }
 	}

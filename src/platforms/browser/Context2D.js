@@ -23,18 +23,6 @@
 import device;
 import .FontRenderer;
 
-function setter(name) {
-	return (function (val) {
-		return (this[name] = val);
-	});
-};
-
-function getter(name) {
-	return (function (val) {
-		return this[name];
-	});
-};
-
 exports = function (opts) {
 	var parentNode = opts && opts.parent;
 	var el = opts && opts.el || document.createElement('canvas');
@@ -128,18 +116,26 @@ exports = function (opts) {
 	ctx.fillText = FontRenderer.wrapFillText(ctx.fillText);
 	ctx.strokeText = FontRenderer.wrapStrokeText(ctx.strokeText);
 
-	ctx.filters = {};
-	ctx.setFilters = function (filters) {
-		this.clearFilters();
-		for (var name in filters) {
-			this.filters[name] = filters[name];
+	ctx.filter = null;
+	ctx.setFilter = function (filter) {
+		this.filter = filter;
+	};
+	// deprecated API, we only support one filter per context
+	ctx.setFilters = function () {
+		logger.warn("ctx.setFilters is deprecated, use ctx.setFilter instead.");
+		for (var id in filters) {
+			this.setFilter(filters[id]);
+			break;
 		}
 	};
 
+	ctx.clearFilter = function () {
+		this.filter = null;
+	};
+	// deprecated API, we only support one filter per context
 	ctx.clearFilters = function () {
-		for (var name in this.filters) {
-			delete this.filters[name];
-		}
+		logger.warn("ctx.clearFilters is deprecated, use ctx.clearFilter instead.");
+		this.clearFilter();
 	};
 
 	return ctx;

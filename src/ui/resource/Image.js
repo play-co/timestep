@@ -141,6 +141,7 @@ exports = Class(lib.PubSub, function () {
 		// create an image if we don't have one
 		if (!img) {
 			img = new Image();
+			img.crossOrigin = "anonymous";
 		}
 
 		this._srcImg = img;
@@ -406,7 +407,7 @@ exports = Class(lib.PubSub, function () {
 			srcH = arguments[4];
 		}
 
-		if (!isNative && ctx.filters) {
+		if (!isNative && ctx.filter) {
 			var filterImg = filterRenderer.renderFilter(ctx, this, srcX, srcY, srcW, srcH);
 			if (filterImg) {
 				srcImg = filterImg;

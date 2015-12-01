@@ -550,7 +550,7 @@ var Context2D = Class(function () {
 		this.stack = new ContextStateStack();
 		this.font = '11px ' + device.defaultFontFamily;
 		this.frameBuffer = null;
-		this.filters = {};
+		this.filter = null;
 	};
 
 	this.createOffscreenFrameBuffer = function () {
@@ -678,21 +678,28 @@ var Context2D = Class(function () {
 
 	this.execSwap = function() {};
 
-	this.setFilters = function(filters) {
-		this.clearFilters();
-		for (var filterId in filters) {
-			this.stack.state.filter = filters[filterId];
-			this.filters[filterId] = filters[filterId];
-			return;
-		}
-		this.stack.state.filter = null;
+	this.setFilter = function(filter) {
+		this.filter = this.stack.state.filter = filter;
 	};
 
-	this.clearFilters = function() {
-		for (var name in this.filters) {
-			delete this.filters[name];
+	// deprecated API, we only support one filter per context
+	this.setFilters = function(filters) {
+		logger.warn("ctx.setFilters is deprecated, use ctx.setFilter instead.");
+		for (var filterId in filters) {
+			this.setFilter(filters[filterId]);
+			return;
 		}
-		this.stack.state.filter = null;
+		this.clearFilter();
+	};
+
+	this.clearFilter = function() {
+		this.filter = this.stack.state.filter = null;
+	};
+
+	// deprecated API, we only support one filter per context
+	this.clearFilters = function() {
+		logger.warn("ctx.clearFilters is deprecated, use ctx.clearFilter instead.");
+		this.clearFilter();
 	};
 
 	this.save = function() {

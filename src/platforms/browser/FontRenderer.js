@@ -296,14 +296,14 @@ exports.wrapFillText = function (origFillText) {
 			y = 0;
 		}
 
-		// apply color filters if necessary
+		// apply color filter if necessary
 		var color = Color.parse(this.fillStyle);
-		if (!this.filters["Tint"]) {
-			this.filters["Tint"] = new filter.TintFilter(color);
+		if (!this.filter) {
+			this.filter = new filter.TintFilter(color);
 		}
 		if (this.__bmpTxtColor !== color) {
 			this.__bmpTxtColor = color;
-			this.filters["Tint"].update(color);
+			this.filter.update(color);
 		}
 
 		if (!renderCustomFont(this, x, y, maxWidth, text + '', this.fillStyle, fontInfo, 0)) {
@@ -331,14 +331,14 @@ exports.wrapStrokeText = function (origStrokeText) {
 			y = 0;
 		}
 
-		// apply color filters if necessary
+		// apply color filter if necessary
 		var color = Color.parse(this.strokeStyle);
-		if (!this.filters["Tint"]) {
-			this.filters["Tint"] = new filter.TintFilter(color);
+		if (!this.filter) {
+			this.filter = new filter.TintFilter(color);
 		}
 		if (this.__bmpTxtColor !== color) {
 			this.__bmpTxtColor = color;
-			this.filters["Tint"].update(color);
+			this.filter.update(color);
 		}
 
 		if (!renderCustomFont(this, x, y, maxWidth, text + '', this.strokeStyle, fontInfo, 1)) {

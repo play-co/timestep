@@ -83,8 +83,6 @@ exports = Class(View, function (supr) {
 				// if (backing._circle) { ctx.translate(-backing.width / 2, -backing.height / 2); }
 
 				if (backing.clip) { ctx.clipRect(0, 0, backing.width, backing.height); }
-				// var filters = this.getFilters();
-				// ctx.setFilters(filters);
 
 				try {
 					if (backing.backgroundColor) {
