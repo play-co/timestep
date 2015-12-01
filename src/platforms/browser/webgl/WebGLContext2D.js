@@ -400,19 +400,28 @@ var GLManager = Class(function() {
 		var texture = this.textureCache[id] || gl.createTexture();
 
 		gl.bindTexture(gl.TEXTURE_2D, texture);
-
-		if (image instanceof HTMLCanvasElement || image instanceof Image) {
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-		} else {
-			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-		}
-
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 		this.textureCache[id] = texture;
 		this.canvasCache[id] = image;
+
 		image.__GL_ID = id;
+
+		var uploadCanvasData = image instanceof HTMLCanvasElement || image instanceof Image;
+
+		if (uploadCanvasData) {
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+			var currentAlpha = this._primaryContext.globalAlpha;
+			// Draw single, transparent pixel of image to ensure upload to buffer
+			this._primaryContext.globalAlpha = 0.00001;
+			this._primaryContext.drawImage(image, 0, 0, 1, 1, 0, 0, 1, 1);
+			this.flush();
+			this._primaryContext.globalAlpha = currentAlpha;
+		} else {
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+		}
+
 		return id;
 	};
 
