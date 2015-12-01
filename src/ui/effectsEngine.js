@@ -1,3 +1,23 @@
+/**
+ * @license
+ * This file is part of the Game Closure SDK.
+ *
+ * The Game Closure SDK is free software: you can redistribute it and/or modify
+ * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
+
+ * The Game Closure SDK is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * Mozilla Public License v. 2.0 for more details.
+
+ * You should have received a copy of the Mozilla Public License v. 2.0
+ * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
+ */
+
+/**
+ * @class ui.effectsEngine
+ */
+
 import animate;
 import animate.transitions as easingFunctions;
 import ui.View as View;
@@ -13,14 +33,18 @@ var random = Math.random;
 var choose = function (a) { return a[floor(random() * a.length)]; };
 var rollFloat = function (n, x) { return n + random() * (x - n); };
 
+/**
+ * Constant Notes
+ *  STYLE_DEFAULTS are view.style properties
+ *    offsetX and offsetY are excluded from effects; they're used internally
+ *  POLAR_DEFAULTS added to support polar coordinates, which is auto-detected
+ *  FILTER_DEFAULTS allow changing the color channels of filters over time
+ *  PROPERTY_DEFAULTS is the set of numeric properties that can change over time
+ */
 var STYLE_DEFAULTS = {
   x: 0,
   y: 0,
-  // be careful animating zIndex, re-sorting views may be expensive
   zIndex: 0,
-  // offset coordinates reserved for polar effects
-  // offsetX: 0,
-  // offsetY: 0,
   anchorX: 0,
   anchorY: 0,
   r: 0,
@@ -87,13 +111,14 @@ var PARAMETER_TYPES = [
 
 /**
  * EffectsEngine Notes
- *  this engine is designed to
- *    expand on the original timestep ParticleEngine
- *    take advantage of timestep animate's
- *      API (target values over time with easing functions)
- *      and native acceleration
- *    use near-zero garbage-collection
- *    and to consume JSON data to emit effects from a single line of code
+ *  this engine does not replace the original ParticleEngine
+ *    but it is considerably more powerful and versatile
+ *  uses deltas (px / second) and target values with easing (timestep animate)
+ *  animate is applied to views to take advantage of native-core acceleration
+ *  supports a JSON data format with validation
+ *    use the skipDataValidation option for optimized particle emission
+ *  it's a singleton class that uses object pools for minimal garbage-collection
+ *  pause, resume, and clear all effects or individual effects by ID
  */
 var EffectsEngine = Class(View, function () {
   var superProto = View.prototype;
@@ -209,7 +234,7 @@ var EffectsEngine = Class(View, function () {
   };
 
   function emitEffect (data, opts) {
-    // allow data validation to be skipped for performance or other reasons
+    // allow data validation to be skipped for performance
     if (!opts.skipDataValidation) {
       this.validateData(data);
     }
@@ -731,7 +756,7 @@ var Particle = Class("Particle", function () {
  * Property Notes
  *  properties represent a value on a particle that can update over time
  *  they can be stepped by delta values (i.e. velocity) or by timestep animate
- *  properties on the root particle are never recycled, so they animate the view
+ *  properties on the root particle are never recycled
  *  properties used as deltas on other properties are always recycled
  */
 var Property = Class("Property", function () {
@@ -842,15 +867,20 @@ var Property = Class("Property", function () {
 /**
  * Parameter Notes
  *  params represent a distribution over time or particle count from [0, 1)
- *  timestep animate's easing functions can be used to add nice patterns
+ *  timestep animate's easing functions can be used to give additional structure
  *  properties are tied to params via a range of the format: [min, max, paramID]
  *
- *  for non-continuous effects,
- *    for random params, the param is re-rolled after each particle
- *    for non-random params, the param is the particle index / count
- *  for continuous effects,
- *    for random params, the param is re-rolled after resetInterval milliseconds
- *    for non-random params, the param is the percent of resetInterval elapsed
+ *  distributionType:
+ *    index - increment the parameter each particle, equal to index / count
+ *    time - increment the parameter each tick, equal to elapsed % resetInterval
+ *    indexOverTime - combine index and time above
+ *    random - the parameter has a random value for each particle emitted
+ *
+ *  distributionFunction:
+ *    apply timestep animate easing functions to the parameter's value
+ *
+ *  reverseReset:
+ *    instead of resetting to 0, the parameter changes directions towards 0 or 1
  */
 var Parameter = Class("Parameter", function () {
   this.init = function () {
@@ -996,11 +1026,12 @@ var ObjectPool = Class("ObjectPool", function () {
 
 
 /**
- * Range Notes
- *  ranges represent a random or parameterized distribution of values
- *  they come in 2 valid formats
- *    [min, max] - a random float between min and max
- *    [min, max, paramID] - a parameterized float between min and max
+ * Numeric Value Notes
+ *  all numbers in this engine can be a single value or a range of values
+ *    ranges represent a random or parameterized distribution of values
+ *      they come in 2 valid formats
+ *        [min, max] - a random float between min and max
+ *        [min, max, paramID] - a parameterized float between min and max
  */
 function getNumericValueFromData (effect, data, defaultValue) {
   var value = defaultValue;
