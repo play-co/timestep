@@ -118,6 +118,11 @@ var EffectsEngine = Class(View, function () {
     opts.x = opts.x || 0;
     opts.y = opts.y || 0;
 
+    // allow data to be a JSON URL string
+    if (typeof data === 'string') {
+      data = this.loadDataFromJSON(data);
+    }
+
     // allow data to be an array of effects
     if (isArray(data)) {
       data.forEach(bind(this, function (effect) {
@@ -173,10 +178,51 @@ var EffectsEngine = Class(View, function () {
   };
 
   this.validateData = function (data) {
+    // allow data to be a JSON URL string
     if (typeof data === 'string') {
       data = this.loadDataFromJSON(data);
     }
 
+    // allow data to be an array of effects
+    if (isArray(data)) {
+      data.forEach(validateEffect, this);
+    } else {
+      validateEffect.call(this, data);
+    }
+  };
+
+  this.loadDataFromJSON = function (url) {
+    try {
+      var data = CACHE[url];
+      if (typeof data === 'string') {
+        data = CACHE[url] = JSON.parse(data);
+      }
+      if (typeof data !== 'object') {
+        throw new Error("JSON file not found in your project: " + url);
+      }
+      return data;
+    } catch (e) { throw e; }
+  };
+
+  this.getActiveParticleCount = function () {
+    return particlePool._freshIndex;
+  };
+
+  function emitEffect (data, opts) {
+    // allow data validation to be skipped for performance or other reasons
+    if (!opts.skipDataValidation) {
+      this.validateData(data);
+    }
+
+    effectPool.obtain().reset(data, opts);
+  };
+
+  function onTick (dt) {
+    particlePool.forEachActive(function (particle) { particle.step(dt); });
+    effectPool.forEachActive(function (effect) { effect.step(dt); });
+  };
+
+  function validateEffect (data) {
     // all image URLs should be non-empty strings
     var image = data.image;
     if (isArray(image)) {
@@ -230,42 +276,6 @@ var EffectsEngine = Class(View, function () {
       var key = PROPERTY_KEYS[i];
       validateProperty.call(this, data[key], key, paramList, data);
     }
-  };
-
-  this.loadDataFromJSON = function (url) {
-    try {
-      var data = CACHE[url];
-      if (typeof data === 'string') {
-        data = CACHE[url] = JSON.parse(data);
-      }
-      if (typeof data !== 'object') {
-        throw new Error("JSON file not found in your project: " + url);
-      }
-      return data;
-    } catch (e) { throw e; }
-  };
-
-  this.getActiveParticleCount = function () {
-    return particlePool._freshIndex;
-  };
-
-  function emitEffect (data, opts) {
-    // allow data to be a JSON URL string
-    if (typeof data === 'string') {
-      data = this.loadDataFromJSON(data);
-    }
-
-    // allow data validation to be skipped for performance or other reasons
-    if (!opts.skipDataValidation) {
-      this.validateData(data);
-    }
-
-    effectPool.obtain().reset(data, opts);
-  };
-
-  function onTick (dt) {
-    particlePool.forEachActive(function (particle) { particle.step(dt); });
-    effectPool.forEachActive(function (effect) { effect.step(dt); });
   };
 
   function validateNumericValue (value, paramList, data, testConstraints) {
