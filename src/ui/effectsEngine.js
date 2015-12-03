@@ -387,10 +387,10 @@ var EffectsEngine = Class(View, function () {
         for (var i = 0; i < targets.length; i++) {
           var target = targets[i];
 
-          // validate animation target delay (fraction of particle delay)
+          // validate animation target delay (fraction of particle ttl)
           validateNumericValue.call(this, target.delay, paramList, data, function (v) {
             if (v < 0 || v > 1) {
-              throw new Error("Target delay is a fraction of particle delay (must be between [0, 1]");
+              throw new Error("Target delay is a fraction of particle ttl (must be between [0, 1]");
             }
           });
 
@@ -691,7 +691,6 @@ var Particle = Class("Particle", function () {
     }
 
     var s = this.view.style;
-
     if (this.delay > 0) {
       this.delay -= dt;
       if (this.delay <= 0) {
@@ -866,13 +865,13 @@ var Property = Class("Property", function () {
 
 /**
  * Parameter Notes
- *  params represent a distribution over time or particle count from [0, 1)
+ *  params represent a distribution over time or particle count from [0, 1]
  *  timestep animate's easing functions can be used to give additional structure
  *  properties are tied to params via a range of the format: [min, max, paramID]
  *
  *  distributionType:
- *    index - increment the parameter each particle, equal to index / count
- *    time - increment the parameter each tick, equal to elapsed % resetInterval
+ *    index - increment the parameter after each particle by 1 / count
+ *    time - increment the parameter after each tick by dt / resetInterval
  *    indexOverTime - combine index and time above
  *    random - the parameter has a random value for each particle emitted
  *
@@ -880,14 +879,15 @@ var Property = Class("Property", function () {
  *    apply timestep animate easing functions to the parameter's value
  *
  *  reverseReset:
- *    instead of resetting to 0, the parameter changes directions towards 0 or 1
+ *    instead of resetting to 0, the parameter changes directions towards 0
+ *      and then back again, towards 1, etc.
  */
 var Parameter = Class("Parameter", function () {
   this.init = function () {
     this.id = "";
     this.value = 0;
-    this.elapsed = 0;
     this.resetInterval = 16;
+    this.resetDirection = 1;
     this.reverseReset = false;
     this.distributionType = "indexOverTime";
     this.distributionFunction = easingFunctions["linear"];
@@ -899,8 +899,8 @@ var Parameter = Class("Parameter", function () {
   this.reset = function (effect, data) {
     this.id = "" + data.id;
     this.value = 0;
-    this.elapsed = 0;
     this.resetInterval = data.resetInterval || 16;
+    this.resetDirection = 1;
     this.reverseReset = data.reverseReset || false;
     this.distributionType = data.distributionType || "indexOverTime";
     this.distributionFunction = easingFunctions["linear"];
@@ -921,25 +921,31 @@ var Parameter = Class("Parameter", function () {
   this.update = function (value, fromEmission) {
     var type = this.distributionType;
     if (fromEmission && type === "time") {
+      // parameters of type time ignore particle index and count
       return;
     }
 
     if (type === "random") {
+      // random parameters are updated after each particle with a new value
       this.value = random();
     } else {
-      value += fromEmission ? this.value : 0;
+      // non-random parameters increment over index, time, or both
+      value = this.value + this.resetDirection * value;
       if (this.reverseReset) {
-        // value moves back and forth between 1 and 0
         while (value > 1 || value < 0) {
+          // the direction the parameter should move
+          this.resetDirection *= -1;
+          // instead of simply % 1, we have to carry the remainder backwards
           if (value > 1) {
             value = 1 - (value - 1);
           } else {
             value *= -1;
           }
         }
+        // here, value is guaranteed between 0 and 1, inclusive
         this.value = value;
       } else {
-        // value resets to 0 when it exceeds 1
+        // by default, the value resets to 0 when it exceeds 1
         this.value = value % 1;
       }
     }
@@ -949,14 +955,7 @@ var Parameter = Class("Parameter", function () {
   this.step = function (dt) {
     var type = this.distributionType;
     if (type === "time" || type === "indexOverTime") {
-      this.elapsed += dt;
-      // keep elapsed small so update's while loop doesn't grow over time
-      if (this.reverseReset) {
-        this.elapsed = this.elapsed % (2 * this.resetInterval);
-      } else {
-        this.elapsed = this.elapsed % this.resetInterval;
-      }
-      this.update(this.elapsed / this.resetInterval, false);
+      this.update(dt / this.resetInterval, false);
     }
   };
 
