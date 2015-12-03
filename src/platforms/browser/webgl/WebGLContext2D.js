@@ -50,6 +50,7 @@ var ContextStateStack = Class(function() {
 		s.strokeStyle = lastState.strokeStyle;
 		s.fillStyle = lastState.fillStyle;
 		s.filter = lastState.filter;
+		s.shader = lastState.shader;
 		s.clip = lastState.clip;
 		s.clipRect.x = lastState.clipRect.x;
 		s.clipRect.y = lastState.clipRect.y;
@@ -70,6 +71,7 @@ var ContextStateStack = Class(function() {
 			transform: new Matrix2D(),
 			lineWidth: 1,
 			filter: null,
+			shader: null,
 			clip: false,
 			clipRect: { x: 0, y: 0, width: 0, height: 0 },
 			fillStyle: "",
@@ -95,7 +97,8 @@ var RENDER_MODES = {
 	Multiply: 3,
 	Rect: 4,
 	PositiveMask: 0,
-	NegativeMask: 0
+	NegativeMask: 0,
+	Shader: 5
 };
 
 var COLOR_MAP = {};
@@ -273,16 +276,28 @@ var GLManager = Class(function() {
 		return ctx;
 	};
 
-	this.setActiveRenderMode = function(id) {
+	this.setActiveRenderMode = function(id, customShader) {
+		if (id === RENDER_MODES.Shader) {
+			if (this._activeShader && this._activeShader !== customShader) {
+				this._activeShader.disableVertexAttribArrays();
+			}
+			this._activeShader = customShader;
+			this._activeRenderMode = id;
+			var ctx = this._activeCtx;
+			gl.useProgram(customShader.getProgram());
+			customShader.enableVertexAttribArrays();
+			customShader.setUniform("uResolution", [ctx.width, ctx.height]);
+			customShader.applyUniforms();
+			return;
+		}
 		if (this._activeRenderMode === id || !this.gl) { return; }
-		var ctx = this._activeCtx;
+		ctx = this._activeCtx;
 		this._activeRenderMode = id;
 		var shader = this.shaders[id];
 
 		if (this._activeShader && this._activeShader !== shader) {
 			this._activeShader.disableVertexAttribArrays();
 		}
-
 		this._activeShader = shader;
 		gl.useProgram(shader.program);
 		shader.enableVertexAttribArrays();
@@ -368,7 +383,6 @@ var GLManager = Class(function() {
 		var gl = this.gl;
 		gl.bufferSubData(gl.ARRAY_BUFFER, 0, this._vertexCache);
 		this._batchQueue[this._batchIndex + 1].index = this._drawIndex + 1;
-
 		for (var i = 0; i <= this._batchIndex; i++) {
 			var curQueueObj = this._batchQueue[i];
 			if (curQueueObj.clip) {
@@ -382,7 +396,7 @@ var GLManager = Class(function() {
 				gl.bindTexture(gl.TEXTURE_2D, this.textureCache[curQueueObj.textureId]);
 			}
 			this.setActiveCompositeOperation(curQueueObj.globalCompositeOperation);
-			this.setActiveRenderMode(curQueueObj.renderMode);
+			this.setActiveRenderMode(curQueueObj.renderMode, curQueueObj.shader);
 			var start = curQueueObj.index;
 			var next = this._batchQueue[i + 1].index;
 			gl.drawElements(gl.TRIANGLES, (next - start) * 6, gl.UNSIGNED_SHORT, start * 12);
@@ -444,6 +458,14 @@ var GLManager = Class(function() {
 		}
 	};
 
+	this.getGl = function() {
+		return this.gl;
+	};
+
+	this.bindTexture = function(id) {
+		this.gl.bindTexture(gl.TEXTURE_2D, this.textureCache[id]);
+	};
+
 	this.disableScissor = function() {
 		if (!this.gl) { return; }
 		if (this._scissorEnabled) {
@@ -458,15 +480,16 @@ var GLManager = Class(function() {
 		this._drawIndex++;
 
 		var filter = state.filter;
+		var shader = state.shader;
 		var clip = state.clip;
 		var clipRect = state.clipRect;
-
 		var queuedState = this._batchIndex > -1 ? this._batchQueue[this._batchIndex] : null;
 		var stateChanged = !queuedState
 				|| queuedState.textureId !== textureId
 				|| (textureId === -1 && queuedState.fillStyle !== state.fillStyle)
 				|| queuedState.globalCompositeOperation !== state.globalCompositeOperation
 				|| queuedState.filter !== filter
+				|| queuedState.shader !== shader
 				|| queuedState.clip !== clip
 				|| queuedState.clipRect.x !== clipRect.x
 				|| queuedState.clipRect.y !== clipRect.y
@@ -479,6 +502,7 @@ var GLManager = Class(function() {
 			queueObject.index = this._drawIndex;
 			queueObject.globalCompositeOperation = state.globalCompositeOperation;
 			queueObject.filter = filter;
+			queueObject.shader = shader;
 			queueObject.clip = clip;
 			queueObject.clipRect.x = clipRect.x;
 			queueObject.clipRect.y = clipRect.y;
@@ -486,6 +510,8 @@ var GLManager = Class(function() {
 			queueObject.clipRect.height = clipRect.height;
 			if (textureId === -1) {
 				queueObject.renderMode = RENDER_MODES.Rect;
+			} else if (shader) {
+				queueObject.renderMode = RENDER_MODES.Shader;
 			} else if (filter) {
 				queueObject.renderMode = RENDER_MODES[filter.getType()];
 			} else {
@@ -682,6 +708,14 @@ var Context2D = Class(function () {
 		this.filter = this.stack.state.filter = filter;
 	};
 
+	this.setShader = function(shader) {
+		this.shader = this.stack.state.shader = shader;
+	};
+
+	this.clearShader = function() {
+		this.shader = this.stack.state.shader = null;
+	}
+
 	// deprecated API, we only support one filter per context
 	this.setFilters = function(filters) {
 		logger.warn("ctx.setFilters is deprecated, use ctx.setFilter instead.");
@@ -738,7 +772,6 @@ var Context2D = Class(function () {
 	};
 
 	this.drawImage = function(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
-
 		if (!this._manager.gl) { return; }
 
 		var flip = !!image.__glFlip;

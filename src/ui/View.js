@@ -143,6 +143,8 @@ var View = exports = Class(Emitter, function () {
 
 		this._filter = null;
 
+		this._shader = null;
+
 		this.__view._view = this;
 
 		this.updateOpts(opts);
@@ -201,6 +203,18 @@ var View = exports = Class(Emitter, function () {
 	this.getFilter = function () {
 		return this._filter;
 	};
+
+	this.getShader = function() {
+		return this._shader;
+	};
+
+	this.setShader = function(shader) {
+		this._shader = shader;
+	};
+
+	this.removeShader = function() {
+		this._shader = null;
+	}
 
 	/**
 	 * Sets the filter on this view -- DEPRECATED

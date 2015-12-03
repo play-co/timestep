@@ -186,6 +186,13 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 			ctx.clearFilter();
 		}
 
+		var shader = this._view.getShader();
+		if (shader) {
+			ctx.setShader(shader);
+		} else {
+			ctx.clearShader(shader);
+		}
+
 		if (this.compositeOperation) {
 			ctx.globalCompositeOperation = this.compositeOperation;
 		}

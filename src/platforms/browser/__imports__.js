@@ -29,6 +29,7 @@ exports.resolve = function (env, opts) {
 		'.inputDialog',
 		'.KeyListener',
 		'.MobileBrowserAPI',
+		'.ShaderContext',
 		'.SoundManager',
 		'.StatusBar',
 		'.TextBox',

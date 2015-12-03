@@ -97,7 +97,7 @@ var ImageView = exports = Class(View, function (supr) {
 				if (this._img.getWidth() > 0 && this._img.getHeight() > 0) {
 					this.autoSize();
 				} else {
-					// non-sprited resources need to load first
+I					// non-sprited resources need to load first
 					this._img.doOnLoad(this, 'autoSize');
 				}
 			}
