@@ -147,6 +147,11 @@ var BoxLayout = exports = Class(function () {
 			w = s._width;
 		}
 
+		// enforce center anchor on width change
+		if (s.centerAnchor) {
+			s.anchorX = (w || 0) / 2;
+		}
+
 		// Note that we don't trigger any resize handlers here
 		s._width = w;
 
@@ -183,6 +188,11 @@ var BoxLayout = exports = Class(function () {
 			h = availHeight / s.scale;
 		} else {
 			h = s.height;
+		}
+
+		// enforce center anchor on height change
+		if (s.centerAnchor) {
+			s.anchorY = (h || 0) / 2;
 		}
 
 		s._height = h;

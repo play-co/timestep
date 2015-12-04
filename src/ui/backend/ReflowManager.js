@@ -160,7 +160,6 @@ var ReflowManager = exports = Class(function () {
 					}
 
 					if (item.needsReflow) {
-						// if (item.view.uid == 187) debugger;
 						++item.count;
 						DEBUG && _debug.log('-- reflow view', item.view.uid, '(' + item.count + ' times)') && _debug.stepIn();
 						this.reflow(item.view);
