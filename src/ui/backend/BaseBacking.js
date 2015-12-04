@@ -42,11 +42,6 @@ var BaseBacking = exports = Class(function () {
 		'r': {value: 0},
 		'opacity': {value: 1},
 		'zIndex': {value: 0, cb: '_onZIndex'},
-		// 'radius': {
-		// 	get: function () {
-		// 		return this._cache && 'radius' in this._cache ? this._cache.radius : this.updateRadius();
-		// 	}
-		// },
 		'scale': {value: 1},
 		'scaleX': {value: 1},
 		'scaleY': {value: 1},
