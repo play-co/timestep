@@ -224,6 +224,13 @@ exports = Class(View, function () {
 			var img = imageCache[data.image];
 			if (!img) {
 				img = imageCache[data.image] = new Image({ url: data.image });
+			}
+
+			// Inverse scale will be calculated incorrectly for non-sprited images that haven't previously
+			// been loaded.  We detect those here and redo the calculation.
+			var needsInverseScale = ((img._invScaleX === undefined) || (img._invScaleY === undefined) ||
+				(img._invScaleX < 0) || (img._invScaleY < 0));
+			if (needsInverseScale) {
 				img._invScaleX = 1 / (img._map.marginLeft + img._map.width + img._map.marginRight);
 				img._invScaleY = 1 / (img._map.marginTop + img._map.height + img._map.marginBottom);
 			}
