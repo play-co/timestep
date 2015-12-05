@@ -375,7 +375,6 @@ exports = Class(View, function (supr) {
 			this.startDrag({radius: this._opts.dragRadius * this._snapPixels});
 
 			if (this._anim && this._anim.hasFrames()) {
-				this._contentView.getInput().blockEvents = false;
 				this._anim.clear();
 			}
 
@@ -407,7 +406,10 @@ exports = Class(View, function (supr) {
 	};
 
 	this.onDragStop = function (dragEvt, selectEvt) {
+		this._contentView.getInput().blockEvents = false;
+
 		if (this._opts.inertia) {
+
 			//how much of the current event
 			//should be favored over older events in the running
 			//weighted average being computed
@@ -482,14 +484,11 @@ exports = Class(View, function (supr) {
 						offset.y + delta.y * tt);
 				}), time * TIME_MULTIPLIER, animate.easeOut).then(bind(this, function () {
 					this._endBounce(offset);
-					this._contentView.getInput().blockEvents = false;
 				}));
-				return;
 			} else {
 				this._endBounce(offset);
 			}
 		}
-		this._contentView.getInput().blockEvents = false;
 	};
 
 
