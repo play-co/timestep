@@ -78,9 +78,9 @@ var OTHER_DEFAULTS = {
   flipY: false,
   delay: 0,
   ttl: 1000,
-  image: "",
-  filterType: "",
-  compositeOperation: ""
+  image: '',
+  filterType: '',
+  compositeOperation: ''
 };
 
 var STYLE_KEYS = Object.keys(STYLE_DEFAULTS);
@@ -95,16 +95,18 @@ var OTHER_KEYS = Object.keys(OTHER_DEFAULTS);
 var OTHER_KEY_COUNT = OTHER_KEYS.length;
 
 var FILTER_TYPES = [
-  "LinearAdd",
-  "Multiply",
-  "Tint"
+  'LinearAdd',
+  'Multiply',
+  'Tint'
 ];
 
 var PARAMETER_TYPES = [
-  "indexOverTime",
-  "index",
-  "time",
-  "random"
+  'indexOverTime',
+  'index',
+  'time',
+  'random',
+  'fixed',
+  'custom'
 ];
 
 
@@ -132,14 +134,30 @@ var EffectsEngine = Class(View, function () {
 
     // wait until engine initialization completes before subscribing to tick
     setTimeout(function () {
-      jsio('import ui.Engine').get().on('Tick', onTick);
+      jsio('import ui.Engine').get().on('Tick', bind(this, onTick));
     }, 0);
   };
 
+  /**
+   * @method emitEffectsFromData - the one-and-only particle emission function
+   *   @arg {string|object|array} data - the URL to a JSON file or the parsed
+   *     JSON data itself (an array of effect objects or a single effect object)
+   *   @arg {object} [opts] - a set of options to modify the effect
+   *   @arg {string} [opts.id] - effect ID, used to pause, resume, etc. by ID
+   *   @arg {View} [opts.superview] - the parent view of the particles' views
+   *   @arg {number} [opts.x] - the x coordinate offset of the effect
+   *   @arg {number} [opts.y] - the y coordinate offset of the effect
+   *   @arg {boolean} [opts.skipDataValidation] - opt of out data validation
+   *   @arg {object} [opts.overrides] - key/value pairs in this object will take
+   *     precedence over the corresponding key/value pairs in the raw data
+   *   @arg {object} [opts.parameterValues] - keys correspond to parameter IDs,
+   *     value can be a number [0, 1] or a function that returns a number [0, 1]
+   *   @returns {string} id - effect ID, used to pause, resume, etc. by ID
+   */
   this.emitEffectsFromData = function (data, opts) {
     opts = opts || {};
-    opts.id = opts.id || "" + effectUID++;
-    opts.superview = opts.superview || this;
+    opts.id = opts.id || '' + effectUID++;
+    opts.superview = opts.superview || opts.parent || this;
     opts.x = opts.x || 0;
     opts.y = opts.y || 0;
 
@@ -223,7 +241,7 @@ var EffectsEngine = Class(View, function () {
         data = CACHE[url] = JSON.parse(data);
       }
       if (typeof data !== 'object') {
-        throw new Error("JSON file not found in your project: " + url);
+        throw new Error('JSON file not found in your project: ' + url);
       }
       return data;
     } catch (e) { throw e; }
@@ -234,12 +252,24 @@ var EffectsEngine = Class(View, function () {
   };
 
   function emitEffect (data, opts) {
+    // allow overrides to replace original JSON properties
+    data = mergeOverrides.call(this, data, opts);
+
     // allow data validation to be skipped for performance
     if (!opts.skipDataValidation) {
       this.validateData(data);
     }
 
     effectPool.obtain().reset(data, opts);
+  };
+
+  function mergeOverrides (data, opts) {
+    var mergedData = data;
+    if (opts.overrides) {
+      mergedData = merge({}, opts.overrides);
+      mergedData = merge(mergedData, data);
+    }
+    return mergedData;
   };
 
   function onTick (dt) {
@@ -252,20 +282,20 @@ var EffectsEngine = Class(View, function () {
     var image = data.image;
     if (isArray(image)) {
       if (!image.length) {
-        throw new Error("Empty array found, expected image URL strings");
+        throw new Error('Empty array found, expected image URL strings');
       } else {
         image.forEach(function (url) {
-          validateImage(url, data);
+          validateImage.call(this, url, data);
         });
       }
     } else {
-      validateImage(image, data);
+      validateImage.call(this, image, data);
     }
 
     // if a filter type exists, it should be one of the supported types
     if (data.filterType) {
       if (FILTER_TYPES.indexOf(data.filterType) === -1) {
-        throw new Error("Invalid filter type: " + data.filterType);
+        throw new Error('Invalid filter type: ' + data.filterType);
       }
     }
 
@@ -273,26 +303,26 @@ var EffectsEngine = Class(View, function () {
     var params = data.parameters;
     if (params) {
       if (!isArray(params)) {
-        throw new Error("Parameters should be an array");
+        throw new Error('Parameters should be an array');
       }
 
       // check each parameter individually and guarantee no duplicates
       for (var i = 0; i < params.length; i++) {
-        validateParameter(params[i], paramList, data);
+        validateParameter.call(this, params[i], paramList, data);
       }
     }
 
     // validate particle delay
     validateNumericValue.call(this, data.delay, paramList, data, function (v) {
       if (v < 0) {
-        throw new Error("Particles cannot have negative delay values!");
+        throw new Error('Particles cannot have negative delay values!');
       }
     });
 
     // validate particle time-to-live
     validateNumericValue.call(this, data.ttl, paramList, data, function (v) {
       if (v < 0) {
-        throw new Error("Particles cannot have negative time-to-live values!");
+        throw new Error('Particles cannot have negative time-to-live values!');
       }
     });
 
@@ -313,10 +343,10 @@ var EffectsEngine = Class(View, function () {
         if (range.length === 3) {
           var paramID = range[2];
           if (paramID && !paramList[paramID]) {
-            throw new Error("Invalid parameter ID: " + paramID);
+            throw new Error('Invalid parameter ID: ' + paramID);
           }
         } else if (range.length !== 2) {
-          throw new Error("Range arrays can only have 2 or 3 elements");
+          throw new Error('Range arrays can only have 2 or 3 elements');
         }
       } else {
         validateNumber.call(this, value.value, testConstraints, data);
@@ -330,43 +360,44 @@ var EffectsEngine = Class(View, function () {
     // note: undefined is accepted and replaced by default values
     var valueType = typeof value;
     if (valueType !== 'number' && valueType !== 'undefined') {
-      throw new Error("Expected a number, but found: " + value);
+      throw new Error('Expected a number, but found: ' + value);
     }
-    testConstraints && testConstraints(value, data);
+    testConstraints && testConstraints.call(this, value, data);
   };
 
   function validateImage (url, data) {
     if (!url || typeof url !== 'string') {
-      throw new Error("Invalid image URL: " + url);
+      throw new Error('Invalid image URL: ' + url);
     }
   };
 
   function validateParameter (paramData, paramList, data) {
     var paramID = paramData.id;
     if (paramID === void 0) {
-      throw new Error("Undefined parameter ID");
+      throw new Error('Undefined parameter ID');
     }
 
     if (paramList[paramID]) {
-      throw new Error("Duplicate parameter ID defined: " + paramID);
+      throw new Error('Duplicate parameter ID defined: ' + paramID);
     }
 
     if (paramData.resetInterval !== void 0) {
       validateNumericValue.call(this, paramData.resetInterval, paramList, data, function (v) {
         if (v < 0) {
-          throw new Error("Parameter reset interval cannot be negative: " + paramID);
+          throw new Error('Parameter reset interval cannot be negative: ' + paramID);
         }
       });
     }
 
     var distType = paramData.distributionType;
     if (distType && PARAMETER_TYPES.indexOf(distType) === -1) {
-      throw new Error("Invalid parameter type: " + distType + ", for param: " + paramID);
+      throw new Error('Invalid parameter type: ' + distType + ', for param: ' + paramID);
     }
 
-    var distFnName = paramData.distributionFunction;
-    if (distFnName && easingFunctions[distFnName] === void 0) {
-      throw new Error("Invalid distribution function: " + distFnName + ", for param: " + paramID);
+    var distFn = paramData.distributionFunction;
+    var distFnType = typeof distFn;
+    if (distFnType === 'string' && easingFunctions[distFn] === void 0) {
+      throw new Error('Invalid distribution function: ' + distFn + ', for param: ' + paramID);
     }
 
     paramList[paramID] = paramData;
@@ -390,21 +421,21 @@ var EffectsEngine = Class(View, function () {
           // validate animation target delay (fraction of particle ttl)
           validateNumericValue.call(this, target.delay, paramList, data, function (v) {
             if (v < 0 || v > 1) {
-              throw new Error("Target delay is a fraction of particle ttl (must be between [0, 1]");
+              throw new Error('Target delay is a fraction of particle ttl (must be between [0, 1]');
             }
           });
 
           // validate animation target time-to-live (fraction of particle ttl)
           validateNumericValue.call(this, target.duration, paramList, data, function (v) {
             if (v < 0 || v > 1) {
-              throw new Error("Target time-to-live is a fraction of particle ttl (must be between [0, 1]");
+              throw new Error('Target time-to-live is a fraction of particle ttl (must be between [0, 1]');
             }
           });
 
           // validate against supported easing functions
           var easing = target.easing;
           if (easing && easingFunctions[easing] === void 0) {
-            throw new Error("Invalid easing function name: " + easing);
+            throw new Error('Invalid easing function name: ' + easing);
           }
         }
       }
@@ -417,11 +448,11 @@ var EffectsEngine = Class(View, function () {
 /**
  * Effect Notes
  *  an effect is a group of particles that share the same data definition
- *  most "particle effects" are created by several of these
+ *  most 'particle effects' are created by several of these
  */
-var Effect = Class("Effect", function () {
+var Effect = Class('Effect', function () {
   this.init = function () {
-    this.id = "";
+    this.id = '';
     this.x = 0;
     this.y = 0;
     this.count = 0;
@@ -452,6 +483,8 @@ var Effect = Class("Effect", function () {
       for (var i = 0; i < params.length; i++) {
         var paramData = params[i];
         var param = parameterPool.obtain();
+        // allow user to take control of params via opts.parameterValues
+        paramData = mergeParameterOpts.call(this, paramData, opts);
         param.reset(this, paramData);
         this.activeParameters[paramData.id] = param;
       }
@@ -464,6 +497,25 @@ var Effect = Class("Effect", function () {
     if (!this.isContinuous) {
       this.emitParticles();
     }
+  };
+
+  function mergeParameterOpts (data, opts) {
+    var mergedData = data;
+    var paramID = data.id;
+    var paramValues = opts.parameterValues;
+    var paramValue = paramValues && paramValues[paramID];
+    if (paramValue !== void 0) {
+      mergedData = merge({}, data);
+      var paramValueType = typeof paramValue;
+      if (paramValueType === 'number') {
+        mergedData.value = paramValue;
+        mergedData.distributionType = 'fixed';
+      } else if (paramValueType === 'function') {
+        mergedData.distributionFunction = paramValue;
+        mergedData.distributionType = 'custom';
+      }
+    }
+    return mergedData;
   };
 
   this.recycle = function () {
@@ -552,12 +604,12 @@ var Effect = Class("Effect", function () {
  * Particle Notes
  *  a particle moves a single ImageView across the screen
  */
-var Particle = Class("Particle", function () {
+var Particle = Class('Particle', function () {
   this.init = function () {
     this.view = new ImageView({ visible: false });
     this.filter = new filter.Filter({});
-    this.filterData = { type: "", r: 0, g: 0, b: 0, a: 0 };
-    this.currentImageURL = "";
+    this.filterData = { type: '', r: 0, g: 0, b: 0, a: 0 };
+    this.currentImageURL = '';
     this.isPolar = false;
     this.hasDeltas = false;
     this.isPaused = false;
@@ -758,7 +810,7 @@ var Particle = Class("Particle", function () {
  *  properties on the root particle are never recycled
  *  properties used as deltas on other properties are always recycled
  */
-var Property = Class("Property", function () {
+var Property = Class('Property', function () {
   this.init = function () {
     this.value = 0;
     this.delta = null;
@@ -866,7 +918,6 @@ var Property = Class("Property", function () {
 /**
  * Parameter Notes
  *  params represent a distribution over time or particle count from [0, 1]
- *  timestep animate's easing functions can be used to give additional structure
  *  properties are tied to params via a range of the format: [min, max, paramID]
  *
  *  distributionType:
@@ -874,41 +925,47 @@ var Property = Class("Property", function () {
  *    time - increment the parameter after each tick by dt / resetInterval
  *    indexOverTime - combine index and time above
  *    random - the parameter has a random value for each particle emitted
+ *    fixed - the param is overridden to a fixed value
+ *    custom - the param value is given by a custom function
  *
  *  distributionFunction:
- *    apply timestep animate easing functions to the parameter's value
+ *    apply timestep animate easing functions to the parameter's value,
+ *    can also be a custom function
  *
  *  reverseReset:
  *    instead of resetting to 0, the parameter changes directions towards 0
  *      and then back again, towards 1, etc.
  */
-var Parameter = Class("Parameter", function () {
+var Parameter = Class('Parameter', function () {
   this.init = function () {
-    this.id = "";
+    this.id = '';
     this.value = 0;
     this.resetInterval = 16;
     this.resetDirection = 1;
     this.reverseReset = false;
-    this.distributionType = "indexOverTime";
-    this.distributionFunction = easingFunctions["linear"];
+    this.distributionType = 'indexOverTime';
+    this.distributionFunction = easingFunctions['linear'];
     // ObjectPool book-keeping
     this._poolIndex = 0;
     this._obtainedFromPool = false;
   };
 
   this.reset = function (effect, data) {
-    this.id = "" + data.id;
-    this.value = 0;
+    this.id = '' + data.id;
+    this.value = data.value || 0;
     this.resetInterval = data.resetInterval || 16;
     this.resetDirection = 1;
     this.reverseReset = data.reverseReset || false;
-    this.distributionType = data.distributionType || "indexOverTime";
-    this.distributionFunction = easingFunctions["linear"];
+    this.distributionType = data.distributionType || 'indexOverTime';
+    this.distributionFunction = easingFunctions['linear'];
 
     // find the appropriate animate easing function
-    var distFnName = data.distributionFunction;
-    if (distFnName && distFnName in easingFunctions) {
-      this.distributionFunction = easingFunctions[distFnName];
+    var distFn = data.distributionFunction;
+    var distFnType = typeof distFn;
+    if (distFnType === 'string' && distFn in easingFunctions) {
+      this.distributionFunction = easingFunctions[distFn];
+    } else if (distFnType === 'function') {
+      this.distributionFunction = distFn;
     }
 
     this.update(0, false);
@@ -920,41 +977,52 @@ var Parameter = Class("Parameter", function () {
 
   this.update = function (value, fromEmission) {
     var type = this.distributionType;
-    if (fromEmission && type === "time") {
-      // parameters of type time ignore particle index and count
-      return;
-    }
+    switch (type) {
+      // fixed and custom type parameters never update
+      case 'fixed':
+      case 'custom':
+        break;
 
-    if (type === "random") {
       // random parameters are updated after each particle with a new value
-      this.value = random();
-    } else {
+      case 'random':
+        this.value = random();
+        break;
+
       // non-random parameters increment over index, time, or both
-      value = this.value + this.resetDirection * value;
-      if (this.reverseReset) {
-        while (value > 1 || value < 0) {
-          // the direction the parameter should move
-          this.resetDirection *= -1;
-          // instead of simply % 1, we have to carry the remainder backwards
-          if (value > 1) {
-            value = 1 - (value - 1);
-          } else {
-            value *= -1;
-          }
+      case 'index':
+      case 'time':
+      case 'indexOverTime':
+        // time type parameters ignore particle index updates
+        if (fromEmission && type === 'time') {
+          break;
         }
-        // here, value is guaranteed between 0 and 1, inclusive
-        this.value = value;
-      } else {
-        // by default, the value resets to 0 when it exceeds 1
-        this.value = value % 1;
-      }
+
+        value = this.value + this.resetDirection * value;
+        if (this.reverseReset) {
+          while (value > 1 || value < 0) {
+            // the direction the parameter should move
+            this.resetDirection *= -1;
+            // instead of simply % 1, we have to carry the remainder backwards
+            if (value > 1) {
+              value = 1 - (value - 1);
+            } else {
+              value *= -1;
+            }
+          }
+          // here, value is guaranteed between 0 and 1, inclusive
+          this.value = value;
+        } else {
+          // by default, the value resets to 0 when it exceeds 1
+          this.value = value % 1;
+        }
+        break;
     }
   };
 
   // only continuous effects step their parameters
   this.step = function (dt) {
     var type = this.distributionType;
-    if (type === "time" || type === "indexOverTime") {
+    if (type === 'time' || type === 'indexOverTime') {
       this.update(dt / this.resetInterval, false);
     }
   };
@@ -972,7 +1040,7 @@ var Parameter = Class("Parameter", function () {
  *  jsio classes can be very costly to garbage collect and initialize,
  *  so be good to the environment, and always recycle!
  */
-var ObjectPool = Class("ObjectPool", function () {
+var ObjectPool = Class('ObjectPool', function () {
   this.init = function (ctor) {
     this._ctor = ctor;
     this._pool = [];
