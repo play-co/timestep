@@ -56,6 +56,13 @@ function imageOnLoad(success, evt, failCount) {
 	}
 }
 
+// Listen for preloaded images and add them to cache
+resourceLoader.on(resourceLoader.IMAGE_LOADED, function(image, src) {
+	ImageCache[src.resource] = image;
+	image.__cb = new Callback();
+	imageOnLoad.call(image, true);
+});
+
 /**
  * This class models the region of a larger image that this "Image" references.
  */

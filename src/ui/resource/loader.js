@@ -202,6 +202,7 @@ var Loader = Class(Emitter, function () {
 	this.getImage = function (src, noWarn) {
 		// create the image
 		var img = new Image();
+		img.crossOrigin = "anonymous";
 
 		// find the base64 image if it exists
 		if (Image.get) {
@@ -447,8 +448,8 @@ var Loader = Class(Emitter, function () {
 					res.failed = false;
 
 					// Let subscribers know an image was loaded
-					if (res instanceof Image) {
-						that.emit(Loader.IMAGE_LOADED, res);
+					if (src.type === "image") {
+						that.emit(Loader.IMAGE_LOADED, res, src);
 					}
 
 					// React to successful load of this resource
