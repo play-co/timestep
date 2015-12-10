@@ -44,6 +44,8 @@ var Loader = Class(Emitter, function () {
 
   this._map = {};
 
+  this._audioMap = {};
+
   Object.defineProperty(this, "progress", {
     get: function() {
       return globalItemsToLoad > 0 ? globalItemsLoaded / globalItemsToLoad : 1
@@ -101,6 +103,13 @@ var Loader = Class(Emitter, function () {
     }, this);
   };
 
+
+  this.addAudioMap = function (map) {
+    Object.keys(map).forEach(function (name) {
+      this._audioMap[name] = true;
+    }, this);
+  };
+
   /**
    * Preload a given resource or array of resources.
    * You can specify a folder name, or even a partial filename,
@@ -150,14 +159,21 @@ var Loader = Class(Emitter, function () {
       var preloadSheets = {};
       var map = this._map;
       for (var uri in map) {
-        if (uri.indexOf(pathPrefix) == 0) {
+        if (uri.indexOf(pathPrefix) === 0) {
           // sprites have sheet; sounds are just by the filename key itself
           preloadSheets[map[uri] && map[uri].sheet || uri] = true;
         }
       }
 
+      var audioMap = this._audioMap;
+      var audioToLoad = {};
+      for (var uri in audioMap) {
+        if (uri.indexOf(pathPrefix) === 0) {
+          audioToLoad[uri] = true;
+        }
+      }
       var files = Object.keys(preloadSheets);
-
+      files = files.concat(Object.keys(audioToLoad));
       // If no files were specified by the preload command,
       if (files.length == 0) {
         files = [pathPrefix];
