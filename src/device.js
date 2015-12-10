@@ -146,6 +146,8 @@ if (exports.isMobile) {
 		exports.name = 'browser';
 		exports.isMobileBrowser = true;
 		exports.isIOS = true;
+		exports.isIpad = /iPad/i.test(ua);
+		exports.isStandalone = !!window.navigator.standalone; // full-screen
 
 		var match = ua.match(/iPhone OS ([0-9]+)/);
 		exports.iosVersion = match && parseInt(match[1]);

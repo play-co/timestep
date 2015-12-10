@@ -27,7 +27,7 @@ exports.init = function () {
 		var width = (window.innerWidth || (doc.clientWidth || doc.clientWidth)) * dpr;
 		var height = (window.innerHeight || (doc.clientHeight || doc.clientHeight)) * dpr;
 
-		if (width != device.width || height != device.height) {
+		if (width != device.width || height != device.height || !device.screen.orientation) {
 			device.width = width;
 			device.height = height;
 			device.screen.width = width;

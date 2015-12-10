@@ -34,6 +34,10 @@ var eventTypes = input.eventTypes;
 
 var UID = -1;
 
+var isIOS7 = device.iosVersion === 7;
+var isIOSSafari = device.iosVersion >= 7 && !device.isIpad && !device.isStandalone && !device.isUIWebView;
+var enableLandscapeScroll = isIOSSafari;
+
 exports = Class(function () {
 
   this.init = function (opts) {
@@ -62,6 +66,13 @@ exports = Class(function () {
 
     if (device.useDOM) {
       $.onEvent(document, device.events.start, this, 'handleMouse', eventTypes.START);
+    }
+
+    if (opts.engine) {
+      if (opts.engine.getOpt('minIOSLandscapeScroll') > device.iosVersion
+          || opts.engine.getOpt('disableIOSLandscapeScroll')) {
+        enableLandscapeScroll = false;
+      }
     }
 
     this.enable();
@@ -170,7 +181,7 @@ exports = Class(function () {
 
   this.allowScrollEvents = function (allowScrollEvents) { this._allowScrollEvents = allowScrollEvents; };
 
-  this.handleMouse = function (type, evt, recursive) {
+  this.handleMouse = function (type, evt) {
     var target = evt.target;
     if (!device.useDOM && !this._isDown && this._el && evt.target != this._el) { return; }
 
@@ -180,8 +191,31 @@ exports = Class(function () {
     // through to the page (apps that don't care about handling scroll events may
     // want to pass them through for easier browser debugging).
     if (isMobileBrowser) {
-      $.stopEvent(evt);
-      evt.returnValue = false;
+      var isLandscape = device.screen.orientation === 'landscape';
+      var innerHeight = window.innerHeight;
+      var docHeight = document.documentElement.offsetHeight;
+      var matches = docHeight === innerHeight;
+      var allowIOSScroll = enableLandscapeScroll && isLandscape && (isIOS7 ? innerHeight !== 320 : !matches);
+      if (isIOS7) {
+        if (allowIOSScroll) {
+          document.documentElement.style.height = '640px';
+        } else if (!allowIOSScroll && !matches) {
+          document.documentElement.style.height = '320px';
+        }
+      }
+
+     if (allowIOSScroll && type === eventTypes.SCROLL) {
+        return;
+      }
+
+      if (!allowIOSScroll) {
+        $.stopEvent(evt);
+        evt.returnValue = false;
+      }
+
+      if (type === eventTypes.SELECT && enableLandscapeScroll && isLandscape && window.scrollY) {
+        window.scrollTo(0, 0);
+      }
     } else if (this._isOver && (!this._allowScrollEvents || type != eventTypes.SCROLL)) {
       if (evt.stopPropagation) { evt.stopPropagation(); }
       if (type != eventTypes.START) {
@@ -194,7 +228,7 @@ exports = Class(function () {
     // ourselves with each changed touch independently.
     if (evt.touches) {
       for (var i = 0, t; t = evt.changedTouches[i]; ++i) {
-        this.handleMouse(type, t, true);
+        this.handleMouse(type, t);
       }
       return;
     }
