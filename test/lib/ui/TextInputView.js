@@ -16,35 +16,35 @@
 jsio('import ui.TextInputView as TextInputView');
 
 describe(
-	'ui.TextInputView',
-	function() {
-		var view = new TextInputView({prompt: ''});
+  'ui.TextInputView',
+  function() {
+    var view = new TextInputView({prompt: ''});
 
         describe(
-	        '#constructor()',
-	        function() {
+          '#constructor()',
+          function() {
                 it(
-	                "creates an instance of TextInputView",
-	                function() {
-						assert(view instanceof TextInputView, "view is an instance of ui.TextInputView");
+                  "creates an instance of TextInputView",
+                  function() {
+            assert(view instanceof TextInputView, "view is an instance of ui.TextInputView");
                     }
                 );
             }
         );
 
-		describe(
-			"Event: InputSelect",
-			function() {
-				it(
-					"is called when the TextInputView has been selected",
-					function() {
-						// var called = false;
-						// view.subscribe("InputSelect", function() { called = true; });
-						// view.onInputSelect();
-						// assert(called, "InputSelect was called");
-					}
-				);
-			}
-		);
-	}
+    describe(
+      "Event: InputSelect",
+      function() {
+        it(
+          "is called when the TextInputView has been selected",
+          function() {
+            // var called = false;
+            // view.subscribe("InputSelect", function() { called = true; });
+            // view.onInputSelect();
+            // assert(called, "InputSelect was called");
+          }
+        );
+      }
+    );
+  }
 );

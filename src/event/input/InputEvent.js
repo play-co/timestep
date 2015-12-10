@@ -52,48 +52,48 @@ import math.geom.Point as Point;
 import timer;
 
 var InputEvent = exports = Class(function () {
-	this.cancelled = false; // If true, this event will not propogate
-	this.depth = 0; // Number of levels of the tree from root to target (inclusive)
-	
-	// Note that under normal usage:
-	//   this.depth == this.trace.length
-	//   this.root = this.trace[this.trace.length - 1]
-	//   this.target = this.trace[0]
-	
-	this.init = function (id, evtType, x, y, root, target) {
-		// unique ID for a particular input - the ID should be constant for a given input
-		// for example, the mouse should always have the same ID.  Each finger (touch)
-		// should have the same ID throughout the touch start/move/end process
-		this.id = id; 
-		
-		// string evtType, e.g. 'input:start'
-		this.type = evtType;
-		
-		// localized point coordinates, indexed by a view's uid (View::uid)
-		// @internal --at least for now, concerns over performance.
-		this.point = this.pt = {};
-		
-		// raw (x, y) coordinates
-		this.srcPoint = this.srcPt = new Point(x, y);
-		
-		// list of View nodes from target to root
-		this.trace = [];
-		
-		// Top-most view where event is dispatched (e.g. the tree root)
-		this.root = root || null;
-		
-		// time of dispatch
-		this.when = timer.now;
-		
-		// Bottom-most view where the event occurred
-		this.target = target || null;
-	}
-	
-	this.cancel = function () {
-		this.cancelled = true;
-	}
+  this.cancelled = false; // If true, this event will not propogate
+  this.depth = 0; // Number of levels of the tree from root to target (inclusive)
+  
+  // Note that under normal usage:
+  //   this.depth == this.trace.length
+  //   this.root = this.trace[this.trace.length - 1]
+  //   this.target = this.trace[0]
+  
+  this.init = function (id, evtType, x, y, root, target) {
+    // unique ID for a particular input - the ID should be constant for a given input
+    // for example, the mouse should always have the same ID.  Each finger (touch)
+    // should have the same ID throughout the touch start/move/end process
+    this.id = id; 
+    
+    // string evtType, e.g. 'input:start'
+    this.type = evtType;
+    
+    // localized point coordinates, indexed by a view's uid (View::uid)
+    // @internal --at least for now, concerns over performance.
+    this.point = this.pt = {};
+    
+    // raw (x, y) coordinates
+    this.srcPoint = this.srcPt = new Point(x, y);
+    
+    // list of View nodes from target to root
+    this.trace = [];
+    
+    // Top-most view where event is dispatched (e.g. the tree root)
+    this.root = root || null;
+    
+    // time of dispatch
+    this.when = timer.now;
+    
+    // Bottom-most view where the event occurred
+    this.target = target || null;
+  }
+  
+  this.cancel = function () {
+    this.cancelled = true;
+  }
 
-	this.clone = function () {
-		return new InputEvent(this.id, this.type, this.srcPt.x, this.srcPt.y, this.root, this.target);
-	}
+  this.clone = function () {
+    return new InputEvent(this.id, this.type, this.srcPt.x, this.srcPt.y, this.root, this.target);
+  }
 });

@@ -21,22 +21,22 @@
  */
 
 var _onTick = null,
-	disableRequestAnimFrame = false,
-	disablePostMessage = true,
-	asFastAsPossible = false,
-	MIN_DT = 16;
+  disableRequestAnimFrame = false,
+  disablePostMessage = true,
+  asFastAsPossible = false,
+  MIN_DT = 16;
 
 if (window.postMessage) {
-	function postMessageCb(evt) { if (evt.data == 'timestep.TICK') { onFrame(); }}
-	
-	if (window.addEventListener) {
-		window.addEventListener('message', postMessageCb, false);
-	} else {
-		window.attachEvent('onmessage', postMessageCb);
-	}
+  function postMessageCb(evt) { if (evt.data == 'timestep.TICK') { onFrame(); }}
+  
+  if (window.addEventListener) {
+    window.addEventListener('message', postMessageCb, false);
+  } else {
+    window.attachEvent('onmessage', postMessageCb);
+  }
 } else {
-	disablePostMessage = true;
-	tickNow = sendTimeoutNow;
+  disablePostMessage = true;
+  tickNow = sendTimeoutNow;
 }
 
 function sendPostMessage() { window.postMessage('timestep.TICK', '*'); }
@@ -44,34 +44,34 @@ function sendTimeout() { setTimeout(onFrame, MIN_DT); }
 function sendTimeoutNow() { setTimeout(onFrame, 0); }
 
 var fastDriver = sendTimeoutNow,
-	mainDriver = sendTimeout,
-	cancelDriver,
-	driverId;
+  mainDriver = sendTimeout,
+  cancelDriver,
+  driverId;
 
 if (asFastAsPossible) {
-	if (!disablePostMessage) {
-		fastDriver = mainDriver = sendPostMessage;
-	} else {
-		mainDriver = sendTimeoutNow;
-	}
+  if (!disablePostMessage) {
+    fastDriver = mainDriver = sendPostMessage;
+  } else {
+    mainDriver = sendTimeoutNow;
+  }
 } else {
-	var reqAnim = window.requestAnimationFrame;
-	var cancelAnim = window.cancelAnimationFrame;
-	var prefixes = ['', 'webkit', 'moz', 'o', 'ms'];
+  var reqAnim = window.requestAnimationFrame;
+  var cancelAnim = window.cancelAnimationFrame;
+  var prefixes = ['', 'webkit', 'moz', 'o', 'ms'];
 
-	if (!disableRequestAnimFrame) {
-		for (var i = 0; i < prefixes.length && !reqAnim; ++i) {
-			reqAnim = window[prefixes[i] + 'RequestAnimationFrame'];
-			cancelAnim = window[prefixes[i] + 'CancelAnimationFrame'] || window[prefixes[i] + 'CancelRequestAnimationFrame'];
-		}
-	}
+  if (!disableRequestAnimFrame) {
+    for (var i = 0; i < prefixes.length && !reqAnim; ++i) {
+      reqAnim = window[prefixes[i] + 'RequestAnimationFrame'];
+      cancelAnim = window[prefixes[i] + 'CancelAnimationFrame'] || window[prefixes[i] + 'CancelRequestAnimationFrame'];
+    }
+  }
 
-	if (reqAnim) {
-		fastDriver = mainDriver = reqAnim;
-		cancelDriver = cancelAnim;
-	} else if (!disablePostMessage) {
-		fastDriver = sendPostMessage;
-	}
+  if (reqAnim) {
+    fastDriver = mainDriver = reqAnim;
+    cancelDriver = cancelAnim;
+  } else if (!disablePostMessage) {
+    fastDriver = sendPostMessage;
+  }
 }
 
 /*
@@ -83,58 +83,58 @@ var slow = 0, fast = 0;
 */
 
 function onFrame() {
-	if (_onTick) {
-		var now = Date.now(),
-			dt = now - (exports.last || now);
-		
-		exports.last = now;
-		
-		//try {
-			_onTick(dt);
-		/*} catch (e) {
-			if (window.DEV_MODE) {
-				var err = '.dev_error';
-				jsio('import ' + err).render(e);
-				exports.stop();
-			}
-		}*/
+  if (_onTick) {
+    var now = Date.now(),
+      dt = now - (exports.last || now);
+    
+    exports.last = now;
+    
+    //try {
+      _onTick(dt);
+    /*} catch (e) {
+      if (window.DEV_MODE) {
+        var err = '.dev_error';
+        jsio('import ' + err).render(e);
+        exports.stop();
+      }
+    }*/
 
-		/*
-		frameDts.push(dt);
-		var delay = +new Date() - now;
-		++frames;
-		if (print) {
-			logger.log(fast, slow, JSON.stringify(frameDts), now - lastPrint, dt, frames, delay);
-			frameDts = [];
-			lastPrint = now;
-			print = false;
-			frames = 0;
-			slow = 0;
-			fast = 0;
-		}
-		*/
+    /*
+    frameDts.push(dt);
+    var delay = +new Date() - now;
+    ++frames;
+    if (print) {
+      logger.log(fast, slow, JSON.stringify(frameDts), now - lastPrint, dt, frames, delay);
+      frameDts = [];
+      lastPrint = now;
+      print = false;
+      frames = 0;
+      slow = 0;
+      fast = 0;
+    }
+    */
 
-		if (dt > MIN_DT) {
-		//	++fast;
-			driverId = fastDriver.call(window, onFrame);
-		} else {
-		//	++slow;
-			driverId = mainDriver.call(window, onFrame);
-		}
-	}
+    if (dt > MIN_DT) {
+    //  ++fast;
+      driverId = fastDriver.call(window, onFrame);
+    } else {
+    //  ++slow;
+      driverId = mainDriver.call(window, onFrame);
+    }
+  }
 }
 
 exports.last = null;
 
 exports.start = function (onTick) {
-	_onTick = onTick;
-	driverId = mainDriver.call(window, onFrame);
+  _onTick = onTick;
+  driverId = mainDriver.call(window, onFrame);
 }
 
 exports.stop = function () {
-	_onTick = null;
-	if (driverId) {
-		cancelDriver.call(window, driverId);
-		driverId = null;
-	}
+  _onTick = null;
+  if (driverId) {
+    cancelDriver.call(window, driverId);
+    driverId = null;
+  }
 }

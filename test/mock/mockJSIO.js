@@ -18,51 +18,51 @@ var fs = require("fs");
 var done = false;
 
 function scanAddons() {
-	var path = require('path');
-	var libPath = path.join(__dirname, "../../../../addons");
+  var path = require('path');
+  var libPath = path.join(__dirname, "../../../../addons");
 
-	files = fs.readdirSync(libPath);
+  files = fs.readdirSync(libPath);
 
-	var paths = [];
-	for (var i = 0; i < files.length; i++) {
-		var load;
-		try {
-			load = require(libPath + "/" + files[i] + "/index").load;
-		} catch (e) {
-			load = false;
-		}
-		if (load) {
-			try {
-				paths = paths.concat(load().paths);
-			} catch (err) {
-				null;
-			}
-		}
-	}
-	return paths;
+  var paths = [];
+  for (var i = 0; i < files.length; i++) {
+    var load;
+    try {
+      load = require(libPath + "/" + files[i] + "/index").load;
+    } catch (e) {
+      load = false;
+    }
+    if (load) {
+      try {
+        paths = paths.concat(load().paths);
+      } catch (err) {
+        null;
+      }
+    }
+  }
+  return paths;
 };
 
 exports.setup = function() {
-	if (done) {
-		return;
-	}
+  if (done) {
+    return;
+  }
 
-	var path = require('path');
-	var sdkPath = path.join(__dirname, '../../../../sdk');
+  var path = require('path');
+  var sdkPath = path.join(__dirname, '../../../../sdk');
 
-	global.jsio = require(path.join(sdkPath, 'jsio'));
-	jsio.__env.name = 'browser';
+  global.jsio = require(path.join(sdkPath, 'jsio'));
+  jsio.__env.name = 'browser';
 
-	jsio.path.add(sdkPath);
-	// jsio.path.add(path.join(libPath, './gc-api/api'));
-	jsio.path.add(path.join(sdkPath, 'timestep'));
+  jsio.path.add(sdkPath);
+  // jsio.path.add(path.join(libPath, './gc-api/api'));
+  jsio.path.add(path.join(sdkPath, 'timestep'));
 
-	var paths = scanAddons();
-	var i = paths.length;
-	while (i) {
-		console.log("Addon path:", paths[--i])
-		jsio.path.add(paths[i]);
-	}
+  var paths = scanAddons();
+  var i = paths.length;
+  while (i) {
+    console.log("Addon path:", paths[--i])
+    jsio.path.add(paths[i]);
+  }
 
-	done = true;
+  done = true;
 };

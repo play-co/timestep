@@ -15,25 +15,25 @@
  */
 
 exports.resolve = function (env, opts) {
-	return [
-		'.doc',
-		'.Audio',
-		'.Canvas',
-		'.Context2D',
-		'.dev_error',
-		'.FlashAPI',
-		'.FontBuffer',
-		'.FontRenderer',
-		'.initialize',
-		'.Input',
-		'.inputDialog',
-		'.KeyListener',
-		'.MobileBrowserAPI',
-		'.SoundManager',
-		'.StatusBar',
-		'.TextBox',
-		'.TextInput',
-		'.Timer',
-		'.EditText'
-	];
+  return [
+    '.doc',
+    '.Audio',
+    '.Canvas',
+    '.Context2D',
+    '.dev_error',
+    '.FlashAPI',
+    '.FontBuffer',
+    '.FontRenderer',
+    '.initialize',
+    '.Input',
+    '.inputDialog',
+    '.KeyListener',
+    '.MobileBrowserAPI',
+    '.SoundManager',
+    '.StatusBar',
+    '.TextBox',
+    '.TextInput',
+    '.Timer',
+    '.EditText'
+  ];
 };

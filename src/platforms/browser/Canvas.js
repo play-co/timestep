@@ -24,55 +24,55 @@ import .Context2D;
 import .webgl.WebGLContext2D as WebGLContext2D;
 
 exports = Class(function () {
-	this.init = function (opts) {
-		opts = merge(opts, {width: 300, height: 200});
+  this.init = function (opts) {
+    opts = merge(opts, {width: 300, height: 200});
 
-		this._width = opts.width;
-		this._height = opts.height;
-		this.isWebGL = opts.useWebGL && CONFIG.useWebGL && WebGLContext2D.isSupported;
+    this._width = opts.width;
+    this._height = opts.height;
+    this.isWebGL = opts.useWebGL && CONFIG.useWebGL && WebGLContext2D.isSupported;
 
-		var ctx;
+    var ctx;
 
-		if (this.isWebGL) {
-			ctx = WebGLContext2D.getContext(this, opts);
-		} else {
-			ctx = new Context2D(opts);
-		}
+    if (this.isWebGL) {
+      ctx = WebGLContext2D.getContext(this, opts);
+    } else {
+      ctx = new Context2D(opts);
+    }
 
-		var el = this._el = ctx.getElement();
+    var el = this._el = ctx.getElement();
 
-		el.complete = true;
+    el.complete = true;
 
-		if (el.style) {
-			el.style.userSelect =
-			el.style.webkitUserSelect =
-			el.style.webkitTouchCallout = 'none';
-		}
+    if (el.style) {
+      el.style.userSelect =
+      el.style.webkitUserSelect =
+      el.style.webkitTouchCallout = 'none';
+    }
 
-		el.getContext = function () { return ctx; };
+    el.getContext = function () { return ctx; };
 
-		return el;
-	};
+    return el;
+  };
 
-	Object.defineProperties(this, {
-		width: {
-			get: function() { return this._width; },
-			set: function(value) {
-				this._width = value;
-				if (this.isWebGL) {
-					this.getContext().resize(this.width, this.height);
-				}
-			},
-		},
-		height: {
-			get: function() { return this._height; },
-			set: function(value) {
-				this._height = value;
-				if (this.isWebGL) {
-					this.getContext().resize(this.width, this.height);
-				}
-			},
-		}
-	});
+  Object.defineProperties(this, {
+    width: {
+      get: function() { return this._width; },
+      set: function(value) {
+        this._width = value;
+        if (this.isWebGL) {
+          this.getContext().resize(this.width, this.height);
+        }
+      },
+    },
+    height: {
+      get: function() { return this._height; },
+      set: function(value) {
+        this._height = value;
+        if (this.isWebGL) {
+          this.getContext().resize(this.width, this.height);
+        }
+      },
+    }
+  });
 
 });

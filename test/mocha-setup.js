@@ -16,7 +16,7 @@
 global.assert = require('assert');
 
 global.CONFIG = {
-	shortName: "tests"
+  shortName: "tests"
 };
 
 require('./mock/mockDevice').setup();

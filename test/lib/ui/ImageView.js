@@ -17,123 +17,123 @@ jsio('import ui.ImageView as ImageView');
 jsio('import ui.resource.Image');
 
 describe(
-	"ui.ImageView",
-	function() {
-		var view;
+  "ui.ImageView",
+  function() {
+    var view;
 
-		beforeEach(
-			function() {
-				view = new ImageView({image: "test.png", width: 50, height: 67});
-			}
-		);
+    beforeEach(
+      function() {
+        view = new ImageView({image: "test.png", width: 50, height: 67});
+      }
+    );
 
-		describe(
-	        "#constructor()",
-	        function() {
+    describe(
+          "#constructor()",
+          function() {
                 it(
-	                "creates an instance of ImageView",
-	                function() {
-						assert(view instanceof ImageView, "view is an instance of ui.ImageView");
+                  "creates an instance of ImageView",
+                  function() {
+            assert(view instanceof ImageView, "view is an instance of ui.ImageView");
                     }
                 );
             }
         );
 
         describe(
-	        "#getImage()",
-	        function() {
+          "#getImage()",
+          function() {
                 it(
-	                "get the image",
-	                function() {
-		                assert(view.getImage(), "getImage should return an object");
-		                assert(view.getImage().getSource(), "getImage().getSource should return an object");
-		                assert(view.getImage().getSource().isMock, "getImage().getSource().isMock should be true");
+                  "get the image",
+                  function() {
+                    assert(view.getImage(), "getImage should return an object");
+                    assert(view.getImage().getSource(), "getImage().getSource should return an object");
+                    assert(view.getImage().getSource().isMock, "getImage().getSource().isMock should be true");
                     }
                 );
             }
         );
 
         describe(
-	        "#setImage(url)",
-	        function() {
+          "#setImage(url)",
+          function() {
                 it(
-	                "set the image",
-	                function() {
-		                view.setImage("anotherImage.png");
-		                assert(view.getImage().getSource().url === "anotherImage.png", "the url should be \"anotherImage.png\"");
+                  "set the image",
+                  function() {
+                    view.setImage("anotherImage.png");
+                    assert(view.getImage().getSource().url === "anotherImage.png", "the url should be \"anotherImage.png\"");
                     }
                 );
             }
         );
 
         describe(
-	        "#setImage(img)",
-	        function() {
+          "#setImage(img)",
+          function() {
                 it(
-	                "set the image",
-	                function() {
-		                view.setImage(new ui.resource.Image({url: "anotherImage.png"}));
-		                assert(view.getImage().getSource().url === "anotherImage.png", "the url should be \"anotherImage.png\"");
+                  "set the image",
+                  function() {
+                    view.setImage(new ui.resource.Image({url: "anotherImage.png"}));
+                    assert(view.getImage().getSource().url === "anotherImage.png", "the url should be \"anotherImage.png\"");
                     }
                 );
             }
         );
 
         describe(
-	        "#doOnLoad(callback)",
-	        function() {
+          "#doOnLoad(callback)",
+          function() {
                 it(
-	                "test the on load callback",
-	                function(done) {
-		                view.doOnLoad(
-			                function() {
-				                done();
-			                }
-		                );
-		                view.setImage("anotherImage.png");
+                  "test the on load callback",
+                  function(done) {
+                    view.doOnLoad(
+                      function() {
+                        done();
+                      }
+                    );
+                    view.setImage("anotherImage.png");
                     }
                 );
             }
         );
 
         describe(
-	        "#autoSize()",
-	        function() {
+          "#autoSize()",
+          function() {
                 it(
-	                "size the view to the size of the image",
-	                function() {
-		                assert(view.style.width === 50, "the initial view width should be 50");
-		                assert(view.style.height === 67, "the initial view height should be 67");
-		                view.autoSize();
-		                assert(view.style.width === 100, "the view width should be 100");
-		                assert(view.style.height === 101, "the view height should be 101");
+                  "size the view to the size of the image",
+                  function() {
+                    assert(view.style.width === 50, "the initial view width should be 50");
+                    assert(view.style.height === 67, "the initial view height should be 67");
+                    view.autoSize();
+                    assert(view.style.width === 100, "the view width should be 100");
+                    assert(view.style.height === 101, "the view height should be 101");
                     }
                 );
             }
         );
 
         describe(
-	        "#getOrigWidth()",
-	        function() {
+          "#getOrigWidth()",
+          function() {
                 it(
-	                "get width of the image",
-	                function() {
-		                assert(view.getOrigWidth() === 100, "the width of the image should be 100");
+                  "get width of the image",
+                  function() {
+                    assert(view.getOrigWidth() === 100, "the width of the image should be 100");
                     }
                 );
             }
         );
 
         describe(
-	        "#getOrigHeight()",
-	        function() {
+          "#getOrigHeight()",
+          function() {
                 it(
-	                "get height of the image",
-	                function() {
-		                assert(view.getOrigHeight() === 101, "the height of the image should be 101");
+                  "get height of the image",
+                  function() {
+                    assert(view.getOrigHeight() === 101, "the height of the image should be 101");
                     }
                 );
             }
         );
-	}
+  }
 );

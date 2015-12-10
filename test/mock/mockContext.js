@@ -16,23 +16,23 @@
 var mockContext = require('./mockContext');
 
 exports.Context = function(canvas) {
-	this.canvas = canvas;
+  this.canvas = canvas;
 
-	this.save = function() {};
-	this.restore = function() {};
-	this.translate = function() {};
-	this.beginPath = function() {};
-	this.moveTo = function() {};
-	this.lineTo = function() {};
-	this.closePath = function() {};
-	this.fill = function() {};
-	this.stroke = function() {};
-	this.fillRect = function() {};
-	this.strokeRect = function() {};
-	this.fillText = function() {};
-	this.strokeText = function() {};
-	this.clearRect = function() {};
-	this.clipRect = function() {};
-	this.clip = function() {};
-	this.rect = function() {};
+  this.save = function() {};
+  this.restore = function() {};
+  this.translate = function() {};
+  this.beginPath = function() {};
+  this.moveTo = function() {};
+  this.lineTo = function() {};
+  this.closePath = function() {};
+  this.fill = function() {};
+  this.stroke = function() {};
+  this.fillRect = function() {};
+  this.strokeRect = function() {};
+  this.fillText = function() {};
+  this.strokeText = function() {};
+  this.clearRect = function() {};
+  this.clipRect = function() {};
+  this.clip = function() {};
+  this.rect = function() {};
 };

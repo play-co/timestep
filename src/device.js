@@ -35,8 +35,8 @@ import event.Emitter as Emitter;
 import util.setProperty;
 
 if (typeof navigator == 'undefined' || !navigator.userAgent) {
-	logger.warn('> Timestep was unable to determine your device! Please check that navigator.userAgent is defined.');
-	exports = {isUnknown: true};
+  logger.warn('> Timestep was unable to determine your device! Please check that navigator.userAgent is defined.');
+  exports = {isUnknown: true};
 }
 
 var ua = navigator.userAgent;
@@ -47,16 +47,16 @@ var ua = navigator.userAgent;
 
 var _devices = {};
 exports.registerDevice = function (name, path) {
-	_devices[name] = path;
+  _devices[name] = path;
 };
 
 exports.get = function (module) {
 
-	// deprecated: InputPrompt used to be platform-specific
-	if (module == 'InputPrompt') { return jsio('import ui.InputPrompt'); }
+  // deprecated: InputPrompt used to be platform-specific
+  if (module == 'InputPrompt') { return jsio('import ui.InputPrompt'); }
 
-	var path = _devices[exports.name] || 'platforms.browser';
-	return jsio('import ' + path + '.' + module, {dontExport: true, suppressErrors: true});
+  var path = _devices[exports.name] || 'platforms.browser';
+  return jsio('import ' + path + '.' + module, {dontExport: true, suppressErrors: true});
 };
 
 exports.importUI = function (module) {
@@ -85,26 +85,26 @@ exports.screen.height = window.innerHeight * devicePixelRatio;
 exports.hideAddressBar = function () {};
 
 util.setProperty(exports, 'defaultFontFamily', {
-	cb: function (value) {
-		import ui.resource.Font;
-		ui.resource.Font.setDefaultFontFamily(value);
-	},
-	value: 'Helvetica'
+  cb: function (value) {
+    import ui.resource.Font;
+    ui.resource.Font.setDefaultFontFamily(value);
+  },
+  value: 'Helvetica'
 });
 exports.defaultFontWeight = "";
 
 if ('ontouchstart' in window && (!/BlackBerry/.test(ua))) {
-	exports.events = {
-		start: 'touchstart',
-		move: 'touchmove',
-		end: 'touchend'
-	};
+  exports.events = {
+    start: 'touchstart',
+    move: 'touchmove',
+    end: 'touchend'
+  };
 } else {
-	exports.events = {
-		start: 'mousedown',
-		move: 'mousemove',
-		end: 'mouseup'
-	};
+  exports.events = {
+    start: 'mousedown',
+    move: 'mousemove',
+    end: 'mouseup'
+  };
 }
 
 exports.isMobileBrowser = false;
@@ -113,91 +113,91 @@ exports.isSafari = /Safari/.test(ua);
 
 exports.isSimulator = GLOBAL.CONFIG && !!CONFIG.simulator;
 if (exports.isSimulator) {
-	exports.isIOSSimulator = /iphone|ipod|ipad/i.test(CONFIG.simulator.deviceType);
+  exports.isIOSSimulator = /iphone|ipod|ipad/i.test(CONFIG.simulator.deviceType);
 
-	// Until we support more platforms, if it's not
-	// iOS then it's assumed to be an Android device
-	exports.isAndroidSimulator = !exports.isIOSSimulator;
+  // Until we support more platforms, if it's not
+  // iOS then it's assumed to be an Android device
+  exports.isAndroidSimulator = !exports.isIOSSimulator;
 
-	exports.isNativeSimulator = /^native/.test(CONFIG.target);
+  exports.isNativeSimulator = /^native/.test(CONFIG.target);
 } else {
-	exports.isAndroidSimulator = false;
-	exports.isIOSSimulator = false;
-	exports.isNativeSimulator = false;
+  exports.isAndroidSimulator = false;
+  exports.isIOSSimulator = false;
+  exports.isNativeSimulator = false;
 }
 
 if (exports.isMobile) {
-	exports.name = 'tealeaf';
-	exports.width = navigator.width;
-	exports.height = navigator.height;
-	exports.isAndroid = /Android/.test(ua);
-	if (exports.isAndroid) {
-		exports.isTablet = navigator.width/devicePixelRatio >= 600;
-	} else {
-		exports.isIPad = exports.isTablet = /iPad/.test(ua);
-		exports.isIPhone = /iPhone/.test(ua);
+  exports.name = 'tealeaf';
+  exports.width = navigator.width;
+  exports.height = navigator.height;
+  exports.isAndroid = /Android/.test(ua);
+  if (exports.isAndroid) {
+    exports.isTablet = navigator.width/devicePixelRatio >= 600;
+  } else {
+    exports.isIPad = exports.isTablet = /iPad/.test(ua);
+    exports.isIPhone = /iPhone/.test(ua);
 
-		// Until we support more platforms, if it's not
-		// Android then it's assumed to be an iOS device
-		exports.isIOS = true;
-	}
+    // Until we support more platforms, if it's not
+    // Android then it's assumed to be an iOS device
+    exports.isIOS = true;
+  }
 } else {
-	if (/(iPod|iPhone|iPad)/i.test(ua)) {
-		exports.name = 'browser';
-		exports.isMobileBrowser = true;
-		exports.isIOS = true;
-		exports.isIpad = /iPad/i.test(ua);
-		exports.isStandalone = !!window.navigator.standalone; // full-screen
+  if (/(iPod|iPhone|iPad)/i.test(ua)) {
+    exports.name = 'browser';
+    exports.isMobileBrowser = true;
+    exports.isIOS = true;
+    exports.isIpad = /iPad/i.test(ua);
+    exports.isStandalone = !!window.navigator.standalone; // full-screen
 
-		var match = ua.match(/iPhone OS ([0-9]+)/);
-		exports.iosVersion = match && parseInt(match[1]);
-		exports.isUIWebView = !exports.isSafari;
+    var match = ua.match(/iPhone OS ([0-9]+)/);
+    exports.iosVersion = match && parseInt(match[1]);
+    exports.isUIWebView = !exports.isSafari;
 
-		exports.screen.defaultOrientation = 'portrait';
-		exports.screen.browserChrome = {
-			portrait: {top: 20 * devicePixelRatio, bottom: 44 * devicePixelRatio},
-			landscape: {top: 20 * devicePixelRatio, bottom: 32 * devicePixelRatio}
-		};
+    exports.screen.defaultOrientation = 'portrait';
+    exports.screen.browserChrome = {
+      portrait: {top: 20 * devicePixelRatio, bottom: 44 * devicePixelRatio},
+      landscape: {top: 20 * devicePixelRatio, bottom: 32 * devicePixelRatio}
+    };
 
-	} else if (/Mobile Safari/.test(ua) || /Android/.test(ua) || /BlackBerry/.test(ua)) {
-		exports.name = 'browser';
-		exports.isMobileBrowser = true;
-		exports.isAndroid = true;
+  } else if (/Mobile Safari/.test(ua) || /Android/.test(ua) || /BlackBerry/.test(ua)) {
+    exports.name = 'browser';
+    exports.isMobileBrowser = true;
+    exports.isAndroid = true;
 
-		exports.screen.width = window.outerWidth;
-		exports.screen.height = window.outerHeight - 1;
+    exports.screen.width = window.outerWidth;
+    exports.screen.height = window.outerHeight - 1;
 
-		exports.screen.defaultOrientation = 'portrait';
-		exports.screen.browserChrome = {
-			portrait: {top: 0, bottom: 0},
-			landscape: {top: 0, bottom: 0}
-		};
-	} else {
-		// All other browsers
-		exports.screen.width = window.innerWidth;
-		exports.screen.height = window.innerHeight;
-		exports.name = 'browser';
-		exports.canResize = false;
-	}
+    exports.screen.defaultOrientation = 'portrait';
+    exports.screen.browserChrome = {
+      portrait: {top: 0, bottom: 0},
+      landscape: {top: 0, bottom: 0}
+    };
+  } else {
+    // All other browsers
+    exports.screen.width = window.innerWidth;
+    exports.screen.height = window.innerHeight;
+    exports.name = 'browser';
+    exports.canResize = false;
+  }
 
-	// Set up device.width and device.height for browser case
-	exports.width = exports.screen.width;
-	exports.height = exports.screen.height;
+  // Set up device.width and device.height for browser case
+  exports.width = exports.screen.width;
+  exports.height = exports.screen.height;
 }
 
 exports.useDOM = false;
 exports.setUseDOM = function (useDOM) {
-	console.warn("Attempting to set 'useDom' property, which is no longer supported.")
-	return;
+  console.warn("Attempting to set 'useDom' property, which is no longer supported.")
+  return;
 }
 
 exports.getDimensions = function (isLandscape) {
-	var dMin = Math.min(exports.width, exports.height),
-		dMax = Math.max(exports.width, exports.height);
+  var dMin = Math.min(exports.width, exports.height),
+    dMax = Math.max(exports.width, exports.height);
 
-	return isLandscape
-		? {height: dMin, width: dMax}
-		: {height: dMax, width: dMin};
+  return isLandscape
+    ? {height: dMin, width: dMax}
+    : {height: dMax, width: dMin};
 }
 
 /**
@@ -205,34 +205,34 @@ exports.getDimensions = function (isLandscape) {
  */
 
 exports.init = function () {
-	import ui.init;
-	exports.get('initialize').init();
-	exports.screen.width = exports.width;
-	exports.screen.height = exports.height;
+  import ui.init;
+  exports.get('initialize').init();
+  exports.screen.width = exports.width;
+  exports.screen.height = exports.height;
 }
 
 /**
  * Event handlers
  */
 exports.setBackButtonHandler = function (handler) {
-	NATIVE && (NATIVE.onBackButton = handler);
+  NATIVE && (NATIVE.onBackButton = handler);
 }
 
 exports.setRotationHandler = function (handler) {
-	NATIVE && (NATIVE.onRotation = handler);
+  NATIVE && (NATIVE.onRotation = handler);
 }
 
 /*
  * Stay awake
  */
 exports.stayAwake = function(enable) {
-	NATIVE && NATIVE.stayAwake && NATIVE.stayAwake(enable);
+  NATIVE && NATIVE.stayAwake && NATIVE.stayAwake(enable);
 }
 
 /**
  * Garbage Collection
  */
 exports.collectGarbage = function () {
-	logger.log('collecting garbage');
-	NATIVE && NATIVE.gc && NATIVE.gc.runGC();
+  logger.log('collecting garbage');
+  NATIVE && NATIVE.gc && NATIVE.gc.runGC();
 }

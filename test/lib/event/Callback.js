@@ -17,228 +17,228 @@ jsio("import event.Callback as Callback");
 jsio("import base as base");
 
 describe(
-	"Callback",
-	function() {
-		var callback;
+  "Callback",
+  function() {
+    var callback;
 
-		beforeEach(
-			function() {
-				callback = new Callback();
-			}
-		);
+    beforeEach(
+      function() {
+        callback = new Callback();
+      }
+    );
 
-		describe(
-			"#constructor()",
-			function() {
-				it(
-					"creates an instance of Callback",
-					function() {
-						assert(callback instanceof Callback, "callback is an instance of Callback");
-					}
-				);
-			}
-		);
+    describe(
+      "#constructor()",
+      function() {
+        it(
+          "creates an instance of Callback",
+          function() {
+            assert(callback instanceof Callback, "callback is an instance of Callback");
+          }
+        );
+      }
+    );
 
-		describe(
-			"#run()",
-			function() {
-				it(
-					"add a function to run",
-					function() {
-						callback.run(function(name) {});
+    describe(
+      "#run()",
+      function() {
+        it(
+          "add a function to run",
+          function() {
+            callback.run(function(name) {});
 
-						assert(callback._run.length === 1, "the should be 1 function");
-					}
-				);
-			}
-		);
+            assert(callback._run.length === 1, "the should be 1 function");
+          }
+        );
+      }
+    );
 
-		describe(
-			"#fire()",
-			function() {
-				it(
-					"execute one function",
-					function() {
-						var result = "";
-						callback.run(function(name) { result = "x " + name; });
-						callback.fire("y");
+    describe(
+      "#fire()",
+      function() {
+        it(
+          "execute one function",
+          function() {
+            var result = "";
+            callback.run(function(name) { result = "x " + name; });
+            callback.fire("y");
 
-						assert(result === "x y", "result should be \"x y\"");
-					}
-				);
-			}
-		);
+            assert(result === "x y", "result should be \"x y\"");
+          }
+        );
+      }
+    );
 
-		describe(
-			"#fire()",
-			function() {
-				it(
-					"execute two functions",
-					function() {
-						var result = "";
-						callback.run(function(name) { result += "x" + name; });
-						callback.run(function(name) { result += "y" + name; });
-						callback.fire("&");
+    describe(
+      "#fire()",
+      function() {
+        it(
+          "execute two functions",
+          function() {
+            var result = "";
+            callback.run(function(name) { result += "x" + name; });
+            callback.run(function(name) { result += "y" + name; });
+            callback.fire("&");
 
-						assert(result === "x&y&", "result should be \"x&y&\"");
-					}
-				);
-			}
-		);
+            assert(result === "x&y&", "result should be \"x&y&\"");
+          }
+        );
+      }
+    );
 
-		describe(
-			"#fire()",
-			function() {
-				it(
-					"fire should only execute the callback once",
-					function() {
-						var callback = new Callback();
-						var first = true;
+    describe(
+      "#fire()",
+      function() {
+        it(
+          "fire should only execute the callback once",
+          function() {
+            var callback = new Callback();
+            var first = true;
 
-						callback.run(
-							function() {
-								if (!first) {
-									assert(false, "the callback should only be executed once");
-								}
-								first = false;
-							}
-						);
+            callback.run(
+              function() {
+                if (!first) {
+                  assert(false, "the callback should only be executed once");
+                }
+                first = false;
+              }
+            );
 
-						callback.fire();
-						callback.fire();
-					}
-				);
-			}
-		);
+            callback.fire();
+            callback.fire();
+          }
+        );
+      }
+    );
 
-		describe(
-			"#runOrTimeout(onFire, onTimeout, duration)",
-			function() {
-				it(
-					"run two separate callbacks conditional, call the callback",
-					function(done) {
-						var callback = new Callback();
-						callback.runOrTimeout(
-							done,
-							function() {
-								assert(false, "This assert should not be executed");
-							},
-							1000
-						);
-						callback.fire();
-					}
-				);
-			}
-		);
+    describe(
+      "#runOrTimeout(onFire, onTimeout, duration)",
+      function() {
+        it(
+          "run two separate callbacks conditional, call the callback",
+          function(done) {
+            var callback = new Callback();
+            callback.runOrTimeout(
+              done,
+              function() {
+                assert(false, "This assert should not be executed");
+              },
+              1000
+            );
+            callback.fire();
+          }
+        );
+      }
+    );
 
-		describe(
-			"#runOrTimeout(onFire, onTimeout, duration)",
-			function() {
-				it(
-					"run two separate callbacks conditional, wait for a timeout",
-					function(done) {
-						var callback = new Callback();
-						callback.runOrTimeout(
-							function() {
-								assert(false, "This assert should not be executed");
-							},
-							done,
-							50
-						);
-					}
-				);
-			}
-		);
+    describe(
+      "#runOrTimeout(onFire, onTimeout, duration)",
+      function() {
+        it(
+          "run two separate callbacks conditional, wait for a timeout",
+          function(done) {
+            var callback = new Callback();
+            callback.runOrTimeout(
+              function() {
+                assert(false, "This assert should not be executed");
+              },
+              done,
+              50
+            );
+          }
+        );
+      }
+    );
 
-		describe(
-			"#chain()",
-			function() {
-				it(
-					"chain a number of functions before executing the callback",
-					function(done) {
-						var callback = new Callback();
+    describe(
+      "#chain()",
+      function() {
+        it(
+          "chain a number of functions before executing the callback",
+          function(done) {
+            var callback = new Callback();
 
-						callback.run(
-							function() {
-								done(); // Don't pass done immediately because it doesn't want arguments!
-							}
-						);
+            callback.run(
+              function() {
+                done(); // Don't pass done immediately because it doesn't want arguments!
+              }
+            );
 
-						var chainFunc1 = callback.chain();
-						var chainFunc2 = callback.chain();
+            var chainFunc1 = callback.chain();
+            var chainFunc2 = callback.chain();
 
-						chainFunc1();
-						chainFunc2();
-					}
-				);
-			}
-		);
+            chainFunc1();
+            chainFunc2();
+          }
+        );
+      }
+    );
 
-		describe(
-			"#fired()",
-			function() {
-				it(
-					"chain a number of functions before executing the callback",
-					function() {
-						var callback = new Callback();
-						var fired = false;
+    describe(
+      "#fired()",
+      function() {
+        it(
+          "chain a number of functions before executing the callback",
+          function() {
+            var callback = new Callback();
+            var fired = false;
 
-						callback.run(
-							function() {
-								fired = true;
-							}
-						);
+            callback.run(
+              function() {
+                fired = true;
+              }
+            );
 
-						callback.fire();
-						assert(callback.fired() && fired);
-					}
-				);
-			}
-		);
+            callback.fire();
+            assert(callback.fired() && fired);
+          }
+        );
+      }
+    );
 
-		describe(
-			"#reset()",
-			function() {
-				it(
-					"reset the callback to allow firing again",
-					function() {
-						var callback = new Callback();
-						var count = 0;
+    describe(
+      "#reset()",
+      function() {
+        it(
+          "reset the callback to allow firing again",
+          function() {
+            var callback = new Callback();
+            var count = 0;
 
-						callback.run(
-							function() {
-								count++;
-							}
-						);
+            callback.run(
+              function() {
+                count++;
+              }
+            );
 
-						callback.fire();
-						callback.reset();
-						callback.fire();
-						assert(count === 2, "the callback should be fired twice");
-					}
-				);
-			}
-		);
+            callback.fire();
+            callback.reset();
+            callback.fire();
+            assert(count === 2, "the callback should be fired twice");
+          }
+        );
+      }
+    );
 
-		describe(
-			"#clear()",
-			function() {
-				it(
-					"clear the callback list",
-					function() {
-						var callback = new Callback();
+    describe(
+      "#clear()",
+      function() {
+        it(
+          "clear the callback list",
+          function() {
+            var callback = new Callback();
 
-						callback.run(
-							function() {
-								assert(false, "this functions should not be executed after clear")
-							}
-						);
+            callback.run(
+              function() {
+                assert(false, "this functions should not be executed after clear")
+              }
+            );
 
-						callback.clear();
-						callback.fire();
-					}
-				);
-			}
-		);
-	}
+            callback.clear();
+            callback.fire();
+          }
+        );
+      }
+    );
+  }
 );

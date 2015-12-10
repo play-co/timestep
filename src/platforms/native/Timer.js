@@ -15,13 +15,13 @@
  */
 
 exports.start = function (onTick) {
-	NATIVE.timer.start(function () {
-		var now = +new Date(),
-			dt = now - (exports.last || now);
-		
-		exports.last = now;
-		onTick(dt);
-	});
+  NATIVE.timer.start(function () {
+    var now = +new Date(),
+      dt = now - (exports.last || now);
+    
+    exports.last = now;
+    onTick(dt);
+  });
 }
 
 exports.last = null;

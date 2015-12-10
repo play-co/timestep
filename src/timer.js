@@ -30,21 +30,21 @@ exports.now = 0;
 exports.frames = 0;
 exports.reset = function () { this._last = null; }
 exports.tick = function (dt) {
-	try {
-		if (dt > MAX_TICK) {
-			exports.onLargeTick(dt, MAX_TICK);
-			dt = 1;
-		}
-		
-		exports.now += dt;
-		exports.frames++;
-		exports.onTick(dt);
-		ok = true;
-	} finally {
-		if (exports.debug && !ok) {
-			app.stopLoop()
-		}
-	}
+  try {
+    if (dt > MAX_TICK) {
+      exports.onLargeTick(dt, MAX_TICK);
+      dt = 1;
+    }
+    
+    exports.now += dt;
+    exports.frames++;
+    exports.onTick(dt);
+    ok = true;
+  } finally {
+    if (exports.debug && !ok) {
+      app.stopLoop()
+    }
+  }
 }
 
 /**
@@ -54,7 +54,7 @@ exports.tick = function (dt) {
  * this tick.  Anyone who is interested can listen for a call to 'onLargeTick'
  */
 exports.onLargeTick = function (largeDt, threshold) {
-	logger.warn('Dropping large tick: ' + largeDt + '; Threshold is set at: ' + threshold);
+  logger.warn('Dropping large tick: ' + largeDt + '; Threshold is set at: ' + threshold);
 }
 
 exports.onTick = function (dt) {}
@@ -65,18 +65,18 @@ exports.debug = false;
 // TODO: <jsio>('from iOS import start as exports.start, stop as exports.stop');
 
 exports.start = function (minDt) {
-	this.reset();
-	this.isRunning = true;
-	device.get('Timer').start(exports.tick, minDt);
+  this.reset();
+  this.isRunning = true;
+  device.get('Timer').start(exports.tick, minDt);
 }
 
 exports.stop = function () {
-	this.reset();
-	this.isRunning = false;
-	device.get('Timer').stop();
+  this.reset();
+  this.isRunning = false;
+  device.get('Timer').stop();
 }
 
 exports.getTickProgress = function () {
-	var now = +new Date;
-	return (-(Timer.last || now) + now);
+  var now = +new Date;
+  return (-(Timer.last || now) + now);
 }

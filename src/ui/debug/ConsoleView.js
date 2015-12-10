@@ -21,60 +21,60 @@
 import ui.View as View;
 
 exports = Class(View, function (supr) {
-	
-	var defaults = {
-		font: '12px Consolas, Monaco',
-		maxLines: 'auto',
-		lineHeight: 16,
-		backgroundColor: '#000000',
-		color: '#ffffff'
-	};
+  
+  var defaults = {
+    font: '12px Consolas, Monaco',
+    maxLines: 'auto',
+    lineHeight: 16,
+    backgroundColor: '#000000',
+    color: '#ffffff'
+  };
 
-	this.init = function (opts) {
-		this._opts = merge(opts, defaults);
-		supr(this, 'init', [this._opts]);
+  this.init = function (opts) {
+    this._opts = merge(opts, defaults);
+    supr(this, 'init', [this._opts]);
 
-		this._font = this._opts.font;
-		this._lineHeight = this._opts.lineHeight;
-		this._maxLines = this._opts.maxLines;
-		this._history = this._opts.maxLines;
-		
-		this._count = 0;
-		this._lines = [];
-	};
+    this._font = this._opts.font;
+    this._lineHeight = this._opts.lineHeight;
+    this._maxLines = this._opts.maxLines;
+    this._history = this._opts.maxLines;
+    
+    this._count = 0;
+    this._lines = [];
+  };
 
-	this.buildView = function () {
-		//if width/height not provided, default to parent dimensions
-		this.style.width = (this._opts.width) ? this._opts.width : this.getSuperview().style.width;
-		this.style.height = (this._opts.height) ? this._opts.height : this.getSuperview().style.height;
-	};
-	
-	this.render = function (ctx) {
-		ctx.fillStyle = this._opts.backgroundColor;
-		ctx.fillRect(0, 0, this.style.width, this.style.height);
-		
-		var maxLines = this._maxLines == 'auto' ? (this.style.height - 25) / this._lineHeight | 0 : this._maxLines;
-		this._history = maxLines;
-		
-		ctx.font = this._font;
-		ctx.fillStyle = this._opts.color;
-		
-		var n = this._lines.length;
-		for (var i = 0; i < maxLines; ++i) {
-			var line = this._lines[n - maxLines + i];
-			if (line) { ctx.fillText(line, 25, 25 + i * this._lineHeight); }
-		}
-	};
+  this.buildView = function () {
+    //if width/height not provided, default to parent dimensions
+    this.style.width = (this._opts.width) ? this._opts.width : this.getSuperview().style.width;
+    this.style.height = (this._opts.height) ? this._opts.height : this.getSuperview().style.height;
+  };
+  
+  this.render = function (ctx) {
+    ctx.fillStyle = this._opts.backgroundColor;
+    ctx.fillRect(0, 0, this.style.width, this.style.height);
+    
+    var maxLines = this._maxLines == 'auto' ? (this.style.height - 25) / this._lineHeight | 0 : this._maxLines;
+    this._history = maxLines;
+    
+    ctx.font = this._font;
+    ctx.fillStyle = this._opts.color;
+    
+    var n = this._lines.length;
+    for (var i = 0; i < maxLines; ++i) {
+      var line = this._lines[n - maxLines + i];
+      if (line) { ctx.fillText(line, 25, 25 + i * this._lineHeight); }
+    }
+  };
 
-	/*
-	 * @param {*...} args Argument(s) to print to the view.
-	 */
-	this.log = function (/*args ...*/) {
-		++this._count;
-		this._lines.push(Array.prototype.join.call(arguments, ' '));
-		if (this._count >= this._history) {
-			this._lines.shift();
-		}
-		this.needsRepaint();
-	};
+  /*
+   * @param {*...} args Argument(s) to print to the view.
+   */
+  this.log = function (/*args ...*/) {
+    ++this._count;
+    this._lines.push(Array.prototype.join.call(arguments, ' '));
+    if (this._count >= this._history) {
+      this._lines.shift();
+    }
+    this.needsRepaint();
+  };
 });

@@ -36,25 +36,25 @@ exports = Class(ImageScaleView, function(supr) {
         this._opts = merge(opts || {}, defaults); 
         supr(this, 'init', [this._opts]);
 
-		this._clipper = new View({
-				x: 0,
-				y: 0,
-				width: this._opts.width - this._opts.paddingLeft,
-				height: this._opts.height,
-				clip: true
-		});
+    this._clipper = new View({
+        x: 0,
+        y: 0,
+        width: this._opts.width - this._opts.paddingLeft,
+        height: this._opts.height,
+        clip: true
+    });
 
         this._textBox = new TextView(merge({
             x: this._opts.paddingLeft,
             y: this._opts.paddingTop,
-			autoFontSize: false,
-			size: opts.size || 32,
-			horizontalAlign: opts.horizontalAlign || 'left',
+      autoFontSize: false,
+      size: opts.size || 32,
+      horizontalAlign: opts.horizontalAlign || 'left',
             width: opts.width - this._opts.paddingLeft - this._opts.paddingRight,
             height: opts.height
         }, opts));
 
-		this._clipper.addSubview(this._textBox);
+    this._clipper.addSubview(this._textBox);
         this.addSubview(this._clipper);
         this._focused = false;
         this._validInputStart = false;

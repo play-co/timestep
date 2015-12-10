@@ -16,19 +16,19 @@
 jsio("import ui.SpriteView as SpriteView");
 
 describe(
-	"ui.SpriteView",
-	function() {
-		describe(
-			"#constructor()",
-			function() {
-				it(
-					"creates a SpriteView",
-					function() {
-						var view = new SpriteView();
-						assert(view instanceof SpriteView, "view should be an instance of SpriteView");
-					}
-				);
-			}
-		);
-	}
+  "ui.SpriteView",
+  function() {
+    describe(
+      "#constructor()",
+      function() {
+        it(
+          "creates a SpriteView",
+          function() {
+            var view = new SpriteView();
+            assert(view instanceof SpriteView, "view should be an instance of SpriteView");
+          }
+        );
+      }
+    );
+  }
 );
