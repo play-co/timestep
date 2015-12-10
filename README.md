@@ -4,6 +4,21 @@ A JavaScript game engine for the Game Closure SDK, built on
 Canvas and DOM rendering backends. Runtime implementations
 are optimized at a low level to develop high-performance games.
 
+## Contributing
+
+Code should follow the style rules set by the `.eslintrc`.  To
+get started linting, run the following:
+
+```
+npm install -g eslint
+npm install -g eslint-plugin-jsio
+```
+
+Then you can run `eslint [directory]` or `eslint [filename]`.
+
+We recommend using Sublime Text with the SublimeLinter and 
+SublimeLinter-contrib-eslint packages.
+
 ## Tests
 
 Uses Node.js for testing. Install the
