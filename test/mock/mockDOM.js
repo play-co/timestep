@@ -22,28 +22,28 @@ var mockAudio = require('./mockAudio');
 var done = false;
 
 exports.setup = function() {
-	if (done) {
-		return;
-	}
+  if (done) {
+    return;
+  }
 
-	global.Image = mockImage.Image;
-	global.Audio = mockAudio.Audio;
-	global.document = jsdom("<html><head></head><body></body></html>");
+  global.Image = mockImage.Image;
+  global.Audio = mockAudio.Audio;
+  global.document = jsdom("<html><head></head><body></body></html>");
 
-	global.HTMLCanvasElement = function () {};
+  global.HTMLCanvasElement = function () {};
 
-	var createElement = document.createElement;
-	document.createElement = function(element) {
-		if (element === 'canvas') {
-			return new mockCanvas.Canvas();
-		}
-		return createElement.apply(document, arguments);
-	};
+  var createElement = document.createElement;
+  document.createElement = function(element) {
+    if (element === 'canvas') {
+      return new mockCanvas.Canvas();
+    }
+    return createElement.apply(document, arguments);
+  };
 
-	global.window = document.createWindow();
-	global.navigator = window.navigator;
+  global.window = document.createWindow();
+  global.navigator = window.navigator;
 
-	navigator.userAgent = 'TeaLeaf';
+  navigator.userAgent = 'TeaLeaf';
 
-	done = true;
+  done = true;
 };

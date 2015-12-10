@@ -71,7 +71,7 @@ exports = Class(function() {
     this.setValue = function (value, cursorPos) {
         this._value = value;
         this.onChange(value);
-		NATIVE.call('editText.setText', {text: value, cursorPos: cursorPos });
+    NATIVE.call('editText.setText', {text: value, cursorPos: cursorPos });
     }
 
     this.requestFocus = function() {
@@ -83,64 +83,64 @@ exports = Class(function() {
         focused = this; 
     }
 
-	this.closeEditField = function () {
+  this.closeEditField = function () {
         if (focused == this) {
             this.removeFocus();
         }
-	};
+  };
 
-	this.finishEditing = function() {
+  this.finishEditing = function() {
         this.onFocusChange(false);
-		if (focused == this) {
-			focused = null;
-			this._textEditView.onFinishEditing();
-			var textBox = this._textEditView._textBox;
-			textBox.style.visible = true;
-		}
-   	}
+    if (focused == this) {
+      focused = null;
+      this._textEditView.onFinishEditing();
+      var textBox = this._textEditView._textBox;
+      textBox.style.visible = true;
+    }
+    }
 
     this.submit = function(close) {
-		this.onSubmit(this._value);
+    this.onSubmit(this._value);
         if (focused != null && close) {
             focused.removeFocus();
         }
      }
 
     this.refresh = function(currentVal, hasBack, hasForward, cursorPos) {
-		var textBox = this._textEditView._textBox;
-		textBox.style.visible = false;
-		var pos = this._textEditView.getPosition();
-		var scale = pos.width / this._textEditView.style.width;
+    var textBox = this._textEditView._textBox;
+    textBox.style.visible = false;
+    var pos = this._textEditView.getPosition();
+    var scale = pos.width / this._textEditView.style.width;
 
-		var closeOnDone = true;
-		if (this._opts.closeOnDone === false) {
-			closeOnDone = false;
-		} 
+    var closeOnDone = true;
+    if (this._opts.closeOnDone === false) {
+      closeOnDone = false;
+    } 
 
-		NATIVE.call('editText.focus', {
-				id: this._id,
-				paddingLeft: this._opts.paddingLeft * scale,
-				paddingRight: this._opts.paddingRight * scale,
-				x: pos.x,
-				y: pos.y, 
-				width: pos.width,
-				height: pos.height, 
-				text: currentVal || "" ,
-				hint: this._opts.hint,
-				hintColor: this._opts.hintColor,
-				inputType: this._opts.inputType,
-				inputReturnButton: this._opts.inputReturnButton,
-				maxLength: this._opts.maxLength, 
-				fontColor: this._opts.color,
-				fontSize: textBox._opts.size * scale,
-				font: textBox._opts.fontFamily,
-				cursorPos: cursorPos,
-				hasBack: hasBack,
-				hasForward: hasForward,
-				closeOnDone: closeOnDone
-		});
+    NATIVE.call('editText.focus', {
+        id: this._id,
+        paddingLeft: this._opts.paddingLeft * scale,
+        paddingRight: this._opts.paddingRight * scale,
+        x: pos.x,
+        y: pos.y, 
+        width: pos.width,
+        height: pos.height, 
+        text: currentVal || "" ,
+        hint: this._opts.hint,
+        hintColor: this._opts.hintColor,
+        inputType: this._opts.inputType,
+        inputReturnButton: this._opts.inputReturnButton,
+        maxLength: this._opts.maxLength, 
+        fontColor: this._opts.color,
+        fontSize: textBox._opts.size * scale,
+        font: textBox._opts.fontFamily,
+        cursorPos: cursorPos,
+        hasBack: hasBack,
+        hasForward: hasForward,
+        closeOnDone: closeOnDone
+    });
 
-		//cursorPos);
+    //cursorPos);
     }
 
     this.hasFocus = function() {
@@ -151,11 +151,11 @@ exports = Class(function() {
         this.onFocusChange(false);
         if (focused == this) {
             focused = null;
-			var textBox = this._textEditView._textBox;
-			textBox.style.visible = true;
-			NATIVE.call('editText.clearFocus', {});
+      var textBox = this._textEditView._textBox;
+      textBox.style.visible = true;
+      NATIVE.call('editText.clearFocus', {});
         }
-		
+    
     }
 
     this.setHint = function(hint) {

@@ -36,62 +36,62 @@ var Image;
 
 var Filter = exports.Filter = Class(function () {
 
-	this.init = function (opts) {
-		this._color = new Color(opts);
-		this._type = opts.type || '';
-		this._views = [];
-	};
+  this.init = function (opts) {
+    this._color = new Color(opts);
+    this._type = opts.type || '';
+    this._views = [];
+  };
 
-	this.get = function () {
-		var opts = this._color.get();
-		opts.type = this._type;
-		opts.priority = 0;
-		return opts;
-	};
+  this.get = function () {
+    var opts = this._color.get();
+    opts.type = this._type;
+    opts.priority = 0;
+    return opts;
+  };
 
-	this.getType = function () {
-		return this._type;
-	};
+  this.getType = function () {
+    return this._type;
+  };
 
-	this.update = function (opts) {
-		opts = opts || this.get();
-		this._color.update(opts);
-		this._type = opts.type !== undefined ? opts.type : this._type;
+  this.update = function (opts) {
+    opts = opts || this.get();
+    this._color.update(opts);
+    this._type = opts.type !== undefined ? opts.type : this._type;
 
-		var views = this._views;
-		for (var i = 0, len = views.length; i < len; i++) {
-			var view = views[i];
-			view.__view.filterColor = this.getColorString();
-			view.__view.filterType = Filter.TYPES[this.getType()] || 0;
-		}
-	};
+    var views = this._views;
+    for (var i = 0, len = views.length; i < len; i++) {
+      var view = views[i];
+      view.__view.filterColor = this.getColorString();
+      view.__view.filterType = Filter.TYPES[this.getType()] || 0;
+    }
+  };
 
-	this.setView = function (view) {
-		var views = this._views;
-		if (views.indexOf(view) === -1) {
-			views.push(view);
-		}
-	};
+  this.setView = function (view) {
+    var views = this._views;
+    if (views.indexOf(view) === -1) {
+      views.push(view);
+    }
+  };
 
-	this.removeView = function (view) {
-		var views = this._views;
-		var i = views.indexOf(view);
-		if (i !== -1) {
-			views.splice(i, 1);
-		}
-	};
+  this.removeView = function (view) {
+    var views = this._views;
+    var i = views.indexOf(view);
+    if (i !== -1) {
+      views.splice(i, 1);
+    }
+  };
 
-	this.getColorString = function () {
-		return this._color.toString();
-	};
+  this.getColorString = function () {
+    return this._color.toString();
+  };
 
 });
 
 Filter.TYPES = {
-	"None": 0,
-	"LinearAdd": 1,
-	"Multiply": 2,
-	"Tint": 3
+  "None": 0,
+  "LinearAdd": 1,
+  "Multiply": 2,
+  "Tint": 3
 };
 
 /**
@@ -99,10 +99,10 @@ Filter.TYPES = {
  */
 
 exports.LinearAddFilter = Class(Filter, function (supr) {
-	this.init = function (opts) {
-		supr(this, 'init', arguments);
-		this._type = 'LinearAdd';
-	};
+  this.init = function (opts) {
+    supr(this, 'init', arguments);
+    this._type = 'LinearAdd';
+  };
 });
 
 /**
@@ -110,10 +110,10 @@ exports.LinearAddFilter = Class(Filter, function (supr) {
  */
 
 exports.TintFilter = Class(Filter, function (supr) {
-	this.init = function (opts) {
-		supr(this, 'init', arguments);
-		this._type = 'Tint';
-	};
+  this.init = function (opts) {
+    supr(this, 'init', arguments);
+    this._type = 'Tint';
+  };
 });
 
 /**
@@ -121,10 +121,10 @@ exports.TintFilter = Class(Filter, function (supr) {
  */
 
 exports.MultiplyFilter = Class(Filter, function (supr) {
-	this.init = function (opts) {
-		supr(this, 'init', arguments);
-		this._type = 'Multiply';
-	};
+  this.init = function (opts) {
+    supr(this, 'init', arguments);
+    this._type = 'Multiply';
+  };
 });
 
 /**
@@ -132,18 +132,18 @@ exports.MultiplyFilter = Class(Filter, function (supr) {
  */
 
 exports.PositiveMaskFilter = Class(Filter, function (supr) {
-	this.init = function (opts) {
-		supr(this, 'init', arguments);
-		this._type = 'PositiveMask';
-		if (opts.image) {
-			Image = Image || jsio('import ui.resource.Image');
-			this._mask = new Image({ url: opts.image });
-		}
-	};
+  this.init = function (opts) {
+    supr(this, 'init', arguments);
+    this._type = 'PositiveMask';
+    if (opts.image) {
+      Image = Image || jsio('import ui.resource.Image');
+      this._mask = new Image({ url: opts.image });
+    }
+  };
 
-	this.getMask = function () {
-		return this._mask;
-	};
+  this.getMask = function () {
+    return this._mask;
+  };
 });
 
 /**
@@ -151,16 +151,16 @@ exports.PositiveMaskFilter = Class(Filter, function (supr) {
  */
 
 exports.NegativeMaskFilter = Class(Filter, function (supr) {
-	this.init = function (opts) {
-		supr(this, 'init', arguments);
-		this._type = 'NegativeMask';
-		if (opts.image) {
-			Image = Image || jsio('import ui.resource.Image');
-			this._mask = new Image({ url: opts.image });
-		}
-	};
+  this.init = function (opts) {
+    supr(this, 'init', arguments);
+    this._type = 'NegativeMask';
+    if (opts.image) {
+      Image = Image || jsio('import ui.resource.Image');
+      this._mask = new Image({ url: opts.image });
+    }
+  };
 
-	this.getMask = function () {
-		return this._mask;
-	};
+  this.getMask = function () {
+    return this._mask;
+  };
 });

@@ -14,23 +14,23 @@
  */
 
 exports.setup = function() {
-	jsio('import gc.API');
-	// GC.__init__({ui: false, overlay: false});
+  jsio('import gc.API');
+  // GC.__init__({ui: false, overlay: false});
 
-	jsio('import ui.Engine as Application');
-	global.app = new Application();
+  jsio('import ui.Engine as Application');
+  global.app = new Application();
 
-	global.CACHE = {};
-	global.DEBUG = true;
-	global.DEV_MODE = true;
+  global.CACHE = {};
+  global.DEBUG = true;
+  global.DEV_MODE = true;
 
-	var lastTime = +new Date();
-	setInterval(
-		function() {
-			var time = +new Date();
-			global.app._tick(time - lastTime);
-			lastTime = time;
-		},
-		50
-	);
+  var lastTime = +new Date();
+  setInterval(
+    function() {
+      var time = +new Date();
+      global.app._tick(time - lastTime);
+      lastTime = time;
+    },
+    50
+  );
 };

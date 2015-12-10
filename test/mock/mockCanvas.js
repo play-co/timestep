@@ -16,8 +16,8 @@
 var mockContext = require('./mockContext');
 
 exports.Canvas = function() {
-	this.getContext = function() { return new mockContext.Context(this); };
-	this.save = function() { return {}; };
-	this.restore = function() { return {}; };
-	this.attachEvent = function() {};
+  this.getContext = function() { return new mockContext.Context(this); };
+  this.save = function() { return {}; };
+  this.restore = function() { return {}; };
+  this.attachEvent = function() {};
 };

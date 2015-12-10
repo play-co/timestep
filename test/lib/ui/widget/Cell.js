@@ -17,94 +17,94 @@ jsio("import ui.widget.List as List");
 jsio("import ui.widget.Cell as Cell");
 
 describe(
-	"ui.widget.Cell",
-	function() {
-		describe(
-			"#constructor()",
-			function() {
-				it(
-					"create a cell",
-					function() {
-						var cell = new Cell({});
-						assert(cell instanceof Cell, "cell should be an instance of Cell");
-					}
-				);
-			}
-		);
+  "ui.widget.Cell",
+  function() {
+    describe(
+      "#constructor()",
+      function() {
+        it(
+          "create a cell",
+          function() {
+            var cell = new Cell({});
+            assert(cell instanceof Cell, "cell should be an instance of Cell");
+          }
+        );
+      }
+    );
 
-		describe(
-			"#addCell(cell)",
-			function() {
-				it(
-					"add a cell to a list",
-					function() {
-						var list = new List({});
-						var cell = new Cell({});
-						assert(list.getContentView().getSubviews().length === 0, "there should not be any cells");
-						list.addCell(cell);
-						assert(list.getContentView().getSubviews().length === 1, "there should not be one cell");
-					}
-				);
-			}
-		);
+    describe(
+      "#addCell(cell)",
+      function() {
+        it(
+          "add a cell to a list",
+          function() {
+            var list = new List({});
+            var cell = new Cell({});
+            assert(list.getContentView().getSubviews().length === 0, "there should not be any cells");
+            list.addCell(cell);
+            assert(list.getContentView().getSubviews().length === 1, "there should not be one cell");
+          }
+        );
+      }
+    );
 
-		describe(
-			"#removeCell(list)",
-			function() {
-				it(
-					"remove a cell from a list",
-					function() {
-						var list = new List({});
-						var cell = new Cell({});
-						assert(list.getContentView().getSubviews().length === 0, "there should not be any cells");
-						list.addCell(cell);
-						assert(list.getContentView().getSubviews().length === 1, "there should not be one cell");
-						cell.remove(list);
-						assert(list.getContentView().getSubviews().length === 0, "there should not be any cells");
-					}
-				);
-			}
-		);
+    describe(
+      "#removeCell(list)",
+      function() {
+        it(
+          "remove a cell from a list",
+          function() {
+            var list = new List({});
+            var cell = new Cell({});
+            assert(list.getContentView().getSubviews().length === 0, "there should not be any cells");
+            list.addCell(cell);
+            assert(list.getContentView().getSubviews().length === 1, "there should not be one cell");
+            cell.remove(list);
+            assert(list.getContentView().getSubviews().length === 0, "there should not be any cells");
+          }
+        );
+      }
+    );
 
-		describe(
-			"#setPosition(position)",
-			function() {
-				it(
-					"set the position of the cell",
-					function() {
-						var cell = new Cell({});
-						cell.setPosition({x: 39, y: 189});
-						assert(cell.style.x === 39, "the x position of the cell should be 39");
-						assert(cell.style.y === 189, "the y position of the cell should be 189");
-					}
-				);
-			}
-		);
+    describe(
+      "#setPosition(position)",
+      function() {
+        it(
+          "set the position of the cell",
+          function() {
+            var cell = new Cell({});
+            cell.setPosition({x: 39, y: 189});
+            assert(cell.style.x === 39, "the x position of the cell should be 39");
+            assert(cell.style.y === 189, "the y position of the cell should be 189");
+          }
+        );
+      }
+    );
 
-		describe(
-			"#getWidth()",
-			function() {
-				it(
-					"get the width of the cell",
-					function() {
-						var cell = new Cell({width: 57, height: 11});
-						assert(cell.getWidth() === 57, "the width of the cell should be 57");
-					}
-				);
-			}
-		);
+    describe(
+      "#getWidth()",
+      function() {
+        it(
+          "get the width of the cell",
+          function() {
+            var cell = new Cell({width: 57, height: 11});
+            assert(cell.getWidth() === 57, "the width of the cell should be 57");
+          }
+        );
+      }
+    );
 
-		describe(
-			"#getHeight()",
-			function() {
-				it(
-					"get the height of the cell",
-					function() {
-						var cell = new Cell({width: 57, height: 11});
-						assert(cell.getHeight() === 11, "the height of the cell should be 11");
-					}
-				);
-			}
-		);
-	}
+    describe(
+      "#getHeight()",
+      function() {
+        it(
+          "get the height of the cell",
+          function() {
+            var cell = new Cell({width: 57, height: 11});
+            assert(cell.getHeight() === 11, "the height of the cell should be 11");
+          }
+        );
+      }
+    );
+  }
 );

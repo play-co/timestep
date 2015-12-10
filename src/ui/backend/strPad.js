@@ -22,14 +22,14 @@ var PAD = "00000000";
 exports.initialValue = PAD;
 
 exports.pad = function (val) {
-	val = ~~val;
+  val = ~~val;
 
-	if (val < MIN) { val = MIN; }
-	if (val > MAX) { val = MAX; }
-	if (val < 0) {
-		val *= -1;
-		return '-' + PAD.substring(0, LEN - ('' + val).length) + val;
-	} else {
-		return PAD.substring(0, LEN - ('' + val).length) + val;
-	}
+  if (val < MIN) { val = MIN; }
+  if (val > MAX) { val = MAX; }
+  if (val < 0) {
+    val *= -1;
+    return '-' + PAD.substring(0, LEN - ('' + val).length) + val;
+  } else {
+    return PAD.substring(0, LEN - ('' + val).length) + val;
+  }
 };

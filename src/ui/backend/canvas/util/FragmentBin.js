@@ -18,43 +18,43 @@
  * TextBins are used in the FragmentBuffer caching of TextViews.
  **/
 var FragmentBin = exports = Class('TextBin', function (logger, supr) {
-	this.init = function (opts) {
-		this.width = opts.width;
-		this.height = opts.height;
-		this.x = opts.x;
-		this.y = opts.y;
-	};
+  this.init = function (opts) {
+    this.width = opts.width;
+    this.height = opts.height;
+    this.x = opts.x;
+    this.y = opts.y;
+  };
 
-	this.size = function () {
-		return this.width * this.height;
-	};
+  this.size = function () {
+    return this.width * this.height;
+  };
 
-	this.split = function (x, y) {
-		var newBins = [this];
-		if (this.width > 10 && this.height > 10) {
-			if (this.height - y > 10) {
-				var bin1 = new FragmentBin({
-					x: this.x,
-					y: this.y + y,
-					width: this.width,
-					height: this.height - y
-				});
-				newBins.push(bin1);
-			}
-			if (this.width - x > 10) {
-				var bin2 = new FragmentBin({
-					x: this.x + x,
-					y: this.y,
-					width: this.width - x,
-					height: y
-				});
-				newBins.push(bin2);
-			}
-		}
-		this.width = x;
-		this.height = y;
-		this.filled = true;
+  this.split = function (x, y) {
+    var newBins = [this];
+    if (this.width > 10 && this.height > 10) {
+      if (this.height - y > 10) {
+        var bin1 = new FragmentBin({
+          x: this.x,
+          y: this.y + y,
+          width: this.width,
+          height: this.height - y
+        });
+        newBins.push(bin1);
+      }
+      if (this.width - x > 10) {
+        var bin2 = new FragmentBin({
+          x: this.x + x,
+          y: this.y,
+          width: this.width - x,
+          height: y
+        });
+        newBins.push(bin2);
+      }
+    }
+    this.width = x;
+    this.height = y;
+    this.filled = true;
 
-		return newBins;
-	};
+    return newBins;
+  };
 });

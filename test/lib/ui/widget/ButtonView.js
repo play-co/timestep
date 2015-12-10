@@ -16,54 +16,54 @@
 jsio('import ui.widget.ButtonView as ButtonView');
 
 describe(
-	"ui.widget.ButtonView",
-	function() {
-		var button;
+  "ui.widget.ButtonView",
+  function() {
+    var button;
 
-		describe(
-			"#constructor()",
-			function() {
-				it(
-					"creates an instance of ButtonView",
-					function() {
-						var button = new ButtonView({});
-						assert(button instanceof ButtonView, "button is an instance of ui.widget.ButtonView");
-					}
-				);
-			}
-		);
+    describe(
+      "#constructor()",
+      function() {
+        it(
+          "creates an instance of ButtonView",
+          function() {
+            var button = new ButtonView({});
+            assert(button instanceof ButtonView, "button is an instance of ui.widget.ButtonView");
+          }
+        );
+      }
+    );
 
-		describe(
-			"#onInputSelect()",
-			function() {
-				it(
-					"click the button",
-					function() {
-						var clicked = false;
-						var button = new ButtonView({onClick: function() { clicked = true; }});
-						button.onInputStart({}, {});
-						button.onInputSelect({}, {});
-						assert(clicked, "button should be clicked");
-					}
-				);
-			}
-		);
+    describe(
+      "#onInputSelect()",
+      function() {
+        it(
+          "click the button",
+          function() {
+            var clicked = false;
+            var button = new ButtonView({onClick: function() { clicked = true; }});
+            button.onInputStart({}, {});
+            button.onInputSelect({}, {});
+            assert(clicked, "button should be clicked");
+          }
+        );
+      }
+    );
 
-		describe(
-			"#onInputSelect()",
-			function() {
-				it(
-					"click the button",
-					function() {
-						var clicked = false;
-						var button = new ButtonView({});
-						button.subscribe("Click", function() { clicked = true; });
-						button.onInputStart({}, {});
-						button.onInputSelect({}, {});
-						assert(clicked, "button should be clicked");
-					}
-				);
-			}
-		);
-	}
+    describe(
+      "#onInputSelect()",
+      function() {
+        it(
+          "click the button",
+          function() {
+            var clicked = false;
+            var button = new ButtonView({});
+            button.subscribe("Click", function() { clicked = true; });
+            button.onInputStart({}, {});
+            button.onInputSelect({}, {});
+            assert(clicked, "button should be clicked");
+          }
+        );
+      }
+    );
+  }
 );

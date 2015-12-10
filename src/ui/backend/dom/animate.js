@@ -23,12 +23,12 @@
 import ui.backend.canvas.animate as canvasAnimate;
 
 exports = function (view) {
-	// For DOM nodes, return only one singleton animation class.
-	if ('_node' in view) {
-		return view.getAnimation();
-	} else {
-		return canvasAnimate(view);
-	}
+  // For DOM nodes, return only one singleton animation class.
+  if ('_node' in view) {
+    return view.getAnimation();
+  } else {
+    return canvasAnimate(view);
+  }
 }
 exports.linear = canvasAnimate.linear;
 exports.easeIn = canvasAnimate.easeIn;

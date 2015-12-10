@@ -47,298 +47,298 @@ import ui.resource.Image as Image;
 import ui.resource.loader;
 
 var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr) {
-	
-	this.defaults = {
-		url: null, // specified as a filename prefix, without an animation name or frame count
-		groupID: "default",
-		frameRate: 15,
-		delay: 0,
-		emitFrameEvents: false,
-		autoStart: false,
-		loop: true
-	};
+  
+  this.defaults = {
+    url: null, // specified as a filename prefix, without an animation name or frame count
+    groupID: "default",
+    frameRate: 15,
+    delay: 0,
+    emitFrameEvents: false,
+    autoStart: false,
+    loop: true
+  };
 
-	var GROUPS = {};
+  var GROUPS = {};
 
-	this.tick = null;
+  this.tick = null;
 
-	this.init = function (opts) {
-		this._opts = opts = merge(opts, this.defaults);
-		opts.visible = false;
+  this.init = function (opts) {
+    this._opts = opts = merge(opts, this.defaults);
+    opts.visible = false;
 
-		if (DEBUG && device.useDOM) {
-			opts['dom:multipleImageNodes'] = true;
-		}
+    if (DEBUG && device.useDOM) {
+      opts['dom:multipleImageNodes'] = true;
+    }
 
-		supr(this, 'init', [opts]);
+    supr(this, 'init', [opts]);
 
-		// toggle this flag manually to optimize SpriteViews
-		this.onScreen = true;
+    // toggle this flag manually to optimize SpriteViews
+    this.onScreen = true;
 
-		this.resetAllAnimations(opts);
-	};
+    this.resetAllAnimations(opts);
+  };
 
-	this.resetAllAnimations = function (opts) {
-		this.stopAnimation();
+  this.resetAllAnimations = function (opts) {
+    this.stopAnimation();
 
-		this._opts = opts = merge(opts, this.defaults);
+    this._opts = opts = merge(opts, this.defaults);
 
-		var animations = SpriteView.allAnimations[opts.url];
-		
-		this.groupID = opts.groupID;
-		this.frameRate = opts.frameRate;
-		
-		if (!GROUPS[this.groupID]) {
-			GROUPS[this.groupID] = new Group();
-		}
+    var animations = SpriteView.allAnimations[opts.url];
+    
+    this.groupID = opts.groupID;
+    this.frameRate = opts.frameRate;
+    
+    if (!GROUPS[this.groupID]) {
+      GROUPS[this.groupID] = new Group();
+    }
 
-		this._animations = {};
+    this._animations = {};
 
-		if (opts.sheetData) {
-			var w = opts.sheetData.width || opts.width;
-			var h = opts.sheetData.height || opts.height;
-			for (var animName in opts.sheetData.anims) {
-				if (!this._opts.defaultAnimation) {
-					this._opts.defaultAnimation = animName;
-				}
-				this.loadFromSheet(animName, opts.sheetData.url, w, h,
-					opts.sheetData.offsetX || w, opts.sheetData.offsetY || h,
-					opts.sheetData.startX || 0, opts.sheetData.startY || 0,
-					opts.sheetData.anims[animName]);
-			}
-		} else {
-			for (var animName in animations) {
-				if (!this._opts.defaultAnimation) {
-					this._opts.defaultAnimation = animName;
-				}
-				this.addAnimation(animName, animations[animName]);
-			}
-		}
+    if (opts.sheetData) {
+      var w = opts.sheetData.width || opts.width;
+      var h = opts.sheetData.height || opts.height;
+      for (var animName in opts.sheetData.anims) {
+        if (!this._opts.defaultAnimation) {
+          this._opts.defaultAnimation = animName;
+        }
+        this.loadFromSheet(animName, opts.sheetData.url, w, h,
+          opts.sheetData.offsetX || w, opts.sheetData.offsetY || h,
+          opts.sheetData.startX || 0, opts.sheetData.startY || 0,
+          opts.sheetData.anims[animName]);
+      }
+    } else {
+      for (var animName in animations) {
+        if (!this._opts.defaultAnimation) {
+          this._opts.defaultAnimation = animName;
+        }
+        this.addAnimation(animName, animations[animName]);
+      }
+    }
 
-		if (opts.autoSize && this._opts.defaultAnimation) {
-			var frameImages = this._animations[this._opts.defaultAnimation].frames;
-			if (frameImages[0]) {
-				this.style.width = frameImages[0].getWidth();
-				this.style.height = frameImages[0].getHeight();
-			}
-		}
+    if (opts.autoSize && this._opts.defaultAnimation) {
+      var frameImages = this._animations[this._opts.defaultAnimation].frames;
+      if (frameImages[0]) {
+        this.style.width = frameImages[0].getWidth();
+        this.style.height = frameImages[0].getHeight();
+      }
+    }
 
-		opts.autoStart && this.startAnimation(this._opts.defaultAnimation, opts);
-	};
+    opts.autoStart && this.startAnimation(this._opts.defaultAnimation, opts);
+  };
 
-	this.loadFromSheet = function (animName, sheetUrl, width, height, offsetX, offsetY, startX, startY, frames) {
-		var frameImages = [];
-		for (var i = 0; i < frames.length; i++) {
-			frameImages.push(new Image({
-				url: sheetUrl,
-				sourceW: width,
-				sourceH: height,
-				sourceX: startX + frames[i][0] * offsetX,
-				sourceY: startY + frames[i][1] * offsetY
-			}));
-		}
-		this._animations[animName] = {
-			frames: frameImages
-		};
-	};
+  this.loadFromSheet = function (animName, sheetUrl, width, height, offsetX, offsetY, startX, startY, frames) {
+    var frameImages = [];
+    for (var i = 0; i < frames.length; i++) {
+      frameImages.push(new Image({
+        url: sheetUrl,
+        sourceW: width,
+        sourceH: height,
+        sourceX: startX + frames[i][0] * offsetX,
+        sourceY: startY + frames[i][1] * offsetY
+      }));
+    }
+    this._animations[animName] = {
+      frames: frameImages
+    };
+  };
 
-	this.addAnimation = function (animName, frameData) {
-		if ( ! isArray(frameData) ) {
-			frameData = SpriteView.allAnimations[frameData][animName];
-		}
-		var frameImages = [];
-		for (var i = 0, frame; frame = frameData[i]; i++) {
-			if (!device.useDOM) {
-				frameImages.push(this.getImageFromCache(frame.url));
-			} else {
-				frameImages.push(frame.url);
-			}
-		}
-		this._animations[animName] = {
-			frames: frameImages
-		};
-	};
-	
-	/** Returns a ui.resource.Image for the given animation's frame. */
-	this.getFrame = function (animName, index) {
-		return this._animations[animName].frames[index];
-	};
+  this.addAnimation = function (animName, frameData) {
+    if ( ! isArray(frameData) ) {
+      frameData = SpriteView.allAnimations[frameData][animName];
+    }
+    var frameImages = [];
+    for (var i = 0, frame; frame = frameData[i]; i++) {
+      if (!device.useDOM) {
+        frameImages.push(this.getImageFromCache(frame.url));
+      } else {
+        frameImages.push(frame.url);
+      }
+    }
+    this._animations[animName] = {
+      frames: frameImages
+    };
+  };
+  
+  /** Returns a ui.resource.Image for the given animation's frame. */
+  this.getFrame = function (animName, index) {
+    return this._animations[animName].frames[index];
+  };
 
-	/** Returns the number of frames in a given animation. */
-	this.getFrameCount = function (animName) {
-		return this._animations[animName].frames.length;
-	};
+  /** Returns the number of frames in a given animation. */
+  this.getFrameCount = function (animName) {
+    return this._animations[animName].frames.length;
+  };
 
-	this.getGroup = function (groupID) {
-		return GROUPS[groupID || this.groupID];
-	};
+  this.getGroup = function (groupID) {
+    return GROUPS[groupID || this.groupID];
+  };
 
-	/**
-	 * Starts an animation. Default options:
-	 *     loop: false
-	 *     iterations: 1
-	 *     callback: null (called at the end of the animation)
-	 *     frame: 0 (frame to start on)
-	 *     randomFrame: false (start on a random frame of the animation)
-	 */
-	this.startAnimation = function (name, opts) {
-		opts = opts || {};
+  /**
+   * Starts an animation. Default options:
+   *     loop: false
+   *     iterations: 1
+   *     callback: null (called at the end of the animation)
+   *     frame: 0 (frame to start on)
+   *     randomFrame: false (start on a random frame of the animation)
+   */
+  this.startAnimation = function (name, opts) {
+    opts = opts || {};
 
-		if ( opts.randomFrame === true && opts.frame == null ) {
-			opts.frame = Math.random() * this._animations[name].frames.length | 0;
-		}
+    if ( opts.randomFrame === true && opts.frame == null ) {
+      opts.frame = Math.random() * this._animations[name].frames.length | 0;
+    }
 
-		if (opts.loop === true) { opts.iterations = Infinity; }
+    if (opts.loop === true) { opts.iterations = Infinity; }
 
-		this._iterationsLeft = opts.iterations || 1;
-		this._callback = opts.callback || null;
-		this._currentAnimationName = name;
-		this._currentFrame = opts.frame || 0;
-		this._dt = 0;
-		this._delay = 0;
+    this._iterationsLeft = opts.iterations || 1;
+    this._callback = opts.callback || null;
+    this._currentAnimationName = name;
+    this._currentFrame = opts.frame || 0;
+    this._dt = 0;
+    this._delay = 0;
 
-		if (!this._animations[name]) {
-			throw new Error("Animation " + name + " does not exist: " + this._opts.url + ".");
-		}
+    if (!this._animations[name]) {
+      throw new Error("Animation " + name + " does not exist: " + this._opts.url + ".");
+    }
 
-		if (!this.isPlaying) {
-			this.tick = this._tickSprite;
-			GROUPS[this.groupID].add(this);
-			this.isPlaying = this.running = true;
-			this.style.visible = true;
-		}
+    if (!this.isPlaying) {
+      this.tick = this._tickSprite;
+      GROUPS[this.groupID].add(this);
+      this.isPlaying = this.running = true;
+      this.style.visible = true;
+    }
 
-		// align the image for the first time
-		this._tickSprite(0);
-	};
+    // align the image for the first time
+    this._tickSprite(0);
+  };
 
-	/** Stops the current animation. This will make the sprite invisible. */
-	this.stopAnimation = function () {
-		if (this.isPlaying) {
-			this.style.visible = false;
-			this.tick = null;
-			this.isPlaying = this.running = false;  //use isPlaying, this.running is deprecated
-			this.isPaused = this._isPaused = false; //use isPaused instead, _isPaused is deprecated
-			GROUPS[this.groupID].remove(this.uid);
-		}
-	};
+  /** Stops the current animation. This will make the sprite invisible. */
+  this.stopAnimation = function () {
+    if (this.isPlaying) {
+      this.style.visible = false;
+      this.tick = null;
+      this.isPlaying = this.running = false;  //use isPlaying, this.running is deprecated
+      this.isPaused = this._isPaused = false; //use isPaused instead, _isPaused is deprecated
+      GROUPS[this.groupID].remove(this.uid);
+    }
+  };
 
-	/**
-	 * If this animation doesn't loop, stops the animation entirely.
-	 * Otherwise restarts the default animation. For instance, if you
-	 * had a default animation "idle", you could call
-	 *
-	 *     startAnimation('walk', {iterations: 2});
-	 *
-	 * and after 2 iterations of the 'walk' animation, it would go
-	 * back to the 'walk' animation.
-	 */
-	this.resetAnimation = function () {
-		if (!this._opts.loop) {
-			this.stopAnimation();
-		} else {
-			this.startAnimation(this._opts.defaultAnimation);
-		}
-	};
+  /**
+   * If this animation doesn't loop, stops the animation entirely.
+   * Otherwise restarts the default animation. For instance, if you
+   * had a default animation "idle", you could call
+   *
+   *     startAnimation('walk', {iterations: 2});
+   *
+   * and after 2 iterations of the 'walk' animation, it would go
+   * back to the 'walk' animation.
+   */
+  this.resetAnimation = function () {
+    if (!this._opts.loop) {
+      this.stopAnimation();
+    } else {
+      this.startAnimation(this._opts.defaultAnimation);
+    }
+  };
 
-	// does the animation exist for this url?
-	this.hasAnimation = function (name) {
-		return !!this._animations[name];
-	};
+  // does the animation exist for this url?
+  this.hasAnimation = function (name) {
+    return !!this._animations[name];
+  };
 
-	this.setFramerate = function (fps) {
-		this.frameRate = fps || 0.00001;
-	};
+  this.setFramerate = function (fps) {
+    this.frameRate = fps || 0.00001;
+  };
 
-	this.pause = function () {
-		this.isPaused = this._isPaused = true;
-	};
+  this.pause = function () {
+    this.isPaused = this._isPaused = true;
+  };
 
-	this.resume = function () {
-		this.isPaused = this._isPaused = false;
-	};
+  this.resume = function () {
+    this.isPaused = this._isPaused = false;
+  };
 
-	this._tickSprite = function (dt) {
-		if (this.isPaused) { return; }
+  this._tickSprite = function (dt) {
+    if (this.isPaused) { return; }
 
-		dt += this._dt;
+    dt += this._dt;
 
-		if (this._delay) {
-			this._delay -= dt;
-			if (this._delay < 0) {
-				this._delay = 0;
-			}
-			return;
-		}
+    if (this._delay) {
+      this._delay -= dt;
+      if (this._delay < 0) {
+        this._delay = 0;
+      }
+      return;
+    }
 
-		var anim = this._animations[this._currentAnimationName];
-		var stepTime = (1000 / this.frameRate);
-		var frameSteps = dt / stepTime | 0;
-		var prevFrame = this._currentFrame;
-		this._dt = dt - frameSteps * stepTime;
-		this._currentFrame = (this._currentFrame + frameSteps) % anim.frames.length;
+    var anim = this._animations[this._currentAnimationName];
+    var stepTime = (1000 / this.frameRate);
+    var frameSteps = dt / stepTime | 0;
+    var prevFrame = this._currentFrame;
+    this._dt = dt - frameSteps * stepTime;
+    this._currentFrame = (this._currentFrame + frameSteps) % anim.frames.length;
 
-		if (this._currentFrame < 0) {
-			this._currentFrame += anim.frames.length;
-		}
+    if (this._currentFrame < 0) {
+      this._currentFrame += anim.frames.length;
+    }
 
-		if (this.onScreen && (frameSteps !== 0 || dt === 0)) {
-			var image = this._animations[this._currentAnimationName].frames[this._currentFrame];
-			this.setImage(image);
+    if (this.onScreen && (frameSteps !== 0 || dt === 0)) {
+      var image = this._animations[this._currentAnimationName].frames[this._currentFrame];
+      this.setImage(image);
 
-			if (this._opts.emitFrameEvents) {
-				for (var i = 0; i < frameSteps; i++) {
-					var frame = (prevFrame + i) % anim.frames.length;
-					this.publish(this._currentAnimationName + '_' + frame);
-				}
-			}
-		}
+      if (this._opts.emitFrameEvents) {
+        for (var i = 0; i < frameSteps; i++) {
+          var frame = (prevFrame + i) % anim.frames.length;
+          this.publish(this._currentAnimationName + '_' + frame);
+        }
+      }
+    }
 
-		var iterationsCompleted = (prevFrame + frameSteps) / anim.frames.length | 0;
-		if (iterationsCompleted) {
-			this._delay = this._opts.delay;
-			if (--this._iterationsLeft <= 0) {
-				var cb = this._callback;
-				this._callback = null;
+    var iterationsCompleted = (prevFrame + frameSteps) / anim.frames.length | 0;
+    if (iterationsCompleted) {
+      this._delay = this._opts.delay;
+      if (--this._iterationsLeft <= 0) {
+        var cb = this._callback;
+        this._callback = null;
 
-				this.resetAnimation();
-				if (cb) cb();
-			}
-		}
-	};
+        this.resetAnimation();
+        if (cb) cb();
+      }
+    }
+  };
 });
 
 SpriteView.allAnimations = {};
 SpriteView.getGroup = SpriteView.prototype.getGroup;
 
 (function loadAnimations() {
-	// build the animation frame map
-	var resourceMap = ui.resource.loader.getMap();
-	var allAnimations = SpriteView.allAnimations;
+  // build the animation frame map
+  var resourceMap = ui.resource.loader.getMap();
+  var allAnimations = SpriteView.allAnimations;
 
-	// Generate the animations from the filenames in resourceMap.
-	// These names must be sorted ascending so that the frames end up
-	// in the correct order.
-	var filenames = Object.keys(resourceMap);
-	filenames.sort();
+  // Generate the animations from the filenames in resourceMap.
+  // These names must be sorted ascending so that the frames end up
+  // in the correct order.
+  var filenames = Object.keys(resourceMap);
+  filenames.sort();
 
-	// Based on the filenames, add each image to an animation map (where applicable).
-	for (var i in filenames) {
-		var k = filenames[i];
-		// split a filename like this: /resources/images/creature-walking-0001.png
-		//       into parts like this: '    animKey     '  name  ' anim  ' #  '
-		var match = /((?:.*)\/.*?)[-_ ](.*?)[-_ ](\d+)/.exec(k);
-		if (match) {
-			var animKey = match[1];
-			var name = match[2];
-			var frameNumber = match[3];
-			var anim = (allAnimations[animKey] || (allAnimations[animKey] = {}));
-			var frameList = (anim[name] || (anim[name] = []));
-			var info = resourceMap[k];
-			info.url = k;
-			frameList.push(info);
-		}
-	}
+  // Based on the filenames, add each image to an animation map (where applicable).
+  for (var i in filenames) {
+    var k = filenames[i];
+    // split a filename like this: /resources/images/creature-walking-0001.png
+    //       into parts like this: '    animKey     '  name  ' anim  ' #  '
+    var match = /((?:.*)\/.*?)[-_ ](.*?)[-_ ](\d+)/.exec(k);
+    if (match) {
+      var animKey = match[1];
+      var name = match[2];
+      var frameNumber = match[3];
+      var anim = (allAnimations[animKey] || (allAnimations[animKey] = {}));
+      var frameList = (anim[name] || (anim[name] = []));
+      var info = resourceMap[k];
+      info.url = k;
+      frameList.push(info);
+    }
+  }
 })();
 
 
@@ -347,37 +347,37 @@ SpriteView.getGroup = SpriteView.prototype.getGroup;
  */
 var Group = Class(jsio.__filename, function (logger) {
 
-	this.init = function () {
-		this.sprites = {};
-	};
+  this.init = function () {
+    this.sprites = {};
+  };
 
-	this.add = function (sprite) {
-		this.sprites[sprite.uid] = sprite;
-	};
+  this.add = function (sprite) {
+    this.sprites[sprite.uid] = sprite;
+  };
 
-	this.remove = function (uid) {
-		delete this.sprites[uid];
-	};
+  this.remove = function (uid) {
+    delete this.sprites[uid];
+  };
 
-	this.pause = function () {
-		this._forEachSprite('pause');
-	};
+  this.pause = function () {
+    this._forEachSprite('pause');
+  };
 
-	this.resume = function () {
-		this._forEachSprite('resume');
-	};
+  this.resume = function () {
+    this._forEachSprite('resume');
+  };
 
-	this.stopAnimation = function () {
-		this._forEachSprite('stopAnimation');
-	};
+  this.stopAnimation = function () {
+    this._forEachSprite('stopAnimation');
+  };
 
-	this.resetAnimation = function () {
-		this._forEachSprite('resetAnimation');
-	};
+  this.resetAnimation = function () {
+    this._forEachSprite('resetAnimation');
+  };
 
-	this._forEachSprite = function (method) {
-		for (var i in this.sprites) {
-			this.sprites[i][method]();
-		}
-	};
+  this._forEachSprite = function (method) {
+    for (var i in this.sprites) {
+      this.sprites[i][method]();
+    }
+  };
 });

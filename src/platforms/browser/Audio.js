@@ -21,22 +21,22 @@
  */
 
 exports = function (opts) {
-	var defaults = {
-		autoplay: false,
-		preload: 'auto',
-		volume: 1.0,
-		loop: 0,
-		src: ''
-	};
-	
-	opts = merge(opts, defaults);
-	var el = document.createElement('Audio');
-	
-	el.autoplay = opts.autoplay;
-	el.preload = opts.preload;
-	el.volume = opts.volume;
-	el.loop = opts.loop;
-	el.src = opts.src;
-	
-	return el;
+  var defaults = {
+    autoplay: false,
+    preload: 'auto',
+    volume: 1.0,
+    loop: 0,
+    src: ''
+  };
+  
+  opts = merge(opts, defaults);
+  var el = document.createElement('Audio');
+  
+  el.autoplay = opts.autoplay;
+  el.preload = opts.preload;
+  el.volume = opts.volume;
+  el.loop = opts.loop;
+  el.src = opts.src;
+  
+  return el;
 };

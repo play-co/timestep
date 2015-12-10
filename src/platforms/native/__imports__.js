@@ -15,17 +15,17 @@
  */
 
 exports.resolve = function (env, opts) {
-	return [
-		'.Canvas',
-		'.Context2D',
-		'.initialize',
-		'.FontRenderer',
-		'.Input',
-		'.inputDialog',
-		'.StatusBar',
-		'.KeyListener',
-		'.TextBox',
-		'.Timer',
-		'.EditText'
-	];
+  return [
+    '.Canvas',
+    '.Context2D',
+    '.initialize',
+    '.FontRenderer',
+    '.Input',
+    '.inputDialog',
+    '.StatusBar',
+    '.KeyListener',
+    '.TextBox',
+    '.Timer',
+    '.EditText'
+  ];
 };

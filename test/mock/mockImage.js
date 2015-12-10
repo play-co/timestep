@@ -14,32 +14,32 @@
  */
 
 exports.Image = function() {
-	this.cb = {};
-	this.isMock = true;
-	this.width = 100;
-	this.height = 101;
+  this.cb = {};
+  this.isMock = true;
+  this.width = 100;
+  this.height = 101;
 
-	this.addEventListener = function(type, cb) {
-		this.cb[type] = cb;
-		this.complete && this.cb.load && this.cb.load(true);
-	};
+  this.addEventListener = function(type, cb) {
+    this.cb[type] = cb;
+    this.complete && this.cb.load && this.cb.load(true);
+  };
 
-	this.__defineSetter__(
-		"src",
-		function(url) {
-			this.url = url;
-			this.complete = true;
-			this.cb.load && this.cb.load(true);
-		}
-	);
+  this.__defineSetter__(
+    "src",
+    function(url) {
+      this.url = url;
+      this.complete = true;
+      this.cb.load && this.cb.load(true);
+    }
+  );
 
-	this.__defineGetter__(
-		"src",
-		function() {
-			return this.url;
-		}
-	);
+  this.__defineGetter__(
+    "src",
+    function() {
+      return this.url;
+    }
+  );
 
-	this.destroy = function() {
-	};
+  this.destroy = function() {
+  };
 };

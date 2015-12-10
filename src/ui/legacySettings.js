@@ -15,6 +15,6 @@
  */
 
 exports = {
-	disableVerticalAutoSize: false,
-	textViewColor: false // use this.color in TextView if true
+  disableVerticalAutoSize: false,
+  textViewColor: false // use this.color in TextView if true
 }

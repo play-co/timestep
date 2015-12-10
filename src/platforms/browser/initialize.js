@@ -21,33 +21,33 @@ device.registerDevice('browser', 'platforms.browser');
 
 exports.init = function () {
 
-	var onResize = function () {
-		var dpr = device.screen.devicePixelRatio;
-		var doc = window.document;
-		var width = (window.innerWidth || (doc.clientWidth || doc.clientWidth)) * dpr;
-		var height = (window.innerHeight || (doc.clientHeight || doc.clientHeight)) * dpr;
+  var onResize = function () {
+    var dpr = device.screen.devicePixelRatio;
+    var doc = window.document;
+    var width = (window.innerWidth || (doc.clientWidth || doc.clientWidth)) * dpr;
+    var height = (window.innerHeight || (doc.clientHeight || doc.clientHeight)) * dpr;
 
-		if (width != device.width || height != device.height || !device.screen.orientation) {
-			device.width = width;
-			device.height = height;
-			device.screen.width = width;
-			device.screen.height = height;
+    if (width != device.width || height != device.height || !device.screen.orientation) {
+      device.width = width;
+      device.height = height;
+      device.screen.width = width;
+      device.screen.height = height;
 
-			if (width > height) {
-				device.screen.isPortrait = false;
-				device.screen.isLandscape = true;
-				device.screen.orientation = 'landscape';
-			} else {
-				device.screen.isPortrait = true;
-				device.screen.isLandscape = false;
-				device.screen.orientation = 'portrait';
-			}
+      if (width > height) {
+        device.screen.isPortrait = false;
+        device.screen.isLandscape = true;
+        device.screen.orientation = 'landscape';
+      } else {
+        device.screen.isPortrait = true;
+        device.screen.isLandscape = false;
+        device.screen.orientation = 'portrait';
+      }
 
-			device.screen.publish('Resize', width, height);
-		}
-	};
+      device.screen.publish('Resize', width, height);
+    }
+  };
 
-	$.onEvent(window, 'resize', onResize, false);
+  $.onEvent(window, 'resize', onResize, false);
 
-	onResize();
+  onResize();
 };

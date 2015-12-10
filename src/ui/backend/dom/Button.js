@@ -21,22 +21,22 @@ import ui.backend.dom.TextView as TextView;
  */
 exports = Class(TextView, function (supr) {
 
-	this.init = function (opts) {
-		opts = merge(opts, {
-			type: "plain",
-			text: "CHANGE ME",
-			color: 'white',
-			shadow: true,
-			'dom:className': "button"
-		});
+  this.init = function (opts) {
+    opts = merge(opts, {
+      type: "plain",
+      text: "CHANGE ME",
+      color: 'white',
+      shadow: true,
+      'dom:className': "button"
+    });
 
-		supr(this, "init", [opts]);
+    supr(this, "init", [opts]);
 
-		this._node.style.textShadow = 'black 2px 2px 2px';
-		this.setText(opts.text);
-	};
+    this._node.style.textShadow = 'black 2px 2px 2px';
+    this.setText(opts.text);
+  };
 
-	this.onInputSelect = function () {
-		this.publish('Select');
-	}
+  this.onInputSelect = function () {
+    this.publish('Select');
+  }
 });

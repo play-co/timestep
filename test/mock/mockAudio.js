@@ -14,7 +14,7 @@
  */
 
 exports.Audio = function() {
-	this.play = function() {};
-	this.pause = function() {};
-	this.canPlayType = function() { return true; };
+  this.play = function() {};
+  this.pause = function() {};
+  this.canPlayType = function() { return true; };
 };

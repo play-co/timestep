@@ -17,10 +17,10 @@ require('./mockJSIO').setup();
 require('./mockDOM').setup();
 
 exports.setup = function() {
-	jsio('import device as device');
+  jsio('import device as device');
 
-	device.width = 640;
-	device.height = 480;
-	device.canResize = false;
-	device.isMobile = false;
+  device.width = 640;
+  device.height = 480;
+  device.canResize = false;
+  device.isMobile = false;
 };

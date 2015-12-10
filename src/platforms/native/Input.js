@@ -17,27 +17,27 @@
 import event.input.InputEvent as InputEvent;
 
 exports = Class(function () {
-	if (NATIVE.timestep && NATIVE.timestep.getEvents) {
-		if (!NATIVE.timestep.InputEvent) {
-			NATIVE.timestep.InputEvent = InputEvent;
-		}
+  if (NATIVE.timestep && NATIVE.timestep.getEvents) {
+    if (!NATIVE.timestep.InputEvent) {
+      NATIVE.timestep.InputEvent = InputEvent;
+    }
 
-		this.getEvents = function () {
-			return NATIVE.timestep.getEvents();
-		}
-	} else {
-		this.getEvents = function () {
-			var raw = NATIVE.input.getTouchEvents(),
-				evts = [];
-			
-			var j = 0;
-			for(var i = 0, e; e = raw[i]; ++i) {
-				evts[j++] = new InputEvent(e.id, e.type, e.pt);
-				if (e.type == 'input:select') {
-					evts[j++] = new InputEvent(e.id, 'input:clear', e.pt.x, e.pt.y);
-				}
-			}
-			return evts;
-		}
-	}
+    this.getEvents = function () {
+      return NATIVE.timestep.getEvents();
+    }
+  } else {
+    this.getEvents = function () {
+      var raw = NATIVE.input.getTouchEvents(),
+        evts = [];
+      
+      var j = 0;
+      for(var i = 0, e; e = raw[i]; ++i) {
+        evts[j++] = new InputEvent(e.id, e.type, e.pt);
+        if (e.type == 'input:select') {
+          evts[j++] = new InputEvent(e.id, 'input:clear', e.pt.x, e.pt.y);
+        }
+      }
+      return evts;
+    }
+  }
 });

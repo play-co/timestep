@@ -7,5 +7,5 @@ exports.hide = function () {
 }
 
 exports.getHeight = function () {
-	return 0;
+  return 0;
 }
