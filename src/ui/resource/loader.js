@@ -105,7 +105,7 @@ var Loader = Class(Emitter, function () {
 
 
   this.addAudioMap = function (map) {
-    Object.keys(map).forEach(function(name) {
+    Object.keys(map).forEach(function (name) {
       this._audioMap[name] = true;
     }, this);
   };
@@ -159,7 +159,7 @@ var Loader = Class(Emitter, function () {
       var preloadSheets = {};
       var map = this._map;
       for (var uri in map) {
-        if (uri.indexOf(pathPrefix) == 0) {
+        if (uri.indexOf(pathPrefix) === 0) {
           // sprites have sheet; sounds are just by the filename key itself
           preloadSheets[map[uri] && map[uri].sheet || uri] = true;
         }
@@ -168,7 +168,7 @@ var Loader = Class(Emitter, function () {
       var audioMap = this._audioMap;
       var audioToLoad = {};
       for (var uri in audioMap) {
-        if (uri.indexOf(pathPrefix) == 0) {
+        if (uri.indexOf(pathPrefix) === 0) {
           audioToLoad[uri] = true;
         }
       }
