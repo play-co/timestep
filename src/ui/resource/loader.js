@@ -104,7 +104,7 @@ var Loader = Class(Emitter, function () {
   };
 
 
-  this.addAudioMap = function(map) {
+  this.addAudioMap = function (map) {
     Object.keys(map).forEach(function(name) {
       this._audioMap[name] = true;
     }, this);
