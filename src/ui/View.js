@@ -158,6 +158,11 @@ var View = exports = Class(Emitter, function () {
     this.style.update(opts);
     this.__input.update(opts);
 
+    if (opts.centerAnchor) {
+      this.style.anchorX = (this.style.width || 0) / 2;
+      this.style.anchorY = (this.style.height || 0) / 2;
+    }
+
     if (opts.superview) {
       opts.superview.addSubview(this);
     }
