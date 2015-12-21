@@ -218,7 +218,7 @@ var Loader = Class(Emitter, function () {
   this.getImage = function (src, noWarn) {
     // create the image
     var img = new Image();
-    img.crossOrigin = "anonymous";
+    img.crossOrigin = 'use-credentials';
 
     // find the base64 image if it exists
     if (Image.get) {
