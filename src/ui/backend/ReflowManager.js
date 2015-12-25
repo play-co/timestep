@@ -14,16 +14,16 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-var DEBUG = false;
-var DEBUG_TIME = true;
-if (DEBUG || DEBUG_TIME) {
+var DEBUG_REFLOW = false;
+var DEBUG_TIME = false;
+if (DEBUG_REFLOW || DEBUG_TIME) {
   var _debug = {
     space: '',
     stepIn: function () { this.space += ' '; return true; },
     stepOut: function () { this.space = this.space.slice(0, this.space.length - 1); return true; },
     log: function () { logger.log.apply(logger, [this.space].concat(Array.prototype.slice.call(arguments, 0))); return true; }
   };
-  logger.log("===== CREATING REFLOW MANAGER");
+  logger.log('===== CREATING REFLOW MANAGER');
 }
 
 // max reflows for any view in a given tick
@@ -35,7 +35,7 @@ var _pool = new (Class(function () {
   this.recycle = function (item) {
     item.view = null;
     this._pool.push(item);
-  }
+  };
 
   this.get = function (view) {
     var item = this._pool.pop() || {};
@@ -43,7 +43,7 @@ var _pool = new (Class(function () {
     item.count = 0;
     item.needsReflow = false;
     return item;
-  }
+  };
 }));
 
 /**
@@ -70,7 +70,7 @@ var ReflowManager = exports = Class(function () {
     this._pending = {};
     this._iter = 0;
     this._pendingCount = 0;
-  }
+  };
 
   this.add = function (view) {
     if (!view.style.layout) { return; }
@@ -82,7 +82,7 @@ var ReflowManager = exports = Class(function () {
       ++this._pendingCount;
       item.needsReflow = true;
 
-      DEBUG && _debug.log('adding ' + view + ' (' + view.uid + ')' + (' ' + view.style.layout || '') + ':',
+      DEBUG_REFLOW && _debug.log('adding ' + view + ' (' + view.uid + ')' + (' ' + view.style.layout || '') + ':',
         (view.style.width === undefined ? '?' : view.style.width)
           + 'x'
           + (view.style.height === undefined ? '?' : view.style.height));
@@ -92,7 +92,7 @@ var ReflowManager = exports = Class(function () {
     if (item.iter != this._iter) {
       item.iter = this._iter;
     }
-  }
+  };
 
   this.reflow = function (view) {
     if (view.style.__cachedWidth === undefined) {
@@ -118,8 +118,6 @@ var ReflowManager = exports = Class(function () {
     // always reflow children if a layout changes sizes
     if (view.__layout) {
       var style = view.style;
-      var w = style.width;
-      var h = style.height;
       if (style.__cachedWidth != style.width || style.__cachedHeight != style.height) {
         var subviews = view.getSubviews();
         for (var i = 0, n = subviews.length; i < n; ++i) {
@@ -127,15 +125,17 @@ var ReflowManager = exports = Class(function () {
         }
       }
     }
-  }
+  };
 
-  this.reflowViews = function (ctx) {
+  this.reflowViews = function (_ctx) {
     if (!this._pendingCount) { return; }
 
     this._iter = 0;
-    var count;
 
-    DEBUG && _debug.stepIn();
+    var count;
+    var uid;
+
+    DEBUG_REFLOW && _debug.stepIn();
     if (DEBUG_TIME) {
       var startTime = Date.now();
     }
@@ -149,8 +149,8 @@ var ReflowManager = exports = Class(function () {
         ++this._iter; // what iteration are we on? only increment a view's count once per iteration
 
         count = 0;
-        for (var uid in this._pending) {
-          DEBUG && count == 0 && this._iter == 1 && console.log(" == beginning reflow == ");
+        for (uid in this._pending) {
+          DEBUG_REFLOW && count == 0 && this._iter == 1 && console.log(' == beginning reflow == ');
 
           var item = this._pending[uid];
           if (item.count > MAX_REFLOW_THRESHOLD) {
@@ -161,24 +161,24 @@ var ReflowManager = exports = Class(function () {
 
           if (item.needsReflow) {
             ++item.count;
-            DEBUG && _debug.log('-- reflow view', item.view.uid, '(' + item.count + ' times)') && _debug.stepIn();
+            DEBUG_REFLOW && _debug.log('-- reflow view', item.view.uid, '(' + item.count + ' times)') && _debug.stepIn();
             this.reflow(item.view);
-            DEBUG && _debug.stepOut();
+            DEBUG_REFLOW && _debug.stepOut();
             ++count;
           }
         }
 
-        DEBUG && count && _debug.log('***** iteration', this._iter, 'reflowed', count, 'views');
+        DEBUG_REFLOW && count && _debug.log('***** iteration', this._iter, 'reflowed', count, 'views');
       }
 
-      for (var uid in this._pending) {
+      for (uid in this._pending) {
         var view = this._pending[uid].view;
         if (view.hasListeners('resize')) {
           var style = view.style;
           var w = style.width;
           var h = style.height;
           if (style.__cachedWidth != w || style.__cachedHeight != h) {
-            DEBUG && _debug.log('view', view.uid, 'resize event firing', w + 'x' + h, '(prev: ' + style.__cachedWidth + 'x' + style.__cachedHeight + ')');
+            DEBUG_REFLOW && _debug.log('view', view.uid, 'resize event firing', w + 'x' + h, '(prev: ' + style.__cachedWidth + 'x' + style.__cachedHeight + ')');
             style.__cachedWidth = w;
             style.__cachedHeight = h;
             view.emit('resize');
@@ -189,7 +189,7 @@ var ReflowManager = exports = Class(function () {
 
     this.cleanUp();
 
-    if (DEBUG) {
+    if (DEBUG_REFLOW) {
       _debug.stepOut();
     }
 
@@ -197,7 +197,7 @@ var ReflowManager = exports = Class(function () {
       var now = Date.now();
       _debug.log('total reflow time:', now - startTime);
     }
-  }
+  };
 
 
   this.cleanUp = function () {
@@ -208,10 +208,10 @@ var ReflowManager = exports = Class(function () {
     }
 
     this._pendingCount = 0;
-  }
+  };
 });
 
 var _instance = null;
 exports.get = function () {
   return (_instance || (_instance = new ReflowManager()));
-}
+};
