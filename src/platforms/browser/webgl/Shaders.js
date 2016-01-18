@@ -150,7 +150,7 @@ var TintShader = Class(Shader, function(supr) {
       'uniform sampler2D uSampler;',
       'void main(void) {',
       ' vec4 vSample = texture2D(uSampler, vTextureCoord);',
-      ' gl_FragColor = vec4((vSample.rgb * (1.0 - vColor.a) + (vColor.rgb * vColor.a)) * vSample.a, vSample.a * vAlpha);',
+      ' gl_FragColor = vec4((vSample.rgb * (1.0 - vColor.a) + (vColor.rgb * vColor.a)) * vSample.a * vAlpha, vSample.a * vAlpha);',
       '}'
     ].join("\n");
     Shader.prototype.init.call(this, opts);
