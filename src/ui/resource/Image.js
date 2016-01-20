@@ -88,7 +88,6 @@ if (!ImageMap) {
 exports = Class(lib.PubSub, function () {
 
   var isNative = GLOBAL.NATIVE && !device.isNativeSimulator;
-  var isWebGL = CONFIG.useWebGL;
   var Canvas = device.get('Canvas');
 
   // helper canvases for image data, initialized when/if needed
