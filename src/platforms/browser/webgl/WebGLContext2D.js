@@ -28,6 +28,7 @@ import ui.Color as Color;
 import .TextManager;
 import .Shaders;
 import .Matrix2D;
+import .WebGLTextureManager;
 
 var ContextStateStack = Class(function() {
 
@@ -123,11 +124,12 @@ var GLManager = Class(function() {
 
     this.width = device.screen.width;
     this.height = device.screen.height;
-    this.isSupported = webglSupported;
+    this.isSupported = webglSupported && CONFIG.useWebGL;
 
     if (!this.isSupported) { return; }
 
     this.textManager = new TextManager();
+    this.textureManager = new WebGLTextureManager();
 
     this._helperTransform = new Matrix2D();
 
@@ -172,7 +174,7 @@ var GLManager = Class(function() {
     loader.on(loader.IMAGE_LOADED, function(image) {
       var glId = image.__GL_ID;
       if (glId === undefined) {
-        glId = this.createTexture(image);
+        glId = this.createOrUpdateTexture(image, undefined, true);
       }
     }.bind(this));
 
@@ -213,7 +215,6 @@ var GLManager = Class(function() {
 
     gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
-    this.textureCache = {};
     this._drawIndex = -1;
     this._batchIndex = -1;
 
@@ -233,18 +234,8 @@ var GLManager = Class(function() {
     this.shaders[RENDER_MODES.Multiply] = new Shaders.MultiplyShader({ gl: gl });
     this.shaders[RENDER_MODES.Rect] = new Shaders.RectShader({ gl: gl });
 
-    this.reloadTextures();
     this.updateContexts();
-  };
-
-  this.reloadTextures = function() {
-    var oldCanvases = this.canvasCache;
-    this.canvasCache = [];
-    if (oldCanvases) {
-      for (var i = 0; i < oldCanvases.length; i++) {
-        this.createTexture(oldCanvases[i]);
-      }
-    }
+    this.textureManager.initGL(gl);
   };
 
   this.updateContexts = function() {
@@ -379,7 +370,8 @@ var GLManager = Class(function() {
       }
       var textureId = curQueueObj.textureId;
       if (textureId !== -1) {
-        gl.bindTexture(gl.TEXTURE_2D, this.textureCache[curQueueObj.textureId]);
+        var texture = this.textureManager.getTexture(textureId);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
       }
       this.setActiveCompositeOperation(curQueueObj.globalCompositeOperation);
       this.setActiveRenderMode(curQueueObj.renderMode);
@@ -392,47 +384,36 @@ var GLManager = Class(function() {
     this._batchIndex = -1;
   };
 
-  this.createTexture = function(image, id) {
+  this.createOrUpdateTexture = function(image, id, drawImmediately) {
     var gl = this.gl;
+
     if (!gl) { return -1; }
-
     if (!id) { id = CACHE_UID++; }
-    var texture = this.textureCache[id] || gl.createTexture();
 
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    this.textureCache[id] = texture;
-    this.canvasCache[id] = image;
+    this.textureManager.createOrUpdateTexture(image, id);
 
-    image.__GL_ID = id;
-
-    var uploadCanvasData = image instanceof HTMLCanvasElement || image instanceof Image;
-
-    if (uploadCanvasData) {
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    if (drawImmediately) {
       var currentAlpha = this._primaryContext.globalAlpha;
       // Draw single, transparent pixel of image to ensure upload to buffer
       this._primaryContext.globalAlpha = 0.00001;
       this._primaryContext.drawImage(image, 0, 0, 1, 1, 0, 0, 1, 1);
       this.flush();
       this._primaryContext.globalAlpha = currentAlpha;
-    } else {
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, image.width, image.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     }
 
     return id;
   };
 
   this.getTexture = function(id) {
-    return this.textureCache[id];
+    return this.textureManager.getTexture(id);
   };
 
   this.deleteTexture = function(id) {
-    var texture = this.textureCache[id];
-    this.gl.deleteTexture(texture);
-    delete this.textureCache[id];
+    this.textureManager.deleteTexture(id);
+  };
+
+  this.deleteTextureForImage = function(image) {
+    this.textureManager.deleteTextureForImage(image);
   };
 
   this.enableScissor = function(x, y, width, height) {
@@ -566,7 +547,7 @@ var Context2D = Class(function () {
     var gl = this._manager.gl;
     if (!gl) { return; }
     var activeCtx = this._manager._activeCtx;
-    var id = this._manager.createTexture(this.canvas);
+    var id = this._manager.createOrUpdateTexture(this.canvas);
     this._texture = this._manager.getTexture(id);
     this.frameBuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
@@ -763,7 +744,7 @@ var Context2D = Class(function () {
       // Invalid image? Early out if so.
       if (image.width === 0 || image.height === 0 || !image.complete) { return; }
       image.__needsUpload = false;
-      glId = manager.createTexture(image, glId);
+      glId = manager.createOrUpdateTexture(image, glId);
     }
 
     var drawIndex = manager.addToBatch(this.stack.state, glId);
