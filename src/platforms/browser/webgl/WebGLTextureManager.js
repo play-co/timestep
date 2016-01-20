@@ -66,7 +66,9 @@ var WebGLTextureManager = Class(function() {
     var gl = this.gl;
     if (!gl) { return -1; }
 
-    if (!id) { id = CACHE_UID++; }
+    if (id === undefined) {
+      id = image.__GL_ID !== undefined ? image.__GL_ID : CACHE_UID++;
+    }
 
     var textureDataEntry = this.textureDataCache.find(id);
     var textureData = textureDataEntry ? textureDataEntry.value : null;
