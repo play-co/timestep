@@ -52,7 +52,7 @@ if (AudioContext) {
 	logger.warn("HTML5 AudioContext not supported, falling back to Audio!");
 }
 
-var _muteAll = true;
+var _muteAll = false;
 var _registeredAudioManagers = [];
 
 /**
