@@ -131,6 +131,10 @@ var GLManager = Class(function() {
     this.textManager = new TextManager();
     this.textureManager = new WebGLTextureManager();
 
+    this.textureManager.on(WebGLTextureManager.TEXTURE_REMOVED, bind(this, function() {
+      this.flush();
+    }));
+
     this._helperTransform = new Matrix2D();
 
     this._canvas = document.createElement('canvas');
@@ -172,10 +176,7 @@ var GLManager = Class(function() {
     this.activate(this._primaryContext);
 
     loader.on(loader.IMAGE_LOADED, function(image) {
-      var glId = image.__GL_ID;
-      if (glId === undefined) {
-        glId = this.createOrUpdateTexture(image, undefined, true);
-      }
+      this.createOrUpdateTexture(image, image.__GL_ID, true);
     }.bind(this));
 
     this.contextActive = true;
@@ -234,8 +235,8 @@ var GLManager = Class(function() {
     this.shaders[RENDER_MODES.Multiply] = new Shaders.MultiplyShader({ gl: gl });
     this.shaders[RENDER_MODES.Rect] = new Shaders.RectShader({ gl: gl });
 
-    this.updateContexts();
     this.textureManager.initGL(gl);
+    this.updateContexts();
   };
 
   this.updateContexts = function() {
@@ -371,6 +372,7 @@ var GLManager = Class(function() {
       var textureId = curQueueObj.textureId;
       if (textureId !== -1) {
         var texture = this.textureManager.getTexture(textureId);
+        if (!texture) { continue; }
         gl.bindTexture(gl.TEXTURE_2D, texture);
       }
       this.setActiveCompositeOperation(curQueueObj.globalCompositeOperation);
@@ -388,9 +390,8 @@ var GLManager = Class(function() {
     var gl = this.gl;
 
     if (!gl) { return -1; }
-    if (!id) { id = CACHE_UID++; }
 
-    this.textureManager.createOrUpdateTexture(image, id);
+    id = this.textureManager.createOrUpdateTexture(image, id);
 
     if (drawImmediately) {
       var currentAlpha = this._primaryContext.globalAlpha;
@@ -908,10 +909,7 @@ var Context2D = Class(function () {
   };
 
   this.deleteTextureForImage = function(canvas) {
-    if (!this._manager.gl) { return; }
-    this._manager.flush();
-    this._manager.deleteTexture(canvas.__GL_ID);
-    canvas.__GL_ID = undefined;
+    this._manager.deleteTextureForImage(canvas);
   };
 
 });
