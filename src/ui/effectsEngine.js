@@ -220,6 +220,20 @@ var EffectsEngine = Class(View, function () {
     });
   };
 
+  this.finishEffectByID = function (id) {
+    effectPool.forEachActive(function (effect) {
+      if (effect.id === id) {
+        effect.finish();
+      }
+    });
+  };
+
+  this.finishAllEffects = function () {
+    effectPool.forEachActive(function (effect) {
+      effect.finish();
+    });
+  };
+
   this.validateData = function (data) {
     // allow data to be a JSON URL string
     if (typeof data === 'string') {
@@ -556,6 +570,10 @@ var Effect = Class('Effect', function () {
       }
     });
     this.recycle();
+  };
+
+  this.finish = function () {
+    this.isContinuous = false;
   };
 
   this.emitParticles = function () {
