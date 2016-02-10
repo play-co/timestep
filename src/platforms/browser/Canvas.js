@@ -29,7 +29,7 @@ exports = Class(function () {
 
     this._width = opts.width;
     this._height = opts.height;
-    this.isWebGL = opts.useWebGL && CONFIG.useWebGL && WebGLContext2D.isSupported;
+    this.isWebGL = !!opts.useWebGL && !!CONFIG.useWebGL && WebGLContext2D.isSupported;
 
     var ctx;
 

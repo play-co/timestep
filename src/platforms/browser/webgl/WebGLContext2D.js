@@ -512,6 +512,8 @@ var textCtx = document.createElement("canvas").getContext("2d");
 
 var Context2D = Class(function () {
 
+  this._helperTransform = new Matrix2D();
+
   var createContextProperty = function(ctx, name) {
     Object.defineProperty(ctx, name, {
       get: function() { return this.stack.state[name]; },
