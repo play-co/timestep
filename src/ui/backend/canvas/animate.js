@@ -29,15 +29,17 @@ import animate.transitions as transitions;
 import timer;
 import ObjectPool;
 
+var engine = null;
 var groups = {};
 var DEFAULT_GROUP_ID = "__default_group";
 
 exports = function (subject, groupID) {
   // TODO: we have a circular import, so do the Engine import on first use
-  if (typeof Engine === 'undefined') {
+  if (engine === null) {
     import ui.Engine as Engine;
     import ui.View as View;
     import device;
+    engine = Engine.get();
   }
 
   if (device.useDOM && subject instanceof View && !groupID) {
@@ -457,14 +459,14 @@ var Animator = exports.Animator = Class(Emitter, function () {
   this._schedule = function () {
     if (!this._isScheduled) {
       this._isScheduled = true;
-      Engine.get().subscribe('Tick', this, 'onTick');
+      engine.subscribe('Tick', this, 'onTick');
     }
   };
 
   this._unschedule = function () {
     if (this._isScheduled) {
       this._isScheduled = false;
-      Engine.get().unsubscribe('Tick', this, 'onTick');
+      engine.unsubscribe('Tick', this, 'onTick');
     }
   };
 
