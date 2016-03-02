@@ -279,7 +279,9 @@ var EffectsEngine = Class(View, function () {
   this.initializePropertyCount = function (count) {
     count -= propertyPool.getTotalCount();
     for (var i = 0; i < count; i++) {
-      propertyPool.create();
+      var prop = propertyPool.create();
+      // force the property to init its Animator
+      prop.reset(this, 'delta', 0);
     }
   };
 
@@ -665,7 +667,10 @@ var Particle = Class('Particle', function () {
 
     for (var i = 0; i < PROPERTY_KEY_COUNT; i++) {
       // particle properties are never recycled, so ignore the propertyPool
-      this[PROPERTY_KEYS[i]] = new Property();
+      var key = PROPERTY_KEYS[i];
+      var prop = this[key] = new Property();
+      // reset on initialize to fully prep the property, i.e. init Animators
+      prop.reset(this, key, PROPERTY_DEFAULTS[key]);
     }
 
     for (var i = 0; i < OTHER_KEY_COUNT; i++) {

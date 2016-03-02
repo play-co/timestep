@@ -35,6 +35,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     this._cachedCos = 1;
     this._globalOpacity = 1;
     this._view = view;
+    this._superview = null;
     this._subviews = [];
     this._childCount = 0;
   };
@@ -97,13 +98,19 @@ var ViewBacking = exports = Class(BaseBacking, function () {
   };
 
   this.updateGlobalTransform = function () {
-    var parent = this._view.__parent ? this._view.__parent.__view : null;
-    this._globalOpacity = parent ? parent._globalOpacity * this.opacity : this.opacity;
-
     var flipX = this.flipX ? -1 : 1;
     var flipY = this.flipY ? -1 : 1;
 
-    var pgt = parent ? parent._globalTransform : IDENTITY_MATRIX;
+    var pgt;
+    var parent = this._superview && this._superview.__view;
+    if (parent) {
+      pgt = parent._globalTransform;
+      this._globalOpacity = parent._globalOpacity * this.opacity;
+    } else {
+      pgt = IDENTITY_MATRIX;
+      this._globalOpacity = this.opacity;
+    }
+
     var gt = this._globalTransform;
     var sx = this.scaleX * this.scale * flipX;
     var sy = this.scaleY * this.scale * flipY;

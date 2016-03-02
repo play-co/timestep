@@ -18,21 +18,28 @@
  * package ui.backend.canvas.animate;
  *
  * Canvas animate namespace and functions.
+ *
+ * Internal Class Note:
+ *   Animators are kept on subjects, and only get GC'd if subject does
+ *   Frames are pooled and recycled internally
  */
 
 import event.Emitter as Emitter;
 import animate.transitions as transitions;
 import timer;
+import ObjectPool;
 
+var engine = null;
 var groups = {};
 var DEFAULT_GROUP_ID = "__default_group";
 
 exports = function (subject, groupID) {
   // TODO: we have a circular import, so do the Engine import on first use
-  if (typeof Engine === 'undefined') {
+  if (engine === null) {
     import ui.Engine as Engine;
     import ui.View as View;
     import device;
+    engine = Engine.get();
   }
 
   if (device.useDOM && subject instanceof View && !groupID) {
@@ -288,30 +295,50 @@ function getTransition(n) {
 };
 
 var Frame = Class(function () {
-  this.init = function (opts) {
-    this.subject = opts.subject;
-    this.target = opts.target;
-    this.duration = opts.duration === 0 ? 0 : (opts.duration || 500);
-    this.transition = getTransition(opts.transition);
-    this.onTick = opts.onTick;
+  this.init = function () {
+    this.subject = null;
+    this.target = null;
+    this.duration = 0;
+    this.transition = null;
+    this.base = null;
+    this._baseStyle = null;
+    // ObjectPool book-keeping
+    this.pool = null;
+    this._poolIndex = 0;
+    this._obtainedFromPool = false;
+  };
+
+  this.reset = function (subject, target, duration, transition) {
+    this.subject = subject;
+    this.target = target;
+    this.duration = duration === 0 ? 0 : (duration || 500);
+    this.transition = getTransition(transition);
+    this.base = null;
+    this._baseStyle = null;
     if (this.duration < 0) {
       throw new Error("Animations cannot have negative durations!");
     }
   };
 
-  this.exec = function () {};
-  this.debugLog = function () {};
+  this.recycle = function () {
+    this.pool.release(this);
+  };
+
+  this.exec = function (tt, t, debug) {};
+  this.debugLog = function (tt) {};
 });
 
 var CallbackFrame = Class(Frame, function () {
-  this.init = function (opts) {
-    Frame.prototype.init.call(this, opts);
+  var supr = Frame.prototype;
+
+  this.reset = function (subject, target, duration, transition) {
+    supr.reset.call(this, subject, target, duration, transition);
     // CallbackFrames act like tick functions when given durations
-    this.duration = opts.duration || 0;
+    this.duration = duration || 0;
   };
 
-  this.exec = function (tt, t) {
-    this.target.apply(this.subject, arguments);
+  this.exec = function (tt, t, debug) {
+    this.target.call(this.subject, tt, t, debug);
   };
 });
 
@@ -343,11 +370,6 @@ var ObjectFrame = Class(Frame, function () {
 
 // a ViewStyleFrame updates a view's style in exec
 var ViewStyleFrame = Class(Frame, function () {
-  this.init = function (opts) {
-    Frame.prototype.init.call(this, opts);
-    this.target = merge({}, this.target);
-  };
-
   this.resolveDeltas = function (againstStyle) {
     var style = this.target;
     for (var key in style) {
@@ -396,13 +418,21 @@ var ViewStyleFrame = Class(Frame, function () {
 var Animator = exports.Animator = Class(Emitter, function () {
   this.init = function (subject) {
     this.subject = subject;
-    this.clear();
+    this._queue = [];
+    this._elapsed = 0;
     this._isPaused = false;
+    this._isScheduled = false;
+    this._debug = false;
   };
 
   this.clear = function () {
+    var queue = this._queue;
+    var len = queue.length;
+    for (var i = 0; i < len; i++) {
+      queue[i].recycle();
+    }
+    queue.length = 0;
     this._elapsed = 0;
-    this._queue = [];
     this._unschedule();
     this._removeFromGroup();
     return this;
@@ -429,14 +459,14 @@ var Animator = exports.Animator = Class(Emitter, function () {
   this._schedule = function () {
     if (!this._isScheduled) {
       this._isScheduled = true;
-      Engine.get().subscribe('Tick', this, 'onTick');
+      engine.subscribe('Tick', this, 'onTick');
     }
   };
 
   this._unschedule = function () {
     if (this._isScheduled) {
       this._isScheduled = false;
-      Engine.get().unsubscribe('Tick', this, 'onTick');
+      engine.unsubscribe('Tick', this, 'onTick');
     }
   };
 
@@ -447,35 +477,35 @@ var Animator = exports.Animator = Class(Emitter, function () {
     return this.then(undefined, duration);
   };
 
-  this.buildFrame = function (opts) {
-    var targetType = typeof opts.target;
+  this.buildFrame = function (target, duration, transition) {
+    var frame;
+    var subject = this.subject;
+    var targetType = typeof target;
     if (targetType === 'function') {
-      return new CallbackFrame(opts);
+      frame = callbackFramePool.obtain();
+      frame.pool = callbackFramePool;
     } else if (targetType === 'object') {
-      return new ObjectFrame(opts);
+      frame = objectFramePool.obtain();
+      frame.pool = objectFramePool;
     } else {
-      return new Frame(opts);
+      frame = framePool.obtain();
+      frame.pool = framePool;
     }
+    frame.reset(subject, target, duration, transition);
+    return frame;
   };
 
-  this.now = function (target, duration, transition, onTick) {
-    transition = transition || (this._queue[0] ? exports.easeOut : exports.easeInOut);
+  this.now = function (target, duration, transition) {
     this.clear();
-    return this.then(target, duration, transition, onTick);
+    return this.then(target, duration, transition);
   };
 
-  this.then = function (target, duration, transition, onTick) {
+  this.then = function (target, duration, transition) {
     if (!this._queue.length) {
       this._elapsed = 0;
     }
 
-    this._queue.push(this.buildFrame({
-      subject: this.subject,
-      target: target,
-      duration: duration,
-      transition: transition,
-      onTick: onTick
-    }));
+    this._queue.push(this.buildFrame(target, duration, transition));
     this._schedule();
     this._addToGroup();
     return this;
@@ -519,11 +549,11 @@ var Animator = exports.Animator = Class(Emitter, function () {
       }
 
       p.exec(tt, t, this._debug);
-      p.onTick && p.onTick.call(p.subject, tt, t);
 
       // remove frame if finished and queue wasn't modified by a callback
       if (frameFinished && p === this._queue[0]) {
-        this._queue.shift();
+        var frame = this._queue.shift();
+        frame.recycle();
       }
 
       // if paused during a callback or frame not finished, don't continue
@@ -549,11 +579,16 @@ var Animator = exports.Animator = Class(Emitter, function () {
 });
 
 var ViewAnimator = Class(Animator, function () {
-  this.buildFrame = function (opts) {
-    if (typeof opts.target === 'object') {
-      return new ViewStyleFrame(opts);
+  var supr = Animator.prototype;
+
+  this.buildFrame = function (target, duration, transition) {
+    if (typeof target === 'object') {
+      var frame = viewStyleFramePool.obtain();
+      frame.pool = viewStyleFramePool;
+      frame.reset(this.subject, target, duration, transition);
+      return frame;
     } else {
-      return Animator.prototype.buildFrame.call(this, opts);
+      return supr.buildFrame.call(this, target, duration, transition);
     }
   };
 });
@@ -561,3 +596,41 @@ var ViewAnimator = Class(Animator, function () {
 // used to get/set native or browser ViewAnimator constructors
 exports.getViewAnimator = function () { return ViewAnimator; };
 exports.setViewAnimator = function (ctor) { ViewAnimator = ctor; };
+
+
+
+// pool frame classes to minimize mem allocation and garbage collection
+var framePool = new ObjectPool({ ctor: Frame });
+var objectFramePool = new ObjectPool({ ctor: ObjectFrame });
+var callbackFramePool = new ObjectPool({ ctor: CallbackFrame });
+var viewStyleFramePool = new ObjectPool({ ctor: ViewStyleFrame });
+
+// API for pre-populating frame pools
+//   this is useful if you plan on launching many animations at once
+exports.initializeFrameCount = function (count) {
+  count -= framePool.getTotalCount();
+  for (var i = 0; i < count; i++) {
+    framePool.create();
+  }
+};
+
+exports.initializeObjectFrameCount = function (count) {
+  count -= objectFramePool.getTotalCount();
+  for (var i = 0; i < count; i++) {
+    objectFramePool.create();
+  }
+};
+
+exports.initializeCallbackFrameCount = function (count) {
+  count -= callbackFramePool.getTotalCount();
+  for (var i = 0; i < count; i++) {
+    callbackFramePool.create();
+  }
+};
+
+exports.initializeViewStyleFrameCount = function (count) {
+  count -= viewStyleFramePool.getTotalCount();
+  for (var i = 0; i < count; i++) {
+    viewStyleFramePool.create();
+  }
+};
