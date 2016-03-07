@@ -493,12 +493,17 @@ var GLManager = Class(function() {
 
   this.activate = function (ctx, forceActivate) {
     var gl = this.gl;
-    if ((!forceActivate && ctx === this._activeCtx) || !gl) { return; }
-    this.flush();
-    gl.finish();
+    var sameContext = ctx === this._activeCtx;
+
+    if (sameContext && !forceActivate) { return; }
+    if (!sameContext) {
+      this.flush();
+      gl.finish();
+      this._activeCtx = ctx;
+    }
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, ctx.frameBuffer);
     gl.viewport(0, 0, ctx.width, ctx.height);
-    this._activeCtx = ctx;
     this._activeRenderMode = -1;
   }
 });
