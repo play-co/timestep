@@ -562,8 +562,8 @@ exports = Class(ui.View, function (supr) {
       var h = s.height;
 
       var bounds = this._img.getBounds();
-      var iw = bounds.width;
-      var ih = bounds.height;
+      var iw = (bounds.marginLeft + bounds.width + bounds.marginRight) / bounds.scale;
+      var ih = (bounds.marginTop + bounds.height + bounds.marginBottom) / bounds.scale;
 
       var x = 0, y = 0;
 

@@ -311,6 +311,7 @@ var MultiSound = Class(function () {
       }
       this._lastSrc = src;
     }
+    this._isPaused = false;
   };
 
   this._playFromBuffer = function (buffer, loop, time, duration) {
