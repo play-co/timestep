@@ -19,6 +19,30 @@
  *
  * Measures performance.
  *
- */
+**/
+import ui.Engine as Engine;
 
- 
+var engine = Engine.get();
+
+var HISTORY_SIZE = 100;
+
+var AppTick = Class(function () {
+  this.init = function () {
+    var history = [];
+    var historyIndex = 0;
+    var _lastTick = Date.now();
+    engine.subscribe('Tick', this, 'onTick');
+  };
+
+  this.onTick = function(dt) {
+  	var now = Date.now();
+  	var delta = _lastTick - now;
+  	history[historyIndex++] = delta;
+  	_lastTick = now;
+  };
+});
+
+
+exports.testPerformanceTimeWithWindow = function() {
+
+}
