@@ -30,10 +30,13 @@ exports.getParticleCount = function(count, performance) {
 	if (!performance) {return count;}
 
 	// mR is the mobile rank that comes of the stress test
-	var mR = 10;
-	var pR = performance.effectPerformanceRank || DEFAULT_RANK;
-	var aR = performance.allowReduction || DEFAULT_ALLOW_REDUCTION;
+	var mR = 50;
+
 	var currCount = count;
+	var pR = performance.effectPerformanceRank || DEFAULT_RANK;
+	var aR = (typeof performance.allowReduction !== 'undefined')
+		? performance.allowReduction
+		: DEFAULT_ALLOW_REDUCTION;
 
 	if (mR < pR) {
 		currCount = (aR)
