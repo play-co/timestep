@@ -21,4 +21,25 @@
  *
  */
 
- 
+var floor = Math.floor;
+
+var DEFAULT_RANK = 0;
+var DEFAULT_ALLOW_REDUCTION = true;
+
+exports.getParticleCount = function(count, performance) {
+	if (!performance) {return count;}
+
+	// mR is the mobile rank that comes of the stress test
+	var mR = 10;
+	var pR = performance.effectPerformanceRank || DEFAULT_RANK;
+	var aR = performance.allowReduction || DEFAULT_ALLOW_REDUCTION;
+	var currCount = count;
+
+	if (mR < pR) {
+		currCount = (aR)
+			? count * mR / pR
+			: 0;  
+	}	
+
+	return currCount;
+};

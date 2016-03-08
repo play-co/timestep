@@ -24,6 +24,7 @@
 import device;
 import ui.View as View;
 import ui.resource.Image as Image;
+import performanceMetric as performanceMetric;
 var Canvas = device.get("Canvas");
 
 // Math references
@@ -110,6 +111,8 @@ var PARTICLE_KEYS = Object.keys(PARTICLE_DEFAULTS);
 var MAX_TEX_WIDTH = 1024;
 var MAX_TEX_HEIGHT = 1024;
 
+
+
 /**
  * @extends ui.View, same API as ui.ParticleEngine.js
  */
@@ -142,8 +145,10 @@ exports = Class(View, function () {
     this._canvas = new Canvas({ width: MAX_TEX_WIDTH, height: MAX_TEX_HEIGHT, useWebGL: true });
   };
 
-  this.obtainParticleArray = function (count) {
-    for (var i = 0; i < count; i++) {
+  this.obtainParticleArray = function (count, performance) {
+    var currCount = performanceMetric.getParticleCount(count, performance);
+
+    for (var i = 0; i < currCount; i++) {
       // duplicate copy of default properties for optimal performance
       this._particleDataArray.push(this._freeParticleObjects.pop() || {
         x: 0,
