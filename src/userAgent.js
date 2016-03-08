@@ -80,7 +80,7 @@ exports.SIMULATED = isSimulator;
 
 
 // This is the desired API
-//exports.APP_RUNTIME = "browser" or "mobile";
+//exports.APP_RUNTIME = "browser" or "native";
 //exports.DEVICE_TYPE = "mobile" or "desktop";
 //exports.OS_TYPE = "iOS" or "Android" or ...
 //exports.SIMULATED = true or false
