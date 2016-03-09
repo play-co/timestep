@@ -22,7 +22,7 @@ import device;
 
 var isIOS7 = device.iosVersion === 7;
 var isIOSSafari = device.iosVersion >= 7 && !device.isIpad && !device.isStandalone && !device.isUIWebView;
-var enableLandscapeScroll = isIOSSafari;
+var enableLandscapeScroll = isIOSSafari && window.parent === window;
 
 var SCALING = Enum('FIXED', 'RESIZE', 'MANUAL');
 var defaultScalingMode = !device.isMobileNative || device.simulating ? SCALING.RESIZE : SCALING.FIXED;
