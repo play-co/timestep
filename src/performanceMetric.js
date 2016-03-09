@@ -22,6 +22,10 @@
 **/
 
 var engine = null;
+var floor = Math.floor;
+
+var DEFAULT_RANK = 0;
+var DEFAULT_ALLOW_REDUCTION = true;
 
 	
 var PerformanceTester = Class(function () {
@@ -82,42 +86,36 @@ var PerformanceTester = Class(function () {
 		var mappedScore = _map(adjustedTicksPerSecond, this.LOWER_BOUND, this.HIGHER_BOUND, 0, 100);
 		return Math.max(0, mappedScore);
 	}
+	
+	this.getParticleCount = function(count, performance) {
+		if (!performance) {return count;}
+
+		var currCount = count;
+		var mR = 50;
+		var pR = performance.effectPerformanceRank || DEFAULT_RANK;
+		var aR = (typeof performance.allowReduction !== 'undefined')
+			? performance.allowReduction
+			: DEFAULT_ALLOW_REDUCTION;
+
+		if (mR < pR) {
+			currCount = (aR)
+				? count * mR / pR
+				: 0;  
+		}	
+
+		return currCount;
+	};	
 
 	var _map = function(val, start1, stop1, start2, stop2) {
-		var range1 = stop1-start1;
-		var range2 = stop2-start2;
-		var valPosition = val-start1;
+		var range1 = stop1 - start1;
+		var range2 = stop2 - start2;
+		var valPosition = val - start1;
 		var valuePercentage = valPosition / range1;
 		return start2 + range2 * valuePercentage;
 	};
 });
 
-exports.performanceTester = new PerformanceTester();
+exports = new PerformanceTester();
 
 
 
-var floor = Math.floor;
-
-var DEFAULT_RANK = 0;
-var DEFAULT_ALLOW_REDUCTION = true;
-
-exports.getParticleCount = function(count, performance) {
-	if (!performance) {return count;}
-
-	// mR is the mobile rank that comes of the stress test
-	var mR = 50;
-
-	var currCount = count;
-	var pR = performance.effectPerformanceRank || DEFAULT_RANK;
-	var aR = (typeof performance.allowReduction !== 'undefined')
-		? performance.allowReduction
-		: DEFAULT_ALLOW_REDUCTION;
-
-	if (mR < pR) {
-		currCount = (aR)
-			? count * mR / pR
-			: 0;  
-	}	
-
-	return currCount;
-};
