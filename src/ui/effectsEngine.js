@@ -23,6 +23,7 @@ import animate.transitions as easingFunctions;
 import ui.View as View;
 import ui.ImageView as ImageView;
 import ui.filter as filter;
+import performanceMetric as performanceMetric;
 import ObjectPool;
 
 var sin = Math.sin;
@@ -535,8 +536,9 @@ var Effect = Class('Effect', function () {
       }
     }
 
+    var count = performanceMetric.getParticleCount(data.count, opts.performance);
     // support value, range, and params for particle count
-    this.count = getNumericValueFromData(this, data.count, 1);
+    this.count = getNumericValueFromData(this, count, 1);
 
     // emit immediately if not a continuous effect
     if (!this.isContinuous) {
