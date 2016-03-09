@@ -217,7 +217,7 @@ exports = Class(View, function () {
    * modify each particle object, then pass the array in via this.emitParticles
    */
   this.obtainParticleArray = function (count, opts) {
-    var currCount = performance.getAdjustedParticleCount(data.count, opts.performanceRank, opts.allowReduction);
+    var currCount = performance.getAdjustedParticleCount(count, opts.effectPerformanceRank, opts.allowReduction);
 
     for (var i = 0; i < currCount; i++) {
       // duplicate of default properties for optimal performance

@@ -536,7 +536,7 @@ var Effect = Class('Effect', function () {
       }
     }
 
-    var count = performance.getAdjustedParticleCount(data.count, opts.performanceRank, opts.allowReduction);
+    var count = performance.getAdjustedParticleCount(data.count, opts.effectPerformanceRank, opts.allowReduction);
 
     // support value, range, and params for particle count
     this.count = getNumericValueFromData(this, count, 1);

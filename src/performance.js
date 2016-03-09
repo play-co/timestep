@@ -27,23 +27,37 @@ var floor = Math.floor;
 var DEFAULT_RANK = 0;
 var DEFAULT_ALLOW_REDUCTION = true;
 var LOWER_BOUND = 10;
-var HIGHER_BOUND = 60;
+var HIGHER_BOUND = 120;
   
 var Performance = Class(function () {
-  this.historySize = 200;
+  this.historySize = 20;
   var _lastTick = Date.now();
   var _history = [];
   var historyIndex = 0;
+  var minFPS = LOWER_BOUND;
+  var maxFPS = HIGHER_BOUND;
+
+  var resetHistory = function () {
+    _history = [];
+    historyIndex = 0;
+  };
+
+  var _map = function(val, start1, stop1, start2, stop2) {
+    var range1 = stop1 - start1;
+    var range2 = stop2 - start2;
+    var valPosition = val - start1;
+    var valuePercentage = valPosition / range1;
+    return start2 + range2 * valuePercentage;
+  };
 
   this.init = function () {
-    var minFPS = LOWER_BOUND;
-    var maxFPS = HIGHER_BOUND;
     this.measuring = false;
   };
 
   this.setTargetFPSRange = function (min, max) {
     minFPS = min;
     maxFPS = max;
+    this.resetHistory();
   };
 
   this.startMeasuring = function() {
@@ -64,7 +78,6 @@ var Performance = Class(function () {
       engine.unsubscribe('Tick', this, 'onTick');
     }
   };
-
 
   this.onTick = function(dt) {
     var now = Date.now();
@@ -91,8 +104,8 @@ var Performance = Class(function () {
     var adjustedTicksPerSecond = Math.min(ticksPerSecond, 60);
     var mappedScore = _map(adjustedTicksPerSecond, minFPS, maxFPS, 0, 100);
     return Math.max(0, mappedScore);
-  }
-  
+  };
+
   this.getAdjustedParticleCount = function(count, performanceRank, allowReduction) {
     var currCount = count;
     var mR = this.getPerformanceScore();
@@ -109,14 +122,6 @@ var Performance = Class(function () {
 
     return currCount;
   };  
-
-  var _map = function(val, start1, stop1, start2, stop2) {
-    var range1 = stop1 - start1;
-    var range2 = stop2 - start2;
-    var valPosition = val - start1;
-    var valuePercentage = valPosition / range1;
-    return start2 + range2 * valuePercentage;
-  };
 });
 
 exports = new Performance();

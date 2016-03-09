@@ -146,7 +146,7 @@ exports = Class(View, function () {
   };
 
   this.obtainParticleArray = function (count, opts) {
-    var currCount = performance.getAdjustedParticleCount(data.count, opts.performanceRank, opts.allowReduction);
+    var currCount = performance.getAdjustedParticleCount(count, opts.effectPerformanceRank, opts.allowReduction);
 
     for (var i = 0; i < currCount; i++) {
       // duplicate copy of default properties for optimal performance
