@@ -23,64 +23,71 @@
  */
 
 var ua = navigator && navigator.userAgent;
-exports.ua = ua; //for debug: delete later
+exports.USER_AGENT = ua;
 
-//Determine runtime
 var isNative = /TeaLeaf/.test(ua);
-exports.APP_RUNTIME = isNative ? 'native' : 'browser';
 
 var isIOS = /iPod|iPhone|iPad/i.test(ua);
 var isAndroid = /Android/.test(ua);
 
-
-//Determine runtime and device type.
+var appRuntime = 'unknown';
+var deviceType = 'unknown';
 if (isNative) {
-  exports.APP_RUNTIME = 'native';
-  exports.DEVICE_TYPE = 'mobile';
+  appRuntime = 'native';
+  deviceType = 'mobile';
 } else {
-  exports.APP_RUNTIME = 'browser';
+  appRuntime = 'browser';
   if (isIOS || isAndroid) {
-    exports.DEVICE_TYPE = 'mobile';
+    deviceType = 'mobile';
   } else {
-    exports.DEVICE_TYPE = 'desktop';
+    deviceType= 'desktop';
   }
 }
+exports.APP_RUNTIME = appRuntime;
+exports.DEVICE_TYPE = deviceType;
 
-//Determine OS type.
+var osType = 'unknown';
+var osVersion = 'unknown';
 var isMac = /Mac OS X [0-9_]+/.test(ua);
 var isIPhoneOS = /iPhone OS/.test(ua);
-var osType = 'unknown';
 
 if (isAndroid) {
   osType = 'Android';
+  osVersionString = ua.match(/Android[/\s][\d.]+/)[0];
+  osVersion = osVersionString.match(/[\d.]+/)[0];
 } else if (isIPhoneOS) {
-  osType = 'iOS';
+  osType = 'iPhone OS';
+  osVersionString = ua.match(/iPhone OS [0-9_]+/)[0];
+  osVersion = osVersionString.match(/[0-9_]+/)[0].replace(/_/g, '.');
 } else if (isMac) {
-  osType = ua.match(/Mac OS X [0-9_]+/)[0];
-} 
-exports.OS_TYPE = osType;
+  osType = 'Mac OS X';
+  osVersionString= ua.match(/Mac OS X [0-9_]+/)[0];
+  osVersion = osVersionString.match(/[0-9_]+/)[0].replace(/_/g, '.');
+}
+exports.OS_TYPE = osType
+exports.OS_VERSION = osVersion;
 
 var browserVersion = 'unknown';
+var browserType = 'unknown';
 var isSafari = /Safari/.test(ua);
 var isChrome = /Chrome/.test(ua);
 var isFirefox = /Firefox/.test(ua);
 if (isChrome) {
-  browserVersion = ua.match(/Chrome[/\s][\d.]+/)[0];
+  browserType = 'Chrome';
+  browserVersionString = ua.match(/Chrome[/\s][\d.]+/)[0];
+  browserVersion = browserVersionString.match(/[\d.]+/)[0];
 } else if (isSafari) {  
-  browserVersion = ua.match(/Safari[/\s][\d.]+/)[0];
+  browserType = 'Safari';
+  browserVersionString = ua.match(/Safari[/\s][\d.]+/)[0];
+  browserVersion = browserVersionString.match(/[\d.]+/)[0];
 } else if (isFirefox) {
-  browserVersion = ua.match(/Firefox[/\s][\d.]+/)[0];
+  browserType = 'Firefox';
+  browserVersionString = ua.match(/Firefox[/\s][\d.]+/)[0];
+  browserVersion = browserVersionString.match(/[\d.]+/)[0];
 }
 
+exports.BROWSER_TYPE = browserType;
 exports.BROWSER_VERSION = browserVersion;
 
 var isSimulator = GLOBAL.CONFIG && !!CONFIG.simulator;
 exports.SIMULATED = isSimulator;
-
-
-
-// This is the desired API
-//exports.APP_RUNTIME = "browser" or "native";
-//exports.DEVICE_TYPE = "mobile" or "desktop";
-//exports.OS_TYPE = "iOS" or "Android" or ...
-//exports.SIMULATED = true or false
