@@ -17,7 +17,7 @@
  /**
  * @module performanceMetric
  *
- * Measures performance.
+ * Measures performance by keeping a window of delta times and providing a score using that window.
  *
 **/
 
@@ -50,7 +50,7 @@ var PerformanceTester = Class(function () {
 
 	this.stopMeasuring = function() {
 		if (this.measuring) {
-			this.measuring = false;
+		  this.measuring = false;
 			engine.unsubscribe('Tick', this, 'onTick');
 		}
 	};
