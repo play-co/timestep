@@ -20,30 +20,81 @@
  * Measures performance.
  *
 **/
-import ui.Engine as Engine;
 
-var engine = Engine.get();
+var engine = null;
 
-var HISTORY_SIZE = 100;
+	
+var PerformanceTester = Class(function () {
+	this.historySize = 200;
+	var _lastTick = Date.now();
+	var _history = [];
+	var historyIndex = 0;
 
-var AppTick = Class(function () {
-  this.init = function () {
-    var history = [];
-    var historyIndex = 0;
-    var _lastTick = Date.now();
-    engine.subscribe('Tick', this, 'onTick');
-  };
+	this.init = function () {
+		this.LOWER_BOUND = 10;
+		this.HIGHER_BOUND = 60;
+		this.measuring = false;
+	};
 
-  this.onTick = function(dt) {
-  	var now = Date.now();
-  	var delta = _lastTick - now;
-  	history[historyIndex++] = delta;
-  	_lastTick = now;
-  };
+	this.startMeasuring = function() {
+		if (!this.measuring) {
+			this.measuring = true;
+			if (engine === null) {
+				import ui.Engine as Engine;
+				engine = Engine.get();
+			}
+			_lastTick = Date.now();
+			engine.subscribe('Tick', this, 'onTick');
+		}
+	};
+
+	this.stopMeasuring = function() {
+		if (this.measuring) {
+			this.measuring = false;
+			engine.unsubscribe('Tick', this, 'onTick');
+		}
+	};
+
+	this.onTick = function(dt) {
+		var now = Date.now();
+		var delta = now - _lastTick;
+		_history[historyIndex++] = delta;
+		if (historyIndex >= this.historySize) {
+			historyIndex = 0;
+		}
+		this.getPerformanceScore();
+		_lastTick = now;
+	};
+
+	this.getAverageTicksSpeed = function() {
+		var result = 0;
+		for (var i = 0; i < _history.length; i++) {
+			result += _history[i];
+		}
+		result /= _history.length;
+		return result;
+	};
+
+	this.getPerformanceScore = function() {
+		var tickSpeed = this.getAverageTicksSpeed();
+		var ticksPerSecond = 1000 / tickSpeed;
+		var adjustedTicksPerSecond = Math.min(ticksPerSecond, 60);
+		var mappedScore = _map(adjustedTicksPerSecond, this.LOWER_BOUND, this.HIGHER_BOUND, 0, 100);
+		return Math.max(0, mappedScore);
+	}
+
+	var _map = function(val, start1, stop1, start2, stop2) {
+		var range1 = stop1-start1;
+		var range2 = stop2-start2;
+		var valPosition = val-start1;
+		var valuePercentage = valPosition / range1;
+		return start2 + range2 * valuePercentage;
+	};
 });
 
+exports.performanceTester = new PerformanceTester();
 
-exports.testPerformanceTimeWithWindow = function() {
+
 
 var floor = Math.floor;
 
