@@ -24,7 +24,7 @@
 import device;
 import ui.View as View;
 import ui.resource.Image as Image;
-import performanceMetric as performanceMetric;
+import performance;
 var Canvas = device.get("Canvas");
 
 // Math references
@@ -145,8 +145,8 @@ exports = Class(View, function () {
     this._canvas = new Canvas({ width: MAX_TEX_WIDTH, height: MAX_TEX_HEIGHT, useWebGL: true });
   };
 
-  this.obtainParticleArray = function (count, performance) {
-    var currCount = performanceMetric.getParticleCount(count, performance);
+  this.obtainParticleArray = function (count, opts) {
+    var currCount = performance.getAdjustedParticleCount(data.count, opts.performanceRank, opts.allowReduction);
 
     for (var i = 0; i < currCount; i++) {
       // duplicate copy of default properties for optimal performance

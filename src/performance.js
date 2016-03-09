@@ -26,20 +26,24 @@ var floor = Math.floor;
 
 var DEFAULT_RANK = 0;
 var DEFAULT_ALLOW_REDUCTION = true;
-
+var LOWER_BOUND = 10;
+var HIGHER_BOUND = 60;
   
-var PerformanceTester = Class(function () {
+var Performance = Class(function () {
   this.historySize = 200;
   var _lastTick = Date.now();
   var _history = [];
   var historyIndex = 0;
-  var runningSum = 0;
 
   this.init = function () {
-    this.LOWER_BOUND = 10;
-    this.HIGHER_BOUND = 60;
+    var minFPS = LOWER_BOUND;
+    var maxFPS = HIGHER_BOUND;
     this.measuring = false;
-    this.performanceScore = 0;
+  };
+
+  this.setTargetFPSRange = function (min, max) {
+    minFPS = min;
+    maxFPS = max;
   };
 
   this.startMeasuring = function() {
@@ -61,15 +65,11 @@ var PerformanceTester = Class(function () {
     }
   };
 
+
   this.onTick = function(dt) {
     var now = Date.now();
     var delta = now - _lastTick;
-    if (_history[historyIndex]) {
-      runningSum -= _history[historyIndex];
-    }
-    runningSum += delta;
     _history[historyIndex++] = delta;
-    this.performanceScore = runningSum / this.historySize;
     if (historyIndex >= this.historySize) {
       historyIndex = 0;
     }
@@ -89,18 +89,16 @@ var PerformanceTester = Class(function () {
     var tickSpeed = this.getAverageTicksSpeed();
     var ticksPerSecond = 1000 / tickSpeed;
     var adjustedTicksPerSecond = Math.min(ticksPerSecond, 60);
-    var mappedScore = _map(adjustedTicksPerSecond, this.LOWER_BOUND, this.HIGHER_BOUND, 0, 100);
+    var mappedScore = _map(adjustedTicksPerSecond, minFPS, maxFPS, 0, 100);
     return Math.max(0, mappedScore);
   }
   
-  this.getParticleCount = function(count, performance) {
-    if (!performance) {return count;}
-
+  this.getAdjustedParticleCount = function(count, performanceRank, allowReduction) {
     var currCount = count;
-    var mR = 50;
-    var pR = performance.effectPerformanceRank || DEFAULT_RANK;
-    var aR = (typeof performance.allowReduction !== 'undefined')
-      ? performance.allowReduction
+    var mR = this.getPerformanceScore();
+    var pR = performanceRank || DEFAULT_RANK;
+    var aR = (typeof allowReduction !== 'undefined')
+      ? allowReduction
       : DEFAULT_ALLOW_REDUCTION;
 
     if (mR < pR) {
@@ -121,7 +119,7 @@ var PerformanceTester = Class(function () {
   };
 });
 
-exports = new PerformanceTester();
+exports = new Performance();
 
 
 

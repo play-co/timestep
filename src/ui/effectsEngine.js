@@ -23,7 +23,7 @@ import animate.transitions as easingFunctions;
 import ui.View as View;
 import ui.ImageView as ImageView;
 import ui.filter as filter;
-import performanceMetric as performanceMetric;
+import performance;
 import ObjectPool;
 
 var sin = Math.sin;
@@ -536,7 +536,8 @@ var Effect = Class('Effect', function () {
       }
     }
 
-    var count = performanceMetric.getParticleCount(data.count, opts.performance);
+    var count = performance.getAdjustedParticleCount(data.count, opts.performanceRank, opts.allowReduction);
+
     // support value, range, and params for particle count
     this.count = getNumericValueFromData(this, count, 1);
 
