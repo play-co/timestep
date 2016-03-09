@@ -27,7 +27,7 @@ var floor = Math.floor;
 var DEFAULT_RANK = 0;
 var DEFAULT_ALLOW_REDUCTION = true;
 var LOWER_BOUND = 10;
-var HIGHER_BOUND = 120;
+var HIGHER_BOUND = 60;
   
 var Performance = Class(function () {
   this.historySize = 20;
