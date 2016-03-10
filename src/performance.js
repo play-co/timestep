@@ -100,7 +100,7 @@ var Performance = Class(function () {
     }
 
     if (ticksSinceLastWorstUpdate > TICKS_TIL_INCREASE_SCORE) {
-      worstTicks.shift();
+      worstTicks.pop();
       ticksSinceLastWorstUpdate = 0;
     }
   };
