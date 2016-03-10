@@ -27,7 +27,7 @@ var DEFAULT_RANK = 0;
 var DEFAULT_ALLOW_REDUCTION = true;
 var LOWER_BOUND = 10;
 var HIGHER_BOUND = 60;
-var TICKS_TIL_INCREASE_SCORE = 50;
+var TICKS_TIL_INCREASE_SCORE = 200;
   
 var Performance = Class(function () {
   var ticksSinceLastWorstUpdate = 0;
