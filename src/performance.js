@@ -28,11 +28,15 @@ var DEFAULT_RANK = 0;
 var DEFAULT_ALLOW_REDUCTION = true;
 var LOWER_BOUND = 10;
 var HIGHER_BOUND = 60;
+var TICKS_TIL_INCREASE_SCORE = 500;
   
 var Performance = Class(function () {
-  this.historySize = 20;
+  this.historySize = 50;
+  this.worstTicksSize = 10;
+  this.ticksSinceLastWorstUpdate = 0;
   var _lastTick = Date.now();
   var _history = [];
+  var _worstTicks = [];
   var historyIndex = 0;
   var minFPS = LOWER_BOUND;
   var maxFPS = HIGHER_BOUND;
@@ -87,6 +91,19 @@ var Performance = Class(function () {
       historyIndex = 0;
     }
     _lastTick = now;
+    if (_worstTicks.length > 0 && delta >= _worstTicks[0]) {
+      ticksSinceLastWorstUpdate = 0;
+      _worstTicks.push(delta);
+      _worstTicks.sort();
+      if (_worstTicks.length > worstTicksSize) {
+        _worstTicks.shift();
+      }
+    } else {
+      ticksSinceLastWorstUpdate++;
+    }
+    if (ticksSinceLastWorstUpdate > TICKS_TIL_INCREASE_SCORE) {
+      _worstTicks.pop();
+    }
   };
 
   this.getAverageTicksSpeed = function() {
@@ -100,6 +117,18 @@ var Performance = Class(function () {
 
   this.getPerformanceScore = function() {
     var tickSpeed = this.getAverageTicksSpeed();
+    var ticksPerSecond = 1000 / tickSpeed;
+    var adjustedTicksPerSecond = Math.min(ticksPerSecond, 60);
+    var mappedScore = _map(adjustedTicksPerSecond, minFPS, maxFPS, 0, 100);
+    return Math.max(0, mappedScore);
+  };
+
+  this.getPerformanceScoreTwo = function() {
+    var worstTicksAverage = 0;
+    for (var i = 0; i < _history.length; i++) {
+      worstTicksAverage += _worstTicks[i];
+    }
+    worstTicksAverage /= _worstTicks.length;
     var ticksPerSecond = 1000 / tickSpeed;
     var adjustedTicksPerSecond = Math.min(ticksPerSecond, 60);
     var mappedScore = _map(adjustedTicksPerSecond, minFPS, maxFPS, 0, 100);
