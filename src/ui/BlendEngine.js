@@ -25,6 +25,7 @@ import device;
 import ui.View as View;
 import ui.resource.Image as Image;
 import performance;
+import userAgent;
 var Canvas = device.get("Canvas");
 
 // Math references
@@ -146,7 +147,13 @@ exports = Class(View, function () {
   };
 
   this.obtainParticleArray = function (count, opts) {
-    var currCount = performance.getAdjustedParticleCount(count, opts.effectPerformanceRank, opts.allowReduction);
+    var isBrowser = (userAgent.APP_RUNTIME === 'browser'); 
+    var isMobile = (userAgent.DEVICE_TYPE === 'mobile'); 
+    
+    // disable blend engine on mobile browsers until the performance is improved
+    var currCount = (isBrowser && isMobile)
+      ? 0
+      : performance.getAdjustedParticleCount(count, opts.effectPerformanceRank, opts.allowReduction);
 
     for (var i = 0; i < currCount; i++) {
       // duplicate copy of default properties for optimal performance
