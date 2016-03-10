@@ -147,11 +147,12 @@ exports = Class(View, function () {
   };
 
   this.obtainParticleArray = function (count, opts) {
-    var isBrowser = (userAgent.APP_RUNTIME === 'browser'); 
-    var isMobile = (userAgent.DEVICE_TYPE === 'mobile'); 
+    var isBrowser = (userAgent.APP_RUNTIME === 'browser');
+    var isMobile = (userAgent.DEVICE_TYPE === 'mobile');
+    var isSimulator = userAgent.SIMULATED;
     
     // disable blend engine on mobile browsers until the performance is improved
-    var currCount = (isBrowser && isMobile)
+    var currCount = (isBrowser && isMobile && !isSimulator)
       ? 0
       : performance.getAdjustedParticleCount(count, opts.effectPerformanceRank, opts.allowReduction);
 
