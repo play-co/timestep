@@ -41,9 +41,11 @@ var Performance = Class(function () {
   var _maxFPS = DEFAULT_FPS_UPPER_BOUND;
   var _canMeasure;
   var _lastTick;
+  var _debug;
 
   this.init = function () {
     _canMeasure = true;
+    _debug = false;
 
     // wait until engine initialization completes before subscribing to tick
     setTimeout(bind(this, function () {
@@ -104,6 +106,25 @@ var Performance = Class(function () {
       _worstTicks.pop();
       _ticksSinceLastWorstUpdate = 0;
     }
+
+    if (_debug) {
+      var score = this.getPerformanceScore();
+      logger.log('score ' + score);
+    }
+  };
+
+  /**
+   * @method showDebugLogs - show the performance score every tick
+   */
+  this.showDebugLogs = function () {
+    _debug = true;
+  };
+
+  /**
+   * @method hideDebugLogs - hide the score performance debug info
+   */
+  this.hideDebugLogs = function () {
+    _debug = false;
   };
 
   /**

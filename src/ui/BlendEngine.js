@@ -154,11 +154,11 @@ exports = Class(View, function () {
     opts = opts || {};
 
     // TODO: disable blend engine on mobile browsers until the performance is improved
-    var currCount = (isBrowser && isMobile && !isSimulator)
+    count = (opts.performanceScore && isBrowser && isMobile && !isSimulator)
       ? 0
-      : performance.getAdjustedParticleCount(count, opts.effectPerformanceScore, opts.allowReduction);
+      : performance.getAdjustedParticleCount(count, opts.performanceScore, opts.allowReduction);
 
-    for (var i = 0; i < currCount; i++) {
+    for (var i = 0; i < count; i++) {
       // duplicate copy of default properties for optimal performance
       this._particleDataArray.push(this._freeParticleObjects.pop() || {
         x: 0,

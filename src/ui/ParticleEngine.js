@@ -219,9 +219,9 @@ exports = Class(View, function () {
   this.obtainParticleArray = function (count, opts) {
     opts = opts || {};
     
-    var currCount = performance.getAdjustedParticleCount(count, opts.effectPerformanceScore, opts.allowReduction);
+    count = performance.getAdjustedParticleCount(count, opts.performanceScore, opts.allowReduction);
 
-    for (var i = 0; i < currCount; i++) {
+    for (var i = 0; i < count; i++) {
       // duplicate of default properties for optimal performance
       this._particleDataArray.push(this._freeParticleObjects.pop() || {
         x: 0,

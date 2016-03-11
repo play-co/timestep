@@ -536,10 +536,10 @@ var Effect = Class('Effect', function () {
       }
     }
 
-    var count = performance.getAdjustedParticleCount(data.count, opts.effectPerformanceScore, opts.allowReduction);
+    data.count = performance.getAdjustedParticleCount(data.count, opts.performanceScore, opts.allowReduction);
 
     // support value, range, and params for particle count
-    this.count = getNumericValueFromData(this, count, 1);
+    this.count = getNumericValueFromData(this, data.count, 1);
 
     // emit immediately if not a continuous effect
     if (!this.isContinuous) {
