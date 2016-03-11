@@ -21,6 +21,7 @@
 import ui.View as View;
 import ui.resource.Image as Image;
 import ui.ImageView as ImageView;
+import performance;
 
 // Math references
 var sin = Math.sin;
@@ -215,7 +216,11 @@ exports = Class(View, function () {
    * returns an array populated with n particle objects
    * modify each particle object, then pass the array in via this.emitParticles
    */
-  this.obtainParticleArray = function (count) {
+  this.obtainParticleArray = function (count, opts) {
+    opts = opts || {};
+    
+    count = performance.getAdjustedParticleCount(count, opts.performanceScore, opts.allowReduction);
+
     for (var i = 0; i < count; i++) {
       // duplicate of default properties for optimal performance
       this._particleDataArray.push(this._freeParticleObjects.pop() || {
