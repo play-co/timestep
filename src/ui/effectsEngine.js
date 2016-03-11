@@ -134,9 +134,9 @@ var EffectsEngine = Class(View, function () {
     });
 
     // wait until engine initialization completes before subscribing to tick
-    setTimeout(function () {
+    setTimeout(bind(this, function () {
       jsio('import ui.Engine').get().on('Tick', bind(this, onTick));
-    }, 0);
+    }), 0);
   };
 
   /**
