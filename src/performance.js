@@ -42,12 +42,22 @@ var Performance = Class(function () {
   var _canMeasure;
   var _lastTick;
 
+  this.init = function () {
+    _canMeasure = true;
+
+    // wait until engine initialization completes before subscribing to tick
+    setTimeout(bind(this, function () {
+      _lastTick = Date.now();
+      jsio('import ui.Engine').get().on('Tick', bind(this, onTick));
+    }), 0);
+  }; 
+
   function _mapFPSToPerformanceScore (fps) {
-    var range1 = _maxFPS - _minFPS;
-    var range2 = MAX_SCORE - MIN_SCORE;
+    var fpsRange = _maxFPS - _minFPS;
+    var scoreRange = MAX_SCORE - MIN_SCORE;
     var fpsPosition = fps - _minFPS;
-    var valuePercentage = fpsPosition / range1;
-    return MIN_SCORE + range2 * valuePercentage;
+    var valuePercentage = fpsPosition / fpsRange;
+    return MIN_SCORE + scoreRange * valuePercentage;
   };
 
   function _addWorstTick (delta) {
@@ -130,7 +140,9 @@ var Performance = Class(function () {
   };
 
   /**
-   * @method getPerformanceScore - sets the range of FPS used to calculate the score 
+   * @method getPerformanceScore - returns the performance score of the
+   * most recent measurements  
+   * @returns {number} score - device performance score
    */
   this.getPerformanceScore = function () {
     var worstTicksAverage = _getWorstTicksAverage();
@@ -165,16 +177,6 @@ var Performance = Class(function () {
     } 
 
     return currCount;
-  }; 
-
-  this.init = function () {
-    _canMeasure = true;
-
-    // wait until engine initialization completes before subscribing to tick
-    setTimeout(bind(this, function () {
-      _lastTick = Date.now();
-      jsio('import ui.Engine').get().on('Tick', bind(this, onTick));
-    }), 0);
   }; 
 });
 
