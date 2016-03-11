@@ -138,8 +138,6 @@ var Performance = Class(function () {
     var adjustedTicksPerSecond = Math.min(ticksPerSecond, 60);
     var mappedScore = _mapFPSToPerformanceScore(adjustedTicksPerSecond);
 
-    console.log(worstTicksAverage, ticksPerSecond, adjustedTicksPerSecond, mappedScore);
-
     return Math.max(0, mappedScore);
   };
 
