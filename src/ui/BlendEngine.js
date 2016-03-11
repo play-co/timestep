@@ -150,11 +150,13 @@ exports = Class(View, function () {
     var isBrowser = (userAgent.APP_RUNTIME === 'browser');
     var isMobile = (userAgent.DEVICE_TYPE === 'mobile');
     var isSimulator = userAgent.SIMULATED;
-    
-    // disable blend engine on mobile browsers until the performance is improved
+   
+    opts = opts || {};
+
+    // TODO: disable blend engine on mobile browsers until the performance is improved
     var currCount = (isBrowser && isMobile && !isSimulator)
       ? 0
-      : performance.getAdjustedParticleCount(count, opts.effectPerformanceRank, opts.allowReduction);
+      : performance.getAdjustedParticleCount(count, opts.effectPerformanceScore, opts.allowReduction);
 
     for (var i = 0; i < currCount; i++) {
       // duplicate copy of default properties for optimal performance
