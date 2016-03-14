@@ -81,6 +81,21 @@ exports.screen.devicePixelRatio = devicePixelRatio;
 exports.screen.width = window.innerWidth * devicePixelRatio;
 exports.screen.height = window.innerHeight * devicePixelRatio;
 
+exports.setDevicePixelRatio = function(value) {
+  if (!exports.isMobileBrowser) {
+    logger.warn('setDevicePixelRatio() only supported in browsers.');
+    return;
+  }
+
+  exports.devicePixelRatio = exports.screen.devicePixelRatio = value;
+
+  var width = Math.floor(window.innerWidth * value);
+  var height = Math.floor(window.innerHeight * value);
+  exports.width = exports.screen.width = width;
+  exports.height = exports.screen.height = height;
+  exports.screen.publish('Resize', width, height);
+};
+
 // This is stubbed out unless available on the current device.
 exports.hideAddressBar = function () {};
 
