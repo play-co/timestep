@@ -18,12 +18,14 @@
  * @module performance
  *
  * Calculates device performance score by maintaining a window history of the
- * worst tick deltas and taking its average. 
+ * worst tick deltas and taking its average.
  *
  * Over time if the window of worst ticks is not updated, then it will periodically
  * pop off the worst deltas within the window for the performance score to rise back up.
  *
 **/
+
+import device;
 
 var DEFAULT_RANK = 0;
 var DEFAULT_ALLOW_REDUCTION = true;
@@ -33,26 +35,33 @@ var MAX_WORST_TICKS_AMOUNT = 30;
 var MAX_SCORE = 100;
 var MIN_SCORE = 0;
 var TICKS_TIL_INCREASE_SCORE = 200;
-  
+var TICKS_TIL_ADJUST_DPR = 1000;
+var DPR_SCORE_MIN = 20;
+var DPR_SCORE_MAX = 60;
+var MIN_DPR = 0.5;
+
 var Performance = Class(function () {
   var _ticksSinceLastWorstUpdate = 0;
+  var _ticksSinceLastDPRUpdate = 0;
   var _worstTicks = [];
   var _minFPS = DEFAULT_FPS_LOWER_BOUND;
   var _maxFPS = DEFAULT_FPS_UPPER_BOUND;
   var _canMeasure;
+  var _dprScalingEnabled;
   var _lastTick;
   var _debug;
 
   this.init = function () {
     _canMeasure = true;
     _debug = false;
+    _dprScalingEnabled = false;
 
     // wait until engine initialization completes before subscribing to tick
     setTimeout(bind(this, function () {
       _lastTick = Date.now();
       jsio('import ui.Engine').get().on('Tick', bind(this, onTick));
     }), 0);
-  }; 
+  };
 
   function _mapFPSToPerformanceScore (fps) {
     var fpsRange = _maxFPS - _minFPS;
@@ -93,9 +102,9 @@ var Performance = Class(function () {
     var now = Date.now();
     var delta = now - _lastTick;
     var isWorstDelta = (_worstTicks.length > 0 && delta >= _worstTicks[0]);
-    
+
     _lastTick = now;
-    
+
     if (isWorstDelta || _worstTicks.length === 0) {
       _addWorstTick(delta);
     } else {
@@ -105,6 +114,14 @@ var Performance = Class(function () {
     if (_ticksSinceLastWorstUpdate > TICKS_TIL_INCREASE_SCORE) {
       _worstTicks.pop();
       _ticksSinceLastWorstUpdate = 0;
+    }
+
+    if (_dprScalingEnabled && ++_ticksSinceLastDPRUpdate >= TICKS_TIL_ADJUST_DPR) {
+      _ticksSinceLastDPRUpdate = 0;
+      var dpr = this.getAdjustedDPR(this.getPerformanceScore());
+      if (dpr !== device.screen.devicePixelRatio) {
+        device.setDevicePixelRatio(dpr);
+      }
     }
 
     if (_debug) {
@@ -151,7 +168,7 @@ var Performance = Class(function () {
   };
 
   /**
-   * @method setTargetFPSRange - sets the range of FPS used to calculate the score 
+   * @method setTargetFPSRange - sets the range of FPS used to calculate the score
    *   @arg {number} min - minimum value with a score of 0
    *   @arg {number} max - maximum value with a score of 100
    */
@@ -162,7 +179,7 @@ var Performance = Class(function () {
 
   /**
    * @method getPerformanceScore - returns the performance score of the
-   * most recent measurements  
+   * most recent measurements
    * @returns {number} score - device performance score
    */
   this.getPerformanceScore = function () {
@@ -174,14 +191,29 @@ var Performance = Class(function () {
     return Math.max(0, mappedScore);
   };
 
+  this.getAdjustedDPR = function (performanceScore) {
+    var maxDPR = device.screen.defaultDevicePixelRatio;
+
+    var ratio = Math.max(0, Math.min(1,
+      (performanceScore - DPR_SCORE_MIN) / (DPR_SCORE_MAX - DPR_SCORE_MIN)));
+
+    var dpr = MIN_DPR + (maxDPR - MIN_DPR) * ratio;
+
+    if (_debug) {
+      logger.log("PERFORMANCE SCORE OF", performanceScore, "DETECTED, SETTING DPR TO", dpr);
+    }
+
+    return dpr;
+  };
+
   /**
-   * @method getAdjustedParticleCount - returns a number of particles depending 
+   * @method getAdjustedParticleCount - returns a number of particles depending
    *   on the current performance score to improve performance
    * @arg {number} count - number of particles that are going to be adjusted
    * @arg {number} performanceScore - threshold for the calculations
-   * @arg {boolean} allowReduction - boolean used to define if the particles are 
+   * @arg {boolean} allowReduction - boolean used to define if the particles are
    *   going to be reduced or totally disabled
-   * @returns {number} count - number of particles 
+   * @returns {number} count - number of particles
    */
   this.getAdjustedParticleCount = function (count, performanceScore, allowReduction) {
     var currCount = count;
@@ -194,11 +226,20 @@ var Performance = Class(function () {
     if (mR < pR) {
       currCount = (aR)
         ? count * mR / pR
-        : 0;  
-    } 
+        : 0;
+    }
 
     return currCount;
-  }; 
+  };
+
+  this.setDPRScalingEnabled = function (value) {
+    if (!device.isMobileBrowser) {
+      logger.warn("Auto DPR scaling only supported in browser.");
+      return;
+    }
+    _dprScalingEnabled = value;
+  };
+
 });
 
 exports = new Performance();
