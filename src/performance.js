@@ -26,18 +26,19 @@
 **/
 
 import device;
+import userAgent;
 
 var DEFAULT_RANK = 0;
 var DEFAULT_ALLOW_REDUCTION = true;
 var DEFAULT_FPS_LOWER_BOUND = 10;
 var DEFAULT_FPS_UPPER_BOUND = 60;
 var MAX_WORST_TICKS_AMOUNT = 30;
-var MAX_SCORE = 100;
 var MIN_SCORE = 0;
+var MAX_SCORE = 100;
 var TICKS_TIL_INCREASE_SCORE = 200;
 var TICKS_TIL_ADJUST_DPR = 1000;
-var DPR_SCORE_MIN = 20;
-var DPR_SCORE_MAX = 60;
+var MIN_DPR_SCORE = 20;
+var MAX_DPR_SCORE = 60;
 var MIN_DPR = 0.5;
 
 var Performance = Class(function () {
@@ -88,7 +89,6 @@ var Performance = Class(function () {
     if (_worstTicks.length === 0) { return 0; }
 
     var worstTicksAverage = 0;
-
     for (var i = 0; i < _worstTicks.length; i++) {
       worstTicksAverage += _worstTicks[i];
     }
@@ -118,7 +118,7 @@ var Performance = Class(function () {
 
     if (_dprScalingEnabled && ++_ticksSinceLastDPRUpdate >= TICKS_TIL_ADJUST_DPR) {
       _ticksSinceLastDPRUpdate = 0;
-      var dpr = this.getAdjustedDPR(this.getPerformanceScore());
+      var dpr = this.getAdjustedDPR();
       if (dpr !== device.screen.devicePixelRatio) {
         device.setDevicePixelRatio(dpr);
       }
@@ -187,16 +187,14 @@ var Performance = Class(function () {
     var ticksPerSecond = 1000 / worstTicksAverage;
     var adjustedTicksPerSecond = Math.min(ticksPerSecond, 60);
     var mappedScore = _mapFPSToPerformanceScore(adjustedTicksPerSecond);
-
     return Math.max(0, mappedScore);
   };
 
-  this.getAdjustedDPR = function (performanceScore) {
+  this.getAdjustedDPR = function () {
+    var performanceScore = this.getPerformanceScore();
     var maxDPR = device.screen.defaultDevicePixelRatio;
-
     var ratio = Math.max(0, Math.min(1,
-      (performanceScore - DPR_SCORE_MIN) / (DPR_SCORE_MAX - DPR_SCORE_MIN)));
-
+      (performanceScore - MIN_DPR_SCORE) / (MAX_DPR_SCORE - MIN_DPR_SCORE)));
     var dpr = MIN_DPR + (maxDPR - MIN_DPR) * ratio;
 
     if (_debug) {
@@ -233,8 +231,8 @@ var Performance = Class(function () {
   };
 
   this.setDPRScalingEnabled = function (value) {
-    if (!device.isMobileBrowser) {
-      logger.warn("Auto DPR scaling only supported in browser.");
+    if (userAgent.APP_RUNTIME !== 'browser') {
+      logger.warn("Auto DPR scaling only supported in browsers!");
       return;
     }
     _dprScalingEnabled = value;
@@ -243,6 +241,3 @@ var Performance = Class(function () {
 });
 
 exports = new Performance();
-
-
-

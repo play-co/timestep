@@ -30,13 +30,13 @@
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/device.md
  */
 
-/* globals jsio */
-import event.Emitter as Emitter;
+import userAgent;
 import util.setProperty;
+import event.Emitter as Emitter;
 
-if (typeof navigator == 'undefined' || !navigator.userAgent) {
-  logger.warn('> Timestep was unable to determine your device! Please check that navigator.userAgent is defined.');
-  exports = {isUnknown: true};
+if (typeof navigator === 'undefined' || !navigator.userAgent) {
+  logger.warn('Timestep was unable to determine your device! Please check that navigator.userAgent is defined.');
+  exports = { isUnknown: true };
 }
 
 var ua = navigator.userAgent;
@@ -51,7 +51,6 @@ exports.registerDevice = function (name, path) {
 };
 
 exports.get = function (module) {
-
   // deprecated: InputPrompt used to be platform-specific
   if (module == 'InputPrompt') { return jsio('import ui.InputPrompt'); }
 
@@ -74,7 +73,6 @@ exports.screen = new Emitter();
 
 var devicePixelRatio = window.devicePixelRatio || 1;
 
-
 // @deprecated
 exports.devicePixelRatio = devicePixelRatio;
 
@@ -83,9 +81,9 @@ exports.screen.devicePixelRatio = devicePixelRatio;
 exports.screen.width = window.innerWidth * devicePixelRatio;
 exports.screen.height = window.innerHeight * devicePixelRatio;
 
-exports.setDevicePixelRatio = function(value) {
-  if (!exports.isMobileBrowser) {
-    logger.warn('setDevicePixelRatio() only supported in browsers.');
+exports.setDevicePixelRatio = function (value) {
+  if (userAgent.APP_RUNTIME !== 'browser') {
+    logger.warn('device.setDevicePixelRatio is only supported in browsers!');
     return;
   }
 
@@ -124,6 +122,10 @@ if ('ontouchstart' in window && (!/BlackBerry/.test(ua))) {
   };
 }
 
+/*
+ * All userAgent flags in this file are now DEPRECATED.
+ * Please use "src/userAgent.js" for a more accurate description of your device.
+ */
 exports.isMobileBrowser = false;
 exports.isUIWebView = false;
 exports.isSafari = /Safari/.test(ua);
@@ -206,7 +208,7 @@ exports.useDOM = false;
 exports.setUseDOM = function (useDOM) {
   console.warn("Attempting to set 'useDom' property, which is no longer supported.")
   return;
-}
+};
 
 exports.getDimensions = function (isLandscape) {
   var dMin = Math.min(exports.width, exports.height),
@@ -215,7 +217,7 @@ exports.getDimensions = function (isLandscape) {
   return isLandscape
     ? {height: dMin, width: dMax}
     : {height: dMax, width: dMin};
-}
+};
 
 /**
  * Initialize the device. Called from somewhere else.
@@ -226,25 +228,25 @@ exports.init = function () {
   exports.get('initialize').init();
   exports.screen.width = exports.width;
   exports.screen.height = exports.height;
-}
+};
 
 /**
  * Event handlers
  */
 exports.setBackButtonHandler = function (handler) {
   NATIVE && (NATIVE.onBackButton = handler);
-}
+};
 
 exports.setRotationHandler = function (handler) {
   NATIVE && (NATIVE.onRotation = handler);
-}
+};
 
 /*
  * Stay awake
  */
-exports.stayAwake = function(enable) {
+exports.stayAwake = function (enable) {
   NATIVE && NATIVE.stayAwake && NATIVE.stayAwake(enable);
-}
+};
 
 /**
  * Garbage Collection
@@ -252,4 +254,4 @@ exports.stayAwake = function(enable) {
 exports.collectGarbage = function () {
   logger.log('collecting garbage');
   NATIVE && NATIVE.gc && NATIVE.gc.runGC();
-}
+};
