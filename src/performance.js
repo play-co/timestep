@@ -32,25 +32,35 @@ var DEFAULT_RANK = 0;
 var DEFAULT_ALLOW_REDUCTION = true;
 var DEFAULT_FPS_LOWER_BOUND = 10;
 var DEFAULT_FPS_UPPER_BOUND = 60;
-var MAX_WORST_TICKS_AMOUNT = 30;
 var MIN_SCORE = 0;
 var MAX_SCORE = 100;
-var TICKS_TIL_INCREASE_SCORE = 200;
-var TICKS_TIL_ADJUST_DPR = 1000;
+var TICKS_TIL_ADJUST_DPR = 500;
 var MIN_DPR_SCORE = 20;
 var MAX_DPR_SCORE = 60;
-var MIN_DPR = 0.5;
+var MIN_DPR = 1;
+var TICKS_TIL_CHECK_SCORE = 200;
+var START_AVERAGE_DELTA = 16;
+var START_AVERAGE_SCORE = 100;
+var DELTA_AVERAGE_WEIGHT = 0.95;
+var DELTA_WEIGHT = 0.05;
+var SCORE_AVERAGE_WEIGHT = 0.95;
+var SCORE_WEIGHT = 0.05;
+var MIN_SCORE_FOR_DPR = 40;
+var DPR_DECREASE_VALUE = 0.2;
 
 var Performance = Class(function () {
   var _ticksSinceLastWorstUpdate = 0;
   var _ticksSinceLastDPRUpdate = 0;
-  var _worstTicks = [];
+  var _ticksSinceLastScoreUpdate = 0;
   var _minFPS = DEFAULT_FPS_LOWER_BOUND;
   var _maxFPS = DEFAULT_FPS_UPPER_BOUND;
   var _canMeasure;
   var _dprScalingEnabled;
   var _lastTick;
   var _debug;
+  var _averageDelta = START_AVERAGE_DELTA;
+  var _averageScore = START_AVERAGE_SCORE;
+  var _averageDPR = device.screen.defaultDevicePixelRatio;
 
   this.init = function () {
     _canMeasure = true;
@@ -72,28 +82,12 @@ var Performance = Class(function () {
     return MIN_SCORE + scoreRange * valuePercentage;
   };
 
-  function _addWorstTick (delta) {
-    _worstTicks.push(delta);
-    _worstTicks.sort(function(a, b) {
-      return a - b;
-    });
+  function _calculatePerformanceScore () {
+    var ticksPerSecond = 1000 / _averageDelta;
+    var adjustedTicksPerSecond = Math.min(ticksPerSecond, DEFAULT_FPS_UPPER_BOUND);
+    var mappedScore = _mapFPSToPerformanceScore(adjustedTicksPerSecond);
 
-    if (_worstTicks.length > MAX_WORST_TICKS_AMOUNT) {
-      _worstTicks.shift();
-    }
-
-    _ticksSinceLastWorstUpdate = 0;
-  };
-
-  function _getWorstTicksAverage () {
-    if (_worstTicks.length === 0) { return 0; }
-
-    var worstTicksAverage = 0;
-    for (var i = 0; i < _worstTicks.length; i++) {
-      worstTicksAverage += _worstTicks[i];
-    }
-
-    return worstTicksAverage /= _worstTicks.length;
+    return Math.max(0, mappedScore);
   };
 
   function onTick (dt) {
@@ -101,32 +95,27 @@ var Performance = Class(function () {
 
     var now = Date.now();
     var delta = now - _lastTick;
-    var isWorstDelta = (_worstTicks.length > 0 && delta >= _worstTicks[0]);
-
     _lastTick = now;
+    _averageDelta = _averageDelta * DELTA_AVERAGE_WEIGHT + delta * DELTA_WEIGHT;
 
-    if (isWorstDelta || _worstTicks.length === 0) {
-      _addWorstTick(delta);
-    } else {
-      _ticksSinceLastWorstUpdate++;
-    }
+    if (++_ticksSinceLastScoreUpdate >= TICKS_TIL_CHECK_SCORE) {
+      _ticksSinceLastScoreUpdate = 0;
 
-    if (_ticksSinceLastWorstUpdate > TICKS_TIL_INCREASE_SCORE) {
-      _worstTicks.pop();
-      _ticksSinceLastWorstUpdate = 0;
+      var currentScore = _calculatePerformanceScore();
+      _averageScore = _averageScore * SCORE_AVERAGE_WEIGHT + currentScore * SCORE_WEIGHT;
     }
 
     if (_dprScalingEnabled && ++_ticksSinceLastDPRUpdate >= TICKS_TIL_ADJUST_DPR) {
       _ticksSinceLastDPRUpdate = 0;
-      var dpr = this.getAdjustedDPR();
-      if (dpr !== device.screen.devicePixelRatio) {
-        device.setDevicePixelRatio(dpr);
+
+      if (_averageScore < MIN_SCORE_FOR_DPR && _averageDPR > MIN_DPR) {
+        _averageDPR -= DPR_DECREASE_VALUE;
+        device.setDevicePixelRatio(_averageDPR);
       }
     }
 
     if (_debug) {
-      var score = this.getPerformanceScore();
-      logger.log('score ' + score);
+      logger.log('score ' + _averageScore);
     }
   };
 
@@ -148,8 +137,11 @@ var Performance = Class(function () {
    * @method clear - clears all the information saved by past measures
    */
   this.clear = function () {
-    _worstTicks = [];
+    _averageScore = START_AVERAGE_SCORE;
+    _averageDelta = START_AVERAGE_DELTA;
     _ticksSinceLastWorstUpdate = 0;
+    _ticksSinceLastDPRUpdate = 0;
+    _ticksSinceLastScoreUpdate = 0;
   };
 
   /**
@@ -183,11 +175,7 @@ var Performance = Class(function () {
    * @returns {number} score - device performance score
    */
   this.getPerformanceScore = function () {
-    var worstTicksAverage = _getWorstTicksAverage();
-    var ticksPerSecond = 1000 / worstTicksAverage;
-    var adjustedTicksPerSecond = Math.min(ticksPerSecond, 60);
-    var mappedScore = _mapFPSToPerformanceScore(adjustedTicksPerSecond);
-    return Math.max(0, mappedScore);
+    return _averageScore;
   };
 
   this.getAdjustedDPR = function () {
