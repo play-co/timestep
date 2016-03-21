@@ -46,7 +46,7 @@ var DELTA_WEIGHT = 0.05;
 var SCORE_AVERAGE_WEIGHT = 0.95;
 var SCORE_WEIGHT = 0.05;
 var MIN_SCORE_FOR_DPR = 40;
-var DPR_DECREASE_VALUE = 0.2;
+var DPR_DECREASE_VALUE = 0.5;
 
 var Performance = Class(function () {
   var _ticksSinceLastWorstUpdate = 0;
