@@ -177,14 +177,19 @@ var Document = Class(lib.PubSub, function () {
         // if we have a canvas element, scale it
         if (opts.resizeCanvas && this._canvas
             && (cs.width != scaledWidth|| cs.height != scaledHeight)) {
-          cs.width = scaledWidth + 'px';
-          cs.height = scaledHeight + 'px';
           this._canvas.width = width;
           this._canvas.height = height;
           var ctx = this._canvas.getContext();
           if (ctx.resize) {
             ctx.resize(width, height);
           }
+
+          // There is a mobile browser bug that causes the canvas to not properly
+          // resize. This forces a reflow, with the side effect of a brief screen flash.
+          cs.display = 'none';
+          cs.width = scaledWidth + 'px';
+          cs.height = scaledHeight + 'px';
+          setTimeout(function() { cs.display = 'block'; }, 50);
         }
 
         s.width = scaledWidth + 'px';
