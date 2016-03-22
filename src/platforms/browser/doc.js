@@ -19,6 +19,7 @@ import lib.Enum as Enum;
 from util.browser import $;
 
 import device;
+import userAgent;
 
 var isIOS7 = device.iosVersion === 7;
 var isIOSSafari = device.iosVersion >= 7 && !device.isIpad && !device.isStandalone && !device.isUIWebView;
@@ -120,6 +121,7 @@ var Document = Class(lib.PubSub, function () {
   };
 
   this.onResize = function () {
+    var isIOS = userAgent.OS_TYPE === 'iPhone OS';
     var el = this._el;
     var s = this._el.style;
     var orientation = device.screen.orientation;
@@ -130,6 +132,8 @@ var Document = Class(lib.PubSub, function () {
       var isLandscape = orientation === 'landscape';
       document.documentElement.style.height = isLandscape && isIOS7 ? window.innerHeight == 320 ? '320px' : '640px' : '100%';
       document.body.style.height = isIOS7 ? '100%' : '150%';
+    } else {
+      document.body.style.height = '100%';
     }
 
     logger.log('resize', device.width, device.height);
@@ -156,6 +160,9 @@ var Document = Class(lib.PubSub, function () {
       if (mode == SCALING.RESIZE) { mode = SCALING.FIXED; }
     }
 
+    // We may need to pause the engine when resizing on iOS
+    var needsPause = isIOS && this._engine && this._engine.isRunning;
+
     switch (mode) {
       case SCALING.MANUAL:
         break; // do nothing
@@ -177,14 +184,28 @@ var Document = Class(lib.PubSub, function () {
         // if we have a canvas element, scale it
         if (opts.resizeCanvas && this._canvas
             && (cs.width != scaledWidth|| cs.height != scaledHeight)) {
-          cs.width = scaledWidth + 'px';
-          cs.height = scaledHeight + 'px';
           this._canvas.width = width;
           this._canvas.height = height;
           var ctx = this._canvas.getContext();
           if (ctx.resize) {
             ctx.resize(width, height);
           }
+
+          var needsPause = isIOS && this._engine && this._engine.isRunning;
+          if (isIOS) {
+            // There is a mobile browser bug that causes the canvas to not properly
+            // resize. This forces a reflow, with the side effect of a brief screen flash.
+            var engine = this._engine;
+            if (needsPause) { engine.pause(); }
+            cs.display = 'none';
+            setTimeout(function() {
+              cs.display = 'block';
+              if (needsPause) { engine.resume(); }
+            }, 250);
+          }
+
+          cs.width = scaledWidth + 'px';
+          cs.height = scaledHeight + 'px';
         }
 
         s.width = scaledWidth + 'px';
@@ -194,7 +215,7 @@ var Document = Class(lib.PubSub, function () {
 
     // make sure to force a render immediately (should we use needsRepaint instead?)
     this._setDim(width, height);
-    if (this._engine) { this._engine.render(); }
+    if (this._engine && !needsPause) { this._engine.render(); }
   };
 
   this._setDim = function (width, height) {
