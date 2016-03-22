@@ -111,7 +111,7 @@ var Performance = Class(function () {
       if (_averageScore < MIN_SCORE_FOR_DPR && _averageDPR > MIN_DPR) {
         _averageDPR -= DPR_DECREASE_VALUE;
         device.setDevicePixelRatio(_averageDPR);
-        logger.log("PERFORMANCE SCORE OF " + _averageScore, " DETECTED, SETTING DPR TO " + dpr);
+        logger.log("PERFORMANCE SCORE OF " + _averageScore, " DETECTED, SETTING DPR TO " + _averageDPR);
       }
     }
 

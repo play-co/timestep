@@ -160,6 +160,9 @@ var Document = Class(lib.PubSub, function () {
       if (mode == SCALING.RESIZE) { mode = SCALING.FIXED; }
     }
 
+    // We may need to pause the engine when resizing on iOS
+    var needsPause = isIOS && this._engine && this._engine.isRunning;
+
     switch (mode) {
       case SCALING.MANUAL:
         break; // do nothing
@@ -188,11 +191,17 @@ var Document = Class(lib.PubSub, function () {
             ctx.resize(width, height);
           }
 
+          var needsPause = isIOS && this._engine && this._engine.isRunning;
           if (isIOS) {
             // There is a mobile browser bug that causes the canvas to not properly
             // resize. This forces a reflow, with the side effect of a brief screen flash.
+            var engine = this._engine;
+            if (needsPause) { engine.pause(); }
             cs.display = 'none';
-            setTimeout(function() { cs.display = 'block'; }, 100);
+            setTimeout(function() {
+              cs.display = 'block';
+              if (needsPause) { engine.resume(); }
+            }, 100);
           }
 
           cs.width = scaledWidth + 'px';
@@ -206,7 +215,7 @@ var Document = Class(lib.PubSub, function () {
 
     // make sure to force a render immediately (should we use needsRepaint instead?)
     this._setDim(width, height);
-    if (this._engine) { this._engine.render(); }
+    if (this._engine && !needsPause) { this._engine.render(); }
   };
 
   this._setDim = function (width, height) {
