@@ -13,11 +13,17 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
+
 import ui.View as View;
 import math.geom.Vec2D as Vec2D;
 
+// @deprecated
 exports = Class(View, function (supr) {
   this.init = function (opts) {
+
+    logger.warn("Warning: GestureView has been deprecated and is " +
+      "no longer supported. Features may not work as you expect.");
+
     supr(this, 'init', [opts]);
     this._swipeMagnitude = opts.swipeMagnitude || 150;
     this._swipeTime = opts.swipeTime || 250;
