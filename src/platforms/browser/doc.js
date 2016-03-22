@@ -19,6 +19,7 @@ import lib.Enum as Enum;
 from util.browser import $;
 
 import device;
+import userAgent;
 
 var isIOS7 = device.iosVersion === 7;
 var isIOSSafari = device.iosVersion >= 7 && !device.isIpad && !device.isStandalone && !device.isUIWebView;
@@ -120,6 +121,7 @@ var Document = Class(lib.PubSub, function () {
   };
 
   this.onResize = function () {
+    var isIOS = userAgent.OS_TYPE === 'iPhone OS';
     var el = this._el;
     var s = this._el.style;
     var orientation = device.screen.orientation;
@@ -130,6 +132,8 @@ var Document = Class(lib.PubSub, function () {
       var isLandscape = orientation === 'landscape';
       document.documentElement.style.height = isLandscape && isIOS7 ? window.innerHeight == 320 ? '320px' : '640px' : '100%';
       document.body.style.height = isIOS7 ? '100%' : '150%';
+    } else {
+      document.body.style.height = '100%';
     }
 
     logger.log('resize', device.width, device.height);
@@ -184,12 +188,15 @@ var Document = Class(lib.PubSub, function () {
             ctx.resize(width, height);
           }
 
-          // There is a mobile browser bug that causes the canvas to not properly
-          // resize. This forces a reflow, with the side effect of a brief screen flash.
-          cs.display = 'none';
+          if (isIOS) {
+            // There is a mobile browser bug that causes the canvas to not properly
+            // resize. This forces a reflow, with the side effect of a brief screen flash.
+            cs.display = 'none';
+            setTimeout(function() { cs.display = 'block'; }, 100);
+          }
+
           cs.width = scaledWidth + 'px';
           cs.height = scaledHeight + 'px';
-          setTimeout(function() { cs.display = 'block'; }, 50);
         }
 
         s.width = scaledWidth + 'px';

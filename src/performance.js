@@ -111,6 +111,7 @@ var Performance = Class(function () {
       if (_averageScore < MIN_SCORE_FOR_DPR && _averageDPR > MIN_DPR) {
         _averageDPR -= DPR_DECREASE_VALUE;
         device.setDevicePixelRatio(_averageDPR);
+        logger.log("PERFORMANCE SCORE OF " + _averageScore, " DETECTED, SETTING DPR TO " + dpr);
       }
     }
 
@@ -176,20 +177,6 @@ var Performance = Class(function () {
    */
   this.getPerformanceScore = function () {
     return _averageScore;
-  };
-
-  this.getAdjustedDPR = function () {
-    var performanceScore = this.getPerformanceScore();
-    var maxDPR = device.screen.defaultDevicePixelRatio;
-    var ratio = Math.max(0, Math.min(1,
-      (performanceScore - MIN_DPR_SCORE) / (MAX_DPR_SCORE - MIN_DPR_SCORE)));
-    var dpr = MIN_DPR + (maxDPR - MIN_DPR) * ratio;
-
-    if (_debug) {
-      logger.log("PERFORMANCE SCORE OF", performanceScore, "DETECTED, SETTING DPR TO", dpr);
-    }
-
-    return dpr;
   };
 
   /**

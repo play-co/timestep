@@ -70,7 +70,7 @@ var UserAgent = Class(function () {
     browserType = 'Chrome';
     browserVersionString = ua.match(/Chrome[/\s][\d.]+/)[0];
     browserVersion = browserVersionString.match(/[\d.]+/)[0];
-  } else if (isSafari) {  
+  } else if (isSafari) {
     browserType = 'Safari';
     browserVersionString = ua.match(/Safari[/\s][\d.]+/)[0];
     browserVersion = browserVersionString.match(/[\d.]+/)[0];
