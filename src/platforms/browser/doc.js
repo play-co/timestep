@@ -201,7 +201,7 @@ var Document = Class(lib.PubSub, function () {
             setTimeout(function() {
               cs.display = 'block';
               if (needsPause) { engine.resume(); }
-            }, 100);
+            }, 250);
           }
 
           cs.width = scaledWidth + 'px';
