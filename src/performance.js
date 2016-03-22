@@ -38,13 +38,13 @@ var TICKS_TIL_ADJUST_DPR = 500;
 var MIN_DPR_SCORE = 20;
 var MAX_DPR_SCORE = 60;
 var MIN_DPR = 1;
-var TICKS_TIL_CHECK_SCORE = 200;
+var TICKS_TIL_CHECK_SCORE = 40;
 var START_AVERAGE_DELTA = 16;
 var START_AVERAGE_SCORE = 100;
-var DELTA_AVERAGE_WEIGHT = 0.95;
-var DELTA_WEIGHT = 0.05;
-var SCORE_AVERAGE_WEIGHT = 0.95;
-var SCORE_WEIGHT = 0.05;
+var DELTA_AVERAGE_WEIGHT = 0.6;
+var DELTA_WEIGHT = 0.4;
+var SCORE_AVERAGE_WEIGHT = 0.6;
+var SCORE_WEIGHT = 0.4;
 var MIN_SCORE_FOR_DPR = 40;
 var DPR_DECREASE_VALUE = 0.5;
 
@@ -70,7 +70,7 @@ var Performance = Class(function () {
     // wait until engine initialization completes before subscribing to tick
     setTimeout(bind(this, function () {
       _lastTick = Date.now();
-      jsio('import ui.Engine').get().on('Tick', bind(this, onTick));
+      jsio('import ui.Engine').get().on('Render', bind(this, onRender));
     }), 0);
   };
 
@@ -90,7 +90,7 @@ var Performance = Class(function () {
     return Math.max(0, mappedScore);
   };
 
-  function onTick (dt) {
+  function onRender (dt) {
     if (!_canMeasure) { return; }
 
     var now = Date.now();
@@ -115,7 +115,7 @@ var Performance = Class(function () {
     }
 
     if (_debug) {
-      logger.log('score ' + _averageScore);
+      logger.log('score ', _averageScore);
     }
   };
 
