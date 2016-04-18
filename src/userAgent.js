@@ -40,6 +40,8 @@ var UserAgent = Class(function () {
   var browserVersion = 'unknown';
   var browserType = 'unknown';
 
+  var match;
+
   if (isNative) {
     appRuntime = 'native';
     deviceType = 'mobile';
@@ -54,16 +56,31 @@ var UserAgent = Class(function () {
 
   if (isAndroid) {
     osType = 'Android';
-    osVersionString = ua.match(/Android[/\s][\d.]+/)[0];
-    osVersion = osVersionString.match(/[\d.]+/)[0];
+    match = ua.match(/Android[/\s][\d.]+/);
+    if (match) {
+      osVersionString = match[0];
+      osVersion = osVersionString.match(/[\d.]+/)[0];
+    } else  {
+      osVersionString = osVersion = '';
+    }
   } else if (isIPhoneOS) {
     osType = 'iPhone OS';
-    osVersionString = ua.match(/iPhone OS [0-9_]+/)[0];
-    osVersion = osVersionString.match(/[0-9_]+/)[0].replace(/_/g, '.');
+    match = ua.match(/iPhone OS [0-9_]+/);
+    if (match) {
+      osVersionString = match[0];
+      osVersion = osVersionString.match(/[0-9_]+/)[0].replace(/_/g, '.');
+    } else  {
+      osVersionString = osVersion = '';
+    }
   } else if (isMac) {
     osType = 'Mac OS X';
-    osVersionString= ua.match(/Mac OS X [0-9_]+/)[0];
-    osVersion = osVersionString.match(/[0-9_]+/)[0].replace(/_/g, '.');
+    match = ua.match(/Mac OS X [0-9_]+/);
+    if (match) {
+      osVersionString = match[0];
+      osVersion = osVersionString.match(/[0-9_]+/)[0].replace(/_/g, '.');
+    } else  {
+      osVersionString = osVersion = '';
+    }
   }
 
   if (isChrome) {
