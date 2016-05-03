@@ -322,7 +322,9 @@ var Loader = Class(Emitter, function () {
   //
   // function callback(lastSrc, error, isComplete, numCompleted, numTotal)
   //    where error is true or false and isComplete is true when numCompleted == numTotal
-  //
+
+  this._requestedResources = [];
+
   this._loadGroup = function (opts, cb) {
     var timeout = opts.timeout;
     var callback = new lib.Callback();
@@ -332,21 +334,55 @@ var Loader = Class(Emitter, function () {
     var resources = opts.resources || [];
     var n = resources.length || 0;
     var loadableResources = [];
+
     for (var i = 0; i < n; ++i) {
       var ext = resources[i].substring(resources[i].lastIndexOf('.')).split('|')[0];
-      if (MIME[ext] == 'image') {
-        loadableResources.push({type:'image', resource: resources[i]});
-        GLOBAL.NATIVE && NATIVE.gl && NATIVE.gl.touchTexture(resources[i]);
-      } else if (MIME[ext] == 'audio') {
-        loadableResources.push({type:'audio', resource: resources[i]});
+      var type = MIME[ext];
+      var found = false;
+      var foundCount = 0;
+
+      var requested;
+
+      for (var j = 0; j < this._requestedResources.length; j++) {
+        requested = this._requestedResources[j];
+
+        if (requested.type === type && requested.resource === resources[i]) {
+          found = true;
+
+          foundCount++;
+
+          break;
+        }
+      }
+
+      if (!found) {
+        if (type === 'image' || type === 'audio') {
+          requested = { type: type, resource: resources[i] };
+
+          loadableResources.push(requested);
+
+          this._requestedResources.push(requested);
+        }
+
+        if (type == 'image' && GLOBAL.NATIVE && NATIVE.gl) {
+          NATIVE.gl.touchTexture(resources[i]);
+        }
       }
     }
 
-    // If no resources were loadable,
+    // If no resources were loadable...
+
     if (!loadableResources.length) {
-      logger.warn("Preload Fail: No Loadable Resources Found");
-      cb && callback.run(cb);
+      if (!foundCount) {
+        logger.warn("Preload Fail: No Loadable Resources Found");
+      }
+
+      if (cb) {
+        callback.run(cb);
+      }
+
       callback.fire();
+
       return callback;
     }
 
