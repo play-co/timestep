@@ -206,11 +206,20 @@ var Performance = Class(function () {
   };
 
   this.setDPRScalingEnabled = function (value) {
+
     if (userAgent.APP_RUNTIME !== 'browser') {
       logger.warn("Auto DPR scaling only supported in browsers!");
       return;
     }
+
+    // Due to a browser bug, don't enable auto DPR scaling for iOS
+    if (userAgent.OS_TYPE === 'iPhone OS') {
+      logger.warn("Auto DPR not currently supported on iOS.");
+      return;
+    }
+
     _dprScalingEnabled = value;
+
   };
 
 });
