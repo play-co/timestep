@@ -131,7 +131,7 @@ var InputDialog = Class(function () {
         children: [dialog]
       });
 
-    $.onEvent(this._el, device.events.move, function (e) {
+    function onMove(e) {
       var target = e.target;
       while (target && target != document.body)  {
         if (target == dialog) { return; }
@@ -139,7 +139,11 @@ var InputDialog = Class(function () {
       }
 
       e.preventDefault();
-    });
+    }
+
+    for (var i = 0; i < device.events.move.length; i++) {
+      $.onEvent(this._el, device.events.move[i], onMove);
+    }
 
     if (addClasses) {
       css.sizeAndPositionDialog(dialog, body);
@@ -165,12 +169,16 @@ var InputDialog = Class(function () {
           attrs: {noCapture: true}
         });
 
-    $.onEvent(btn, device.events.end, function () {
+    var onEnd = function() {
       this.close();
       if (cb) {
         cb && cb(this.getValue());
       }
-    }.bind(this));
+    }.bind(this);
+
+    for (var i = 0; i < device.events.end.length; i++) {
+      $.onEvent(btn, device.events.end[i], onEnd);
+    }
 
     this._buttons.push(btn);
   };

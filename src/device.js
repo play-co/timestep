@@ -107,8 +107,12 @@ util.setProperty(exports, 'defaultFontFamily', {
   value: 'Helvetica'
 });
 exports.defaultFontWeight = "";
-
-if ('ontouchstart' in window && (!/BlackBerry/.test(ua))) {
+exports.events = {
+  start: ['touchstart', 'mousedown'],
+  move: ['touchmove', 'mousemove'],
+  end: ['touchend', 'mouseup']
+};
+/*if ('ontouchstart' in window && (!/BlackBerry/.test(ua))) {
   exports.events = {
     start: 'touchstart',
     move: 'touchmove',
@@ -120,7 +124,7 @@ if ('ontouchstart' in window && (!/BlackBerry/.test(ua))) {
     move: 'mousemove',
     end: 'mouseup'
   };
-}
+}*/
 
 /*
  * All userAgent flags in this file are now DEPRECATED.
