@@ -44,6 +44,9 @@ var Loader = Class(Emitter, function () {
 
   this._map = {};
 
+  // save original map
+  this._originalMap = {};
+
   this._audioMap = {};
 
   Object.defineProperty(this, "progress", {
@@ -56,12 +59,22 @@ var Loader = Class(Emitter, function () {
     return this._map[src];
   };
 
+  this.restoreMap = function () {
+    this._map = this._originalMap;
+  };
+
   this.getMap = function () {
     return this._map;
   };
 
-  this.setMap = function (map) {
-    this._map = i18n.localizeResourceMap(map);
+  // set resources map for the language
+  this.setMap = function (language) {
+    this.restoreMap();
+    if (!language) {
+      this._map = i18n.localizeResourceMap(this._map);
+    } else {
+      this._map = i18n.applyResourceMap(this._map, language);
+    }
   };
 
   // TODO: rename this function...
@@ -101,6 +114,7 @@ var Loader = Class(Emitter, function () {
         };
       }, this);
     }, this);
+    this._originalMap = this._map;
   };
 
 

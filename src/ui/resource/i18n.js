@@ -137,3 +137,20 @@ exports.localizeResourceMap = function (map) {
   }
   return localizedMap;
 };
+
+exports.applyResourceMap = function (map, language) {
+  var localizedMap = {};
+  var langRes = 'resources-' + language;
+  for (var key in map) {
+    var path = key;
+    var langIndex = key.indexOf(langRes);
+    if (langIndex === 0) {
+      path = 'resources' + key.substring(langRes.length);
+      localizedMap[path] = map[key];
+    } else if (Object.keys(localizedMap).indexOf(path) < 0) {
+      // without this block, the same name default resource would replace the localized resource
+      localizedMap[path] = map[key];
+    }
+  }
+  return localizedMap;
+};
