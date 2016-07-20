@@ -606,6 +606,7 @@ var Context2D = Class(function () {
   this.clear = function() {
     this._manager.activate(this);
     this._manager.flush();
+    this._manager.disableScissor();
     var gl = this._manager.gl;
     if (gl) {
       gl.clear(gl.COLOR_BUFFER_BIT);
