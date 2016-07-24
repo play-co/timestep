@@ -37,8 +37,10 @@ exports = function (opts) {
   ctx.reset = function () {};
 
   ctx.clear = function () {
-    //el.width = el.width;
+    this.save();
+    this.setTransform(1, 0, 0, 1, 0, 0);
     this.clearRect(0, 0, el.width, el.height);
+    this.restore();
   };
 
   ctx.clipRect = function (x, y, w, h) {
