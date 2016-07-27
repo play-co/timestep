@@ -15,7 +15,7 @@
  */
 
 import device;
-from util.browser import $;
+//from util.browser import $;
 
 device.registerDevice('browser', 'platforms.browser');
 
@@ -47,7 +47,7 @@ exports.init = function () {
     }
   };
 
-  $.onEvent(window, 'resize', onResize, false);
+  //$.onEvent(window, 'resize', onResize, false);
 
   onResize();
 };

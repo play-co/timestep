@@ -1,4 +1,4 @@
-from util.browser import $;
+//from util.browser import $;
 import timer;
 
 import .FontLoader;
@@ -78,14 +78,14 @@ exports = Class(function () {
   };
 });
 
-var heightMeasure = document.body.appendChild(document.createElement('div'));
-var contents = heightMeasure.appendChild(document.createElement('span'));
-$.setText(contents, 'Hg');
-var baselineDiv = heightMeasure.appendChild(document.createElement('div'));
-baselineDiv.style.cssText = 'display: inline-block; width: 1px; height: 0px; vertical-align: baseline';
-var bottomDiv = heightMeasure.appendChild(document.createElement('div'));
-bottomDiv.style.cssText = 'display: inline-block; width: 1px; height: 0px; vertical-align: bottom';
-heightMeasure.style.cssText = 'position: absolute; top: 0px; left: -1000px; visibility: hidden; pointer-events: none';
+//var heightMeasure = document.body.appendChild(document.createElement('div'));
+//var contents = heightMeasure.appendChild(document.createElement('span'));
+//$.setText(contents, 'Hg');
+//var baselineDiv = heightMeasure.appendChild(document.createElement('div'));
+//baselineDiv.style.cssText = 'display: inline-block; width: 1px; height: 0px; vertical-align: baseline';
+//var bottomDiv = heightMeasure.appendChild(document.createElement('div'));
+//bottomDiv.style.cssText = 'display: inline-block; width: 1px; height: 0px; vertical-align: bottom';
+//heightMeasure.style.cssText = 'position: absolute; top: 0px; left: -1000px; visibility: hidden; pointer-events: none';
 
 var _fontHeightCache = {};
 function getTextHeight (font) {

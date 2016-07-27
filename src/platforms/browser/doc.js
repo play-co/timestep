@@ -33,7 +33,7 @@ var defaultScalingMode = !device.isMobileNative || device.simulating ? SCALING.R
  */
 var Document = Class(lib.PubSub, function () {
   this.init = function () {
-    if (!$) {
+    if (window.EJECTA || !$) {
       return;
     }
 

@@ -62,6 +62,9 @@ var Engine = exports = Class(Emitter, function (supr) {
       __instance = this;
     }
 
+    if (window.EJECTA) {
+      opts.canvas = 'canvas';
+    }
     var canvas = opts && opts.canvas;
     if (typeof canvas == 'string' && GLOBAL.document && document.getElementById) {
       canvas = document.getElementById(canvas);
@@ -136,7 +139,7 @@ var Engine = exports = Class(Emitter, function (supr) {
 
     // configure auto-layout in the browser (expand
     // to fill the viewport)
-    if (device.name == 'browser') {
+    if (!window.EJECTA && device.name == 'browser') {
       device.width = opts.width;
       device.height = opts.height;
       device.screen.width = opts.width;

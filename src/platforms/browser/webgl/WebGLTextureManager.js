@@ -84,7 +84,7 @@ var WebGLTextureManager = Class(PubSub, function() {
       textureData = {
         image: image,
         isImg: image instanceof Image,
-        isCanvas: image instanceof HTMLCanvasElement,
+        isCanvas: window.HTMLCanvasElement && (image instanceof HTMLCanvasElement),
         width: width,
         height: height,
         texture: gl.createTexture()
@@ -111,7 +111,7 @@ var WebGLTextureManager = Class(PubSub, function() {
       textureData.image.__GL_ID = undefined;
       textureData.image = image;
       textureData.isImg = image instanceof Image;
-      textureData.isCanvas = image instanceof HTMLCanvasElement;
+      textureData.isCanvas = window.HTMLCanvasElement && (image instanceof HTMLCanvasElement);
     }
 
     if (textureData.isImg || textureData.isCanvas) {

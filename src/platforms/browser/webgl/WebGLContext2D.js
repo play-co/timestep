@@ -611,7 +611,7 @@ var Context2D = Class(function () {
   this.resize = function(width, height) {
     this.width = width;
     this.height = height;
-    if (this.canvas instanceof HTMLCanvasElement) {
+    if (window.HTMLCanvasElement && (this.canvas instanceof HTMLCanvasElement)) {
       this.canvas.width = width;
       this.canvas.height = height;
     }
