@@ -60,12 +60,12 @@ var FilterRenderer = Class(function () {
   this.renderFilter = function (ctx, srcImg, srcX, srcY, srcW, srcH) {
     if (needsInitialization) { this.initialize(); }
     var filter = ctx.filter;
-    var filterName = filter.getType();
+    var filterName = filter && filter.getType && filter.getType();
 
     // Ugly hack, but WebGL still needs this class, for now, for masking.
     // The other filters are handled by the WebGL context itself.
     var filterNotSupported = this.useWebGL && filterName !== "NegativeMask" && filterName !== "PositiveMask";
-    if (!filter || filterNotSupported) { return null; }
+    if (!filter || filterNotSupported || !filter.getType) { return null; }
 
     if (this.useCache) {
       var cacheKey = this.getCacheKey(srcImg.getURL(), srcX, srcY, srcW, srcH, filter);
@@ -176,7 +176,7 @@ var FilterRenderer = Class(function () {
   };
 
   this.getCacheKey = function(url, srcX, srcY, srcW, srcH, filter) {
-    var filterType = filter.getType();
+    var filterType = filter && filter.getType && filter.getType();
     var suffix;
     if (filterType === 'NegativeMask' || filterType === 'PositiveMask') {
       suffix = filter.getMask().getURL();
