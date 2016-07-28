@@ -138,6 +138,10 @@ var GLManager = Class(function() {
     this._helperTransform = new Matrix2D();
 
     this._canvas = document.createElement('canvas');
+
+    // This hack prevents a WebGL bug where frames are presented out of order for some reason
+    this._canvas.style.transform = "skewx(0.000001deg)";
+
     this._canvas.width = this.width;
     this._canvas.height = this.height;
     this._canvas.getWebGLContext = this._canvas.getContext.bind(this._canvas, 'webgl', {
