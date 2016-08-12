@@ -143,7 +143,7 @@ var GLManager = Class(function() {
     this._canvas.getWebGLContext = this._canvas.getContext.bind(this._canvas, 'webgl', {
       alpha: true,
       premultipliedAlpha: true,
-      preserveDrawingBuffer: true
+      // preserveDrawingBuffer: true
     });
 
     this._indexCache = new Uint16Array(MAX_BATCH_SIZE * 6);
