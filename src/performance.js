@@ -50,7 +50,6 @@ var DPR_DECREASE_VALUE = 0.5;
 
 var OUTLIER_RANGE = 20;
 var MAX_OUTLIER_CHECK_NUM = 20;
-var MAX_OUTLIER_CHECK_TIME = 3000;
 
 var Performance = Class(function () {
   var _ticksSinceLastWorstUpdate = 0;
@@ -67,7 +66,7 @@ var Performance = Class(function () {
   var _averageDPR = device.screen.defaultDevicePixelRatio;
 
   var _outlierChecks = 0;
-  var _outlierCheckTime = 0;
+  var _outlierAvg = 0;
 
   this.init = function () {
     _canMeasure = true;
@@ -111,17 +110,16 @@ var Performance = Class(function () {
       var currentScore = _calculatePerformanceScore();
       var newAverageScore = _averageScore * SCORE_AVERAGE_WEIGHT + currentScore * SCORE_WEIGHT;
       var newAverageDiff = Math.abs(_averageScore - newAverageScore);
-      _outlierCheckTime += dt;
-      if (newAverageDiff < OUTLIER_RANGE || _outlierChecks >= MAX_OUTLIER_CHECK_NUM) {
+      if (newAverageDiff < OUTLIER_RANGE) {
         _outlierChecks = 0;
-        _outlierCheckTime = 0;
         _averageScore = newAverageScore;
+      } else if (_outlierChecks >= MAX_OUTLIER_CHECK_NUM) {
+        _outlierChecks = 0;
+        _averageScore = _outlierAvg;
+        _outlierAvg = 0;
       } else {
         _outlierChecks++;
-      }
-      if (_outlierCheckTime >= MAX_OUTLIER_CHECK_TIME) {
-        _outlierChecks = 0;
-        _outlierCheckTime = 0;
+        _outlierAvg += (newAverageScore - _outlierAvg) / _outlierChecks;
       }
     }
 
