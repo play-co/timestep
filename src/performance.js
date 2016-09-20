@@ -48,6 +48,10 @@ var SCORE_WEIGHT = 0.4;
 var MIN_SCORE_FOR_DPR = 40;
 var DPR_DECREASE_VALUE = 0.5;
 
+var OUTLIER_RANGE = 20;
+var MAX_OUTLIER_CHECK_NUM = 20;
+var MAX_OUTLIER_CHECK_TIME = 3000;
+
 var Performance = Class(function () {
   var _ticksSinceLastWorstUpdate = 0;
   var _ticksSinceLastDPRUpdate = 0;
@@ -61,6 +65,9 @@ var Performance = Class(function () {
   var _averageDelta = START_AVERAGE_DELTA;
   var _averageScore = START_AVERAGE_SCORE;
   var _averageDPR = device.screen.defaultDevicePixelRatio;
+
+  var _outlierChecks = 0;
+  var _outlierCheckTime = 0;
 
   this.init = function () {
     _canMeasure = true;
@@ -102,7 +109,20 @@ var Performance = Class(function () {
       _ticksSinceLastScoreUpdate = 0;
 
       var currentScore = _calculatePerformanceScore();
-      _averageScore = _averageScore * SCORE_AVERAGE_WEIGHT + currentScore * SCORE_WEIGHT;
+      var newAverageScore = _averageScore * SCORE_AVERAGE_WEIGHT + currentScore * SCORE_WEIGHT;
+      var newAverageDiff = Math.abs(_averageScore - newAverageScore);
+      _outlierCheckTime += dt;
+      if (newAverageDiff < OUTLIER_RANGE || _outlierChecks >= MAX_OUTLIER_CHECK_NUM) {
+        _outlierChecks = 0;
+        _outlierCheckTime = 0;
+        _averageScore = newAverageScore;
+      } else {
+        _outlierChecks++;
+      }
+      if (_outlierCheckTime >= MAX_OUTLIER_CHECK_TIME) {
+        _outlierChecks = 0;
+        _outlierCheckTime = 0;
+      }
     }
 
     if (_dprScalingEnabled && ++_ticksSinceLastDPRUpdate >= TICKS_TIL_ADJUST_DPR) {
