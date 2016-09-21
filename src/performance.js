@@ -74,7 +74,7 @@ var Performance = Class(function () {
   var _enableIgnoreStartTime = false;
 
   this.init = function () {
-    _canMeasure = true;
+    _canMeasure = false;
     _debug = false;
     _dprScalingEnabled = false;
 
@@ -116,7 +116,7 @@ var Performance = Class(function () {
       _ignoreStartTime = 0;
       _enableIgnoreStartTime = false;
     }
-    
+
     _averageDelta = _averageDelta * DELTA_AVERAGE_WEIGHT + delta * DELTA_WEIGHT;
 
     if (++_ticksSinceLastScoreUpdate >= TICKS_TIL_CHECK_SCORE) {
