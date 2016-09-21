@@ -40,7 +40,7 @@ var MAX_DPR_SCORE = 60;
 var MIN_DPR = 1;
 var TICKS_TIL_CHECK_SCORE = 20;
 var START_AVERAGE_DELTA = 16;
-var START_AVERAGE_SCORE = 100;
+var START_AVERAGE_SCORE = 200;
 var DELTA_AVERAGE_WEIGHT = 0.6;
 var DELTA_WEIGHT = 0.4;
 var SCORE_AVERAGE_WEIGHT = 0.6;
@@ -50,6 +50,8 @@ var DPR_DECREASE_VALUE = 0.5;
 
 var OUTLIER_RANGE = 20;
 var MAX_OUTLIER_CHECK_NUM = 20;
+
+var STARTING_TIME_TO_IGNORE = 1500;
 
 var Performance = Class(function () {
   var _ticksSinceLastWorstUpdate = 0;
@@ -67,6 +69,9 @@ var Performance = Class(function () {
 
   var _outlierChecks = 0;
   var _outlierAvg = 0;
+
+  var _ignoreStartTime = 0;
+  var _enableIgnoreStartTime = false;
 
   this.init = function () {
     _canMeasure = true;
@@ -102,6 +107,16 @@ var Performance = Class(function () {
     var now = Date.now();
     var delta = now - _lastTick;
     _lastTick = now;
+
+    // Ignore first 1.5 seconds
+    if (_enableIgnoreStartTime && _ignoreStartTime < STARTING_TIME_TO_IGNORE) {
+      _ignoreStartTime += delta;
+      return;
+    } else if (_enableIgnoreStartTime) {
+      _ignoreStartTime = 0;
+      _enableIgnoreStartTime = false;
+    }
+    
     _averageDelta = _averageDelta * DELTA_AVERAGE_WEIGHT + delta * DELTA_WEIGHT;
 
     if (++_ticksSinceLastScoreUpdate >= TICKS_TIL_CHECK_SCORE) {
@@ -195,6 +210,12 @@ var Performance = Class(function () {
    */
   this.getPerformanceScore = function () {
     return _averageScore;
+  };
+
+  this.enableIgnoreStartTime = function () {
+    if (!_enableIgnoreStartTime) {
+      _enableIgnoreStartTime = true;
+    }
   };
 
   /**
