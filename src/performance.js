@@ -4,12 +4,10 @@
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
  * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
-
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * Mozilla Public License v. 2.0 for more details.
-
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
@@ -48,9 +46,6 @@ var SCORE_WEIGHT = 0.4;
 var MIN_SCORE_FOR_DPR = 40;
 var DPR_DECREASE_VALUE = 0.5;
 
-var OUTLIER_RANGE = 20;
-var MAX_OUTLIER_CHECK_NUM = 20;
-
 var Performance = Class(function () {
   var _ticksSinceLastWorstUpdate = 0;
   var _ticksSinceLastDPRUpdate = 0;
@@ -64,9 +59,6 @@ var Performance = Class(function () {
   var _averageDelta = START_AVERAGE_DELTA;
   var _averageScore = START_AVERAGE_SCORE;
   var _averageDPR = device.screen.defaultDevicePixelRatio;
-
-  var _outlierChecks = 0;
-  var _outlierAvg = 0;
 
   this.init = function () {
     _canMeasure = true;
@@ -102,27 +94,13 @@ var Performance = Class(function () {
     var now = Date.now();
     var delta = now - _lastTick;
     _lastTick = now;
-
     _averageDelta = _averageDelta * DELTA_AVERAGE_WEIGHT + delta * DELTA_WEIGHT;
 
     if (++_ticksSinceLastScoreUpdate >= TICKS_TIL_CHECK_SCORE) {
       _ticksSinceLastScoreUpdate = 0;
 
       var currentScore = _calculatePerformanceScore();
-      var newAverageScore = _averageScore * SCORE_AVERAGE_WEIGHT + currentScore * SCORE_WEIGHT;
-      var newAverageDiff = Math.abs(_averageScore - newAverageScore);
-      if (newAverageDiff < OUTLIER_RANGE) {
-        _averageScore = newAverageScore;
-        _outlierChecks = 0;
-        _outlierAvg = 0;
-      } else if (_outlierChecks >= MAX_OUTLIER_CHECK_NUM) {
-        _averageScore = _outlierAvg;
-        _outlierChecks = 0;
-        _outlierAvg = 0;
-      } else {
-        _outlierChecks++;
-        _outlierAvg += (newAverageScore - _outlierAvg) / _outlierChecks;
-      }
+      _averageScore = _averageScore * SCORE_AVERAGE_WEIGHT + currentScore * SCORE_WEIGHT;
     }
 
     if (_dprScalingEnabled && ++_ticksSinceLastDPRUpdate >= TICKS_TIL_ADJUST_DPR) {
