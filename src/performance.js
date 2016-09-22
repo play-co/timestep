@@ -4,12 +4,10 @@
  *
  * The Game Closure SDK is free software: you can redistribute it and/or modify
  * it under the terms of the Mozilla Public License v. 2.0 as published by Mozilla.
-
  * The Game Closure SDK is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * Mozilla Public License v. 2.0 for more details.
-
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
@@ -41,10 +39,10 @@ var MIN_DPR = 1;
 var TICKS_TIL_CHECK_SCORE = 20;
 var START_AVERAGE_DELTA = 16;
 var START_AVERAGE_SCORE = 100;
-var DELTA_AVERAGE_WEIGHT = 0.6;
-var DELTA_WEIGHT = 0.4;
-var SCORE_AVERAGE_WEIGHT = 0.6;
-var SCORE_WEIGHT = 0.4;
+var DELTA_AVERAGE_WEIGHT = 0.95;
+var DELTA_WEIGHT = 0.05;
+var SCORE_AVERAGE_WEIGHT = 0.95;
+var SCORE_WEIGHT = 0.05;
 var MIN_SCORE_FOR_DPR = 40;
 var DPR_DECREASE_VALUE = 0.5;
 
@@ -79,6 +77,9 @@ var Performance = Class(function () {
     var scoreRange = MAX_SCORE - MIN_SCORE;
     var fpsPosition = fps - _minFPS;
     var valuePercentage = fpsPosition / fpsRange;
+    if (valuePercentage > 1) {
+      valuePercentage = 1;
+    }
     return MIN_SCORE + scoreRange * valuePercentage;
   };
 
