@@ -47,7 +47,6 @@ var Document = Class(lib.PubSub, function () {
         overflow: 'hidden',
         width: '100%',
         height: '100%',
-        transform: 'skewx(0.00001deg)'
       }
     });
 
