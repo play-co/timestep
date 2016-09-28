@@ -140,11 +140,12 @@ var GLManager = Class(function() {
     this._canvas = document.createElement('canvas');
     this._canvas.width = this.width;
     this._canvas.height = this.height;
-    this._canvas.getWebGLContext = this._canvas.getContext.bind(this._canvas, 'webgl', {
+    this._canvas.getWebGLContext = this._canvas.getContext.bind(this._canvas, 'webgl', merge(CONFIG.webGLContextOptions, {
       alpha: true,
       premultipliedAlpha: true,
-      preserveDrawingBuffer: true
-    });
+      preserveDrawingBuffer: true,
+      antialias: false
+    }));
 
     this._indexCache = new Uint16Array(MAX_BATCH_SIZE * 6);
     this._vertexCache = new ArrayBuffer(MAX_BATCH_SIZE * STRIDE * 4);
