@@ -54,7 +54,7 @@ exports = Class(View, function (supr) {
     }
   };
 
-  this.clearInput = this.onInputSelect = function (evt) {
+  this.onInputSelect = function (evt) {
     var id = 'p' + evt.id;
     delete this._dragPoints[id];
     this._activeFingers -= 1;
@@ -119,3 +119,5 @@ exports = Class(View, function (supr) {
     this.clearInput(selectEvent);
   };
 });
+
+exports.prototype.clearInput = exports.prototype.onInputSelect;

@@ -21,20 +21,225 @@
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/imageview.md
  */
 
-import ui.View;
-import ui.resource.Image as Image;
-import ui.resource.loader as resourceLoader;
-import ui.resource.ImageViewCache as ImageViewCache;
 
-exports = Class(ui.View, function (supr) {
+var defaults = {
+  image: null,
+  autoSize: false,
+  scaleMethod: 'stretch',
+  renderCenter: true
+};
 
-  var defaults = {
-    image: null,
-    autoSize: false,
-    scaleMethod: 'stretch',
-    renderCenter: true
-  };
+function adjustMiddleSlice(slices) {
+  if (slices[1] < 0) {
+    var overshoot = -slices[1] + 1;
+    slices[1] = 1;
+    slices[0] -= Math.floor(overshoot / 2);
+    slices[2] -= Math.ceil(overshoot / 2);
+  }
+}
 
+
+function renderCoverOrContain(ctx, opts) {
+  if (!this._img) {
+    return;
+  }
+
+
+  var max = Math.max;
+  var min = Math.min;
+  var s = this.style;
+  var w = s.width;
+  var h = s.height;
+  var cachedKey = this._renderCacheKey;
+  var cache = this._renderCache || (this._renderCache = {
+    x: 0,
+    y: 0,
+    w: 0,
+    h: 0
+  });
+  if (cachedKey.width != w || cachedKey.height != h) {
+    cachedKey.width = w;
+    cachedKey.height = h;
+
+    var bounds = this._img.getBounds();
+    var marginLeft = bounds.marginLeft;
+    var marginRight = bounds.marginRight;
+    var marginTop = bounds.marginTop;
+    var marginBottom = bounds.marginBottom;
+    var sw = bounds.width;
+    var sh = bounds.height;
+    var ow = sw + marginLeft + marginRight;
+    var oh = sh + marginTop + marginBottom;
+    var scale = 1;
+    var targetRatio = ow / oh;
+    var ratio = w / h;
+
+    var isCover = this._scaleMethod == 'cover';
+    if (isCover ? ratio > targetRatio : ratio < targetRatio) {
+      scale = w / ow;
+    } else {
+      scale = h / oh;
+    }
+
+
+    var dw = sw * scale;
+    var dh = sh * scale;
+    var fw = ow * scale;
+    var fh = oh * scale;
+
+    cache.x = this._align == 'left' ? marginLeft * scale : this._align == 'right' ? w - (sw + marginRight) * scale : (w - dw) / 2;
+    cache.y = this._verticalAlign == 'top' ? marginTop * scale : this._verticalAlign == 'bottom' ? h - (sh + marginBottom) * scale : (h - dh) / 2;
+
+    cache.w = dw;
+    cache.h = dh;
+    cache.sx = bounds.x;
+    cache.sy = bounds.y;
+    cache.sw = sw;
+    cache.sh = sh;
+
+    if (isCover) {
+      if (fh > h) {
+        if (this._verticalAlign == 'bottom') {
+          cache.y = max(0, h - marginBottom * scale - dh);
+          cache.h = min(dh, h - marginBottom * scale);
+          cache.sy += max(0, sh - cache.h / scale);
+          cache.sh = cache.h / scale;
+        } else if (this._verticalAlign == 'top') {
+          cache.y = marginTop * scale;
+          cache.h = min(dh, h - cache.y);
+          cache.sh = cache.h / scale;
+        } else {
+          cache.y = max(0, (h - dh) / 2);
+          cache.h = min(dh, h);
+          cache.sh = cache.h / scale;
+          cache.sy = max(cache.sy, cache.sy + (sh - cache.sh) / 2);
+        }
+      } else if (fw > w) {
+        if (this._align == 'right') {
+          cache.x = max(0, w - marginRight * scale - dw);
+          cache.w = min(dw, w - marginRight * scale);
+          cache.sx += max(0, sw - cache.w / scale);
+          cache.sw = cache.w / scale;
+        } else if (this._align == 'left') {
+          cache.x = marginLeft * scale;
+          cache.w = min(dw, w - cache.x);
+          cache.sw = cache.w / scale;
+        } else {
+          cache.x = max(0, (w - dw) / 2);
+          cache.w = min(dw, w);
+          cache.sw = cache.w / scale;
+          cache.sx = max(cache.sx, cache.sx + (sw - cache.sw) / 2);
+        }
+      }
+    }
+  }
+
+
+  this._img.render(ctx, cache.sx, cache.sy, cache.sw, cache.sh, cache.x, cache.y, cache.w, cache.h);
+
+  if (this.debug) {
+    ctx.strokeStyle = debugColors[0];
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0, 0, s.width, s.height);
+  }
+}
+
+
+var renderFunctions = {
+  'none': function (ctx, opts) {
+    this._img && this._img.render(ctx, 0, 0);
+  },
+  'stretch': function (ctx, opts) {
+    var s = this.style;
+    var w = s.width;
+    var h = s.height;
+    this._img && this._img.render(ctx, 0, 0, w, h);
+  },
+  'contain': renderCoverOrContain,
+  'cover': renderCoverOrContain,
+  'tile': function (ctx, opts) {
+    if (!this._img) {
+      return;
+    }
+
+
+    var s = this.style;
+    var w = s.width;
+    var h = s.height;
+
+    var bounds = this._img.getBounds();
+    var iw = (bounds.marginLeft + bounds.width + bounds.marginRight) / bounds.scale;
+    var ih = (bounds.marginTop + bounds.height + bounds.marginBottom) / bounds.scale;
+
+    var x = 0, y = 0;
+
+    if (this.rows) {
+      var targetHeight = h / this.rows;
+      var targetRatio = targetHeight / ih;
+      var targetWidth = iw * targetRatio;
+      for (var i = 0; i < this.rows; i++) {
+        while (x < w) {
+          this._img.render(ctx, x, y, targetWidth, targetHeight);
+          if (this.debug) {
+            ctx.strokeStyle = debugColors[i % 3];
+            ctx.strokeRect(x + 0.5, y + 0.5, targetWidth - 1, targetHeight - 1);
+          }
+          x += targetWidth;
+        }
+        y += targetHeight;
+        x = 0;
+      }
+    } else if (this.columns) {
+      var targetWidth = w / this.columns;
+      var targetRatio = targetWidth / iw;
+      var targetHeight = ih * targetRatio;
+      for (var i = 0; i < this.columns; i++) {
+        while (y < h) {
+          this._img.render(ctx, x, y, targetWidth, targetHeight);
+          if (this.debug) {
+            ctx.strokeStyle = debugColors[i % 3];
+            ctx.strokeRect(x + 0.5, y + 0.5, targetWidth - 1, targetHeight - 1);
+          }
+          y += targetHeight;
+        }
+        x += targetWidth;
+        y = 0;
+      }
+    }
+  },
+  'slice': function (ctx, opts) {
+    if (!this._img) {
+      return;
+    }
+
+
+    var s = this.style;
+    var w = s.width;
+    var h = s.height;
+    var scale = s.scale;
+    var cachedKey = this._renderCacheKey;
+    if (cachedKey.width != w || cachedKey.height != h || cachedKey.absScale != scale) {
+      cachedKey.width = w;
+      cachedKey.height = h;
+      cachedKey.absScale = scale;
+      this._computeSlices(w, h, scale);
+    }
+
+
+    for (var i = 0; i < 9; i++) {
+      this._drawSlice(ctx, this._sliceCache[i], i);
+    }
+  }
+};
+
+
+var debugColors = [
+  '#FF0000',
+  '#00FF00',
+  '#0000FF'
+];
+
+exports = Class(View, function (supr) {
   this.init = function (opts) {
     supr(this, 'init', [merge(opts, defaults)]);
   };
@@ -42,15 +247,6 @@ exports = Class(ui.View, function (supr) {
   this.getScaleMethod = function () {
     return this._scaleMethod;
   };
-
-  function adjustMiddleSlice(slices) {
-    if (slices[1] < 0) {
-      var overshoot = -slices[1] + 1;
-      slices[1] = 1;
-      slices[0] -= Math.floor(overshoot / 2);
-      slices[2] -= Math.ceil(overshoot / 2);
-    }
-  }
 
   this.updateSlices = function (opts) {
     opts = opts || this._opts;
@@ -147,7 +343,7 @@ exports = Class(ui.View, function (supr) {
         key = 'slice';
       }
 
-      this.render = renderFunctions[key];
+      this.render = renderFunctions[key].bind(this);
       this._renderCacheKey = {};
       this._scaleMethod = opts.scaleMethod;
       this._isSlice = this._scaleMethod.slice(1) == 'slice';
@@ -431,196 +627,12 @@ exports = Class(ui.View, function (supr) {
     }
   };
 
-  this.getOrigWidth = this.getOrigW = function () {
+  this.getOrigW = function () {
     return this._img.getOrigW();
   };
 
-  this.getOrigHeight = this.getOrigH = function () {
+  this.getOrigH = function () {
     return this._img.getOrigH();
-  };
-
-  function renderCoverOrContain(ctx, opts) {
-    if (!this._img) { return; }
-
-    var max = Math.max;
-    var min = Math.min;
-    var s = this.style;
-    var w = s.width;
-    var h = s.height;
-    var cachedKey = this._renderCacheKey;
-    var cache = this._renderCache || (this._renderCache = {x: 0, y: 0, w: 0, h: 0});
-    if (cachedKey.width != w || cachedKey.height != h) {
-      cachedKey.width = w;
-      cachedKey.height = h;
-
-      var bounds = this._img.getBounds();
-      var marginLeft = bounds.marginLeft;
-      var marginRight = bounds.marginRight;
-      var marginTop = bounds.marginTop;
-      var marginBottom = bounds.marginBottom;
-      var sw = bounds.width;
-      var sh = bounds.height;
-      var ow = sw + marginLeft + marginRight;
-      var oh = sh + marginTop + marginBottom;
-      var scale = 1;
-      var targetRatio = ow / oh;
-      var ratio = w / h;
-
-      var isCover = this._scaleMethod == 'cover';
-      if (isCover ? ratio > targetRatio : ratio < targetRatio) {
-        scale = w / ow;
-      } else {
-        scale = h / oh;
-      }
-
-      var dw = sw * scale;
-      var dh = sh * scale;
-      var fw = ow * scale;
-      var fh = oh * scale;
-
-      cache.x = this._align == 'left'
-        ? marginLeft * scale
-        : this._align == 'right'
-          ? w - (sw + marginRight) * scale
-          : (w - dw) / 2;
-      cache.y = this._verticalAlign == 'top'
-        ? marginTop * scale
-        : this._verticalAlign == 'bottom'
-          ? h - (sh + marginBottom) * scale
-          : (h - dh) / 2;
-
-      cache.w = dw;
-      cache.h = dh;
-      cache.sx = bounds.x;
-      cache.sy = bounds.y;
-      cache.sw = sw;
-      cache.sh = sh;
-
-      if (isCover) {
-        if (fh > h) {
-          if (this._verticalAlign == 'bottom') {
-            cache.y = max(0, h - marginBottom * scale - dh);
-            cache.h = min(dh, h - marginBottom * scale);
-            cache.sy += max(0, sh - cache.h / scale);
-            cache.sh = cache.h / scale;
-          } else if (this._verticalAlign == 'top') {
-            cache.y = marginTop * scale;
-            cache.h = min(dh, h - cache.y);
-            cache.sh = cache.h / scale;
-          } else {
-            cache.y = max(0, (h - dh) / 2);
-            cache.h = min(dh, h);
-            cache.sh = cache.h / scale;
-            cache.sy = max(cache.sy, cache.sy + (sh - cache.sh) / 2);
-          }
-        } else if (fw > w) {
-          if (this._align == 'right') {
-            cache.x = max(0, w - marginRight * scale - dw);
-            cache.w = min(dw, w - marginRight * scale);
-            cache.sx += max(0, sw - cache.w / scale);
-            cache.sw = cache.w / scale;
-          } else if (this._align == 'left') {
-            cache.x = marginLeft * scale;
-            cache.w = min(dw, w - cache.x);
-            cache.sw = cache.w / scale;
-          } else {
-            cache.x = max(0, (w - dw) / 2);
-            cache.w = min(dw, w);
-            cache.sw = cache.w / scale;
-            cache.sx = max(cache.sx, cache.sx + (sw - cache.sw) / 2);
-          }
-        }
-      }
-    }
-
-    this._img.render(ctx, cache.sx, cache.sy, cache.sw, cache.sh, cache.x, cache.y, cache.w, cache.h);
-
-    if (this.debug) {
-      ctx.strokeStyle = debugColors[0];
-      ctx.lineWidth = 1;
-      ctx.strokeRect(0, 0, s.width, s.height);
-    }
-  }
-
-  var renderFunctions = {
-    'none': function (ctx, opts) {
-      this._img && this._img.render(ctx, 0, 0);
-    },
-    'stretch': function (ctx, opts) {
-      var s = this.style;
-      var w = s.width;
-      var h = s.height;
-      this._img && this._img.render(ctx, 0, 0, w, h);
-    },
-    'contain': renderCoverOrContain,
-    'cover': renderCoverOrContain,
-    'tile': function (ctx, opts) {
-      if (!this._img) { return; }
-
-      var s = this.style;
-      var w = s.width;
-      var h = s.height;
-
-      var bounds = this._img.getBounds();
-      var iw = (bounds.marginLeft + bounds.width + bounds.marginRight) / bounds.scale;
-      var ih = (bounds.marginTop + bounds.height + bounds.marginBottom) / bounds.scale;
-
-      var x = 0, y = 0;
-
-      if (this.rows) {
-        var targetHeight = h / this.rows;
-        var targetRatio = targetHeight / ih;
-        var targetWidth = iw * targetRatio;
-        for (var i = 0; i < this.rows; i++) {
-          while (x < w) {
-            this._img.render(ctx, x, y, targetWidth, targetHeight);
-            if (this.debug) {
-              ctx.strokeStyle = debugColors[i % 3];
-              ctx.strokeRect(x + 0.5, y + 0.5, targetWidth - 1, targetHeight - 1);
-            }
-            x += targetWidth;
-          }
-          y += targetHeight;
-          x = 0;
-        }
-      }
-      else if (this.columns) {
-        var targetWidth = w / this.columns;
-        var targetRatio = targetWidth / iw;
-        var targetHeight = ih * targetRatio;
-        for (var i = 0; i < this.columns; i++) {
-          while (y < h) {
-            this._img.render(ctx, x, y, targetWidth, targetHeight);
-            if (this.debug) {
-              ctx.strokeStyle = debugColors[i % 3];
-              ctx.strokeRect(x + 0.5, y + 0.5, targetWidth - 1, targetHeight - 1);
-            }
-            y += targetHeight;
-          }
-          x += targetWidth;
-          y = 0;
-        }
-      }
-    },
-    'slice': function (ctx, opts) {
-      if (!this._img) { return; }
-
-      var s = this.style;
-      var w = s.width;
-      var h = s.height;
-      var scale = s.scale;
-      var cachedKey = this._renderCacheKey;
-      if (cachedKey.width != w || cachedKey.height != h || cachedKey.absScale != scale) {
-        cachedKey.width = w;
-        cachedKey.height = h;
-        cachedKey.absScale = scale;
-        this._computeSlices(w, h, scale);
-      }
-
-      for (var i = 0; i < 9; i++) {
-        this._drawSlice(ctx, this._sliceCache[i], i);
-      }
-    }
   };
 
   this._drawSlice = function (ctx, sliceData, i) {
@@ -633,8 +645,6 @@ exports = Class(ui.View, function (supr) {
         sliceData[7] - 1, sliceData[8] - 1);
     }
   };
-
-  var debugColors = ['#FF0000', '#00FF00', '#0000FF'];
 
   this.getTag = function () {
     var url = this._img && (this._img.getOriginalURL() || this._img._map && this._img._map.url);
@@ -650,3 +660,6 @@ exports = Class(ui.View, function (supr) {
     return 'ImageScaleView' + this.uid + (url || '');
   };
 });
+
+exports.prototype.getOrigWidth = exports.prototype.getOrigW;
+exports.prototype.getOrigHeight = exports.prototype.getOrigH;

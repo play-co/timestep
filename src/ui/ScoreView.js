@@ -26,11 +26,11 @@ import ui.ImageView as ImageView;
 import ui.resource.Image as Image;
 import ui.filter as filter;
 
-exports = Class(View, function(supr) {
-  var min = Math.min;
-  var max = Math.max;
+var min = Math.min;
+var max = Math.max;
 
-  this.init = function(opts) {
+exports = Class(View, function (supr) {
+  this.init = function (opts) {
     opts.blockEvents = true;
     supr(this, 'init', arguments);
 

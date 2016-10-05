@@ -23,8 +23,8 @@
 
 import .View;
 import squill.models.Cell;
-/**   
- * @extends ui.View 
+/**
+ * @extends ui.View
  */
 exports = Class(View, function (supr) {
   this.init = function (opts) {
@@ -80,8 +80,10 @@ exports = Class(View, function (supr) {
     }
   };
 
-  this.onClick = this.onInputSelect = function () {
-    if (!this.controller || !this.controller.selection) { return; }
+  this.onInputSelect = function () {
+    if (!this.controller || !this.controller.selection) {
+      return;
+    }
 
     var type = this.controller.selection.getType();
     if (type == 'toggle' || type == 'multi') {
@@ -95,3 +97,5 @@ exports = Class(View, function (supr) {
     }
   };
 });
+
+exports.prototype.onClick = exports.prototype.onInputSelect;

@@ -46,8 +46,9 @@ import ui.ImageView as ImageView;
 import ui.resource.Image as Image;
 import ui.resource.loader;
 
-var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr) {
-  
+var GROUPS = {};
+
+var SpriteView = exports = Class(ImageView, function (supr) {
   this.defaults = {
     url: null, // specified as a filename prefix, without an animation name or frame count
     groupID: "default",
@@ -57,8 +58,6 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
     autoStart: false,
     loop: true
   };
-
-  var GROUPS = {};
 
   this.tick = null;
 
@@ -345,8 +344,7 @@ SpriteView.getGroup = SpriteView.prototype.getGroup;
 /**
  * Group class
  */
-var Group = Class(jsio.__filename, function (logger) {
-
+var Group = Class(jsio.__filename, function () {
   this.init = function () {
     this.sprites = {};
   };

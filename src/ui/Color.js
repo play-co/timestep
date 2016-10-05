@@ -20,8 +20,19 @@
  * @doc http://doc.gameclosure.com/api/color.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/color.md
  */
-var RGBA = exports = Class(function () {
+var rgbParser = /rgba?\(\s*([.0-9]+)\s*,\s*([.0-9]+)\s*,\s*([.0-9]+)\s*,?\s*([.0-9]+)?\s*\)/;
 
+function hexToRGB(a) {
+  a = '0x' + a.slice(1).replace(a.length < 5 && /./g, '$&$&');
+  return [
+    a >> 16,
+    a >> 8 & 255,
+    a & 255
+  ];
+};
+
+
+var RGBA = exports = Class(function () {
   this.init = function () {
     this.r = 0;
     this.g = 0;
@@ -65,13 +76,6 @@ var RGBA = exports = Class(function () {
       this.b = rgba.b || 0;
       this.a = rgba.a !== undefined ? rgba.a : 1;
     }
-  };
-
-  var rgbParser = /rgba?\(\s*([.0-9]+)\s*,\s*([.0-9]+)\s*,\s*([.0-9]+)\s*,?\s*([.0-9]+)?\s*\)/;
-
-  function hexToRGB(a) {
-    a = '0x' + a.slice(1).replace(a.length < 5 && /./g, '$&$&');
-    return [a >> 16, a >> 8 & 255, a & 255];
   };
 
   this.parse = function (str) {

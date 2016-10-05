@@ -21,20 +21,19 @@ import ui.ImageScaleView as ImageScaleView;
 
 var EditText = device.get('EditText');
 
-exports = Class(ImageScaleView, function(supr) {
+var defaults = {
+  color: 'black',
+  hintColor: '#979797',
+  paddingLeft: 20,
+  paddingRight: 20,
+  paddingTop: 0,
+  paddingBottom: 0
+};
 
-    var defaults = {
-        color: 'black',
-        hintColor: "#979797",
-        paddingLeft: 20,
-        paddingRight: 20,
-        paddingTop: 0,
-        paddingBottom: 0
-    };
-
-    this.init = function(opts) {
-        this._opts = merge(opts || {}, defaults); 
-        supr(this, 'init', [this._opts]);
+exports = Class(ImageScaleView, function (supr) {
+  this.init = function (opts) {
+    this._opts = merge(opts || {}, defaults);
+    supr(this, 'init', [this._opts]);
 
     this._clipper = new View({
         x: 0,

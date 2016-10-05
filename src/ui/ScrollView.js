@@ -45,128 +45,197 @@ if (DEBUG) {
     bounds: []
   };
 }
+
+function getBoundingRectangle(pos) {
+  if (!pos.r) {
+    return;
+  }
+
+
+  var w = pos.width;
+  var h = pos.height;
+  var cr = Math.cos(pos.r);
+  var sr = Math.sin(pos.r);
+
+  var x1 = pos.x;
+  var y1 = pos.y;
+
+  var x = w;
+  var y = 0;
+
+  var x2 = x1 + x * cr - y * sr;
+  var y2 = y1 + x * sr + y * cr;
+
+  y += h;
+
+  var x3 = x1 + x * cr - y * sr;
+  var y3 = y1 + x * sr + y * cr;
+
+  x -= w;
+
+  var x4 = x1 + x * cr - y * sr;
+  var y4 = y1 + x * sr + y * cr;
+
+  pos.x = Math.min(x1, x2, x3, x4);
+  pos.y = Math.min(y1, y2, y3, y4);
+
+  pos.width = Math.max(x1, x2, x3, x4) - pos.x;
+  pos.height = Math.max(y1, y2, y3, y4) - pos.y;
+  pos.r = 0;
+};
+
+function viewportIntersect(viewport, prevViewport) {
+  var pos = viewport.src.getPosition(prevViewport.src);
+
+  pos.x = (prevViewport.x - pos.x) / pos.scale;
+  pos.y = (prevViewport.y - pos.y) / pos.scale;
+  pos.width = prevViewport.width / pos.scale;
+  pos.height = prevViewport.height / pos.scale;
+  pos.r = -pos.r;
+
+  getBoundingRectangle(pos);
+
+  viewport.intersectRect(pos);
+};
+
+
+var defaults = {
+  offsetX: 0,
+  offsetY: 0,
+  scrollY: true,
+  scrollX: true,
+  clip: true,
+  bounce: true,
+  bounceRadius: 50,
+  // [number] or 'bounds'
+  drag: true,
+  inertia: true,
+  dragRadius: Math.min(device.width, device.height) / 32,
+  snapPixels: undefined,
+  useLayoutBounds: false,
+  layout: 'box'
+};
+
+
+function clippedWrapRender(contentView, backing, ctx, opts) {
+  if (!backing.visible) {
+    return;
+  }
+  // non-native case only
+  if (backing._needsSort) {
+    backing._needsSort = false;
+    backing._subviews.sort();
+  }
+
+  ctx.save();
+  ctx.translate(backing.x + backing.anchorX, backing.y + backing.anchorY);
+
+  if (backing.r) {
+    ctx.rotate(backing.r);
+  }
+
+  // clip this render to be within its view;
+  if (backing.scale != 1) {
+    ctx.scale(backing.scale, backing.scale);
+  }
+  if (backing.opacity != 1) {
+    ctx.globalAlpha *= backing.opacity;
+  }
+
+  ctx.translate(-backing.anchorX, -backing.anchorY);
+
+  // if (backing._circle) { ctx.translate(-backing.width / 2, -backing.height / 2); }
+  if (backing.clip) {
+    ctx.clipRect(0, 0, backing.width, backing.height);
+  }
+
+  try {
+    if (backing.backgroundColor) {
+      ctx.fillStyle = backing.backgroundColor;
+      ctx.fillRect(0, 0, backing.width, backing.height);
+    }
+
+    backing._view.render && backing._view.render(ctx, opts);
+
+    var viewport = opts.viewport;
+    var subviews = backing._subviews;
+
+    var i = 0, subview;
+    while (subview = subviews[i++]) {
+      if (subview == contentView) {
+        clippedWrapRender(contentView, subview.__view, ctx, opts);
+
+        // restore the old viewport it was changed
+        opts.viewport = viewport;
+      } else {
+        var pos = subview.getPosition(viewport.src);
+        getBoundingRectangle(pos);
+
+        if (intersect.isRectAndRect(pos, viewport)) {
+          clippedWrapRender(contentView, subview.__view, ctx, opts);
+        }
+
+
+        if (DEBUG) {
+          _debug.bounds.push(pos);
+        }
+      }
+    }
+  } catch (e) {
+    logger.error(backing._view, e.message, e.stack);
+  } finally {
+    // ctx.clearFilters();
+    ctx.restore();
+  }
+}
+
+// extend the default backing ctor
+var DEFAULT_BACKING_CTOR = Class(View.prototype.BackingCtor, function () {
+  this.wrapRender = function (ctx, opts) {
+    clippedWrapRender(this._view._contentView, this, ctx, opts);
+
+    if (DEBUG) {
+      var viewport = opts.viewport;
+
+      ctx.save();
+      ctx.translate(this.x + this.anchorX, this.y + this.anchorY);
+      if (this.r) {
+        ctx.rotate(this.r);
+      }
+      if (this.scale != 1) {
+        ctx.scale(this.scale, this.scale);
+      }
+      ctx.translate(-this.anchorX, -this.anchorY);
+
+      ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+      ctx.fillRect(viewport.x, viewport.y, viewport.width, viewport.height);
+
+      ctx.translate(-viewport.x, -viewport.y);
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      for (var i = 0, bounds; bounds = _debug.bounds[i]; ++i) {
+        ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
+      }
+      _debug.bounds = [];
+      ctx.restore();
+    }
+  };
+});
+
+
+var PI_2 = Math.PI / 2;
+
+
 /*function customEaseOut(x) {
   var x = (1 - x);
   x *= x;
   return 1 - x * x;
 }*/
-
 /**
  * @extends ui.View
  */
 exports = Class(View, function (supr) {
-
-  this.tag = "ScrollView";
-
-  if (USE_CLIPPING) {
-
-    // extend the default backing ctor
-    this.BackingCtor = Class(View.prototype.BackingCtor, function () {
-
-      function clippedWrapRender(contentView, backing, ctx, opts) {
-        if (!backing.visible) { return; }
-
-        // non-native case only
-        if (backing._needsSort) { backing._needsSort = false; backing._subviews.sort(); }
-
-        ctx.save();
-        ctx.translate(backing.x + backing.anchorX, backing.y + backing.anchorY);
-
-        if (backing.r) { ctx.rotate(backing.r); }
-
-        // clip this render to be within its view;
-        if (backing.scale != 1) { ctx.scale(backing.scale, backing.scale); }
-        if (backing.opacity != 1) { ctx.globalAlpha *= backing.opacity; }
-
-        ctx.translate(-backing.anchorX, -backing.anchorY);
-
-        // if (backing._circle) { ctx.translate(-backing.width / 2, -backing.height / 2); }
-
-        if (backing.clip) { ctx.clipRect(0, 0, backing.width, backing.height); }
-
-        try {
-          if (backing.backgroundColor) {
-            ctx.fillStyle = backing.backgroundColor;
-            ctx.fillRect(0, 0, backing.width, backing.height);
-          }
-
-          backing._view.render && backing._view.render(ctx, opts);
-
-          var viewport = opts.viewport;
-          var subviews = backing._subviews;
-
-          var i = 0, subview;
-          while (subview = subviews[i++]) {
-            if (subview == contentView) {
-              clippedWrapRender(contentView, subview.__view, ctx, opts);
-
-              // restore the old viewport it was changed
-              opts.viewport = viewport;
-            } else {
-              var pos = subview.getPosition(viewport.src);
-              getBoundingRectangle(pos);
-
-              if (intersect.isRectAndRect(pos, viewport)) {
-                clippedWrapRender(contentView, subview.__view, ctx, opts);
-              }
-
-              if (DEBUG) {
-                _debug.bounds.push(pos);
-              }
-            }
-          }
-        } catch(e) {
-          logger.error(backing._view, e.message, e.stack);
-        } finally {
-          // ctx.clearFilters();
-          ctx.restore();
-        }
-      }
-
-      this.wrapRender = function (ctx, opts) {
-
-        clippedWrapRender(this._view._contentView, this, ctx, opts);
-
-        if (DEBUG) {
-          var viewport = opts.viewport;
-
-          ctx.save();
-          ctx.translate(this.x + this.anchorX, this.y + this.anchorY);
-          if (this.r) { ctx.rotate(this.r); }
-          if (this.scale != 1) { ctx.scale(this.scale, this.scale); }
-          ctx.translate(-this.anchorX, -this.anchorY);
-
-          ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
-          ctx.fillRect(viewport.x, viewport.y, viewport.width, viewport.height);
-
-          ctx.translate(-viewport.x, -viewport.y);
-
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-          for (var i = 0, bounds; (bounds = _debug.bounds[i]); ++i) {
-            ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
-          }
-          _debug.bounds = [];
-          ctx.restore();
-        }
-      }
-    });
-  };
-
-  var defaults = {
-    offsetX: 0,
-    offsetY: 0,
-    scrollY: true,
-    scrollX: true,
-    clip: true,
-    bounce: true,
-    bounceRadius: 50, // [number] or 'bounds'
-    drag: true,
-    inertia: true,
-    dragRadius: Math.min(device.width, device.height) / 32,
-    snapPixels: undefined,
-    useLayoutBounds: false,
-    layout: 'box'
-  };
+  this.tag = 'ScrollView';
 
   this.init = function (opts) {
 
@@ -267,8 +336,6 @@ exports = Class(View, function (supr) {
 
   this.addFixedView = function (view) { return supr(this, 'addSubview', [view]); };
   this.removeFixedView = function (view) { return supr(this, 'removeSubview', [view]); };
-
-  var PI_2 = Math.PI / 2;
 
   this.getStyleBounds = function () {
     var bounds = this._scrollBounds;
@@ -572,55 +639,6 @@ exports = Class(View, function (supr) {
   /* @deprecated */
   this.getFullHeight= function () { return this._contentView.style.height; }
 
-  function getBoundingRectangle(pos) {
-    if (!pos.r) { return; }
-
-    var w = pos.width;
-    var h = pos.height;
-    var cr = Math.cos(pos.r);
-    var sr = Math.sin(pos.r);
-
-    var x1 = pos.x;
-    var y1 = pos.y;
-
-    var x = w;
-    var y = 0;
-
-    var x2 = x1 + x * cr - y * sr;
-    var y2 = y1 + x * sr + y * cr;
-
-    y += h;
-
-    var x3 = x1 + x * cr - y * sr;
-    var y3 = y1 + x * sr + y * cr;
-
-    x -= w;
-
-    var x4 = x1 + x * cr - y * sr;
-    var y4 = y1 + x * sr + y * cr;
-
-    pos.x = Math.min(x1, x2, x3, x4);
-    pos.y = Math.min(y1, y2, y3, y4);
-
-    pos.width = Math.max(x1, x2, x3, x4) - pos.x;
-    pos.height = Math.max(y1, y2, y3, y4) - pos.y;
-    pos.r = 0;
-  };
-
-  function viewportIntersect(viewport, prevViewport) {
-    var pos = viewport.src.getPosition(prevViewport.src);
-
-    pos.x = (prevViewport.x - pos.x) / pos.scale;
-    pos.y = (prevViewport.y - pos.y) / pos.scale;
-    pos.width = prevViewport.width / pos.scale;
-    pos.height = prevViewport.height / pos.scale;
-    pos.r = -pos.r;
-
-    getBoundingRectangle(pos);
-
-    viewport.intersectRect(pos);
-  };
-
   this.render = function (ctx, opts) {
     var s = this.style;
     var cvs = this._contentView.style;
@@ -710,3 +728,9 @@ exports = Class(View, function (supr) {
     }
   };
 });
+
+if (USE_CLIPPING) {
+  // extend the default backing ctor
+  exports.prototype.BackingCtor = DEFAULT_BACKING_CTOR;
+}
+

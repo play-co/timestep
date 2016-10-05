@@ -38,7 +38,7 @@ import event.input.InputHandler as InputHandler;
 
 import animate;
 
-import util.setProperty;
+import util.setProperty as setProperty;
 
 var EventScheduler = Class(function () {
   this.init = function () {
@@ -104,6 +104,26 @@ var FocusMgr = new (Class(function () {
 var UID = 0;
 
 var _BackingCtor = null;
+
+
+function compareSubscription(args, sub) {
+  // note that args and sub may not be the same length
+  // return true if all items in args match items in sub
+  // (we don't care if sub has extra arguments)
+  for (var i = 0, n = args.length; i < n; ++i) {
+    if (args[i] != sub[i]) {
+      return false;
+    }
+  }
+
+
+  return true;
+}
+
+
+var DEFAULT_REFLOW = function () {
+};
+
 
 /**
  * @extends event.Emitter
@@ -219,24 +239,6 @@ var View = exports = Class(Emitter, function () {
     this._filter = null;
   };
 
-  // --- render/tick setters ---
-
-  /**
-   * Adds a hook to determine when the "render" property is set.
-   */
-  util.setProperty(this, 'render', {
-      value: undefined,
-      cb: function () { this.__view && (this.__view.hasJSRender = true); }
-    });
-
-  /**
-   * Adds a hook to determine when the "tick" property is set.
-   */
-  util.setProperty(this, 'tick', {
-      value: undefined,
-      cb: function () { this.__view && (this.__view.hasJSTick = true); }
-    });
-
   // --- animation component ---
 
   /**
@@ -327,7 +329,7 @@ var View = exports = Class(Emitter, function () {
    * @param {boolean} handleEvents Pass events through.
    * @param {boolean} ignoreSubviews Optional, defaults to false in InputHandler. Ignore events in childen as well.
    */
-  this.setHandleEvents = this.canHandleEvents = function (handleEvents, ignoreSubviews) {
+  this.canHandleEvents = function (handleEvents, ignoreSubviews) {
     this.__input.canHandleEvents = handleEvents;
 
     if (typeof ignoreSubviews === 'boolean') {
@@ -455,28 +457,9 @@ var View = exports = Class(Emitter, function () {
         this._connectEvents();
       }
     }
-
-    var args = Array.prototype.slice.call(arguments, 1);
-    this.__subs.push([src, args]);
-    if (this.__root) {
-      src.on.apply(src, args);
-    }
-  }
-
-  function compareSubscription (args, sub) {
-    // note that args and sub may not be the same length
-    // return true if all items in args match items in sub
-    // (we don't care if sub has extra arguments)
-    for (var i = 0, n = args.length; i < n; ++i) {
-      if (args[i] != sub[i]) {
-        return false;
-      }
-    }
-
-    return true;
   };
 
-  this.disconnectEvent = function (src, name /*, args */) {
+  this.disconnectEvent = function (src, name) {
     if (this.__subs) {
       var args = Array.prototype.slice.call(arguments, 1);
       for (var i = 0, sub; sub = this.__subs[i]; ++i) {
@@ -619,14 +602,7 @@ var View = exports = Class(Emitter, function () {
     }
   };
 
-  // legacy implementation shim
-  util.setProperty(this, '_superview', {get: this.getSuperview, set: function () {}});
-  util.setProperty(this, '_subviews', {get: this.getSubviews, set: function () {}});
-
   // --- onResize callbacks ---
-
-  var DEFAULT_REFLOW = function () {
-  };
 
   this.reflow = DEFAULT_REFLOW;
 
@@ -635,14 +611,13 @@ var View = exports = Class(Emitter, function () {
   /**
    * Get the root application for this view.
    */
-  this.getEngine = this.getApp = function () {
+  this.getApp = function () {
     return this.__root;
   };
 
   /**
    * Returns an array of all ancestors of the current view.
    */
-  this.getParents = /* deprecated */
   this.getSuperviews = function () {
 
     var views = [];
@@ -812,8 +787,8 @@ var View = exports = Class(Emitter, function () {
   /**
    * Return a human-readable tag for this view.
    */
-  this.toString = this.getTag = function () {
-    var cls = "View";
+  this.getTag = function () {
+    var cls = 'View';
 
     if (DEBUG) {
       // check the cached name
@@ -838,6 +813,47 @@ var View = exports = Class(Emitter, function () {
     return cls + this.uid + (this.tag ? ':' + this.tag : '');
   };
 });
+
+
+View.prototype.setHandleEvents = View.prototype.canHandleEvents;
+View.prototype.getEngine = View.prototype.getApp;
+View.prototype.getParents = View.prototype.getSuperviews;
+View.prototype.toString = View.prototype.getTag;
+
+
+// --- render/tick setters ---
+/**
+ * Adds a hook to determine when the "render" property is set.
+ */
+setProperty(View.prototype, 'render', {
+  value: undefined,
+  cb: function () {
+    this.__view && (this.__view.hasJSRender = true);
+  }
+});
+
+/**
+ * Adds a hook to determine when the "tick" property is set.
+ */
+setProperty(View.prototype, 'tick', {
+  value: undefined,
+  cb: function () {
+    this.__view && (this.__view.hasJSTick = true);
+  }
+});
+
+// legacy implementation shim
+setProperty(View.prototype, '_superview', {
+  get: this.getSuperview,
+  set: function () {
+  }
+});
+setProperty(View.prototype, '_subviews', {
+  get: this.getSubviews,
+  set: function () {
+  }
+});
+
 
 var _extensions = [];
 View.addExtension = function (ext) {

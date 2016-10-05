@@ -25,6 +25,20 @@ import squill.models.List as List;
 import .ScrollView;
 import event.input.InputEvent as InputEvent;
 
+var FORWARD_KEYS = {
+  getCell: 1,
+  sorter: 1,
+  selectable: 1,
+  selections: 1,
+  maxSelections: 1,
+  dataSource: 1,
+  recycle: 1,
+  renderMargin: 1,
+  isFixedSize: 1,
+  isTiled: 1,
+  cellSpacing: 1
+};
+
 /**
  * @extends ui.ScrollView
  */
@@ -45,12 +59,6 @@ exports = Class(ScrollView, function (supr) {
   };
 
   this.tag = 'ListView';
-
-  var FORWARD_KEYS = {
-      getCell: 1, sorter: 1, selectable: 1, selections: 1,
-      maxSelections: 1, dataSource: 1, recycle: 1, renderMargin: 1,
-      isFixedSize: 1, isTiled: 1, cellSpacing: 1
-    };
 
   this.updateOpts = function () {
     var opts = supr(this, 'updateOpts', arguments);

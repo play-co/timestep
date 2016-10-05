@@ -114,6 +114,214 @@ var PARAMETER_TYPES = [
 
 
 
+var effectUID = 0;
+
+
+function emitEffect(data, opts) {
+  // allow overrides to replace original JSON properties
+  data = mergeOverrides.call(this, data, opts);
+
+  // allow data validation to be skipped for performance
+  if (!opts.skipDataValidation) {
+    this.validateData(data);
+  }
+
+
+  effectPool.obtain().reset(data, opts);
+}
+
+function mergeOverrides(data, opts) {
+  var mergedData = data;
+  if (opts.overrides) {
+    mergedData = merge({}, opts.overrides);
+    mergedData = merge(mergedData, data);
+  }
+  return mergedData;
+}
+
+function onTick(dt) {
+  particlePool.forEachActive(function (particle) {
+    particle.step(dt);
+  });
+  effectPool.forEachActive(function (effect) {
+    effect.step(dt);
+  });
+}
+
+function validateEffect(data) {
+  // all image URLs should be non-empty strings
+  var image = data.image;
+  if (isArray(image)) {
+    if (!image.length) {
+      throw new Error('Empty array found, expected image URL strings');
+    } else {
+      image.forEach(function (url) {
+        validateImage.call(this, url, data);
+      });
+    }
+  } else {
+    validateImage.call(this, image, data);
+  }
+
+
+  // if a filter type exists, it should be one of the supported types
+  if (data.filterType) {
+    if (FILTER_TYPES.indexOf(data.filterType) === -1) {
+      throw new Error('Invalid filter type: ' + data.filterType);
+    }
+  }
+
+
+  var paramList = {};
+  var params = data.parameters;
+  if (params) {
+    if (!isArray(params)) {
+      throw new Error('Parameters should be an array');
+    }
+
+
+    // check each parameter individually and guarantee no duplicates
+    for (var i = 0; i < params.length; i++) {
+      validateParameter.call(this, params[i], paramList, data);
+    }
+  }
+
+
+  // validate particle delay
+  validateNumericValue.call(this, data.delay, paramList, data, function (v) {
+    if (v < 0) {
+      throw new Error('Particles cannot have negative delay values!');
+    }
+  });
+
+  // validate particle time-to-live
+  validateNumericValue.call(this, data.ttl, paramList, data, function (v) {
+    if (v < 0) {
+      throw new Error('Particles cannot have negative time-to-live values!');
+    }
+  });
+
+  // validate particle properties
+  for (var i = 0; i < PROPERTY_KEY_COUNT; i++) {
+    var key = PROPERTY_KEYS[i];
+    validateProperty.call(this, data[key], key, paramList, data);
+  }
+}
+
+function validateNumericValue(value, paramList, data, testConstraints) {
+  var valueType = typeof value;
+  if (valueType === 'object') {
+    var range = value.range;
+    if (range && range.length >= 2) {
+      validateNumber.call(this, range[0], testConstraints, data);
+      validateNumber.call(this, range[1], testConstraints, data);
+      if (range.length === 3) {
+        var paramID = range[2];
+        if (paramID && !paramList[paramID]) {
+          throw new Error('Invalid parameter ID: ' + paramID);
+        }
+      } else if (range.length !== 2) {
+        throw new Error('Range arrays can only have 2 or 3 elements');
+      }
+    } else {
+      validateNumber.call(this, value.value, testConstraints, data);
+    }
+  } else {
+    validateNumber.call(this, value, testConstraints, data);
+  }
+}
+
+function validateNumber(value, testConstraints, data) {
+  // note: undefined is accepted and replaced by default values
+  var valueType = typeof value;
+  if (valueType !== 'number' && valueType !== 'undefined') {
+    throw new Error('Expected a number, but found: ' + value);
+  }
+  testConstraints && testConstraints.call(this, value, data);
+}
+
+function validateImage(url, data) {
+  if (!url || typeof url !== 'string') {
+    throw new Error('Invalid image URL: ' + url);
+  }
+}
+
+function validateParameter(paramData, paramList, data) {
+  var paramID = paramData.id;
+  if (paramID === void 0) {
+    throw new Error('Undefined parameter ID');
+  }
+
+
+  if (paramList[paramID]) {
+    throw new Error('Duplicate parameter ID defined: ' + paramID);
+  }
+
+
+  if (paramData.resetInterval !== void 0) {
+    validateNumericValue.call(this, paramData.resetInterval, paramList, data, function (v) {
+      if (v < 0) {
+        throw new Error('Parameter reset interval cannot be negative: ' + paramID);
+      }
+    });
+  }
+
+
+  var distType = paramData.distributionType;
+  if (distType && PARAMETER_TYPES.indexOf(distType) === -1) {
+    throw new Error('Invalid parameter type: ' + distType + ', for param: ' + paramID);
+  }
+
+
+  var distFn = paramData.distributionFunction;
+  var distFnType = typeof distFn;
+  if (distFnType === 'string' && easingFunctions[distFn] === void 0) {
+    throw new Error('Invalid distribution function: ' + distFn + ', for param: ' + paramID);
+  }
+
+
+  paramList[paramID] = paramData;
+}
+
+function validateProperty(propData, propKey, paramList, data) {
+  validateNumericValue.call(this, propData, paramList, data, null);
+
+  if (typeof propData === 'object') {
+    var targets = propData.targets;
+    var delta = propData.delta;
+
+    // recursively validate any deltas
+    delta && validateProperty.call(this, delta, 'delta', paramList, data);
+
+    // validate animation targets
+    if (targets && targets.length) {
+      for (var i = 0; i < targets.length; i++) {
+        var target = targets[i];
+
+        // validate animation target delay (fraction of particle ttl)
+        validateNumericValue.call(this, target.delay, paramList, data, function (v) {
+          if (v < 0 || v > 1) {
+            throw new Error('Target delay is a fraction of particle ttl (must be between [0, 1]');
+          }
+        });
+
+        // validate animation target time-to-live (fraction of particle ttl)
+        validateNumericValue.call(this, target.duration, paramList, data, function (v) {
+          if (v < 0 || v > 1) {
+            throw new Error('Target time-to-live is a fraction of particle ttl (must be between [0, 1]');
+          }
+        });
+
+        // validate against supported easing functions
+        var easing = target.easing;
+        if (easing && easingFunctions[easing] === void 0) {
+          throw new Error('Invalid easing function name: ' + easing);
+        }
+      }
+    }
+  }
+}
+
 /**
  * EffectsEngine Notes
  *  this engine does not replace the original ParticleEngine
@@ -125,15 +333,12 @@ var PARAMETER_TYPES = [
  *  it's a singleton class that uses object pools for minimal garbage-collection
  *  pause, resume, and clear all effects or individual effects by ID
  */
-var EffectsEngine = Class(View, function () {
-  var superProto = View.prototype;
-  var effectUID = 0;
-
+var EffectsEngine = Class(View, function (supr) {
   this.init = function () {
-    superProto.init.call(this, {
+    supr(this, 'init', [{
       canHandleEvents: false,
       blockEvents: true
-    });
+    }]);
 
     // wait until engine initialization completes before subscribing to tick
     setTimeout(bind(this, function () {
@@ -297,199 +502,27 @@ var EffectsEngine = Class(View, function () {
   this.getActiveParticleCount = function () {
     return particlePool._freshIndex;
   };
-
-  function emitEffect (data, opts) {
-    // allow overrides to replace original JSON properties
-    data = mergeOverrides.call(this, data, opts);
-
-    // allow data validation to be skipped for performance
-    if (!opts.skipDataValidation) {
-      this.validateData(data);
-    }
-
-    effectPool.obtain().reset(data, opts);
-  };
-
-  function mergeOverrides (data, opts) {
-    var mergedData = data;
-    if (opts.overrides) {
-      mergedData = merge({}, opts.overrides);
-      mergedData = merge(mergedData, data);
-    }
-    return mergedData;
-  };
-
-  function onTick (dt) {
-    particlePool.forEachActive(function (particle) { particle.step(dt); });
-    effectPool.forEachActive(function (effect) { effect.step(dt); });
-  };
-
-  function validateEffect (data) {
-    // all image URLs should be non-empty strings
-    var image = data.image;
-    if (isArray(image)) {
-      if (!image.length) {
-        throw new Error('Empty array found, expected image URL strings');
-      } else {
-        image.forEach(function (url) {
-          validateImage.call(this, url, data);
-        });
-      }
-    } else {
-      validateImage.call(this, image, data);
-    }
-
-    // if a filter type exists, it should be one of the supported types
-    if (data.filterType) {
-      if (FILTER_TYPES.indexOf(data.filterType) === -1) {
-        throw new Error('Invalid filter type: ' + data.filterType);
-      }
-    }
-
-    var paramList = {};
-    var params = data.parameters;
-    if (params) {
-      if (!isArray(params)) {
-        throw new Error('Parameters should be an array');
-      }
-
-      // check each parameter individually and guarantee no duplicates
-      for (var i = 0; i < params.length; i++) {
-        validateParameter.call(this, params[i], paramList, data);
-      }
-    }
-
-    // validate particle delay
-    validateNumericValue.call(this, data.delay, paramList, data, function (v) {
-      if (v < 0) {
-        throw new Error('Particles cannot have negative delay values!');
-      }
-    });
-
-    // validate particle time-to-live
-    validateNumericValue.call(this, data.ttl, paramList, data, function (v) {
-      if (v < 0) {
-        throw new Error('Particles cannot have negative time-to-live values!');
-      }
-    });
-
-    // validate particle properties
-    for (var i = 0; i < PROPERTY_KEY_COUNT; i++) {
-      var key = PROPERTY_KEYS[i];
-      validateProperty.call(this, data[key], key, paramList, data);
-    }
-  };
-
-  function validateNumericValue (value, paramList, data, testConstraints) {
-    var valueType = typeof value;
-    if (valueType === 'object') {
-      var range = value.range;
-      if (range && range.length >= 2) {
-        validateNumber.call(this, range[0], testConstraints, data);
-        validateNumber.call(this, range[1], testConstraints, data);
-        if (range.length === 3) {
-          var paramID = range[2];
-          if (paramID && !paramList[paramID]) {
-            throw new Error('Invalid parameter ID: ' + paramID);
-          }
-        } else if (range.length !== 2) {
-          throw new Error('Range arrays can only have 2 or 3 elements');
-        }
-      } else {
-        validateNumber.call(this, value.value, testConstraints, data);
-      }
-    } else {
-      validateNumber.call(this, value, testConstraints, data);
-    }
-  };
-
-  function validateNumber (value, testConstraints, data) {
-    // note: undefined is accepted and replaced by default values
-    var valueType = typeof value;
-    if (valueType !== 'number' && valueType !== 'undefined') {
-      throw new Error('Expected a number, but found: ' + value);
-    }
-    testConstraints && testConstraints.call(this, value, data);
-  };
-
-  function validateImage (url, data) {
-    if (!url || typeof url !== 'string') {
-      throw new Error('Invalid image URL: ' + url);
-    }
-  };
-
-  function validateParameter (paramData, paramList, data) {
-    var paramID = paramData.id;
-    if (paramID === void 0) {
-      throw new Error('Undefined parameter ID');
-    }
-
-    if (paramList[paramID]) {
-      throw new Error('Duplicate parameter ID defined: ' + paramID);
-    }
-
-    if (paramData.resetInterval !== void 0) {
-      validateNumericValue.call(this, paramData.resetInterval, paramList, data, function (v) {
-        if (v < 0) {
-          throw new Error('Parameter reset interval cannot be negative: ' + paramID);
-        }
-      });
-    }
-
-    var distType = paramData.distributionType;
-    if (distType && PARAMETER_TYPES.indexOf(distType) === -1) {
-      throw new Error('Invalid parameter type: ' + distType + ', for param: ' + paramID);
-    }
-
-    var distFn = paramData.distributionFunction;
-    var distFnType = typeof distFn;
-    if (distFnType === 'string' && easingFunctions[distFn] === void 0) {
-      throw new Error('Invalid distribution function: ' + distFn + ', for param: ' + paramID);
-    }
-
-    paramList[paramID] = paramData;
-  };
-
-  function validateProperty (propData, propKey, paramList, data) {
-    validateNumericValue.call(this, propData, paramList, data, null);
-
-    if (typeof propData === 'object') {
-      var targets = propData.targets;
-      var delta = propData.delta;
-
-      // recursively validate any deltas
-      delta && validateProperty.call(this, delta, 'delta', paramList, data);
-
-      // validate animation targets
-      if (targets && targets.length) {
-        for (var i = 0; i < targets.length; i++) {
-          var target = targets[i];
-
-          // validate animation target delay (fraction of particle ttl)
-          validateNumericValue.call(this, target.delay, paramList, data, function (v) {
-            if (v < 0 || v > 1) {
-              throw new Error('Target delay is a fraction of particle ttl (must be between [0, 1]');
-            }
-          });
-
-          // validate animation target time-to-live (fraction of particle ttl)
-          validateNumericValue.call(this, target.duration, paramList, data, function (v) {
-            if (v < 0 || v > 1) {
-              throw new Error('Target time-to-live is a fraction of particle ttl (must be between [0, 1]');
-            }
-          });
-
-          // validate against supported easing functions
-          var easing = target.easing;
-          if (easing && easingFunctions[easing] === void 0) {
-            throw new Error('Invalid easing function name: ' + easing);
-          }
-        }
-      }
-    }
-  };
 });
 
+
+function mergeParameterOpts(data, opts) {
+  var mergedData = data;
+  var paramID = data.id;
+  var paramValues = opts.parameterValues;
+  var paramValue = paramValues && paramValues[paramID];
+  if (paramValue !== void 0) {
+    mergedData = merge({}, data);
+    var paramValueType = typeof paramValue;
+    if (paramValueType === 'number') {
+      mergedData.value = paramValue;
+      mergedData.distributionType = 'fixed';
+    } else if (paramValueType === 'function') {
+      mergedData.distributionFunction = paramValue;
+      mergedData.distributionType = 'custom';
+    }
+  }
+  return mergedData;
+}
 
 
 /**
@@ -546,25 +579,6 @@ var Effect = Class('Effect', function () {
     if (!this.isContinuous) {
       this.emitParticles();
     }
-  };
-
-  function mergeParameterOpts (data, opts) {
-    var mergedData = data;
-    var paramID = data.id;
-    var paramValues = opts.parameterValues;
-    var paramValue = paramValues && paramValues[paramID];
-    if (paramValue !== void 0) {
-      mergedData = merge({}, data);
-      var paramValueType = typeof paramValue;
-      if (paramValueType === 'number') {
-        mergedData.value = paramValue;
-        mergedData.distributionType = 'fixed';
-      } else if (paramValueType === 'function') {
-        mergedData.distributionFunction = paramValue;
-        mergedData.distributionType = 'custom';
-      }
-    }
-    return mergedData;
   };
 
   this.recycle = function () {

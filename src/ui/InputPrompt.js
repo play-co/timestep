@@ -150,15 +150,15 @@ exports = Class(function () {
     this._opts.message = message;
     return this;
   };
-
-  deprecated.method(this, 'requestFocus', function () {
-    this.show();
-    return this;
-  });
-  deprecated.method(this, 'closeEditField');
-  deprecated.method(this, 'refresh');
-  deprecated.method(this, 'setHint');
 });
+
+deprecated.method(exports.prototype, 'requestFocus', function () {
+  this.show();
+  return this;
+});
+deprecated.method(exports.prototype, 'closeEditField');
+deprecated.method(exports.prototype, 'refresh');
+deprecated.method(exports.prototype, 'setHint');
 
 exports.KeyboardTypes = keyboardTypes;
 

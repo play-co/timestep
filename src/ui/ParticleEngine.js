@@ -104,9 +104,7 @@ var PARTICLE_KEYS = Object.keys(PARTICLE_DEFAULTS);
 /**
  * @extends ui.View
  */
-exports = Class(View, function () {
-  var superProto = View.prototype;
-
+exports = Class(View, function (supr) {
   /**
    * initCount (integer) initialize particle views and objects
    */
@@ -115,7 +113,7 @@ exports = Class(View, function () {
     // particle engines don't allow input events
     opts.canHandleEvents = false;
     opts.blockEvents = true;
-    superProto.init.call(this, opts);
+    supr(this, 'init', [opts]);
 
     // particle view constructor
     this._ctor = opts.ctor || ImageView;

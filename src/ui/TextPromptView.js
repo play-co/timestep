@@ -27,14 +27,13 @@ import device;
 
 var InputPrompt = device.get('InputPrompt');
 
+var defaults = {
+  prompt: '',
+  autoShowKeyboard: true,
+  isPassword: false
+};
+
 exports = Class(TextView, function (supr) {
-
-  var defaults = {
-    prompt: '',
-    autoShowKeyboard: true,
-    isPassword: false
-  };
-
   this.init = function (opts) {
     this._opts = merge(opts, defaults)
 

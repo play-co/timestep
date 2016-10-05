@@ -113,19 +113,16 @@ var MAX_TEX_WIDTH = 1024;
 var MAX_TEX_HEIGHT = 1024;
 
 
-
 /**
  * @extends ui.View, same API as ui.ParticleEngine.js
  */
-exports = Class(View, function () {
-  var superProto = View.prototype;
-
+exports = Class(View, function (supr) {
   this.init = function (opts) {
     opts = opts || {};
     // blend engines don't allow input events
     opts.canHandleEvents = false;
     opts.blockEvents = true;
-    superProto.init.call(this, opts);
+    supr(this, 'init', [opts]);
 
     // particle data array passed to user
     this._particleDataArray = [];
