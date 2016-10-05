@@ -607,7 +607,7 @@ exports = Class(View, function (supr) {
     pos.r = 0;
   };
 
-  function intersect(viewport, prevViewport) {
+  function viewportIntersect(viewport, prevViewport) {
     var pos = viewport.src.getPosition(prevViewport.src);
 
     pos.x = (prevViewport.x - pos.x) / pos.scale;
@@ -641,7 +641,7 @@ exports = Class(View, function (supr) {
     viewport.height = s.height * s.scale | 0;
 
     if (opts.viewport) {
-      intersect(viewport, opts.viewport);
+      viewportIntersect(viewport, opts.viewport);
     }
 
     opts.viewport = viewport;

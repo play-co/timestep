@@ -14,10 +14,13 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
- /* globals NATIVE, DEBUG, jsio */
+/* globals NATIVE, DEBUG, jsio */
 
-import device;
-import .debug.deprecated as deprecated;
+jsio('import device');
+jsio('import .debug.deprecated as deprecated');
+jsio('import .debug.types as debugTypes');
+
+jsio('import .keyboardTypes as keyboardTypes');
 
 var inputDialog = device.get('inputDialog');
 
@@ -68,15 +71,49 @@ exports = Class(function () {
     this.onSubmit = this._opts.onSubmit;
 
     if (DEBUG) {
-      jsio("import .debug.types").check('InputPrompt', {
-        'title': {value: this._opts.title, type: 'string', required: true},
-        'message (prompt)': {value: this._opts.message, type: 'string', required: true},
-        'ok text': {value: this._opts.okText, type: 'string', required: true},
-        'cancel text': {value: this._opts.cancelText, type: 'string', required: true},
-        'value': {value: this._opts.value, type: 'string', required: true},
-        'auto-show keyboard': {value: this._opts.autoShowKeyboard, type: 'boolean', require: true},
-        'is password field': {value: this._opts.isPassword, type: 'boolean', require: true},
-        'keyboard type': {value: this._opts.keyboardType, type: 'key', dictionary: exports.KeyboardTypes.htmlTypes, toLowerCase: true, require: true}
+      debugTypes.check('InputPrompt', {
+        'title': {
+          value: this._opts.title,
+          type: 'string',
+          required: true
+        },
+        'message (prompt)': {
+          value: this._opts.message,
+          type: 'string',
+          required: true
+        },
+        'ok text': {
+          value: this._opts.okText,
+          type: 'string',
+          required: true
+        },
+        'cancel text': {
+          value: this._opts.cancelText,
+          type: 'string',
+          required: true
+        },
+        'value': {
+          value: this._opts.value,
+          type: 'string',
+          required: true
+        },
+        'auto-show keyboard': {
+          value: this._opts.autoShowKeyboard,
+          type: 'boolean',
+          require: true
+        },
+        'is password field': {
+          value: this._opts.isPassword,
+          type: 'boolean',
+          require: true
+        },
+        'keyboard type': {
+          value: this._opts.keyboardType,
+          type: 'key',
+          dictionary: exports.KeyboardTypes.htmlTypes,
+          toLowerCase: true,
+          require: true
+        }
       });
     }
   };
@@ -123,4 +160,5 @@ exports = Class(function () {
   deprecated.method(this, 'setHint');
 });
 
-import .keyboardTypes as exports.KeyboardTypes;
+exports.KeyboardTypes = keyboardTypes;
+

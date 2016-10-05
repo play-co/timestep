@@ -18,13 +18,14 @@
  * @class ui.effectsEngine
  */
 
-import animate;
-import animate.transitions as easingFunctions;
-import ui.View as View;
-import ui.ImageView as ImageView;
-import ui.filter as filter;
-import performance;
-import ObjectPool;
+jsio('import animate');
+jsio('import animate.transitions as easingFunctions');
+jsio('import ui.View as View');
+jsio('import ui.ImageView as ImageView');
+jsio('import ui.filter as filter');
+jsio('import performance');
+jsio('import ObjectPool');
+jsio('import ui.Engine as Engine');
 
 var sin = Math.sin;
 var cos = Math.cos;
@@ -136,7 +137,7 @@ var EffectsEngine = Class(View, function () {
 
     // wait until engine initialization completes before subscribing to tick
     setTimeout(bind(this, function () {
-      jsio('import ui.Engine').get().on('Tick', bind(this, onTick));
+      Engine.get().on('Tick', bind(this, onTick));
     }), 0);
   };
 

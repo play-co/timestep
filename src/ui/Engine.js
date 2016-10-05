@@ -36,10 +36,12 @@ import event.Emitter as Emitter;
 
 import event.input.dispatch as dispatch;
 
-import timer;
-import ui.backend.ReflowManager as ReflowManager;
+jsio('import timer');
+jsio('import ui.backend.ReflowManager as ReflowManager');
+jsio('import ui.backend.debug.FPSView as FPSView');
 
-import device;
+jsio('import .StackView');
+jsio('import device');
 
 var _timers = [];
 timer.onTick = function (dt) {
@@ -57,8 +59,6 @@ var __instance = null;
 var Engine = exports = Class(Emitter, function (supr) {
   this.init = function (opts) {
     if (!__instance) {
-      import .StackView;
-
       __instance = this;
     }
 
@@ -173,8 +173,7 @@ var Engine = exports = Class(Emitter, function (supr) {
 
     if (this._opts.showFPS) {
       if (!this._applicationFPS) {
-        import ui.backend.debug.FPSView as FPSView;
-        this._applicationFPS = new FPSView({application: this});
+        this._applicationFPS = new FPSView({ application: this });
       }
 
       this._renderFPS = bind(this._applicationFPS, this._applicationFPS.render);

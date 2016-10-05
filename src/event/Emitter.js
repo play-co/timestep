@@ -22,4 +22,6 @@
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/event.md
  */
 
-import lib.PubSub as exports;
+// FIXME: remove this file
+jsio('import lib.PubSub as libPubSub');
+exports = libPubSub;
