@@ -21,9 +21,8 @@
  * @doc http://doc.gameclosure.com/api/ui-view.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/view.md
  */
-
 import device;
-import event.Emitter as Emitter;
+jsio('import .IView');
 
 import math.geom.Point as Point;
 import math.geom.Rect as Rect;
@@ -125,10 +124,7 @@ var DEFAULT_REFLOW = function () {
 };
 
 
-/**
- * @extends event.Emitter
- */
-var View = exports = Class(Emitter, function () {
+var View = exports = Class(IView, function () {
   /**
    * infinite: boolean, default false - if true, no bounding shape at all (e.g. infinite scroll plane)
    * clip: boolean, default false - if true, always clip to the region

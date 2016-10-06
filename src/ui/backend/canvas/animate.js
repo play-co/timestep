@@ -23,11 +23,15 @@
  *   Animators are kept on subjects, and only get GC'd if subject does
  *   Frames are pooled and recycled internally
  */
+jsio('import event.Emitter as Emitter');
+jsio('import animate.transitions as transitions');
+jsio('import timer');
+jsio('import ObjectPool');
+jsio('import device');
 
-import event.Emitter as Emitter;
-import animate.transitions as transitions;
-import timer;
-import ObjectPool;
+jsio('import ui.engineInstance as engineInstance');
+jsio('import ui.IView as IView');
+
 
 var engine = null;
 var groups = {};
@@ -36,13 +40,11 @@ var DEFAULT_GROUP_ID = "__default_group";
 exports = function (subject, groupID) {
   // TODO: we have a circular import, so do the Engine import on first use
   if (engine === null) {
-    import ui.Engine as Engine;
-    import ui.View as View;
-    import device;
-    engine = Engine.get();
+    engine = engineInstance.get();
   }
 
-  if (device.useDOM && subject instanceof View && !groupID) {
+
+  if (device.useDOM && subject instanceof IView && !groupID) {
     return subject.getAnimation();
   }
 
@@ -55,9 +57,7 @@ exports = function (subject, groupID) {
   var anims = subject.__anims || (subject.__anims = {});
   var anim = anims[groupID];
   if (!anim) {
-    anim = subject instanceof View
-      ? new ViewAnimator(subject)
-      : new Animator(subject);
+    anim = subject instanceof IView ? new ViewAnimator(subject) : new Animator(subject);
     anim.groupID = groupID;
     anims[groupID] = anim;
   }

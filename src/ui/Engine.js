@@ -40,6 +40,8 @@ jsio('import timer');
 jsio('import ui.backend.ReflowManager as ReflowManager');
 jsio('import ui.backend.debug.FPSView as FPSView');
 
+jsio('import .engineInstance');
+
 jsio('import .StackView');
 jsio('import device');
 
@@ -60,6 +62,7 @@ exports = Class(Emitter, function (supr) {
   this.init = function (opts) {
     if (!__instance) {
       __instance = this;
+      engineInstance.setInstance(this);
     }
 
     var canvas = opts && opts.canvas;
@@ -410,5 +413,3 @@ Engine.prototype.getElement = Engine.prototype.getCanvas;
 exports.get = function () {
   return __instance;
 };
-
-exports.get = function () { return __instance; };
