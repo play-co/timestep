@@ -46,6 +46,10 @@ if (DEBUG) {
 // TODO: Resize event on width/height change
 // TODO: reflow on subview visibility change
 
+function toStringSort () {
+  return this.view.style._sortOrder + this.index;
+}
+
 exports = Class(BoxLayout, function (supr) {
 
   this.init = function () {
@@ -145,10 +149,6 @@ exports = Class(BoxLayout, function (supr) {
     };
   };
 
-  function toStringSort () {
-    return this.view.style._sortOrder + this.index;
-  }
-
   /**
    * Return the size of this element (in its cardinal direction).
    */
@@ -219,7 +219,6 @@ exports = Class(BoxLayout, function (supr) {
    * Insert a subview before another subview in this hierarchy.
    */
 
-  this.add =
   this.insertBefore = function (view, before) {
 
     if (this.getViewIndex(view) != -1) { return; }
@@ -453,3 +452,4 @@ exports = Class(BoxLayout, function (supr) {
   }
 });
 
+exports.prototype.add = exports.prototype.insertBefore;

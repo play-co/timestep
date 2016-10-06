@@ -21,7 +21,10 @@
  */
 
 exports = Padding = Class(function () {
-  this.init =
+  this.init = function (args) {
+    this.update(args);
+  }
+
   this.update = function (args) {
     if (args instanceof Padding) {
       this.top = args.top;

@@ -26,6 +26,30 @@ import ui.resource.Font as Font;
 
 var _createdOnscreenCanvas = false;
 
+
+var compositeOps = new Enum({
+  'source-atop': 1337,
+  'source-in': 1338,
+  'source-out': 1339,
+  'source-over': 1340,
+  'destination-atop': 1341,
+  'destination-in': 1342,
+  'destination-out': 1343,
+  'destination-over': 1344,
+  'lighter': 1345,
+  'xor': 1346,
+  'copy': 1347
+});
+
+
+var PixelArray = (
+  window.Uint8ClampedArray
+  || window.CanvasPixelArray
+  || window.Uint8Array
+  || window.Array
+);
+
+
 exports = Class(BufferedCanvas, function (supr) {
 
   //FIXME add globalalpha back to these
@@ -220,38 +244,6 @@ exports = Class(BufferedCanvas, function (supr) {
     this._ctx.setTransform(m11, m12, m21, m22, dx, dy);
   };
 
-  util.setProperty(this, 'globalAlpha', {
-    get: function () {
-      return this._ctx.getGlobalAlpha();
-    },
-    set: function (alpha) {
-      return this._ctx.setGlobalAlpha(alpha);
-    }
-  });
-
-  var compositeOps = new Enum({
-    'source-atop': 1337,
-    'source-in': 1338,
-    'source-out': 1339,
-    'source-over': 1340,
-    'destination-atop': 1341,
-    'destination-in': 1342,
-    'destination-out': 1343,
-    'destination-over': 1344,
-    'lighter': 1345,
-    'xor': 1346,
-    'copy': 1347
-  });
-
-  util.setProperty(this, 'globalCompositeOperation', {
-    get: function () {
-      return compositeOps[this._ctx.getGlobalCompositeOperation()];
-    },
-    set: function (op) {
-      return this._ctx.setGlobalCompositeOperation(compositeOps[op.toLowerCase()]);
-    }
-  });
-
   this.clearRect = function (x, y, width, height) {
     this._ctx.clearRect(x, y, width, height);
   };
@@ -321,7 +313,7 @@ exports = Class(BufferedCanvas, function (supr) {
     this._pathIndex = 0;
   };
 
-  this.moveTo = this.lineTo = function (x, y) {
+  this.lineTo = function (x, y) {
     this._checkPath();
     this._path[this._pathIndex] = {x:x, y:y};
     this._pathIndex++;
@@ -347,11 +339,6 @@ exports = Class(BufferedCanvas, function (supr) {
     }
   };
 
-  var PixelArray = window.Uint8ClampedArray
-      || window.CanvasPixelArray
-      || window.Uint8Array
-      || window.Array;
-
   this.createImageData = function(width, height) {
     // createImageData can be passed another image data object
     // the data in the passed in image is not copied
@@ -367,46 +354,71 @@ exports = Class(BufferedCanvas, function (supr) {
     };
   }
 
-    this.fillText = FontRenderer.wrapFillText(function (str, x, y, maxWidth) {
-        var font = Font.parse(this.font);
-        var fontName = font.getName();
+  this.fill = function () {}
+  this.stroke = function () {}
+});
 
-        this._ctx.fillText(
-            str + '',
-            x,
-            y,
-            maxWidth || 0,
-            this.fillStyle,
-            font.getSize(),
-            /*font.getWeight() + ' ' + */fontName,
-            this.textAlign,
-            this.textBaseline);
-    });
 
-    this.fill = function () {}
-    this.stroke = function () {}
+util.setProperty(exports.prototype, 'globalAlpha', {
+  get: function () {
+    return this._ctx.getGlobalAlpha();
+  },
+  set: function (alpha) {
+    return this._ctx.setGlobalAlpha(alpha);
+  }
+});
 
-    this.strokeText = FontRenderer.wrapStrokeText(function (str, x, y, maxWidth) {
-        var font = Font.parse(this.font);
-        var fontName = font.getName();
+util.setProperty(exports.prototype, 'globalCompositeOperation', {
+  get: function () {
+    return compositeOps[this._ctx.getGlobalCompositeOperation()];
+  },
+  set: function (op) {
+    return this._ctx.setGlobalCompositeOperation(compositeOps[op.toLowerCase()]);
+  }
+});
 
-        this._ctx.strokeText(
-            str + '',
-            x,
-            y,
-            maxWidth || 0,
-            this.strokeStyle,
-            font.getSize(),
-            fontName,
-            this.textAlign,
-            this.textBaseline,
-            this.lineWidth);
-    });
 
-    this.measureText = FontRenderer.wrapMeasureText(function (str) {
-        var font = Font.parse(this.font);
-        var fontName = font.getName();
+exports.prototype.moveTo = exports.prototype.lineTo
 
-        return this._ctx.measureText(str + '', font.getSize(), font.getWeight() + ' ' + fontName);
-    });
+
+exports.prototype.fillText = FontRenderer.wrapFillText(function (str, x, y, maxWidth) {
+  var font = Font.parse(this.font);
+  var fontName = font.getName();
+
+  this._ctx.fillText(
+    str + '',
+    x,
+    y,
+    maxWidth || 0,
+    this.fillStyle,
+    font.getSize(),
+    /*font.getWeight() + ' ' + */fontName,
+    this.textAlign,
+    this.textBaseline
+  );
+});
+
+exports.prototype.strokeText = FontRenderer.wrapStrokeText(function (str, x, y, maxWidth) {
+  var font = Font.parse(this.font);
+  var fontName = font.getName();
+
+  this._ctx.strokeText(
+    str + '',
+    x,
+    y,
+    maxWidth || 0,
+    this.strokeStyle,
+    font.getSize(),
+    fontName,
+    this.textAlign,
+    this.textBaseline,
+    this.lineWidth
+  );
+});
+
+exports.prototype.measureText = FontRenderer.wrapMeasureText(function (str) {
+  var font = Font.parse(this.font);
+  var fontName = font.getName();
+
+  return this._ctx.measureText(str + '', font.getSize(), font.getWeight() + ' ' + fontName);
 });

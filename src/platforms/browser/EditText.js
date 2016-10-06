@@ -118,13 +118,15 @@ _input.hide();
 
 var _focused = null;
 
-exports = Class(function () {
 
-  var defaults = {
-    hint: '',
-    inputType: 'default', // default | number | phone | password | capital
-    maxLength: -1
-  }
+var defaults = {
+  hint: '',
+  inputType: 'default', // default | number | phone | password | capital
+  maxLength: -1
+};
+
+
+exports = Class(function () {
 
   this.init = function (opts) {
     this._opts = merge(opts, defaults);

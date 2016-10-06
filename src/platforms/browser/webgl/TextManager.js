@@ -4,10 +4,11 @@ import timer;
 import .FontLoader;
 import ui.resource.Font as Font;
 
+
+var MAX_BUFFERS = 500;
+
+
 exports = Class(function () {
-
-  var MAX_BUFFERS = 500;
-
   this.init = function () {
     this._buffers = {};
     this._numBuffers = 0;

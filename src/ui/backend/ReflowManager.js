@@ -29,7 +29,7 @@ if (DEBUG_REFLOW || DEBUG_TIME) {
 // max reflows for any view in a given tick
 var MAX_REFLOW_THRESHOLD = 20;
 
-var _pool = new (Class(function () {
+var Pool = Class(function () {
   this._pool = [];
 
   this.recycle = function (item) {
@@ -44,7 +44,9 @@ var _pool = new (Class(function () {
     item.needsReflow = false;
     return item;
   };
-}));
+})
+
+var _pool = new Pool();
 
 /**
  * The ReflowManager is the controller for view layout.  It hooks into

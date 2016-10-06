@@ -25,74 +25,76 @@ import animate;
 import ui.ImageView as ImageView;
 import ui.TextView as TextView;
 
-exports = Class(ImageView, function (supr) {
 
-  var defaults = {
-    position: 'bottom',
-    layout: 'box',
-    debug: false,
-    visible: false,
-    autoSize: true,
-    fixedAspectRatio: true,
-    canHandleEvents: false
-  };
+var defaults = {
+  position: 'bottom',
+  layout: 'box',
+  debug: false,
+  visible: false,
+  autoSize: true,
+  fixedAspectRatio: true,
+  canHandleEvents: false
+};
 
-  var positions = {
-    top: {
-      vertical: true,
-      negFirst: false,
-      style: {
-        x: 0,
-        bottom: undefined,
-        layoutWidth: '100%'
-      }
-    },
-    bottom: {
-      vertical: true,
-      negFirst: true,
-      style: {
-        x: 0,
-        bottom: undefined,
-        layoutWidth: '100%'
-      }
-    },
-    topright: {
-      vertical: false,
-      negFirst: true,
-      style: {
-        y: 0,
-        bottom: undefined,
-        layoutWidth: undefined
-      }
-    },
-    bottomright: {
-      vertical: false,
-      negFirst: true,
-      style: {
-        y: undefined,
-        bottom: 0,
-        layoutWidth: undefined
-      }
-    },
-    topleft: {
-      vertical: false,
-      negFirst: false,
-      style: {
-        y: 0,
-        bottom: undefined,
-        layoutWidth: undefined
-      }
-    },
-    bottomleft: {
-      vertical: false,
-      negFirst: false,
-      style: {
-        y: undefined,
-        bottom: 0,
-        layoutWidth: undefined
-      }
+var positions = {
+  top: {
+    vertical: true,
+    negFirst: false,
+    style: {
+      x: 0,
+      bottom: undefined,
+      layoutWidth: '100%'
     }
-  };
+  },
+  bottom: {
+    vertical: true,
+    negFirst: true,
+    style: {
+      x: 0,
+      bottom: undefined,
+      layoutWidth: '100%'
+    }
+  },
+  topright: {
+    vertical: false,
+    negFirst: true,
+    style: {
+      y: 0,
+      bottom: undefined,
+      layoutWidth: undefined
+    }
+  },
+  bottomright: {
+    vertical: false,
+    negFirst: true,
+    style: {
+      y: undefined,
+      bottom: 0,
+      layoutWidth: undefined
+    }
+  },
+  topleft: {
+    vertical: false,
+    negFirst: false,
+    style: {
+      y: 0,
+      bottom: undefined,
+      layoutWidth: undefined
+    }
+  },
+  bottomleft: {
+    vertical: false,
+    negFirst: false,
+    style: {
+      y: undefined,
+      bottom: 0,
+      layoutWidth: undefined
+    }
+  }
+};
+
+
+exports = Class(ImageView, function (supr) {
 
   this.init = function (opts) {
     if (opts.debug) {

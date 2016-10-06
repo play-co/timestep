@@ -14,7 +14,7 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-exports = Class('timestep.KeyListener', function (logger, supr) {
+exports = Class(function (supr) {
   this.init = function () {
     this._shortcuts = [];
     this._events = [];

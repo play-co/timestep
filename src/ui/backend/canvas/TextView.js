@@ -32,106 +32,100 @@ var messageFont = true; // Report first font error message
 
 var textViewID = 1;
 
+
+var DEPRECATED = {
+  multiline: { replacement: 'wrap' },
+  textAlign: { replacement: 'horizontalAlign' },
+  lineWidth: { replacement: 'strokeWidth' },
+  strokeStyle: { replacement: 'strokeColor' },
+  outlineColor: { replacement: 'strokeColor' }
+};
+
+var defaults = {
+  // layout properties...
+  wrap: false,
+  autoSize: false,
+  autoFontSize: true,
+  lineHeight: 1.2,
+  // font properties...
+  color: '#000000',
+  fontFamily: device.defaultFontFamily,
+  fontWeight: device.defaultFontWeight,
+  size: 128,
+  strokeWidth: 2,
+  shadowWidth: 2,
+  strokeColor: null,
+  shadowColor: null,
+  // alignment properties...
+  verticalAlign: 'middle',
+  horizontalAlign: 'center',
+  // misc properties...
+  buffer: false,
+  // GLOBAL.NATIVE && !device.simulatingMobileNative,
+  backgroundColor: ''
+};
+
+var clearCache = {
+  // basic widget properties...
+  width: true,
+  height: true,
+  // layout properties...
+  wrap: true,
+  autoSize: true,
+  autoFontSize: true,
+  padding: true,
+  lineHeight: true,
+  // font properties...
+  color: false,
+  fontFamily: true,
+  fontWeight: true,
+  size: true,
+  strokeWidth: true,
+  shadowWidth: true,
+  strokeColor: false,
+  shadowColor: false,
+  // alignment properties...
+  verticalAlign: true,
+  horizontalAlign: true,
+  // misc properties...
+  backgroundColor: false,
+  text: true
+};
+var clearCacheKeys = Object.keys(clearCache);
+
+var hashItems = {
+  // font properties...
+  color: true,
+  fontFamily: true,
+  fontWeight: true,
+  size: true,
+  strokeWidth: true,
+  shadowWidth: true,
+  strokeColor: false,
+  shadowColor: false,
+  // misc properties...
+  backgroundColor: true,
+  text: true
+};
+var hashItemsKeys = Object.keys(hashItems);
+
+var savedOpts = [
+  'width',
+  'height',
+  'size'
+];
+
+var fontBuffer = new FragmentBuffer();
+
+fontBuffer.onGetHash = function (desc) {
+  return desc.textView.getHash();
+};
+
+
 /**
  * @extends ui.View
  */
 var TextView = exports = Class(View, function (supr) {
-
-  var DEPRECATED = {
-    multiline: { replacement: "wrap" },
-    textAlign: { replacement: "horizontalAlign" },
-    lineWidth: { replacement: "strokeWidth" },
-    strokeStyle: { replacement: "strokeColor" },
-    outlineColor: { replacement: "strokeColor" }
-  };
-
-  var defaults = {
-    // layout properties...
-    wrap: false,
-    autoSize: false,
-    autoFontSize: true,
-    lineHeight: 1.2,
-
-    // font properties...
-    color: "#000000",
-    fontFamily: device.defaultFontFamily,
-    fontWeight: device.defaultFontWeight,
-    size: 128,
-    strokeWidth: 2,
-    shadowWidth: 2,
-    strokeColor: null,
-    shadowColor: null,
-
-    // alignment properties...
-    verticalAlign: "middle",
-    horizontalAlign: "center",
-
-    // misc properties...
-    buffer: false, // GLOBAL.NATIVE && !device.simulatingMobileNative,
-    backgroundColor: ''
-  };
-
-  var clearCache = {
-    // basic widget properties...
-    width: true,
-    height: true,
-
-    // layout properties...
-    wrap: true,
-    autoSize: true,
-    autoFontSize: true,
-    padding: true,
-    lineHeight: true,
-
-    // font properties...
-    color: false,
-    fontFamily: true,
-    fontWeight: true,
-    size: true,
-    strokeWidth: true,
-    shadowWidth: true,
-    strokeColor: false,
-    shadowColor: false,
-
-    // alignment properties...
-    verticalAlign: true,
-    horizontalAlign: true,
-
-    // misc properties...
-    backgroundColor: false,
-    text: true
-  };
-  var clearCacheKeys = Object.keys(clearCache);
-
-  var hashItems = {
-    // font properties...
-    color: true,
-    fontFamily: true,
-    fontWeight: true,
-    size: true,
-    strokeWidth: true,
-    shadowWidth: true,
-    strokeColor: false,
-    shadowColor: false,
-
-    // misc properties...
-    backgroundColor: true,
-    text: true
-  };
-  var hashItemsKeys = Object.keys(hashItems);
-
-  var savedOpts = [
-    "width",
-    "height",
-    "size"
-  ];
-
-  var fontBuffer = new FragmentBuffer();
-
-  fontBuffer.onGetHash = function (desc) {
-    return desc.textView.getHash();
-  };
-
   this.init = function (opts) {
     this._opts = {};
     this._optsLast = {};

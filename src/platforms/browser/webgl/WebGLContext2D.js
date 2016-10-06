@@ -109,10 +109,12 @@ var getColor = function(key) {
   return result;
 };
 
-var GLManager = Class(function() {
 
-  var MAX_BATCH_SIZE = 512;
-  var CACHE_UID = 0;
+var MAX_BATCH_SIZE = 512;
+var CACHE_UID = 0;
+
+
+var GLManager = Class(function() {
 
   this.init = function () {
     var webglSupported = false;
@@ -519,30 +521,16 @@ var textCtx = document.createElement("canvas").getContext("2d");
 // CONTEXT2D
 // ---------------------------------------------------------------------------
 
+
+var min = Math.min;
+var max = Math.max;
+var floor = Math.floor;
+var ceil = Math.ceil;
+
+
 var Context2D = Class(function () {
 
   this._helperTransform = new Matrix2D();
-
-  var createContextProperty = function(ctx, name) {
-    Object.defineProperty(ctx, name, {
-      get: function() { return this.stack.state[name]; },
-      set: function(value) { this.stack.state[name] = value; }
-    });
-  };
-
-  var contextProperties = [
-    'globalAlpha',
-    'globalCompositeOperation',
-    'textBaseLine',
-    'lineWidth',
-    'strokeStyle',
-    'fillStyle',
-    'font'
-  ];
-
-  for (var i = 0; i < contextProperties.length; i++) {
-    createContextProperty(this, contextProperties[i]);
-  }
 
   this.init = function (manager, canvas) {
     this._manager = manager;
@@ -568,11 +556,6 @@ var Context2D = Class(function () {
     this.canvas.__glFlip = true;
     this._manager.activate(activeCtx, true);
   };
-
-  var min = Math.min;
-  var max = Math.max;
-  var floor = Math.floor;
-  var ceil = Math.ceil;
 
   this.loadIdentity = function() {
     this.stack.state.transform.identity();
@@ -925,5 +908,28 @@ var Context2D = Class(function () {
   };
 
 });
+
+
+var createContextProperty = function(ctx, name) {
+  Object.defineProperty(ctx, name, {
+    get: function() { return this.stack.state[name]; },
+    set: function(value) { this.stack.state[name] = value; }
+  });
+};
+
+var contextProperties = [
+  'globalAlpha',
+  'globalCompositeOperation',
+  'textBaseLine',
+  'lineWidth',
+  'strokeStyle',
+  'fillStyle',
+  'font'
+];
+
+for (var i = 0; i < contextProperties.length; i++) {
+  createContextProperty(Context2D.prototype, contextProperties[i]);
+}
+
 
 exports = new GLManager();

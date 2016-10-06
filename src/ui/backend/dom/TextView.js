@@ -23,38 +23,40 @@
 import ui.View as View;
 import device;
 
+var defaults = {
+  // layout properties...
+  wrap: false,
+  autoSize: false,
+  autoFontSize: true,
+  verticalPadding: 0,
+  horizontalPadding: 0,
+  lineHeight: 1.2,
+
+  // font properties...
+  color: "#000000",
+  fontFamily: device.defaultFontFamily,
+  fontWeight: "",
+  size: 128,
+  lineWidth: 2,
+  strokeColor: "",
+  shadowColor: "",
+
+  // alignment properties...
+  verticalAlign: "middle",
+  horizontalAlign: "center",
+
+  // misc properties...
+  backgroundColor: ""
+};
+
+var TOLERANCE = 1;
+
 /**
  * @extends ui.View
  */
 exports = Class(View, function (supr) {
 
   this._displayStyle = "table";
-
-  var defaults = {
-    // layout properties...
-    wrap: false,
-    autoSize: false,
-    autoFontSize: true,
-    verticalPadding: 0,
-    horizontalPadding: 0,
-    lineHeight: 1.2,
-
-    // font properties...
-    color: "#000000",
-    fontFamily: device.defaultFontFamily,
-    fontWeight: "",
-    size: 128,
-    lineWidth: 2,
-    strokeColor: "",
-    shadowColor: "",
-
-    // alignment properties...
-    verticalAlign: "middle",
-    horizontalAlign: "center",
-
-    // misc properties...
-    backgroundColor: ""
-  };
 
   this.init = function (opts) {
     var el = this._textNode = document.createElement("div");
@@ -108,8 +110,6 @@ exports = Class(View, function (supr) {
   };
 
   this.getText = function () { return this._text; }
-
-  var TOLERANCE = 1;
 
   this.reflow = function () {
     var opts = this._opts;

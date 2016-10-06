@@ -42,15 +42,16 @@ NATIVE.events.registerHandler('editText.onFinishEditing', function (evt) {
     focused && focused.finishEditing();
 });
 
+
+var defaults = {
+    hint: '',
+    inputType: 'default', // default | number | phone | password | capital
+    maxLength: 1000,
+    inputReturnButton: 'default' // default (return) | go | google | join | next | route | search | send | yahoo | done | emergencycall,
+};
+
+
 exports = Class(function() {
-
-    var defaults = {
-        hint: '',
-        inputType: 'default', // default | number | phone | password | capital
-        maxLength: 1000,
-        inputReturnButton: 'default' // default (return) | go | google | join | next | route | search | send | yahoo | done | emergencycall,
-    }
-
     this.init = function(opts) {
         console.log('instantiate EditText with hint: ' + opts.hint);
         this._opts = merge(opts, defaults);

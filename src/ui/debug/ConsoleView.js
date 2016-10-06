@@ -20,15 +20,15 @@
 
 import ui.View as View;
 
+var defaults = {
+  font: '12px Consolas, Monaco',
+  maxLines: 'auto',
+  lineHeight: 16,
+  backgroundColor: '#000000',
+  color: '#ffffff'
+};
+
 exports = Class(View, function (supr) {
-  
-  var defaults = {
-    font: '12px Consolas, Monaco',
-    maxLines: 'auto',
-    lineHeight: 16,
-    backgroundColor: '#000000',
-    color: '#ffffff'
-  };
 
   this.init = function (opts) {
     this._opts = merge(opts, defaults);

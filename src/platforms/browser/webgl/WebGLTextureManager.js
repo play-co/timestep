@@ -1,19 +1,21 @@
 import cache.LRUCache as LRUCache;
 import lib.PubSub as PubSub;
 
+
+var CACHE_SIZE = 65535;
+var CACHE_UID = 1;
+var BYTES_PER_PIXEL = 4;
+var MAX_TEXTURE_BYTES = 256 * 1024 * 1024;
+var MAX_TEXTURE_DUMP_ITERATIONS = 5;
+
+var pow = Math.pow;
+var ceil = Math.ceil;
+var log = Math.log;
+
+var LOG_2 = log(2);
+
+
 var WebGLTextureManager = Class(PubSub, function() {
-
-  var CACHE_SIZE = 65535;
-  var CACHE_UID = 1;
-  var BYTES_PER_PIXEL = 4;
-  var MAX_TEXTURE_BYTES = 256 * 1024 * 1024;
-  var MAX_TEXTURE_DUMP_ITERATIONS = 5;
-
-  var pow = Math.pow;
-  var ceil = Math.ceil;
-  var log = Math.log;
-
-  var LOG_2 = log(2);
 
   this.init = function() {
     this.textureDataCache = new LRUCache(CACHE_SIZE);

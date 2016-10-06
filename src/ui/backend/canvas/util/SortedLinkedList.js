@@ -14,8 +14,12 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-var Iterator = Class('Iterator', function (logger, supr) {
-  this.init = this.update = function (list) {
+var Iterator = Class(function (supr) {
+  this.init = function (list) {
+    this.update(list);
+  };
+
+  this.update = function (list) {
     this._list = list || this._list;
     this._current = list.head;
     this._count = 0;
@@ -59,7 +63,7 @@ var Iterator = Class('Iterator', function (logger, supr) {
   };
 });
 
-var Item = Class('Item', function (logger, supr) {
+var Item = Class(function (supr) {
   this.init = function (data, prev, next) {
     this.data = data;
     this.prev = prev || this; 
@@ -84,7 +88,7 @@ var Item = Class('Item', function (logger, supr) {
   };
 });
 
-exports = Class('SortedLinkedList', function (logger, supr) {
+exports = Class(function (supr) {
   this.init = function (comparator) {
     this.head = null;
     this._comparator = comparator;

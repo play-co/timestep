@@ -22,24 +22,26 @@
 
 from util.browser import $;
 
-exports = Class(function () {
 
-  var defaultStyle = {
-    padding: 0,
-    lineHeight: 1.4,
-    border: 'none',
-    display: 'none',
-    textAlign: 'center',
-    verticalAlign: 'middle',
-    fontSize: 16,
-    fontFamily: null,
-    fontWeight: '',
-    opacity: 1,
-    position: "absolute",
-    backgroundColor: "transparent",
-    top: 0,
-    left: 0
-  };
+var defaultStyle = {
+  padding: 0,
+  lineHeight: 1.4,
+  border: 'none',
+  display: 'none',
+  textAlign: 'center',
+  verticalAlign: 'middle',
+  fontSize: 16,
+  fontFamily: null,
+  fontWeight: '',
+  opacity: 1,
+  position: "absolute",
+  backgroundColor: "transparent",
+  top: 0,
+  left: 0
+};
+
+
+exports = Class(function () {
 
   this.init = function (opts) {
     opts = merge(opts, {
@@ -62,9 +64,6 @@ exports = Class(function () {
     $.onEvent(this._el, 'click', this, 'onClick');
   }
 
-  this.onBlur =
-  this.onFocus =
-  this.onChange =
   this.onClick = function () {}
 
   this.destroy = function () {
@@ -115,3 +114,7 @@ exports = Class(function () {
   this.setDimensions = function (d) { this._el.style.width = d.width + 'px'; this._el.style.height = d.height + 'px'; return this; }
   this.getDimensions = function () { return {width: this.getWidth(), height: this.getHeight()}; }
 });
+
+exports.prototype.onBlur = exports.prototype.onClick;
+exports.prototype.onFocus = exports.prototype.onClick;
+exports.prototype.onChange = exports.prototype.onClick;

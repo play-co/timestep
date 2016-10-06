@@ -18,15 +18,17 @@ import lib.PubSub;
 import device;
 from util.underscore import _;
 
+
+var defaults = {
+  oneChannelOnly: device.isMobileBrowser,
+  compiledFilename: 'compiled'
+};
+
+
 /**
  * @extends lib.PubSub
  */
 var AudioAPI = exports = Class(lib.PubSub, function (supr) {
-
-  var defaults = {
-    oneChannelOnly: device.isMobileBrowser,
-    compiledFilename: 'compiled'
-  };
 
   this.init = function (opts) {
     opts = merge(opts, defaults);

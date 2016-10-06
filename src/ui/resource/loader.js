@@ -37,10 +37,15 @@ var MIME = {
   '.wav': 'audio'
 };
 
-var Loader = Class(Emitter, function () {
 
-  var globalItemsToLoad = 0;
-  var globalItemsLoaded = 0;
+var globalItemsToLoad = 0;
+var globalItemsLoaded = 0;
+
+var _soundManager = null;
+var _soundLoader = null;
+
+
+var Loader = Class(Emitter, function () {
 
   this._map = {};
 
@@ -199,8 +204,6 @@ var Loader = Class(Emitter, function () {
     }
   };
 
-  var _soundManager = null;
-  var _soundLoader = null;
   this.getSound = function (src) {
     if (!_soundManager) {
       _soundManager = new AudioManager({ preload: true });

@@ -85,14 +85,16 @@ if (!ImageMap) {
   });
 }
 
+
+var isNative = GLOBAL.NATIVE && !device.isNativeSimulator;
+var Canvas = device.get('Canvas');
+
+// helper canvases for image data, initialized when/if needed
+var _imgDataCanvas = null;
+var _imgDataCtx = null;
+
+
 exports = Class(lib.PubSub, function () {
-
-  var isNative = GLOBAL.NATIVE && !device.isNativeSimulator;
-  var Canvas = device.get('Canvas');
-
-  // helper canvases for image data, initialized when/if needed
-  var _imgDataCanvas = null;
-  var _imgDataCtx = null;
 
   this.init = function (opts) {
     if (!opts) {
@@ -180,11 +182,11 @@ exports = Class(lib.PubSub, function () {
     }
   };
 
-  this.getSource = this.getSrcImg = function () {
+  this.getSrcImg = function () {
     return this._srcImg;
   };
 
-  this.setSource = this.setSrcImg = function (srcImg) {
+  this.setSrcImg = function (srcImg) {
     this._setSrcImg(srcImg);
   };
 
@@ -240,19 +242,19 @@ exports = Class(lib.PubSub, function () {
     return this._map.y;
   };
 
-  this.getSourceWidth = this.getSourceW = function () {
+  this.getSourceW = function () {
     return this._map.width;
   };
 
-  this.getSourceHeight = this.getSourceH = function () {
+  this.getSourceH = function () {
     return this._map.height;
   };
 
-  this.getOrigWidth = this.getOrigW = function () {
+  this.getOrigW = function () {
     return this._srcImg.width;
   };
 
-  this.getOrigHeight = this.getOrigH = function () {
+  this.getOrigH = function () {
     return this._srcImg.height;
   };
 
@@ -264,11 +266,11 @@ exports = Class(lib.PubSub, function () {
     this._map.y = y;
   };
 
-  this.setSourceWidth = this.setSourceW = function (w) {
+  this.setSourceW = function (w) {
     this._map.width = w;
   };
 
-  this.setSourceHeight = this.setSourceH = function (h) {
+  this.setSourceH = function (h) {
     this._map.height = h;
   };
 
@@ -305,11 +307,11 @@ exports = Class(lib.PubSub, function () {
       : map.height + map.marginTop + map.marginBottom) / map.scale;
   };
 
-  this.getMap = this.getBounds = function () {
+  this.getBounds = function () {
     return this._map;
   };
 
-  this.setMap = this.setBounds = function (x, y, w, h, marginTop, marginRight, marginBottom, marginLeft) {
+  this.setBounds = function (x, y, w, h, marginTop, marginRight, marginBottom, marginLeft) {
     var map = this._map;
     map.x = x;
     map.y = y;
@@ -385,7 +387,7 @@ exports = Class(lib.PubSub, function () {
     return this._isError;
   };
 
-  this.isLoaded = this.isReady = function () {
+  this.isReady = function () {
     return !this._isError && this._cb.fired();
   };
 
@@ -469,3 +471,19 @@ exports.__clearCache__ = function () {
   ImageCache = {};
 };
 
+
+exports.prototype.getSource = exports.prototype.getSrcImg;
+exports.prototype.setSource = exports.prototype.setSrcImg;
+
+exports.prototype.getSourceWidth = exports.prototype.getSourceW;
+exports.prototype.getSourceHeight = exports.prototype.getSourceH;
+exports.prototype.getOrigWidth = exports.prototype.getOrigW;
+exports.prototype.getOrigHeight = exports.prototype.getOrigH;
+
+exports.prototype.setSourceWidth = exports.prototype.setSourceW;
+exports.prototype.setSourceHeight = exports.prototype.setSourceH;
+
+exports.prototype.getMap = exports.prototype.getBounds;
+exports.prototype.setMap = exports.prototype.setBounds;
+
+exports.prototype.isLoaded = exports.prototype.isReady;

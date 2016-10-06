@@ -328,11 +328,9 @@ var Frame = Class(function () {
   this.debugLog = function (tt) {};
 });
 
-var CallbackFrame = Class(Frame, function () {
-  var supr = Frame.prototype;
-
+var CallbackFrame = Class(Frame, function (supr) {
   this.reset = function (subject, target, duration, transition) {
-    supr.reset.call(this, subject, target, duration, transition);
+    supr(this, 'reset', [subject, target, duration, transition]);
     // CallbackFrames act like tick functions when given durations
     this.duration = duration || 0;
   };
@@ -578,9 +576,7 @@ var Animator = exports.Animator = Class(Emitter, function () {
   };
 });
 
-var ViewAnimator = Class(Animator, function () {
-  var supr = Animator.prototype;
-
+var ViewAnimator = Class(Animator, function (supr) {
   this.buildFrame = function (target, duration, transition) {
     if (typeof target === 'object') {
       var frame = viewStyleFramePool.obtain();
@@ -588,7 +584,7 @@ var ViewAnimator = Class(Animator, function () {
       frame.reset(this.subject, target, duration, transition);
       return frame;
     } else {
-      return supr.buildFrame.call(this, target, duration, transition);
+      return supr(this, 'buildFrame', [target, duration, transition]);
     }
   };
 });

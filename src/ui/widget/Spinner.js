@@ -19,19 +19,21 @@
  */
 import ui.View as View;
 
+
+var defaults = {
+  cycles: 0.5,
+  radius: 10,
+  spokes: 20,
+  thickness: 2,
+  trail: 10,
+  color: '#ffffff',
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  layout: 'box'
+};
+
+
 exports = Class(View, function (supr) {
 
-  var defaults = {
-    cycles: 0.5,
-    radius: 10,
-    spokes: 20,
-    thickness: 2,
-    trail: 10,
-    color: '#ffffff',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    layout: 'box'
-  };
-  
   this.tag = 'Spinner';
   this._t = 0;
   

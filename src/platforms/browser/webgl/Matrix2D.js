@@ -1,7 +1,7 @@
-var Matrix2D = Class(function() {
+var sin = Math.sin;
+var cos = Math.cos;
 
-  var sin = Math.sin;
-  var cos = Math.cos;
+var Matrix2D = Class(function() {
 
   this.init = function() {
     this.identity();

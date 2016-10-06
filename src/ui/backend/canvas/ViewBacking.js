@@ -23,11 +23,13 @@
 import ..strPad;
 import ..BaseBacking;
 
-var ViewBacking = exports = Class(BaseBacking, function () {
-  var IDENTITY_MATRIX = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
-  var sin = Math.sin;
-  var cos = Math.cos;
+var IDENTITY_MATRIX = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
+var sin = Math.sin;
+var cos = Math.cos;
 
+var ADD_COUNTER = 900000;
+
+var ViewBacking = exports = Class(BaseBacking, function () {
   this.init = function (view) {
     this._globalTransform = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
     this._cachedRotation = 0;
@@ -53,7 +55,6 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     return subviews;
   };
 
-  var ADD_COUNTER = 900000;
   this.addSubview = function (view) {
     var backing = view.__view;
     var superview = backing._superview;

@@ -218,8 +218,8 @@ exports = Class(View, function (supr) {
     }
   }
 
-  this.getOrigWidth = this.getOrigW = function () { return this._img.getOrigW(); }
-  this.getOrigHeight = this.getOrigH = function () { return this._img.getOrigH(); }
+  this.getOrigW = function () { return this._img.getOrigW(); }
+  this.getOrigH = function () { return this._img.getOrigH(); }
 
   this.doOnLoad = function () {
     if (arguments.length == 1) {
@@ -229,5 +229,7 @@ exports = Class(View, function (supr) {
     }
     return this;
   }
-
 });
+
+exports.prototype.getOrigWidth = exports.prototype.getOrigW;
+exports.prototype.getOrigHeight = exports.prototype.getOrigH;

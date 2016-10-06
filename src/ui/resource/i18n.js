@@ -24,17 +24,19 @@ var EU_REGIONS = [
   'SI', 'SK', 'SM', 'VA', 'YT'
 ];
 
+
+var defaultOpts = {
+  languageCode: LANGUAGE_CODE,
+  regionCode: REGION_CODE,
+  stringsPath: 'resources/strings/',
+  defaultStringsFile: 'en.json'
+};
+
+
 /**
  * The i18n Class provides localization support for string JSON files.
  */
 exports = Class(function () {
-
-  var defaultOpts = {
-    languageCode: LANGUAGE_CODE,
-    regionCode: REGION_CODE,
-    stringsPath: 'resources/strings/',
-    defaultStringsFile: 'en.json'
-  };
 
   this.init = function (opts) {
     opts = merge(opts, defaultOpts);

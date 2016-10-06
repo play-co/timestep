@@ -83,46 +83,46 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
       this._context2D.resize(width, height);
     }
   }
-
-  util.setProperty(this, 'width', {
-    set: function (width) {
-      if (this._width !== width) {
-        this._width = width;
-        this.resize(width, this._height);
-      }
-      if (this._context2D) {
-        this._context2D.clear();
-      }
-    },
-    get: function () {
-      return this._width;
-    }
-  });
-
-  util.setProperty(this, 'height', {
-    set: function (height) {
-      if (this._height !== height) {
-        this._height = height;
-        this.resize(this._width, height);
-      }
-      if (this._context2D) {
-        this._context2D.clear();
-      }
-    },
-    get: function () {
-      return this._height;
-    }
-  });
-
-  util.setProperty(this, 'src', {
-    set: function (src) {},
-    get: function () {
-      return this._src;
-    }
-  });
-
-
 });
+
+
+util.setProperty(Canvas.prototype, 'width', {
+  set: function (width) {
+    if (this._width !== width) {
+      this._width = width;
+      this.resize(width, this._height);
+    }
+    if (this._context2D) {
+      this._context2D.clear();
+    }
+  },
+  get: function () {
+    return this._width;
+  }
+});
+
+util.setProperty(Canvas.prototype, 'height', {
+  set: function (height) {
+    if (this._height !== height) {
+      this._height = height;
+      this.resize(this._width, height);
+    }
+    if (this._context2D) {
+      this._context2D.clear();
+    }
+  },
+  get: function () {
+    return this._height;
+  }
+});
+
+util.setProperty(Canvas.prototype, 'src', {
+  set: function (src) {},
+  get: function () {
+    return this._src;
+  }
+});
+
 
 document.__registerCreateElementHandler('CANVAS', function () {
   return new Canvas();

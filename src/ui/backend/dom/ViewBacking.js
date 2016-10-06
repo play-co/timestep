@@ -58,31 +58,26 @@ function CHECK_TRANSLATE3D() {
 var SUPPORTS_TRANSLATE3D = false;//CHECK_TRANSLATE3D();
 
 
+var ADD_COUNTER = 900000;
+
+function getEasing(fn) {
+  if (typeof fn == 'string') { return fn; }
+  if (fn == animate.easeIn) { return 'ease-in'; }
+  if (fn == animate.easeOut) { return 'ease-out'; }
+  if (fn == animate.easeInOut) { return 'ease-in-out'; }
+  if (fn == animate.linear) { return 'linear'; }
+  return 'ease';
+};
+
+var LEN_Z = 8;
+var MAX_Z = 99999999;
+var MIN_Z = -99999999;
+var PAD = "00000000";
+
+var DURATION = 600;
+
+
 var ViewBacking = exports = Class(BaseBacking, function () {
-
-  var arr = ['x', 'y', 'r', 'width', 'height', 'visible', 'anchorX', 'anchorY', 'offsetX', 'offsetY',
-         'opacity', 'scale', 'zIndex', 'scrollLeft', 'scrollTop', 'flipX', 'flipY'];
-
-  var CUSTOM_KEYS = {};
-
-  arr.forEach(function (prop) {
-    CUSTOM_KEYS[prop] = true;
-
-    this.__defineGetter__(prop, function () {
-      if (prop in this._computed) {
-        return this._computed[prop];
-      } else {
-        return parseInt(this._node.style[prop]);
-      }
-    });
-    this.__defineSetter__(prop, function (val) {
-      var props = {};
-      props[prop] = val;
-      this._setProps(props);
-      return val;
-    });
-  }, this);
-
   this.init = function (view, opts) {
     this._view = view;
     this._subviews = [];
@@ -146,7 +141,6 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 
   this.getElement = function () { return this._node; }
 
-  var ADD_COUNTER = 900000;
   this.addSubview = function (view) {
     var backing = view.__view;
     var node = backing._node;
@@ -311,15 +305,6 @@ var ViewBacking = exports = Class(BaseBacking, function () {
   //****************************************************************
   // ANIMATION
 
-  function getEasing(fn) {
-    if (typeof fn == 'string') { return fn; }
-    if (fn == animate.easeIn) { return 'ease-in'; }
-    if (fn == animate.easeOut) { return 'ease-out'; }
-    if (fn == animate.easeInOut) { return 'ease-in-out'; }
-    if (fn == animate.linear) { return 'linear'; }
-    return 'ease';
-  };
-
   this._updateOrigin = function () {
     this._node.style.webkitTransformOrigin = (this._computed.anchorX || 0) + 'px ' + (this._computed.anchorY || 0) + 'px';
   }
@@ -473,11 +458,6 @@ var ViewBacking = exports = Class(BaseBacking, function () {
   };
 
   // ----- zIndex -----
-
-  var LEN_Z = 8;
-  var MAX_Z = 99999999;
-  var MIN_Z = -99999999;
-  var PAD = "00000000";
 
   this._sortIndex = "00000000";
 
@@ -639,8 +619,6 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     return this;
   }
 
-  var DURATION = 600;
-
   this.pause = function () {
     this._isPaused = true;
   }
@@ -739,4 +717,29 @@ var ViewBacking = exports = Class(BaseBacking, function () {
   };
 
 });
+
+
+var arr = ['x', 'y', 'r', 'width', 'height', 'visible', 'anchorX', 'anchorY', 'offsetX', 'offsetY',
+         'opacity', 'scale', 'zIndex', 'scrollLeft', 'scrollTop', 'flipX', 'flipY'];
+
+var CUSTOM_KEYS = {};
+
+arr.forEach(function (prop) {
+  CUSTOM_KEYS[prop] = true;
+
+  ViewBacking.prototype.__defineGetter__(prop, function () {
+    if (prop in this._computed) {
+      return this._computed[prop];
+    } else {
+      return parseInt(this._node.style[prop]);
+    }
+  });
+  ViewBacking.prototype.__defineSetter__(prop, function (val) {
+    var props = {};
+    props[prop] = val;
+    this._setProps(props);
+    return val;
+  });
+});
+
 
