@@ -18,9 +18,9 @@
  * @class ui.backend.canvas.FilterRenderer;
  * Renders filter effects to a canvas. Manages filtered canvas caching.
  */
-
-import cache.LRUCache as LRUCache;
-import device;
+jsio('import cache.LRUCache as LRUCache');
+jsio('import device');
+jsio('import ui.Engine');
 
 var FilterRenderer = Class(function () {
 
@@ -47,7 +47,7 @@ var FilterRenderer = Class(function () {
     this.useWebGL = CONFIG.useWebGL;
     if (this.useCache) {
       // If we're using canvas caching, set up the tick subscription
-      jsio('import ui.Engine').get().subscribe('Tick', this, this.onTick);
+      Engine.get().subscribe('Tick', this, this.onTick);
     }
   };
 

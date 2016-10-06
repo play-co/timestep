@@ -23,7 +23,7 @@
 */
 
 import device;
-import util.path;
+import util.path as utilPath;
 import event.Emitter as Emitter;
 import ui.backend.sound.AudioLoader as AudioLoader;
 
@@ -163,7 +163,7 @@ var MultiSound = Class(function () {
 
     for (var i = 0, src; src = srcList[i]; ++i) {
       // file paths are relative to the base path
-      var fullPath = util.path.join(basePath, opts.path, src);
+      var fullPath = utilPath.join(basePath, opts.path, src);
       // append the extension if not already provided
       if (!extTestExp.test(fullPath)) {
         fullPath += ext;

@@ -19,8 +19,8 @@
  *
  * ??? What the hell is this
  */
-
-import device;
+jsio('import device');
+jsio('import ui.engineInstance as engineInstance');
 
 var randomColorElement = function () {
   var e = Math.floor(Math.random() * 255).toString(16);
@@ -81,7 +81,7 @@ var FontBuffer = exports = Class(function () {
     this._currentFrame = 0;
     this._frameTimeout = 3;
 
-    jsio('import ui.Engine').get().subscribe('Tick', this, this._onTick);
+    engineInstance.get().subscribe('Tick', this, this._onTick);
   };
 
   this._onTick = function (dt) {

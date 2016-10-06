@@ -22,4 +22,5 @@
  * DEPRECATED. Sound.
  */
 logger.warn('ui.backend.sound.AudioAPI is deprecated. Import Sound instead.');
-import Sound as exports;
+jsio('import Sound');
+exports = Sound;

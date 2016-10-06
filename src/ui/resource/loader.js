@@ -13,10 +13,10 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
-import .i18n;
-import lib.Callback;
-import event.Emitter as Emitter;
+jsio('import .i18n');
+jsio('import lib.Callback');
+jsio('import event.Emitter as Emitter');
+jsio('import AudioManager');
 
 var _cache = {};
 
@@ -203,7 +203,6 @@ var Loader = Class(Emitter, function () {
   var _soundLoader = null;
   this.getSound = function (src) {
     if (!_soundManager) {
-      import AudioManager;
       _soundManager = new AudioManager({ preload: true });
       _soundLoader = _soundManager.getAudioLoader();
     }

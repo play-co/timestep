@@ -15,4 +15,5 @@
  */
 
 logger.warn('The Sound class is deprecated, use AudioManager instead.');
-import AudioManager as exports;
+jsio('import AudioManager');
+exports = AudioManager;

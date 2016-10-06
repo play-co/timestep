@@ -52,10 +52,18 @@ exports.registerDevice = function (name, path) {
 
 exports.get = function (module) {
   // deprecated: InputPrompt used to be platform-specific
-  if (module == 'InputPrompt') { return jsio('import ui.InputPrompt'); }
+  if (module == 'InputPrompt') {
+    return jsio('import ui.InputPrompt');
+    // throw new Error('FIXME: dynamic imports');
+  }
+
 
   var path = _devices[exports.name] || 'platforms.browser';
-  return jsio('import ' + path + '.' + module, {dontExport: true, suppressErrors: true});
+  return jsio('import ' + path + '.' + module, {
+    dontExport: true,
+    suppressErrors: true
+  });
+  // throw new Error('FIXME: dynamic imports');
 };
 
 exports.importUI = function (module) {
@@ -63,6 +71,7 @@ exports.importUI = function (module) {
   var importString = 'import ui.backend.' + domOrCanvas + '.' + module;
   var importOpts = {dontExport: true, suppressErrors: true};
   return jsio(importString, importOpts);
+  // throw new Error('FIXME: dynamic imports');
 };
 
 exports.isMobileNative = exports.isMobile = /TeaLeaf/.test(ua);
@@ -99,9 +108,9 @@ exports.setDevicePixelRatio = function (value) {
 // This is stubbed out unless available on the current device.
 exports.hideAddressBar = function () {};
 
+jsio('import ui.resource.Font');
 util.setProperty(exports, 'defaultFontFamily', {
   cb: function (value) {
-    import ui.resource.Font;
     ui.resource.Font.setDefaultFontFamily(value);
   },
   value: 'Helvetica'
@@ -222,9 +231,8 @@ exports.getDimensions = function (isLandscape) {
 /**
  * Initialize the device. Called from somewhere else.
  */
-
+jsio('import ui.init');
 exports.init = function () {
-  import ui.init;
   exports.get('initialize').init();
   exports.screen.width = exports.width;
   exports.screen.height = exports.height;

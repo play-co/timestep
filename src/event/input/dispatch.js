@@ -143,4 +143,6 @@ exports.getEvtCbName = function (evtType) {
 exports.InputListener = device.get('Input');
 exports.KeyListener = device.get('KeyListener');
 
-import .InputEvent as exports.InputEvent;
+jsio('import .InputEvent');
+exports.InputEvent = InputEvent;
+

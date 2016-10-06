@@ -22,9 +22,9 @@
  * pop off the worst deltas within the window for the performance score to rise back up.
  *
 **/
-
-import device;
-import userAgent;
+jsio('import device');
+jsio('import userAgent');
+jsio('import ui.engineInstance as engineInstance');
 
 var DEFAULT_RANK = 0;
 var DEFAULT_ALLOW_REDUCTION = true;
@@ -68,7 +68,7 @@ var Performance = Class(function () {
     // wait until engine initialization completes before subscribing to tick
     setTimeout(bind(this, function () {
       _lastTick = Date.now();
-      jsio('import ui.Engine').get().on('Render', bind(this, onRender));
+      engineInstance.get().on('Render', bind(this, onRender));
     }), 0);
   };
 

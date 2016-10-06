@@ -21,5 +21,5 @@
  * @doc http://doc.gameclosure.com/api/animate.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/animate.md
  */
-
-import ui.backend.canvas.animate as exports;
+jsio('import ui.backend.canvas.animate as animate');
+exports = animate;
