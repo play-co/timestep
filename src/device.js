@@ -34,6 +34,25 @@ import userAgent;
 import util.setProperty;
 import event.Emitter as Emitter;
 
+
+var backendCanvasCtx = require.context(
+  './ui/backend/canvas',
+  true,
+  /^.*\.js$/
+);
+var backendDomCtx = require.context(
+  './ui/backend/dom',
+  true,
+  /^.*\.js$/
+);
+
+var platformBrowserCtx = require.context(
+  './platforms/browser',
+  true,
+  /^.*\.js$/
+);
+
+
 if (typeof navigator === 'undefined' || !navigator.userAgent) {
   logger.warn('Timestep was unable to determine your device! Please check that navigator.userAgent is defined.');
   exports = { isUnknown: true };
@@ -50,28 +69,46 @@ exports.registerDevice = function (name, path) {
   _devices[name] = path;
 };
 
+
+var getDynamicModulePath = function (module) {
+  var moduleName = module.replace(/\./g, '/');
+  if (moduleName.indexOf('./') !== 0) {
+    moduleName = './' + moduleName;
+  }
+  if (moduleName.indexOf('.js') !== moduleName.length - 3) {
+    moduleName += '.js';
+  }
+  return moduleName;
+};
+
+
 exports.get = function (module) {
   // deprecated: InputPrompt used to be platform-specific
   if (module == 'InputPrompt') {
-    return jsio('import ui.InputPrompt');
-    // throw new Error('FIXME: dynamic imports');
+    jsio('import ui.InputPrompt as InputPrompt')
+    return InputPrompt;
   }
 
-
-  var path = _devices[exports.name] || 'platforms.browser';
-  return jsio('import ' + path + '.' + module, {
-    dontExport: true,
-    suppressErrors: true
-  });
-  // throw new Error('FIXME: dynamic imports');
+  // var path = _devices[exports.name] || 'platforms.browser';
+  // return jsio('import ' + path + '.' + module, {
+  //   dontExport: true,
+  //   suppressErrors: true
+  // });
+  platformBrowserCtx(getDynamicModulePath(module));
 };
 
 exports.importUI = function (module) {
-  var domOrCanvas = exports.useDOM ? 'dom' : 'canvas';
-  var importString = 'import ui.backend.' + domOrCanvas + '.' + module;
-  var importOpts = {dontExport: true, suppressErrors: true};
-  return jsio(importString, importOpts);
-  // throw new Error('FIXME: dynamic imports');
+  // var domOrCanvas = exports.useDOM ? 'dom' : 'canvas';
+  // var importString = 'import ui.backend.' + domOrCanvas + '.' + module;
+  // var importOpts = {dontExport: true, suppressErrors: true};
+  // return jsio(importString, importOpts);
+  var req;
+  if (exports.useDOM) {
+    req = backendDomCtx;
+  } else {
+    req = backendCanvasCtx;
+  }
+  return req(getDynamicModulePath(module));
 };
 
 exports.isMobileNative = exports.isMobile = /TeaLeaf/.test(ua);
@@ -108,9 +145,9 @@ exports.setDevicePixelRatio = function (value) {
 // This is stubbed out unless available on the current device.
 exports.hideAddressBar = function () {};
 
-jsio('import ui.resource.Font');
 util.setProperty(exports, 'defaultFontFamily', {
   cb: function (value) {
+    jsio('import ui.resource.Font');
     ui.resource.Font.setDefaultFontFamily(value);
   },
   value: 'Helvetica'
@@ -231,8 +268,8 @@ exports.getDimensions = function (isLandscape) {
 /**
  * Initialize the device. Called from somewhere else.
  */
-jsio('import ui.init');
 exports.init = function () {
+  jsio('import ui.init');
   exports.get('initialize').init();
   exports.screen.width = exports.width;
   exports.screen.height = exports.height;
