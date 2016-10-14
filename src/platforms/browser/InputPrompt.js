@@ -21,7 +21,7 @@
  */
 
 from util.browser import $;
-import ..ui.keyboardTypes as keyboardTypes;
+import ui.keyboardTypes as keyboardTypes;
 
 var BASE_CLASS = 'timestep-native-dialog';
 var TITLE_CLASS = 'title';

@@ -22,7 +22,7 @@
 
 import device;
 from util.browser import $;
-import ...ui.keyboardTypes as keyboardTypes;
+import ui.keyboardTypes as keyboardTypes;
 import .dom;
 
 exports.show = function (controller, opts) {

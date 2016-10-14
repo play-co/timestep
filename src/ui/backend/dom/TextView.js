@@ -59,11 +59,11 @@ exports = Class(View, function (supr) {
   this._displayStyle = "table";
 
   this.init = function (opts) {
+    supr(this, "init", [merge(opts, defaults)]);
+
     var el = this._textNode = document.createElement("div");
     el.className = 'view text';
     // el.style.position = 'relative';
-
-    supr(this, "init", [merge(opts, defaults)]);
 
     this.__view.getElement().appendChild(el);
   };

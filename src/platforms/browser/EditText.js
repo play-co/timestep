@@ -15,7 +15,8 @@
  */
 
 from util.browser import $;
-import squill.Widget;
+// import squill.Widget;
+throw new Error('TODO: ES6 SQUILL');
 import device;
 
 var __keyboardIsOpen = false;

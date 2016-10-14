@@ -127,6 +127,8 @@ fontBuffer.onGetHash = function (desc) {
  */
 var TextView = exports = Class(View, function (supr) {
   this.init = function (opts) {
+    supr(this, 'init', [merge(opts, defaults)]);
+
     this._opts = {};
     this._optsLast = {};
     this.updateCache();
@@ -135,8 +137,6 @@ var TextView = exports = Class(View, function (supr) {
     this._textFlow.subscribe("ChangeWidth", this, "onChangeWidth");
     this._textFlow.subscribe("ChangeHeight", this, "onChangeHeight");
     this._textFlow.subscribe("ChangeSize", this, "onChangeSize");
-
-    supr(this, 'init', [merge(opts, defaults)]);
 
     this._id = textViewID++;
   };
