@@ -38,11 +38,11 @@ exports = Class(View, function (supr) {
   this._t = 0;
   
   this.init = function (opts) {
-    this._opts = merge(opts, defaults);
-    
+    var _opts = merge(opts, defaults);
+    supr(this, 'init', [_opts]);
+
+    this._opts = _opts;
     this._step = 2 * Math.PI / this._opts.spokes;
-    
-    supr(this, 'init', [this._opts]);
   };
   
   this.tick = function (dt) {

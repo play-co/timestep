@@ -36,7 +36,9 @@ var appRuntime = 'unknown';
 var deviceType = 'unknown';
 var osType = 'unknown';
 var osVersion = 'unknown';
+var osVersionString = 'unknown';
 var browserVersion = 'unknown';
+var browserVersionString = 'unknown';
 var browserType = 'unknown';
 
 if (isNative) {

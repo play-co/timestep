@@ -18,8 +18,6 @@
 import util.setProperty as setProperty;
 
 
-var styleKeys = this.constructor.styleKeys = {};
-
 // keys map to properties
 var BASE_STYLE_PROPS = {
   'x': {value: 0},
@@ -84,6 +82,8 @@ var BaseBacking = exports = Class(function () {
     return this;
   }
 });
+
+var styleKeys = BaseBacking.prototype.constructor.styleKeys = {};
 
 BaseBacking.prototype.constructor.addProperty = function (key, def) {
   styleKeys[key] = true;
