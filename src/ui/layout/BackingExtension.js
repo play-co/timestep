@@ -13,14 +13,14 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('import ..View');
-jsio('import ..backend.strPad as strPad');
-jsio('import ..backend.BaseBacking');
-jsio('import .BoxLayout');
-jsio('import .LinearLayout');
-jsio('import .Padding');
+import View from '../View';
+import strPad from '../backend/strPad';
+import BaseBacking from '../backend/BaseBacking';
+import BoxLayout from './BoxLayout';
+import LinearLayout from './LinearLayout';
+import Padding from './Padding';
 
-jsio('import util.setProperty');
+import setProperty from 'util/setProperty';
 
 var layoutProps = {
   'layout': {
@@ -125,7 +125,7 @@ var layoutProps = {
 };
 
 for (var key in layoutProps) {
-  backend.BaseBacking.addProperty(key, layoutProps[key]);
+  BaseBacking.addProperty(key, layoutProps[key]);
 }
 
 
@@ -153,20 +153,17 @@ View.addExtension({
       this.right = this._cachedMargin.right;
 
       this._onLayoutChange();
-    }
-;
+    };
 
     proto._onFixedAspectRatio = function (key, value) {
       if (value) {
         this.updateAspectRatio();
       }
-    }
-;
+    };
 
     proto.updateAspectRatio = function (width, height) {
       this.aspectRatio = (width || this.width) / (height || this.height);
-    }
-;
+    };
 
     proto.enforceAspectRatio = function (iw, ih, isTimeout) {
       if (iw && ih) {
@@ -222,19 +219,18 @@ View.addExtension({
     proto.addResizeListeners = function () {
       if (!this._hasResizeListeners) {
         this._hasResizeListeners = true;
-        util.setProperty(this, 'width', {
+        setProperty(this, 'width', {
           cb: '_onWidth',
           value: this.width,
           configurable: true
         });
-        util.setProperty(this, 'height', {
+        setProperty(this, 'height', {
           cb: '_onHeight',
           value: this.height,
           configurable: true
         });
       }
-    }
-;
+    };
 
     proto._onWidth = function (prop, value, prevValue) {
       // local properties are invalidated
@@ -254,9 +250,10 @@ View.addExtension({
       }
 
 
+
+
       this._onLayoutChange();
-    }
-;
+    };
 
     proto._onHeight = function (prop, value, prevValue) {
       // local properties are invalidated
@@ -276,9 +273,10 @@ View.addExtension({
       }
 
 
+
+
       this._onLayoutChange();
-    }
-;
+    };
 
     proto._onInLayout = function (key, value) {
       var layout = this._superview && this._superview.__layout;
@@ -290,8 +288,7 @@ View.addExtension({
           this._view.needsReflow();
         }
       }
-    }
-;
+    };
 
     proto._onLayoutWidth = function (key, value) {
       if (value.charAt(value.length - 1) == '%') {
@@ -303,9 +300,10 @@ View.addExtension({
       }
 
 
+
+
       this._onLayoutChange();
-    }
-;
+    };
 
     proto._onLayoutHeight = function (key, value) {
       if (value.charAt(value.length - 1) == '%') {
@@ -317,15 +315,15 @@ View.addExtension({
       }
 
 
+
+
       this._onLayoutChange();
-    }
-;
+    };
 
     proto._onBoundsChange = function () {
       this.addResizeListeners();
       this._onLayoutChange();
-    }
-;
+    };
 
     // trigger a reflow, optionally of the parent if the parent has layout too
     proto._onLayoutChange = function () {

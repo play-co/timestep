@@ -16,14 +16,14 @@
 /**
  * @class ui.effectsEngine
  */
-jsio('import animate');
-jsio('import animate.transitions as easingFunctions');
-jsio('import ui.View as View');
-jsio('import ui.ImageView as ImageView');
-jsio('import ui.filter as filter');
-jsio('import performance');
-jsio('import ObjectPool');
-jsio('import ui.Engine as Engine');
+import animate from 'animate';
+import easingFunctions from 'animate/transitions';
+import View from 'ui/View';
+import ImageView from 'ui/ImageView';
+import filter from 'ui/filter';
+import performance from 'performance';
+import ObjectPool from 'ObjectPool';
+import Engine from 'ui/Engine';
 
 var sin = Math.sin;
 var cos = Math.cos;

@@ -13,13 +13,13 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('import ui.View as View');
-jsio('import ui.ImageView as ImageView');
-jsio('import ui.ImageScaleView as ImageScaleView');
-jsio('import ui.TextView as TextView');
+import View from 'ui/View';
+import ImageView from 'ui/ImageView';
+import ImageScaleView from 'ui/ImageScaleView';
+import TextView from 'ui/TextView';
 
-jsio('import AudioManager');
-jsio('import lib.Enum as Enum');
+import AudioManager from 'AudioManager';
+import Enum from 'lib/Enum';
 
 var states = Enum('UP', 'DOWN', 'DISABLED', 'SELECTED', 'UNSELECTED');
 var lastClicked = null;

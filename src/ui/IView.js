@@ -1,4 +1,4 @@
-jsio('import event.Emitter as Emitter');
+import Emitter from 'event/Emitter';
 
 // One day this should turn in to an interface
 exports = Class(Emitter, function () {

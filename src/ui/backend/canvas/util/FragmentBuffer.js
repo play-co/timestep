@@ -13,9 +13,9 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('import device');
-jsio('import .FragmentBin');
-jsio('import .SortedLinkedList as SortedList');
+import device from 'device';
+import FragmentBin from './FragmentBin';
+import SortedList from './SortedLinkedList';
 
 
 var debug = false;

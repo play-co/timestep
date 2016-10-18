@@ -18,15 +18,15 @@
  *
  * Generates a WebGL rendering context by creating our own Canvas element.
  */
-jsio('import device');
+import device from 'device';
 
-jsio('import ui.resource.loader as loader');
-jsio('import ui.Color as Color');
+import loader from 'ui/resource/loader';
+import Color from 'ui/Color';
 
-jsio('import .TextManager');
-jsio('import .Shaders');
-jsio('import .Matrix2D');
-jsio('import .WebGLTextureManager');
+import TextManager from './TextManager';
+import Shaders from './Shaders';
+import Matrix2D from './Matrix2D';
+import WebGLTextureManager from './WebGLTextureManager';
 
 var ContextStateStack = Class(function () {
   this.init = function () {

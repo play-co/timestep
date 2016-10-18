@@ -21,13 +21,13 @@
  *
  * TODO Move to debug package.
  */
-jsio('import device');
-jsio('import lib.Enum as Enum');
+import device from 'device';
+import Enum from 'lib/Enum';
 
-jsio('import math.geom.Rect as Rect');
-jsio('import math.geom.intersect as intersect');
+import Rect from 'math/geom/Rect';
+import intersect from 'math/geom/intersect';
 
-jsio('import event.input.dispatch as dispatch');
+import dispatch from 'event/input/dispatch';
 
 var viewModes = new Enum('FPS', 'DT');
 

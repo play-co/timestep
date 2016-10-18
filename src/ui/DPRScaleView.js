@@ -1,5 +1,5 @@
-jsio('import device');
-jsio('import ui.View as View');
+import device from 'device';
+import View from 'ui/View';
 
 var DPRScaleView = Class(View, function () {
   this.init = function () {

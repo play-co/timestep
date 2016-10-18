@@ -20,8 +20,7 @@ exports.start = function (onTick) {
     exports.last = now;
     onTick(dt);
   });
-}
-;
+};
 
 exports.last = null;
 

@@ -20,8 +20,8 @@
  * @doc http://doc.gameclosure.com/api/ui-stackview.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/stackview.md
  */
-jsio('import ui.View as View');
-jsio('import animate');
+import View from 'ui/View';
+import animate from 'animate';
 
 /**
  * @extends ui.View
@@ -101,8 +101,7 @@ exports = Class(View, function (supr) {
     if (i >= 0) {
       this.stack.splice(i, 1);
     }
-  }
-;
+  };
 
   this.pop = function (dontAnimate, reverse) {
     if (!this.stack.length) {

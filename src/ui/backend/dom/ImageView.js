@@ -18,8 +18,8 @@
  *
  * Renders an image in a View for canvas.
  */
-jsio('import ui.View as View');
-jsio('import ui.resource.Image as Image');
+import View from 'ui/View';
+import Image from 'ui/resource/Image';
 
 /**
  * @extends timestep.View
@@ -56,9 +56,10 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     return opts;
-  }
-;
+  };
 
   this.autoSize = function () {
     if (this._img) {
@@ -69,8 +70,7 @@ exports = Class(View, function (supr) {
         this.style.updateAspectRatio();
       }
     }
-  }
-;
+  };
 
   this._imgCache = {};
 
@@ -117,13 +117,11 @@ exports = Class(View, function (supr) {
         this.updateImage();
       }
     }
-  }
-;
+  };
 
   this.reflow = function () {
     this.updateImage();
-  }
-;
+  };
 
   this._getBackgroundNode = function (imageURL) {
     // When a css background-image is set that has an etag and no max-age
@@ -165,15 +163,15 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     return el;
-  }
-;
+  };
 
   this._canvasRender = function (ctx, opts) {
     var canvas = this._img.getSource();
     ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, this.style.width, this.style.height);
-  }
-;
+  };
 
   // sets the CSS background-image for this node
   this.updateImage = function () {
@@ -217,16 +215,14 @@ exports = Class(View, function (supr) {
         s.backgroundSize = sheetWidth * scaleX + 'px ' + sheetHeight * scaleY + 'px';
       }
     }
-  }
-;
+  };
 
   this.getOrigW = function () {
     return this._img.getOrigW();
   };
   this.getOrigH = function () {
     return this._img.getOrigH();
-  }
-;
+  };
 
   this.doOnLoad = function () {
     if (arguments.length == 1) {

@@ -14,7 +14,7 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 /* globals NATIVE */
-jsio('import ...ui.keyboardTypes');
+import keyboardTypes from '../../ui/keyboardTypes';
 
 var _controllers = {};
 
@@ -41,7 +41,7 @@ NATIVE.input.subscribe('Cancel', function (evt) {
 });
 
 exports.show = function (controller, opts) {
-  var id = NATIVE.input.openPrompt('' + opts.title, '' + opts.message, '' + opts.okText, '' + opts.cancelText, '' + opts.value, !!opts.autoFocus, !!opts.isPassword, ui.keyboardTypes.getNativeType(opts.keyboardType));
+  var id = NATIVE.input.openPrompt('' + opts.title, '' + opts.message, '' + opts.okText, '' + opts.cancelText, '' + opts.value, !!opts.autoFocus, !!opts.isPassword, keyboardTypes.getNativeType(opts.keyboardType));
 
   _controllers[id] = controller;
 };

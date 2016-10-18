@@ -18,8 +18,8 @@
  *
  * ??? What the hell is this
  */
-jsio('import device');
-jsio('import ui.engineInstance as engineInstance');
+import device from 'device';
+import engineInstance from 'ui/engineInstance';
 
 var randomColorElement = function () {
   var e = Math.floor(Math.random() * 255).toString(16);

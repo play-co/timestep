@@ -18,13 +18,13 @@
  *
  * canvas.TextView implementation.
  */
-jsio('import ui.View as View');
-jsio('import ui.resource.Image as Image');
-jsio('import device');
-jsio('import .util.FragmentBuffer as FragmentBuffer');
-jsio('import .TextFlow');
+import View from 'ui/View';
+import Image from 'ui/resource/Image';
+import device from 'device';
+import FragmentBuffer from './util/FragmentBuffer';
+import TextFlow from './TextFlow';
 
-jsio('import ...legacySettings as legacySettings');
+import legacySettings from '../../legacySettings';
 
 var messageFont = true;
 
@@ -411,8 +411,7 @@ var TextView = exports = Class(View, function (supr) {
       var opts = this._opts;
       this._textFlow.reflow(ctx, 1 + (opts.autoFontSize ? 4 : 0) + (opts.autoSize ? 2 : 0) + (opts.wrap ? 1 : 0));
     }
-  }
-;
+  };
 
   this.render = function (ctx) {
     this.computeSize(ctx);

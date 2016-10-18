@@ -16,7 +16,7 @@
 /**
  * @class ui.debug.ConsoleView;
  */
-jsio('import ui.View as View');
+import View from 'ui/View';
 
 var defaults = {
   font: '12px Consolas, Monaco',

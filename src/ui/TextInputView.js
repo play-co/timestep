@@ -19,8 +19,8 @@
  * @doc http://doc.gameclosure.com/api/ui-text.html#class-ui.textinputview
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/text.md
  */
-jsio('import device');
-jsio('import ui.View as View');
+import device from 'device';
+import View from 'ui/View';
 
 var TextBox = device.get('TextBox');
 
@@ -47,16 +47,14 @@ exports = Class(View, function (supr) {
       opacity *= view.style.opacity;
     }
     return opacity;
-  }
-;
+  };
 
   this._clearSuperview = function () {
     supr(this, '_clearSuperview', arguments);
 
     this._textBox.destroy();
     this._textBox = null;
-  }
-;
+  };
 
   this.updatePosition = function () {
     var app = this.getApp();
@@ -92,16 +90,14 @@ exports = Class(View, function (supr) {
 
   this._onValueChanged = function () {
     this.publish('ValueChanged', this.getValue());
-  }
-;
+  };
 
   this.setValue = function (value) {
     return this._textBox.setValue(value);
   };
   this.getValue = function () {
     return this._textBox.getValue();
-  }
-;
+  };
 
   this.updateStyle = function (style) {
     this._el.style = merge(style, this._el.style);

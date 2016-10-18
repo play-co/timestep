@@ -137,8 +137,7 @@ var Font = exports = Class(function () {
 
   this.getSize = function () {
     return this.sizePx;
-  }
-;
+  };
 
   this.getName = function () {
     return this._name;

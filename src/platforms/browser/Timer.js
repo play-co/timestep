@@ -142,8 +142,7 @@ exports.last = null;
 exports.start = function (onTick) {
   _onTick = onTick;
   driverId = mainDriver.call(window, onFrame);
-}
-;
+};
 
 exports.stop = function () {
   _onTick = null;

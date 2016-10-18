@@ -17,7 +17,8 @@
  * @class event.input.KeyListener
  * Implements a simple Key listener.
  */
-jsio('from util.browser import $');
+import browser from 'util/browser';
+let $ = browser.$;
 
 var listener = null;
 

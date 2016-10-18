@@ -18,12 +18,12 @@
  *
  * canvas.ImageView implementation.
  */
-jsio('import util.path');
-jsio('import std.uri as URI');
+import path from 'util/path';
+import URI from 'std/uri';
 
-jsio('import ui.View as View');
-jsio('import ui.resource.Image as Image');
-jsio('import ui.resource.ImageViewCache as ImageViewCache');
+import View from 'ui/View';
+import Image from 'ui/resource/Image';
+import ImageViewCache from 'ui/resource/ImageViewCache';
 
 
 var _loc = window.location.toString();
@@ -179,7 +179,7 @@ var ImageView = exports = Class(View, function (supr) {
       } else {
         var uri = URI.relativeTo(url, _loc);
         var host = uri.getHost();
-        tag = util.path.splitExt(uri.getFile()).basename + (host && host != _host ? ':' + host : '');
+        tag = path.splitExt(uri.getFile()).basename + (host && host != _host ? ':' + host : '');
 
         this._cachedTag = {
           url: url,

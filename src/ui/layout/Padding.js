@@ -21,8 +21,7 @@
 var Padding = exports = Class(function () {
   this.init = function (args) {
     this.update(args);
-  }
-;
+  };
 
   this.update = function (args) {
     if (args instanceof Padding) {
@@ -64,16 +63,14 @@ var Padding = exports = Class(function () {
       this.left = args[3];
       break;
     }
-  }
-;
+  };
 
   this.getVertical = function () {
     return this.top + this.bottom;
   };
   this.getHorizontal = function () {
     return this.left + this.right;
-  }
-;
+  };
 
   this.toString = function () {
     return [

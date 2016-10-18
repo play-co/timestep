@@ -18,7 +18,7 @@
  *
  * For now, this package simply forwards to Canvas' implementation.
  */
-jsio('import ui.backend.canvas.animate as canvasAnimate');
+import canvasAnimate from 'ui/backend/canvas/animate';
 
 exports = function (view) {
   // For DOM nodes, return only one singleton animation class.

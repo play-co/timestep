@@ -13,14 +13,15 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('import device');
-jsio('import event.Callback as Callback');
-jsio('import animate');
-jsio('import event.input.InputEvent as InputEvent');
-jsio('import math.geom.Point as Point');
-jsio('from util.browser import $');
+import device from 'device';
+import Callback from 'event/Callback';
+import animate from 'animate';
+import InputEvent from 'event/input/InputEvent';
+import Point from 'math/geom/Point';
+import browser from 'util/browser';
+let $ = browser.$;
 
-jsio('import ..BaseBacking');
+import BaseBacking from '../BaseBacking';
 
 var Canvas = device.get('Canvas');
 
@@ -153,13 +154,11 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     if (DEBUG) {
       n.setAttribute('TAG:', view.getTag());
     }
-  }
-;
+  };
 
   this.getElement = function () {
     return this._node;
-  }
-;
+  };
 
   this.addSubview = function (view) {
     var backing = view.__view;
@@ -181,10 +180,11 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       }
 
 
+
+
       return true;
     }
-  }
-;
+  };
 
   this.removeSubview = function (targetView) {
     var index = this._subviews.indexOf(targetView.__view);
@@ -195,9 +195,10 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     }
 
 
+
+
     return false;
-  }
-;
+  };
 
   this.getSuperview = function () {
     var p = this._node.parentNode;
@@ -206,9 +207,10 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     }
 
 
+
+
     return p._view;
-  }
-;
+  };
 
   this.getSubviews = function () {
     if (this._needsSort) {
@@ -221,8 +223,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       subviews[i] = this._subviews[i]._view;
     }
     return subviews;
-  }
-;
+  };
 
   this.wrapTick = function (dt, app) {
     this._view.tick && this._view.tick(dt, app);
@@ -230,8 +231,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     for (var i = 0, view; view = this._subviews[i]; ++i) {
       view.wrapTick(dt, app);
     }
-  }
-;
+  };
 
   this.wrapRender = function (ctx, opts) {
     if (!this.visible) {
@@ -261,8 +261,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     } catch (e) {
       logger.error(this, e.message, e.stack);
     }
-  }
-;
+  };
 
   this._render = function (render, width, height, opts) {
     if (this._noCanvas) {
@@ -298,8 +297,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
         this._canvas.style.display = 'block';
       }
     }
-  }
-;
+  };
 
   this._renderSubviews = function (ctx, opts) {
     var i = 0;
@@ -308,8 +306,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     while (view = subviews[i++]) {
       view.wrapRender(ctx, opts);
     }
-  }
-;
+  };
 
   this.localizePoint = function (pt) {
     var s = this._computed;
@@ -322,19 +319,16 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     pt.x += s.anchorX;
     pt.y += s.anchorY;
     return pt;
-  }
-;
+  };
 
   // exports the current style object
   this.copy = function () {
     return merge({}, this._computed);
-  }
-;
+  };
 
   this.update = function (style) {
     this._setProps(style);
-  }
-;
+  };
 
   this.position = function (x, y) {
     var s = this._node.style;
@@ -361,8 +355,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
   // ANIMATION
   this._updateOrigin = function () {
     this._node.style.webkitTransformOrigin = (this._computed.anchorX || 0) + 'px ' + (this._computed.anchorY || 0) + 'px';
-  }
-;
+  };
 
   this._setProps = function (props, anim) {
     var setMatrix = false;
@@ -524,15 +517,15 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     }
 
 
+
+
     this._setSortKey();
-  }
-;
+  };
 
   this._setAddedAt = function (addedAt) {
     this._addedAt = addedAt;
     this._setSortKey();
-  }
-;
+  };
 
   this._setSortKey = function () {
     this.__sortKey = this._sortIndex + this._addedAt;
@@ -642,16 +635,14 @@ var ViewBacking = exports = Class(BaseBacking, function () {
   };
   this.getAnimation = function () {
     return this;
-  }
-;
+  };
 
   this.animate = function () {
     if (!arguments[0]) {
       return this;
     }
     return this.next.apply(this, arguments);
-  }
-;
+  };
 
   this.clear = function () {
     this.transitionCallback && this.transitionCallback.fire();
@@ -683,19 +674,16 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       }
     }
     return this;
-  }
-;
+  };
 
   this.pause = function () {
     this._isPaused = true;
-  }
-;
+  };
 
   this.resume = function () {
     this._isPaused = false;
     this._processAnimation();
-  }
-;
+  };
 
   this.animate = function (props, duration, easing, callback) {
     //this.clear();
@@ -705,8 +693,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
   this.now = function (props, duration, easing, callback) {
     this.clear();
     return this.then(props, duration, easing, callback);
-  }
-;
+  };
 
   this.then = function (props, duration, easing, callback) {
     if (arguments.length == 1 && typeof props === 'function') {
@@ -735,8 +722,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       this._processAnimation();
     }
     return this;
-  }
-;
+  };
 
   this.wait = function (duration, callback) {
     this._animationQueue.push({

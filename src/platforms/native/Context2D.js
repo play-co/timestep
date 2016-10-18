@@ -13,15 +13,15 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('import std.uri');
-jsio('import lib.Enum as Enum');
-jsio('import util.setProperty');
+import uri from 'std/uri';
+import Enum from 'lib/Enum';
+import setProperty from 'util/setProperty';
 
-jsio('import .BufferedCanvas');
-jsio('import device');
-jsio('import .FontRenderer');
+import BufferedCanvas from './BufferedCanvas';
+import device from 'device';
+import FontRenderer from './FontRenderer';
 
-jsio('import ui.resource.Font as Font');
+import Font from 'ui/resource/Font';
 
 var _createdOnscreenCanvas = false;
 
@@ -113,8 +113,7 @@ exports = Class(BufferedCanvas, function (supr) {
         NATIVE.gl.deleteTexture(this.canvas._src);
       }
     }
-  }
-;
+  };
 
   this.resize = function (width, height) {
     // set the internal private properties (the public ones have setters that
@@ -146,13 +145,11 @@ exports = Class(BufferedCanvas, function (supr) {
       this.canvas._src = 'onscreen';
       this._ctx = new NATIVE.gl.Context2D(this.canvas, this.canvas._src, this.canvas.__gl_name);
     }
-  }
-;
+  };
 
   this.getNativeCtx = function () {
     return this._ctx;
-  }
-;
+  };
 
   this.getElement = function () {
     return this.canvas;
@@ -330,8 +327,7 @@ exports = Class(BufferedCanvas, function (supr) {
   this.pointSpriteStep = 2;
   this.drawPointSprites = function (x1, y1, x2, y2) {
     this._ctx.drawPointSprites(this.pointSprite.src, this.lineWidth || 5, this.pointSpriteStep || 2, this.strokeStyle, x1, y1, x2, y2);
-  }
-;
+  };
 
   this.closePath = function () {
   };
@@ -362,8 +358,7 @@ exports = Class(BufferedCanvas, function (supr) {
       height: height,
       data: new PixelArray(width * height)
     };
-  }
-;
+  };
 
   this.fill = function () {
   };
@@ -372,7 +367,7 @@ exports = Class(BufferedCanvas, function (supr) {
 });
 
 
-util.setProperty(exports.prototype, 'globalAlpha', {
+setProperty(exports.prototype, 'globalAlpha', {
   get: function () {
     return this._ctx.getGlobalAlpha();
   },
@@ -381,7 +376,7 @@ util.setProperty(exports.prototype, 'globalAlpha', {
   }
 });
 
-util.setProperty(exports.prototype, 'globalCompositeOperation', {
+setProperty(exports.prototype, 'globalCompositeOperation', {
   get: function () {
     return compositeOps[this._ctx.getGlobalCompositeOperation()];
   },

@@ -13,7 +13,7 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('import device');
+import device from 'device';
 
 var focused;
 
@@ -68,13 +68,11 @@ exports = Class(function () {
     if (this._opts.onChange) {
       this._opts.onChange(value, prevValue, cursorPos);
     }
-  }
-;
+  };
 
   this.getValue = function () {
     return this._value;
-  }
-;
+  };
 
   this.setValue = function (value, cursorPos) {
     this._value = value;
@@ -83,8 +81,7 @@ exports = Class(function () {
       text: value,
       cursorPos: cursorPos
     });
-  }
-;
+  };
 
   this.requestFocus = function () {
     if (focused !== this) {
@@ -94,9 +91,10 @@ exports = Class(function () {
     }
 
 
+
+
     focused = this;
-  }
-;
+  };
 
   this.closeEditField = function () {
     if (focused == this) {
@@ -112,16 +110,14 @@ exports = Class(function () {
       var textBox = this._textEditView._textBox;
       textBox.style.visible = true;
     }
-  }
-;
+  };
 
   this.submit = function (close) {
     this.onSubmit(this._value);
     if (focused != null && close) {
       focused.removeFocus();
     }
-  }
-;
+  };
 
   this.refresh = function (currentVal, hasBack, hasForward, cursorPos) {
     var textBox = this._textEditView._textBox;
@@ -158,14 +154,12 @@ exports = Class(function () {
       closeOnDone: closeOnDone
     });
 
-  }
-;
+  };
 
   //cursorPos);
   this.hasFocus = function () {
     return focused == this;
-  }
-;
+  };
 
   this.removeFocus = function () {
     this.onFocusChange(false);
@@ -177,12 +171,12 @@ exports = Class(function () {
     }
 
 
-  }
-;
+
+
+  };
 
   this.setHint = function (hint) {
     this._opts.hint = hint;
-  }
-;
+  };
 
 });

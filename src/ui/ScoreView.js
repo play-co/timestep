@@ -19,10 +19,10 @@
  * This class is designed for high performance text rendering using images.
  * It is ideal for scores or other in-game counters that update often.
  */
-jsio('import ui.View as View');
-jsio('import ui.ImageView as ImageView');
-jsio('import ui.resource.Image as Image');
-jsio('import ui.filter as filter');
+import View from 'ui/View';
+import ImageView from 'ui/ImageView';
+import Image from 'ui/resource/Image';
+import filter from 'ui/filter';
 
 var min = Math.min;
 var max = Math.max;

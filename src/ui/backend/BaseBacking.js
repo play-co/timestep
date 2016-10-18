@@ -13,7 +13,7 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('import util.setProperty as setProperty');
+import setProperty from 'util/setProperty';
 
 
 // keys map to properties
@@ -73,8 +73,7 @@ var BaseBacking = exports = Class(function () {
     pt.x += this.anchorX;
     pt.y += this.anchorY;
     return pt;
-  }
-;
+  };
 
   this.copy = function () {
     var copy = {};
@@ -83,9 +82,10 @@ var BaseBacking = exports = Class(function () {
     }
 
 
+
+
     return copy;
-  }
-;
+  };
 
   this.update = function (style) {
     for (var i in style) {

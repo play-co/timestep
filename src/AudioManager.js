@@ -20,10 +20,10 @@
 * @doc http://doc.gameclosure.com/api/sound.html
 * @docsrc https://github.com/gameclosure/doc/blob/master/api/sound.md
 */
-jsio('import device');
-jsio('import util.path as utilPath');
-jsio('import event.Emitter as Emitter');
-jsio('import ui.backend.sound.AudioLoader as AudioLoader');
+import device from 'device';
+import utilPath from 'util/path';
+import Emitter from 'event/Emitter';
+import AudioLoader from 'ui/backend/sound/AudioLoader';
 
 
 // An API for playing named sounds. Sounds can be given a single file source

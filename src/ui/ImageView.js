@@ -20,5 +20,5 @@
  * @doc http://doc.gameclosure.com/api/ui-imageview.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/imageview.md
  */
-jsio('import device');
+import device from 'device';
 exports = device.importUI('ImageView');

@@ -1,12 +1,11 @@
-jsio('import .Image');
+import Image from './Image';
 
 // cache of Images for ImageView and ImageScaleView
 exports.cache = {};
 
 exports.clear = function () {
   exports.cache = {};
-}
-;
+};
 
 exports.getImage = function (url, forceReload) {
   var img;

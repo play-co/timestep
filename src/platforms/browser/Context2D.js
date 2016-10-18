@@ -18,8 +18,8 @@
  *
  * Generates a rendering context by creating our own Canvas element.
  */
-jsio('import device');
-jsio('import .FontRenderer');
+import device from 'device';
+import FontRenderer from './FontRenderer';
 
 exports = function (opts) {
   var parentNode = opts && opts.parent;

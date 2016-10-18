@@ -24,32 +24,26 @@ exports = Class(function (supr) {
 
   this.setEnabled = function (isEnabled) {
     this._isEnabled = isEnabled;
-  }
-;
+  };
 
   this.captureShortcut = function (shortcut) {
     this._shortcuts.push(shortcut);
-  }
-;
+  };
 
   this.getPressed = function () {
     return {};
-  }
-;
+  };
 
   this.onKeyDown = function (e) {
-  }
-;
+  };
 
   this.liftAll = function () {
   };
   this.onKeyUp = function (e) {
-  }
-;
+  };
 
   this.onKeyPress = function (e) {
-  }
-;
+  };
 
   this.peekEvents = function () {
     return this._events;

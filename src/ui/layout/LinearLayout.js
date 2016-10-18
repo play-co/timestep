@@ -23,10 +23,10 @@
  *
  * A class to direct the layout of its parent view, set through opts.parent.
  */
-jsio('import ui.layout.Padding as Padding');
-jsio('import ui.backend.strPad as strPad');
+import Padding from 'ui/layout/Padding';
+import strPad from 'ui/backend/strPad';
 
-jsio('import .BoxLayout');
+import BoxLayout from './BoxLayout';
 
 var DEBUG = false;
 if (DEBUG) {
@@ -80,28 +80,24 @@ exports = Class(BoxLayout, function (supr) {
     this._forwardEvents();
 
     this._debug = DEBUG;
-  }
-;
+  };
 
   this._onSubviewRemoved = function (view) {
     if (view.style.inLayout) {
       this.remove(view);
     }
-  }
-;
+  };
 
   this._onSubviewAdded = function (view) {
     if (view.style.inLayout) {
       this.add(view);
     }
-  }
-;
+  };
 
   this.debug = function () {
     this._debug = true;
     return this;
-  }
-;
+  };
 
   this._setDirection = function (direction) {
     this._direction = direction;
@@ -118,16 +114,14 @@ exports = Class(BoxLayout, function (supr) {
     this._propSideB = isVertical ? 'bottom' : 'right';
 
     this._flexProp = isVertical ? 'vflex' : 'hflex';
-  }
-;
+  };
 
   this.isVertical = function () {
     return this._direction == 'vertical';
   };
   this.isHorizontal = function () {
     return this._direction == 'horizontal';
-  }
-;
+  };
 
   /**
    * Events to proxy to the parent view from this layout.

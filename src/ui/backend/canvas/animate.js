@@ -22,14 +22,14 @@
  *   Animators are kept on subjects, and only get GC'd if subject does
  *   Frames are pooled and recycled internally
  */
-jsio('import event.Emitter as Emitter');
-jsio('import animate.transitions as transitions');
-jsio('import timer');
-jsio('import ObjectPool');
-jsio('import device');
+import Emitter from 'event/Emitter';
+import transitions from 'animate/transitions';
+import timer from 'timer';
+import ObjectPool from 'ObjectPool';
+import device from 'device';
 
-jsio('import ui.engineInstance as engineInstance');
-jsio('import ui.IView as IView');
+import engineInstance from 'ui/engineInstance';
+import IView from 'ui/IView';
 
 
 var engine = null;

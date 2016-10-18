@@ -20,17 +20,18 @@
  * An independent KeyListener is exposed for the Application Engine and any
  * Views with a Focus Manager.
  */
-jsio('import lib.PubSub as PubSub');
-jsio('import lib.Enum');
+import PubSub from 'lib/PubSub';
+import Enum from 'lib/Enum';
 
-jsio('import event.input.keys as keyConstants');
-jsio('import device');
-jsio('import timer');
+import keyConstants from 'event/input/keys';
+import device from 'device';
+import timer from 'timer';
 
-jsio('from util.browser import $');
+import browser from 'util/browser';
+let $ = browser.$;
 
 var gListenerSingleton = null;
-var gCancelKeys = lib.Enum(keyConstants.SPACE, keyConstants.LEFT, keyConstants.RIGHT, keyConstants.UP, keyConstants.DOWN);
+var gCancelKeys = Enum(keyConstants.SPACE, keyConstants.LEFT, keyConstants.RIGHT, keyConstants.UP, keyConstants.DOWN);
 
 exports = Class(function () {
   this.init = function (el, events) {
@@ -49,23 +50,19 @@ exports = Class(function () {
     $.onEvent(el, 'keypress', this, 'onKeyPress');
     $.onEvent(el, 'keyup', this, 'onKeyUp');
     $.onEvent(window, 'blur', this, 'liftAll');
-  }
-;
+  };
 
   this.setEnabled = function (isEnabled) {
     this._isEnabled = isEnabled;
-  }
-;
+  };
 
   this.captureShortcut = function (shortcut) {
     this._shortcuts.push(shortcut);
-  }
-;
+  };
 
   this.getPressed = function () {
     return this._keyMap;
-  }
-;
+  };
 
   this.onKeyDown = function (e) {
     if (!this._isEnabled) {
@@ -111,10 +108,11 @@ exports = Class(function () {
     }
 
 
+
+
     this._events.push(evt);
     this._keyMap[e.keyCode] = +new Date();
-  }
-;
+  };
 
   this.liftAll = function () {
     var progressDt = timer.getTickProgress();
@@ -126,8 +124,7 @@ exports = Class(function () {
       });
     }
     this._keyMap = {};
-  }
-;
+  };
 
   this.onKeyUp = function (e) {
     var progressDt = timer.getTickProgress();
@@ -138,8 +135,7 @@ exports = Class(function () {
       dt: progressDt
     });
     $.stopEvent(e);
-  }
-;
+  };
 
   this.onKeyPress = function (e) {
     if (!this._isEnabled) {
@@ -148,8 +144,7 @@ exports = Class(function () {
     if (e.keyCode in gCancelKeys) {
       $.stopEvent(e);
     }
-  }
-;
+  };
 
   this.peekEvents = function () {
     return this._events;
@@ -169,8 +164,7 @@ exports.Shortcut = Class(PubSub, function () {
     this.alt = !!alt;
     this.meta = !!meta;
     this.code = !!keyCode;
-  }
-;
+  };
 
   this.compare = function (shortcut) {
     return this.ctrl == shortcut.ctrl && this.alt == shortcut.alt && this.meta == shortcut.meta && this.shift == shortcut.shift && this.code == shortcut.code;

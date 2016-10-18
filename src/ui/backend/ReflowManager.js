@@ -53,8 +53,7 @@ var Pool = Class(function () {
     item.needsReflow = false;
     return item;
   };
-})
-;
+});
 
 var _pool = new Pool();
 

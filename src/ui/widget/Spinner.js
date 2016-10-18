@@ -16,7 +16,7 @@
 /**
  * @class ui.widget.Spinner;
  */
-jsio('import ui.View as View');
+import View from 'ui/View';
 
 
 var defaults = {
@@ -54,8 +54,7 @@ exports = Class(View, function (supr) {
     if (oldR != r) {
       this.needsRepaint();
     }
-  }
-;
+  };
 
   this.render = function (ctx) {
     ctx.fillStyle = this._opts.backgroundColor;

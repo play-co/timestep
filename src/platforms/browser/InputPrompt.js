@@ -18,8 +18,9 @@
  *
  * Prompt the user manually for input.
  */
-jsio('from util.browser import $');
-jsio('import ui.keyboardTypes as keyboardTypes');
+import browser from 'util/browser';
+let $ = browser.$;
+import keyboardTypes from 'ui/keyboardTypes';
 
 var BASE_CLASS = 'timestep-native-dialog';
 var TITLE_CLASS = 'title';

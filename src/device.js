@@ -28,9 +28,9 @@
  * @doc http://doc.gameclosure.com/api/device.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/device.md
  */
-jsio('import userAgent');
-jsio('import util.setProperty');
-jsio('import event.Emitter as Emitter');
+import userAgent from 'userAgent';
+import setProperty from 'util/setProperty';
+import Emitter from 'event/Emitter';
 
 import {
   getImport,
@@ -97,10 +97,10 @@ exports.setDevicePixelRatio = function (value) {
 exports.hideAddressBar = function () {
 };
 
-util.setProperty(exports, 'defaultFontFamily', {
+setProperty(exports, 'defaultFontFamily', {
   cb: function (value) {
-    jsio('import ui.resource.Font');
-    ui.resource.Font.setDefaultFontFamily(value);
+    let Font = require('ui/resource/Font');
+    Font.setDefaultFontFamily(value);
   },
   value: 'Helvetica'
 });
@@ -242,7 +242,7 @@ exports.getDimensions = function (isLandscape) {
  * Initialize the device. Called from somewhere else.
  */
 exports.init = function () {
-  jsio('import ui.init');
+  let init = require('ui/init');
   getImport('initialize').init();
   exports.screen.width = exports.width;
   exports.screen.height = exports.height;

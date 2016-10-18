@@ -1,4 +1,4 @@
-jsio('import device');
+import device from 'device';
 
 // map input types to native constants
 exports.nativeTypes = {

@@ -20,10 +20,10 @@
  * individual InputHandler proxy. Additionally, this namespace includes those
  * functions actually in timestep.input, like InputListener and KeyListener classes.
  */
-jsio('import math.geom.Point as Point');
-jsio('import lib.Enum');
+import Point from 'math/geom/Point';
+import Enum from 'lib/Enum';
 
-exports.eventTypes = new lib.Enum('START', 'MOVE', 'SELECT', 'SCROLL', 'CLEAR');
+exports.eventTypes = new Enum('START', 'MOVE', 'SELECT', 'SCROLL', 'CLEAR');
 exports.VERTICAL_AXIS = 2;
 exports.HORIZONTAL_AXIS = 1;
 
@@ -77,8 +77,7 @@ exports.dispatchEvent = function (root, evt) {
       }
     }
   }
-}
-;
+};
 
 /**
  * Trace an event recursively down to the view on which the event is triggered.
@@ -112,8 +111,7 @@ exports.traceEvt = function (view, evt, pt) {
     evt.target = view;
     return true;
   }
-}
-;
+};
 
 exports._evtHistory = {};
 exports._activeInputOver = {};
@@ -135,14 +133,12 @@ exports.clearOverState = function (id) {
       exports.clearOverState(id);
     }
   }
-}
-;
+};
 
 exports._isDragging = false;
 exports.isDragging = function () {
   return exports._isDragging;
-}
-;
+};
 
 exports._evtCb = {};
 exports.getEvtCbName = function (evtType) {

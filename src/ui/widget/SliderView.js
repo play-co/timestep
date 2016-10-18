@@ -13,8 +13,8 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('import ui.ImageScaleView as ImageScaleView');
-jsio('import ui.resource.Image as Image');
+import ImageScaleView from 'ui/ImageScaleView';
+import Image from 'ui/resource/Image';
 
 exports = Class(ImageScaleView, function (supr) {
   this.init = function (opts) {

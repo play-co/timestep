@@ -13,12 +13,13 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('import lib.PubSub');
-jsio('import lib.Enum as Enum');
-jsio('from util.browser import $');
+import PubSub from 'lib/PubSub';
+import Enum from 'lib/Enum';
+import browser from 'util/browser';
+let $ = browser.$;
 
-jsio('import device');
-jsio('import userAgent');
+import device from 'device';
+import userAgent from 'userAgent';
 
 var isIOS7 = device.iosVersion === 7;
 var isIOSSafari = device.iosVersion >= 7 && !device.isIpad && !device.isStandalone && !device.isUIWebView;
@@ -30,7 +31,7 @@ var defaultScalingMode = !device.isMobileNative || device.simulating ? SCALING.R
 /**
  * @extends lib.PubSub
  */
-var Document = Class(lib.PubSub, function () {
+var Document = Class(PubSub, function () {
   this.init = function () {
     if (!$) {
       return;

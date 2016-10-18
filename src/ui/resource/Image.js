@@ -22,11 +22,11 @@
  * @doc http://doc.gameclosure.com/api/ui-imageview.html#class-ui.resource.image
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/imageview.md
  */
-jsio('import device');
-jsio('import lib.PubSub');
-jsio('import event.Callback as Callback');
-jsio('import ui.resource.loader as resourceLoader');
-jsio('import ui.backend.canvas.filterRenderer as filterRenderer');
+import device from 'device';
+import PubSub from 'lib/PubSub';
+import Callback from 'event/Callback';
+import resourceLoader from 'ui/resource/loader';
+import filterRenderer from 'ui/backend/canvas/filterRenderer';
 
 var ImageCache = {};
 
@@ -94,7 +94,7 @@ var _imgDataCanvas = null;
 var _imgDataCtx = null;
 
 
-exports = Class(lib.PubSub, function () {
+exports = Class(PubSub, function () {
   this.init = function (opts) {
     if (!opts) {
       opts = {};

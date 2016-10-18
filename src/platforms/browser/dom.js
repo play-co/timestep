@@ -1,4 +1,5 @@
-jsio('from util.browser import $');
+import browser from 'util/browser';
+let $ = browser.$;
 
 var _cssPrefix;
 exports.getCSSPrefix = function () {

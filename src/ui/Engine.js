@@ -30,18 +30,18 @@
  * @doc http://doc.gameclosure.com/api/appengine.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/appengine.md
  */
-jsio('import event.Emitter as Emitter');
+import Emitter from 'event/Emitter';
 
-jsio('import event.input.dispatch as dispatch');
+import dispatch from 'event/input/dispatch';
 
-jsio('import timer');
-jsio('import ui.backend.ReflowManager as ReflowManager');
-jsio('import ui.backend.debug.FPSView as FPSView');
+import timer from 'timer';
+import ReflowManager from 'ui/backend/ReflowManager';
+import FPSView from 'ui/backend/debug/FPSView';
 
-jsio('import .engineInstance');
+import engineInstance from './engineInstance';
 
-jsio('import .StackView');
-jsio('import device');
+import StackView from './StackView';
+import device from 'device';
 
 
 import InputEvent from 'event/input/InputEvent';
@@ -56,8 +56,7 @@ timer.onTick = function (dt) {
   while (i--) {
     _timers[i](dt);
   }
-}
-;
+};
 
 var __instance = null;
 

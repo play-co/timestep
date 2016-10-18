@@ -18,8 +18,7 @@ var BoxLayout = exports = Class(function () {
     this._view = opts.view;
 
     this.listenSubviewResize(opts.view);
-  }
-;
+  };
 
   this.reflow = function () {
     var view = this._view;
@@ -43,8 +42,7 @@ var BoxLayout = exports = Class(function () {
         this.reflowY();
       }
     }
-  }
-;
+  };
 
   this.addSubviewListener = function (view) {
     if (!view.__hasSubviewListener) {
@@ -98,8 +96,7 @@ var BoxLayout = exports = Class(function () {
         superview && superview.removeListener('resize', onResize);
       });
     }
-  }
-;
+  };
 
   this.listenSubviewResize = function (view) {
     if (view.__root) {
@@ -111,8 +108,7 @@ var BoxLayout = exports = Class(function () {
     view.on('ViewRemoved', bind(view.style, function () {
       this.__removeSuperviewResize && this.__removeSuperviewResize();
     }));
-  }
-;
+  };
 
   this.reflowX = function (view) {
     var view = this._view;
@@ -133,20 +129,16 @@ var BoxLayout = exports = Class(function () {
     if (s._layoutWidth == 'wrapContent') {
       // find the maximal right edge
       w = this.getContentWidth() + s.padding.right;
-    }
-    else // 1. we're not in a layout and both right and left are defined
+    } else // 1. we're not in a layout and both right and left are defined
     if (!inLinearLayout && svWidth && s.right != undefined && s.left != undefined) {
       w = availWidth / s.scale - (s.left || 0) - (s.right || 0);
-    }
-    else // 2. width is defined a percent
+    } else // 2. width is defined a percent
     if (svWidth && s._layoutWidthIsPercent) {
       w = availWidth / s.scale * s._layoutWidthValue;
-    }
-    else // 3. width is inherited from the superview
+    } else // 3. width is inherited from the superview
     if (s.width == undefined && svWidth) {
       w = availWidth / s.scale;
-    }
-    else {
+    } else {
       w = s._width;
     }
 
@@ -174,8 +166,7 @@ var BoxLayout = exports = Class(function () {
         s.x = Math.round(s.left + (padding && padding.left || 0));
       }
     }
-  }
-;
+  };
 
   this.reflowY = function () {
     var view = this._view;
@@ -229,8 +220,7 @@ var BoxLayout = exports = Class(function () {
         s.y = Math.round(s.top + (padding && padding.top || 0));
       }
     }
-  }
-;
+  };
 
   this.getContentWidth = function () {
     // find the maximal right edge
@@ -245,8 +235,7 @@ var BoxLayout = exports = Class(function () {
       }
     }
     return w;
-  }
-;
+  };
 
   this.getContentHeight = function () {
     // find the maximal bottom edge
@@ -261,7 +250,6 @@ var BoxLayout = exports = Class(function () {
       }
     }
     return h;
-  }
-;
+  };
 
 });

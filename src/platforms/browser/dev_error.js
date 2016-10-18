@@ -28,8 +28,7 @@ exports.render = function (e) {
   for (var i = 0, el; el = c[i]; ++i) {
     render(el.getContext('2d'), e);
   }
-}
-;
+};
 
 function render(ctx, e) {
   ctx.fillStyle = 'rgb(0, 0, 255)';

@@ -18,9 +18,9 @@
  *
  * Render fonts or custom fonts on a Canvas context.
  */
-jsio('import ui.Color as Color');
-jsio('import ui.filter as filter');
-jsio('import ui.resource.Font as Font');
+import Color from 'ui/Color';
+import filter from 'ui/filter';
+import Font from 'ui/resource/Font';
 
 var max = Math.max;
 

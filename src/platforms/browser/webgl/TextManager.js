@@ -1,8 +1,9 @@
-jsio('from util.browser import $');
-jsio('import timer');
+import browser from 'util/browser';
+let $ = browser.$;
+import timer from 'timer';
 
-jsio('import .FontLoader');
-jsio('import ui.resource.Font as Font');
+import FontLoader from './FontLoader';
+import Font from 'ui/resource/Font';
 
 
 var MAX_BUFFERS = 500;

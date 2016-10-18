@@ -46,8 +46,8 @@
  * @doc http://doc.gameclosure.com/api/event.html#class-event.input.inputevent
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/event.md
  */
-jsio('import math.geom.Point as Point');
-jsio('import timer');
+import Point from 'math/geom/Point';
+import timer from 'timer';
 
 var InputEvent = exports = Class(function () {
   this.cancelled = false;
@@ -87,13 +87,11 @@ var InputEvent = exports = Class(function () {
 
     // Bottom-most view where the event occurred
     this.target = target || null;
-  }
-;
+  };
 
   this.cancel = function () {
     this.cancelled = true;
-  }
-;
+  };
 
   this.clone = function () {
     return new InputEvent(this.id, this.type, this.srcPt.x, this.srcPt.y, this.root, this.target);

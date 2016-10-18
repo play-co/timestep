@@ -19,9 +19,9 @@
  * @doc http://doc.gameclosure.com/api/ui-widget-toast.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/widget/toast.md
  */
-jsio('import animate');
-jsio('import ui.ImageView as ImageView');
-jsio('import ui.TextView as TextView');
+import animate from 'animate';
+import ImageView from 'ui/ImageView';
+import TextView from 'ui/TextView';
 
 
 var defaults = {

@@ -20,8 +20,8 @@
  * @doc http://doc.gameclosure.com/api/ui-text.html#class-ui.textpromptview
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/text.md
  */
-jsio('import ui.TextView as TextView');
-jsio('import device');
+import TextView from 'ui/TextView';
+import device from 'device';
 
 var InputPrompt = device.get('InputPrompt');
 
@@ -53,8 +53,7 @@ exports = Class(TextView, function (supr) {
 
   this.onSubmit = function (value) {
     this.publish('Submit', value);
-  }
-;
+  };
 
   this.onChange = function (changeValue) {
     if (changeValue === null) {
@@ -71,14 +70,12 @@ exports = Class(TextView, function (supr) {
   this.setOkButton = function (value) {
     this._prompt.setOkButton(value);
     return this;
-  }
-;
+  };
 
   this.setCancelButton = function (value) {
     this._prompt.setCancelButton(value);
     return this;
-  }
-;
+  };
 
   this.setPrompt = function (prompt) {
     this._prompt.setMessage(prompt);

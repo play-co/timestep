@@ -19,19 +19,19 @@
  * @doc http://doc.gameclosure.com/api/ui-scrollview.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/scrollview.md
  */
-jsio('import animate');
-jsio('import device');
+import animate from 'animate';
+import device from 'device';
 
-jsio('import event.input.dispatch as input');
-jsio('import event.input.InputEvent as InputEvent');
+import input from 'event/input/dispatch';
+import InputEvent from 'event/input/InputEvent';
 
-jsio('import math.geom.Rect as Rect');
-jsio('import math.geom.Point as Point');
-jsio('import math.geom.Circle as Circle');
-jsio('import math.geom.intersect as intersect');
+import Rect from 'math/geom/Rect';
+import Point from 'math/geom/Point';
+import Circle from 'math/geom/Circle';
+import intersect from 'math/geom/intersect';
 
-jsio('import ui.View as View');
-jsio('import ui.backend.ReflowManager as ReflowManager');
+import View from 'ui/View';
+import ReflowManager from 'ui/backend/ReflowManager';
 
 var _reflowMgr = ReflowManager.get();
 
@@ -285,8 +285,7 @@ exports = Class(View, function (supr) {
     supr(this, 'init', [opts]);
     supr(this, 'addSubview', [this._contentView]);
 
-  }
-;
+  };
 
   // this.__layout = this._contentView.__layout;
   this.updateOpts = function (opts) {
@@ -689,18 +688,15 @@ exports = Class(View, function (supr) {
 
   this.getScrollBounds = function () {
     return this._scrollBounds;
-  }
-;
+  };
 
   this.addOffset = function (x, y) {
     this.setOffset(x != undefined && x != null && this._contentView.style.x + x, y != undefined && y != null && this._contentView.style.y + y);
-  }
-;
+  };
 
   this.getContentView = function () {
     return this._contentView;
-  }
-;
+  };
 
   /* @deprecated */
   this.getFullWidth = function () {
@@ -709,8 +705,7 @@ exports = Class(View, function (supr) {
   /* @deprecated */
   this.getFullHeight = function () {
     return this._contentView.style.height;
-  }
-;
+  };
 
   this.render = function (ctx, opts) {
     var s = this.style;

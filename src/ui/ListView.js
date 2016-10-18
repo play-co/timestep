@@ -19,9 +19,9 @@
  * @doc http://doc.gameclosure.com/api/ui-widget-listview.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/widget/listview.md
  */
-jsio('import squill.models.List as List');
-jsio('import .ScrollView');
-jsio('import event.input.InputEvent as InputEvent');
+import List from 'squill/models/List';
+import ScrollView from './ScrollView';
+import InputEvent from 'event/input/InputEvent';
 
 var FORWARD_KEYS = {
   getCell: 1,
@@ -113,9 +113,10 @@ exports = Class(ScrollView, function (supr) {
     }
 
 
+
+
     cell.style.update(pos);
-  }
-;
+  };
 
   this.setDataSource = function (dataSource) {
     this.model.setDataSource(dataSource);
@@ -172,8 +173,7 @@ exports = Class(ScrollView, function (supr) {
       // update the scroll bounds to account for the footer
       this.setMaxY();
     }
-  }
-;
+  };
 
   this.setFooterView = function (footerView) {
     if (this._footerView) {
@@ -188,8 +188,7 @@ exports = Class(ScrollView, function (supr) {
       // update the scroll bounds to account for the footer
       this.setMaxY();
     }
-  }
-;
+  };
 
   this.setMaxX = function (maxX) {
     if (this._autoSize && this.style.width != maxX) {

@@ -13,10 +13,10 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('import device');
-jsio('import ui.TextView as TextView');
-jsio('import ui.View as View');
-jsio('import ui.ImageScaleView as ImageScaleView');
+import device from 'device';
+import TextView from 'ui/TextView';
+import View from 'ui/View';
+import ImageScaleView from 'ui/ImageScaleView';
 
 var EditText = device.get('EditText');
 
@@ -152,8 +152,7 @@ exports = Class(ImageScaleView, function (supr) {
 
   this.setForward = function (view) {
     this._forwardTextEditView = view;
-  }
-;
+  };
 
   /**
      * Accepts a function that takes one string argument
@@ -163,8 +162,7 @@ exports = Class(ImageScaleView, function (supr) {
   this.registerTextFilter = function (fn, fn2) {
     this._textFilter = fn;
     this._textCursorFilter = fn2;
-  }
-;
+  };
 
   this.getText = function () {
     var result;
@@ -176,14 +174,14 @@ exports = Class(ImageScaleView, function (supr) {
     }
 
 
+
+
     return result;
-  }
-;
+  };
 
   this.getValue = function () {
     return this._editText.getValue();
-  }
-;
+  };
 
   this.setValue = function (value) {
     this.setText(value);
@@ -191,8 +189,7 @@ exports = Class(ImageScaleView, function (supr) {
     if (this._editText.setValue) {
       this._editText.setValue(value, this._cursorPos);
     }
-  }
-;
+  };
 
   this.setText = function (text) {
     if ((text == null || text != null && text.length == 0) && this._hint != null) {
@@ -205,9 +202,10 @@ exports = Class(ImageScaleView, function (supr) {
     }
 
 
+
+
     this._textBox.setText(text);
-  }
-;
+  };
 
   this.setHint = function (hint) {
     this._hint = hint;

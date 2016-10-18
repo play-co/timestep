@@ -48,8 +48,7 @@ exports.tick = function (dt) {
       app.stopLoop();
     }
   }
-}
-;
+};
 
 /**
  * If our computer falls asleep, dt might be an insanely large number. 
@@ -59,12 +58,10 @@ exports.tick = function (dt) {
  */
 exports.onLargeTick = function (largeDt, threshold) {
   logger.warn('Dropping large tick: ' + largeDt + '; Threshold is set at: ' + threshold);
-}
-;
+};
 
 exports.onTick = function (dt) {
-}
-;
+};
 
 exports.debug = false;
 
@@ -75,15 +72,13 @@ exports.start = function (minDt) {
   this.reset();
   this.isRunning = true;
   getImport('Timer').start(exports.tick, minDt);
-}
-;
+};
 
 exports.stop = function () {
   this.reset();
   this.isRunning = false;
   getImport('Timer').stop();
-}
-;
+};
 
 exports.getTickProgress = function () {
   var now = +new Date();

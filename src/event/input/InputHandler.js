@@ -19,9 +19,9 @@
  * of events onto the actual view itself, as well as determining if the view
  * is the actual target of a propagated event.
  */
-jsio('import math.geom.Point as Point');
-jsio('import event.input.dispatch as dispatch');
-jsio('import event.input.InputEvent as InputEvent');
+import Point from 'math/geom/Point';
+import dispatch from 'event/input/dispatch';
+import InputEvent from 'event/input/InputEvent';
 
 var InputHandler = exports = Class(function () {
   // ---- start mouseover
@@ -35,8 +35,7 @@ var InputHandler = exports = Class(function () {
     this.view = view;
     this.view.subscribe('InputStart', this, 'onInputStart');
     this.update(opts);
-  }
-;
+  };
 
   this.update = function (opts) {
     if ('canHandleEvents' in opts) {
@@ -47,15 +46,13 @@ var InputHandler = exports = Class(function () {
     if ('blockEvents' in opts) {
       this.blockEvents = opts.blockEvents;
     }
-  }
-;
+  };
 
   this.containsEvent = function (evt, localPt) {
     // block events must be false
     return !this.blockEvents && (!this.view._superview || // top-view captures all events
     this.view.containsLocalPoint(localPt));
-  }
-;
+  };
 
   this.onEnter = function (id, atTarget) {
     var view = this.view;
@@ -72,8 +69,7 @@ var InputHandler = exports = Class(function () {
       view.onInputOver(over, this.overCount, atTarget);
     }
     view.publish('InputOver', over, this.overCount, atTarget);
-  }
-;
+  };
 
   this.onLeave = function (id, atTarget) {
     var view = this.view;
@@ -90,8 +86,7 @@ var InputHandler = exports = Class(function () {
       view.onInputOut(over, this.overCount, atTarget);
     }
     view.publish('InputOut', over, this.overCount, atTarget);
-  }
-;
+  };
 
   this.resetOver = function () {
     delete this._over;
@@ -131,13 +126,11 @@ var InputHandler = exports = Class(function () {
 
     root.subscribe('InputMoveCapture', this, 'onDragStart', dragEvt);
     root.subscribe('InputSelectCapture', this, 'onDragStop', dragEvt);
-  }
-;
+  };
 
   this.isDragging = function () {
     return this.dragCount && dispatch._isDragging;
-  }
-;
+  };
 
   this.onDragStart = function (dragEvt, moveEvt) {
     // have we exceeded the move radius?
@@ -176,8 +169,7 @@ var InputHandler = exports = Class(function () {
     // we should also call _onDrag now to handle the current move event delta
     dragEvt.root.subscribe('InputMoveCapture', this, 'onDrag', dragEvt);
     this.onDrag(dragEvt, moveEvt);
-  }
-;
+  };
 
   this.onDrag = function (dragEvt, moveEvt) {
     if (dragEvt.id != moveEvt.id || moveEvt.srcPt.x == dragEvt.currPt.x && moveEvt.srcPt.y == dragEvt.currPt.y) {
@@ -202,8 +194,7 @@ var InputHandler = exports = Class(function () {
     }
     view.publish('Drag', dragEvt, moveEvt, delta);
 
-  }
-;
+  };
 
   //moveEvt.cancel();
   this.onDragStop = function (dragEvt, selectEvt) {

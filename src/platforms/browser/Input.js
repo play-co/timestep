@@ -22,13 +22,14 @@
  * mouse over/out and start events are attached to the element. Used on the
  * canvas as well as DOM bindings.
  */
-jsio('import device');
-jsio('from util.browser import $');
+import device from 'device';
+import browser from 'util/browser';
+let $ = browser.$;
 
-jsio('import event.input.dispatch as input');
+import input from 'event/input/dispatch';
 var eventTypes = input.eventTypes;
 
-jsio('import event.input.InputEvent as InputEvent');
+import InputEvent from 'event/input/InputEvent';
 
 
 // import ...FPSCounter;

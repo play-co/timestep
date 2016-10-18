@@ -13,9 +13,10 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('import lib.PubSub');
-jsio('import device');
-jsio('from util.underscore import _');
+import PubSub from 'lib/PubSub';
+import device from 'device';
+import underscore from 'util/underscore';
+let _ = underscore._;
 
 
 var defaults = {
@@ -27,7 +28,7 @@ var defaults = {
 /**
  * @extends lib.PubSub
  */
-var AudioAPI = exports = Class(lib.PubSub, function (supr) {
+var AudioAPI = exports = Class(PubSub, function (supr) {
   this.init = function (opts) {
     opts = merge(opts, defaults);
     supr(this, 'init', [opts]);
@@ -55,8 +56,7 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
       document.body.addEventListener(device.events.start, this._boundLoadHandler, true);
     }
     window.addEventListener('pagehide', bind(this, 'pause'), false);
-  }
-;
+  };
 
   this._createChannel = function (name, src) {
     var audio = new Audio(src);
@@ -66,31 +66,27 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
     audio.addEventListener('timeupdate', bind(this, '_ontimeupdate'));
 
     audio.load();
-  }
-;
+  };
 
   this.setMuted = function (muted) {
     this.muted = muted;
     if (muted) {
       this.setVolume(0);
     }
-  }
-;
+  };
 
   this.setVolume = function (volume) {
     _.each(this._audios, function (audio, key) {
       audio.volume = volume;
     });
-  }
-;
+  };
 
   this.unload = function () {
     this.pause();
     _.each(this._audios, function (audio, key) {
       audio.src = '';
     }, this);
-  }
-;
+  };
 
   // TODO remove event listeners
   this._load = function () {
@@ -116,15 +112,13 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
       // this is as close as we'll get with multiple sounds
       this._publishedReady = true;
     }
-  }
-;
+  };
 
   this._playFirst = function () {
     document.body.removeEventListener(device.events.start, this._boundLoadHandler, true);
 
     this._audios['AUDIO'].play();
-  }
-;
+  };
 
   this._ontimeupdate = function (evt) {
     _.each(this._audios, function (audio, key) {
@@ -142,8 +136,7 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
       }
     }, this);
 
-  }
-;
+  };
 
   this._onerror = function (event) {
     var s = '';
@@ -151,8 +144,7 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
       s += event[key] + ' ';
     }
     logger.info('ERROR', s);
-  }
-;
+  };
 
   // this.unload();
   // this.publish('AudioError', event);
@@ -188,8 +180,7 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
         return false;
       }
     }
-  }
-;
+  };
 
   this.play = function (name, volume, loop) {
     if (this.muted) {
@@ -225,15 +216,13 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
       this._nowPlaying = this._map[name];
     } catch (e) {
     }
-  }
-;
+  };
 
   this.pause = function () {
     _.each(this._audios, function (audio, key) {
       audio.pause();
     }, this);
-  }
-;
+  };
 
   this.playBackgroundMusic = function (name, volume) {
     if (this.muted) {
@@ -249,15 +238,13 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
     // cannot play bg music here.
     this._backgroundSoundPlaying = name;
     this.play(name, volume);
-  }
-;
+  };
 
   this.pauseBackgroundMusic = function () {
     if (!this._backgroundSoundPlaying) {
       return;
     }
     this._audios[this._backgroundSoundPlaying].pause();
-  }
-;
+  };
 
 });

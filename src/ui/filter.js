@@ -28,9 +28,9 @@
  * @doc http://doc.gameclosure.com/api/ui-filter.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/filter.md
  */
-jsio('import ui.Color as Color');
+import Color from 'ui/Color';
 
-jsio('import ui.resource.Image as DEFAULT_IMAGE');
+import DEFAULT_IMAGE from 'ui/resource/Image';
 
 var Image;
 

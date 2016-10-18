@@ -18,10 +18,11 @@
  *
  * Prompt the user manually for input.
  */
-jsio('import device');
-jsio('from util.browser import $');
-jsio('import ui.keyboardTypes as keyboardTypes');
-jsio('import .dom');
+import device from 'device';
+import browser from 'util/browser';
+let $ = browser.$;
+import keyboardTypes from 'ui/keyboardTypes';
+import dom from './dom';
 
 exports.show = function (controller, opts) {
   new InputDialog(controller, opts);

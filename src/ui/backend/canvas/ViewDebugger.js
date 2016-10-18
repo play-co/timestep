@@ -28,8 +28,7 @@ exports = Class(function () {
 
     this._flashState = 0;
     this._nextFlash = 0;
-  }
-;
+  };
 
   this.preRender = function (ctx) {
     if (!this._time) {
@@ -48,8 +47,7 @@ exports = Class(function () {
       ctx.strokeRect(0, 0, s.width, s.height);
       ctx.restore();
     }
-  }
-;
+  };
 
   this.postRender = function (ctx) {
     var s = this._target.style;

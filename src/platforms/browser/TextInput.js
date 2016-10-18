@@ -18,13 +18,14 @@
  *
  * A textbox for inputting user data.
  */
-jsio('import lib.PubSub');
-jsio('from util.browser import $');
+import PubSub from 'lib/PubSub';
+import browser from 'util/browser';
+let $ = browser.$;
 
 /**
  * @extends lib.PubSub
  */
-exports = Class(lib.PubSub, function () {
+exports = Class(PubSub, function () {
   this.init = function (opts) {
     this._el = $({
       tag: 'input',
@@ -48,16 +49,14 @@ exports = Class(lib.PubSub, function () {
     $.onEvent(this._el, 'keypress', this, 'checkValue');
     $.onEvent(this._el, 'focus', this, 'onFocus');
     $.onEvent(this._el, 'blur', this, 'onBlur');
-  }
-;
+  };
 
   this.onFocus = function () {
     this.publish('Focus');
   };
   this.onBlur = function () {
     this.publish('Blur');
-  }
-;
+  };
 
   this.checkValue = function (evt) {
     var target = evt.target, start = target.selectionStart, end = target.selectionEnd;
@@ -80,8 +79,7 @@ exports = Class(lib.PubSub, function () {
       this._selectionEnd = end;
       this.publish('ChangeSelectionEnd', end);
     }
-  }
-;
+  };
 
   this.focus = function () {
     logger.log('focus');

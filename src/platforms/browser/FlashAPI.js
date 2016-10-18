@@ -13,9 +13,10 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('import lib.PubSub');
-jsio('import .SoundManager');
-jsio('from util.underscore import _');
+import PubSub from 'lib/PubSub';
+import SoundManager from './SoundManager';
+import underscore from 'util/underscore';
+let _ = underscore._;
 
 var soundManager = new SoundManager();
 soundManager.url = 'media/swf';
@@ -29,7 +30,7 @@ soundManager.useFastPolling = true;
 /**
  * @extends lib.PubSub
  */
-var AudioAPI = exports = Class(lib.PubSub, function (supr) {
+var AudioAPI = exports = Class(PubSub, function (supr) {
   this.init = function (opts) {
     opts = merge(opts, {
       map: {},
@@ -58,29 +59,27 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
       }
 
 
+
+
       this.publish('Ready');
     }));
-  }
-;
+  };
 
   this.canPlay = function (name) {
     return name in this._map;
-  }
-;
+  };
 
   this.setVolume = function (volume) {
     this._soundPlaying && soundManager.setVolume(this._soundPlaying, volume);
     this._backgroundSoundPlaying && soundManager.setVolume(this._backgroundSoundPlaying, volume);
-  }
-;
+  };
 
   this.setMuted = function (muted) {
     this.muted = muted;
     if (muted) {
       this.setVolume(0);
     }
-  }
-;
+  };
 
   this.play = function (name, volume, channel) {
     if (!this.canPlay(name)) {
@@ -95,14 +94,12 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
     this._soundPlaying = name;
     this._map[name].setVolume(volume * 100 | 0);
     this._map[name].play();
-  }
-;
+  };
 
   this.pause = function () {
     this._map[this._soundPlaying].pause();
     this._soundPlaying = null;
-  }
-;
+  };
 
   this.playBackgroundMusic = function (name, volume) {
     if (!this.canPlay(name)) {
@@ -117,8 +114,7 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
     this._backgroundSoundPlaying = name;
     this._map[name].setVolume(volume * 100 | 0);
     this._map[name].play();
-  }
-;
+  };
 
   this.pauseBackgroundMusic = function () {
     if (!this._backgroundSoundPlaying) {

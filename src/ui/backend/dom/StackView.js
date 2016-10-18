@@ -13,7 +13,7 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('import ui.View');
+import View from 'ui/View';
 
 /**
  * @extends timestep.dom.View
@@ -22,16 +22,14 @@ exports = Class(View, function (supr) {
   this.init = function (opts) {
     supr(this, 'init', arguments);
     this.stack = [];
-  }
-;
+  };
 
   this.getCurrentView = function () {
     if (!this.stack.length) {
       return null;
     }
     return this.stack[this.stack.length - 1];
-  }
-;
+  };
 
   this.push = function (view, dontAnimate) {
     // don't animate the first (base) view of a stackview unless explicitly asked to
@@ -49,8 +47,7 @@ exports = Class(View, function (supr) {
     this.stack.push(view);
     this._show(view, dontAnimate);
     return view;
-  }
-;
+  };
 
   this._hide = function (view, dontAnimate, backward) {
     view.publish('ViewWillDisappear');
@@ -68,8 +65,7 @@ exports = Class(View, function (supr) {
       this.removeSubview(view);
       view.publish('ViewDidDisappear');
     }
-  }
-;
+  };
 
   this._show = function (view, dontAnimate, backward) {
     view.publish('ViewWillAppear');
@@ -83,8 +79,7 @@ exports = Class(View, function (supr) {
       view.style.x = 0;
       view.publish('ViewDidAppear');
     }
-  }
-;
+  };
 
   this.pop = function (dontAnimate) {
     if (!this.stack.length) {
@@ -98,9 +93,10 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     return view;
-  }
-;
+  };
 
   this.popAll = function (dontAnimate) {
     while (this.stack[1]) {

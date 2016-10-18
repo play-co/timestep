@@ -13,10 +13,11 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('from util.browser import $');
+import browser from 'util/browser';
+let $ = browser.$;
 // import squill.Widget;
 throw new Error('TODO: ES6 SQUILL');
-jsio('import device');
+import device from 'device';
 
 var __keyboardIsOpen = false;
 
@@ -38,36 +39,30 @@ var InputField = Class(squill.Widget, function (supr) {
   this.buildWidget = function () {
     this.initKeyEvents();
     this.initFocusEvents();
-  }
-;
+  };
 
   this.setValue = function (value) {
     this._el.value = value;
     this._prevValue = value;
-  }
-;
+  };
 
   this.setCursor = function (cursorPos) {
     this._el.selectionStart = this._el.selectionEnd = cursorPos;
-  }
-;
+  };
 
   this.setPlaceholder = function (placeholder) {
     this._el.placeholder = placeholder;
-  }
-;
+  };
 
   this.setMaxLength = function (maxLength) {
     this._el.maxlength = maxLength;
-  }
-;
+  };
 
   this.show = function () {
     supr(this, 'show', arguments);
 
     this._el.focus();
-  }
-;
+  };
 
   this.onKeyUp = function (evt) {
     var el = this._el;
@@ -76,13 +71,11 @@ var InputField = Class(squill.Widget, function (supr) {
     if (evt.keyCode == 13) {
       _focused && _focused.closeEditField();
     }
-  }
-;
+  };
 
   this.getValue = function () {
     return this._el.value;
-  }
-;
+  };
 
   this.onBlur = function (evt) {
     this.hide();
@@ -94,29 +87,24 @@ var InputField = Class(squill.Widget, function (supr) {
     }
     _focused && _focused.closeEditField();
     _focused = null;
-  }
-;
+  };
 
   this.setFontColor = function (color) {
     this._el.style.color = color;
-  }
-;
+  };
 
   this.setHorizontalPadding = function (left, right) {
     this._el.style.paddingLeft = left + 'px';
     this._el.style.paddingRight = right + 'px';
-  }
-;
+  };
 
   this.setFontSize = function (fontSize) {
     this._el.style.fontSize = fontSize + 'px';
-  }
-;
+  };
 
   this.setFontFamily = function (fontFamily) {
     this._el.style.fontFamily = fontFamily;
-  }
-;
+  };
 
   this.setPosition = function (x, y, width, height) {
     var style = this._el.style;
@@ -150,27 +138,23 @@ exports = Class(function () {
     };
     this.onSubmit = opts.onSubmit || function () {
     };
-  }
-;
+  };
 
   this.onChange = function (value, prevValue, cursorPos, selectionEnd) {
     this._value = value;
     if (this._opts.onChange) {
       this._opts.onChange(value, prevValue, cursorPos);
     }
-  }
-;
+  };
 
   this.getValue = function () {
     return this._value;
-  }
-;
+  };
 
   this.setValue = function (value) {
     this._value = value;
     this.onChange(value);
-  }
-;
+  };
 
   this.requestFocus = function (noSubmit) {
     if (_focused !== this) {
@@ -183,9 +167,10 @@ exports = Class(function () {
     }
 
 
+
+
     _focused = this;
-  }
-;
+  };
 
   this.closeEditField = function (noSubmit) {
     console.log('TextEditView editText removeFocus');
@@ -204,20 +189,17 @@ exports = Class(function () {
       ev.height = device.screen.height;
       window.dispatchEvent(ev);
     }
-  }
-;
+  };
 
   this._hideTextBox = function () {
     var textBox = this._textEditView._textBox;
     textBox.style.visible = false;
-  }
-;
+  };
 
   this._showTextBox = function () {
     var textBox = this._textEditView._textBox;
     textBox.style.visible = true;
-  }
-;
+  };
 
   this.refresh = function (value, hasBack, hasForward, cursorPos) {
     this._hideTextBox();
@@ -245,8 +227,9 @@ exports = Class(function () {
     }
 
 
-  }
-;
+
+
+  };
 
   /*
     if (hasBack) {
@@ -270,8 +253,7 @@ exports = Class(function () {
     */
   this.hasFocus = function () {
     return this == _focused;
-  }
-;
+  };
 
   this.removeFocus = function (noSubmit) {
     this.onFocusChange(false);
@@ -281,8 +263,7 @@ exports = Class(function () {
     if (_focused == this) {
       _focused = null;
     }
-  }
-;
+  };
 
   this.setHint = function (hint) {
     this._opts.hint = hint;

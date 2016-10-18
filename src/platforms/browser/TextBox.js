@@ -18,7 +18,8 @@
  *
  * A textbox for inputting user data.
  */
-jsio('from util.browser import $');
+import browser from 'util/browser';
+let $ = browser.$;
 
 
 var defaultStyle = {
@@ -62,18 +63,15 @@ exports = Class(function () {
     $.onEvent(this._el, 'focus', this, 'onFocus');
     $.onEvent(this._el, 'change', this, 'onChange');
     $.onEvent(this._el, 'click', this, 'onClick');
-  }
-;
+  };
 
   this.onClick = function () {
-  }
-;
+  };
 
   this.destroy = function () {
     $.remove(this._el);
     this._el = null;
-  }
-;
+  };
 
   this.setApp = function (app) {
     if (app != this._app || !this._el.parentNode) {
@@ -82,30 +80,25 @@ exports = Class(function () {
       logger.log('setting parent', this._el);
       canvas.parentNode.appendChild(this._el);
     }
-  }
-;
+  };
 
   this.change = function () {
-  }
-;
+  };
 
   this.click = function () {
-  }
-;
+  };
 
   this.selectAll = function () {
     this._el.focus();
     this._el.select();
-  }
-;
+  };
 
   this.show = function () {
     $.show(this._el);
   };
   this.hide = function () {
     $.hide(this._el);
-  }
-;
+  };
 
   this.setValue = function (value) {
     this._el.value = value;
@@ -145,8 +138,7 @@ exports = Class(function () {
   };
   this.getVisible = function () {
     return this._el.parentNode && this._el.style.display == 'block';
-  }
-;
+  };
 
   this.setPosition = function (p) {
     this._el.style.top = p.y + 'px';
@@ -157,8 +149,7 @@ exports = Class(function () {
       x: this.getX(),
       y: this.getY()
     };
-  }
-;
+  };
 
   this.setDimensions = function (d) {
     this._el.style.width = d.width + 'px';

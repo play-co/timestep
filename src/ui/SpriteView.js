@@ -39,10 +39,10 @@
  * @doc http://doc.gameclosure.com/api/ui-spriteview.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/spriteview.md
  */
-jsio('import device');
-jsio('import ui.ImageView as ImageView');
-jsio('import ui.resource.Image as Image');
-jsio('import ui.resource.loader');
+import device from 'device';
+import ImageView from 'ui/ImageView';
+import Image from 'ui/resource/Image';
+import loader from 'ui/resource/loader';
 
 var GROUPS = {};
 
@@ -323,7 +323,7 @@ SpriteView.getGroup = SpriteView.prototype.getGroup;
 
 (function loadAnimations() {
   // build the animation frame map
-  var resourceMap = ui.resource.loader.getMap();
+  var resourceMap = loader.getMap();
   var allAnimations = SpriteView.allAnimations;
 
   // Generate the animations from the filenames in resourceMap.

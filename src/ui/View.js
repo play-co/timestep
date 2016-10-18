@@ -20,29 +20,28 @@
  * @doc http://doc.gameclosure.com/api/ui-view.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/view.md
  */
-jsio('import device');
-jsio('import .IView');
+import device from 'device';
+import IView from './IView';
 
-jsio('import math.geom.Point as Point');
-jsio('import math.geom.Rect as Rect');
+import Point from 'math/geom/Point';
+import Rect from 'math/geom/Rect';
 
-jsio('import .backend.canvas.ViewBacking');
+import ViewBacking from './backend/canvas/ViewBacking';
 
-jsio('import ui.backend.ReflowManager as ReflowManager');
+import ReflowManager from 'ui/backend/ReflowManager';
 var _reflowMgr = ReflowManager.get();
 
-jsio('import event.input.dispatch as dispatch');
-jsio('import event.input.InputHandler as InputHandler');
+import dispatch from 'event/input/dispatch';
+import InputHandler from 'event/input/InputHandler';
 
-jsio('import animate');
+import animate from 'animate';
 
-jsio('import util.setProperty as setProperty');
+import setProperty from 'util/setProperty';
 
 var EventScheduler = Class(function () {
   this.init = function () {
     this._queue = [];
-  }
-;
+  };
 
   this.add = function (f) {
     this._queue.push(f);
@@ -891,4 +890,4 @@ View.setDefaultViewBacking = function (ViewBackingCtor) {
 };
 
 // default view backing is canvas
-View.setDefaultViewBacking(backend.canvas.ViewBacking);
+View.setDefaultViewBacking(ViewBacking);

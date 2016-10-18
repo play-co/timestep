@@ -18,8 +18,8 @@
  *
  * Canvas implementation for browsers. Wraps a Context2D.
  */
-jsio('import .Context2D');
-jsio('import .webgl.WebGLContext2D as WebGLContext2D');
+import Context2D from './Context2D';
+import WebGLContext2D from './webgl/WebGLContext2D';
 
 exports = Class(function () {
   this.init = function (opts) {

@@ -36,8 +36,7 @@ function wrap(name) {
 exports = Class(function () {
   this.init = function () {
     this._ctxShim = {};
-  }
-;
+  };
 
   this.getViewport = function (targetView) {
     if (this._viewport) {
@@ -58,24 +57,22 @@ exports = Class(function () {
       }
 
 
+
+
       return viewport;
     }
-  }
-;
+  };
 
   this.swap = function () {
-  }
-;
+  };
 
   this.reset = function () {
     this._buffer = [];
-  }
-;
+  };
 
   this.hide = function () {
     throw 'abstract';
-  }
-;
+  };
 
   this.fillCircle = function (x, y, radius, fillStyle) {
     this._buffer.push(['beginPath']);

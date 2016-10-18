@@ -17,9 +17,9 @@
  * @class ui.backend.canvas.FilterRenderer;
  * Renders filter effects to a canvas. Manages filtered canvas caching.
  */
-jsio('import cache.LRUCache as LRUCache');
-jsio('import device');
-jsio('import ui.Engine');
+import LRUCache from 'cache/LRUCache';
+import device from 'device';
+import Engine from 'ui/Engine';
 
 
 var Canvas = null;

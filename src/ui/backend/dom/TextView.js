@@ -18,8 +18,8 @@
  *
  * TextView implementation for DOM.
  */
-jsio('import ui.View as View');
-jsio('import device');
+import View from 'ui/View';
+import device from 'device';
 
 var defaults = {
   // layout properties...
@@ -129,8 +129,7 @@ exports = Class(View, function (supr) {
 
   this.getText = function () {
     return this._text;
-  }
-;
+  };
 
   this.reflow = function () {
     var opts = this._opts;

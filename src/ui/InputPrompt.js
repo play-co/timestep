@@ -14,11 +14,11 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 /* globals NATIVE, DEBUG, jsio */
-jsio('import device');
-jsio('import .debug.deprecated as deprecated');
-jsio('import .debug.types as debugTypes');
+import device from 'device';
+import deprecated from './debug/deprecated';
+import debugTypes from './debug/types';
 
-jsio('import .keyboardTypes as keyboardTypes');
+import keyboardTypes from './keyboardTypes';
 
 var inputDialog = device.get('inputDialog');
 

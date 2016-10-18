@@ -18,8 +18,8 @@
  *
  * Models the style object of the canvas View.
  */
-jsio('import ..strPad');
-jsio('import ..BaseBacking');
+import strPad from '../strPad';
+import BaseBacking from '../BaseBacking';
 
 var IDENTITY_MATRIX = {
   a: 1,

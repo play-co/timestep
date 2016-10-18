@@ -13,8 +13,8 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('import .Context2D');
-jsio('import util.setProperty');
+import Context2D from './Context2D';
+import setProperty from 'util/setProperty';
 
 // mock canvas object
 var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
@@ -35,8 +35,7 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
     this.style = {};
     this._context2D = null;
     this.complete = true;
-  }
-;
+  };
 
   this.getContext = function (which, unloadListener) {
     if (which.toUpperCase() == '2D') {
@@ -54,8 +53,7 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
         })
       }));
     }
-  }
-;
+  };
 
   this.getBoundingClientRect = function () {
     return {
@@ -66,20 +64,17 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
       top: this._width,
       width: 0
     };
-  }
-;
+  };
 
   this.toDataURL = function () {
     return NATIVE.gl.toDataURL(this._context2D);
-  }
-;
+  };
 
   this.destroy = function () {
     if (this._context2D) {
       this._context2D.destroy();
     }
-  }
-;
+  };
 
   this.resize = function (width, height) {
     if (this._context2D) {
@@ -90,7 +85,7 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
 });
 
 
-util.setProperty(Canvas.prototype, 'width', {
+setProperty(Canvas.prototype, 'width', {
   set: function (width) {
     if (this._width !== width) {
       this._width = width;
@@ -105,7 +100,7 @@ util.setProperty(Canvas.prototype, 'width', {
   }
 });
 
-util.setProperty(Canvas.prototype, 'height', {
+setProperty(Canvas.prototype, 'height', {
   set: function (height) {
     if (this._height !== height) {
       this._height = height;
@@ -120,7 +115,7 @@ util.setProperty(Canvas.prototype, 'height', {
   }
 });
 
-util.setProperty(Canvas.prototype, 'src', {
+setProperty(Canvas.prototype, 'src', {
   set: function (src) {
   },
   get: function () {

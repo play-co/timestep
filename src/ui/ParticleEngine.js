@@ -16,10 +16,10 @@
 /**
  * @class ui.ParticleEngine;
  */
-jsio('import ui.View as View');
-jsio('import ui.resource.Image as Image');
-jsio('import ui.ImageView as ImageView');
-jsio('import performance');
+import View from 'ui/View';
+import Image from 'ui/resource/Image';
+import ImageView from 'ui/ImageView';
+import performance from 'performance';
 
 // Math references
 var sin = Math.sin;

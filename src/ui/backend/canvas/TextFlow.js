@@ -13,8 +13,8 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('import lib.Enum as Enum');
-jsio('import lib.PubSub as PubSub');
+import Enum from 'lib/Enum';
+import PubSub from 'lib/PubSub';
 
 var textFlowMode = Enum('NONE', 'WRAP', 'AUTOSIZE', 'AUTOSIZE_WRAP', 'AUTOFONTSIZE', 'AUTOFONTSIZE_WRAP', 'AUTOFONTSIZE_AUTOSIZE', 'AUTOFONTSIZE_WRAP_AUTOSIZE');
 

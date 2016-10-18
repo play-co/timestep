@@ -21,5 +21,5 @@
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/event.md
  */
 // FIXME: remove this file
-jsio('import lib.Callback as libCallback');
+import libCallback from 'lib/Callback';
 exports = libCallback;

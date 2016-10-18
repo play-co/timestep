@@ -19,8 +19,8 @@
  * @doc http://doc.gameclosure.com/api/ui-widget-listview.html#class-ui.widget.cellview
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/widget/listview.md
  */
-jsio('import .View');
-jsio('import squill.models.Cell');
+import View from './View';
+import Cell from 'squill/models/Cell';
 /**
  * @extends ui.View
  */
@@ -28,7 +28,7 @@ exports = Class(View, function (supr) {
   this.init = function (opts) {
     opts = merge(opts, { layout: 'box' });
     supr(this, 'init', [opts]);
-    this.model = new squill.models.Cell({ view: this });
+    this.model = new Cell({ view: this });
   };
 
   this.tag = 'CellView';
@@ -60,8 +60,7 @@ exports = Class(View, function (supr) {
   };
   this.setData = function (data) {
     this._data = data;
-  }
-;
+  };
 
   this.setController = function (controller) {
     this.controller = controller;

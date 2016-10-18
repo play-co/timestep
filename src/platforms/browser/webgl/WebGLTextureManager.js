@@ -1,5 +1,5 @@
-jsio('import cache.LRUCache as LRUCache');
-jsio('import lib.PubSub as PubSub');
+import LRUCache from 'cache/LRUCache';
+import PubSub from 'lib/PubSub';
 
 
 var CACHE_SIZE = 65535;

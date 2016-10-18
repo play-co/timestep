@@ -13,10 +13,10 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-jsio('import .i18n');
-jsio('import lib.Callback');
-jsio('import event.Emitter as Emitter');
-jsio('import AudioManager');
+import i18n from './i18n';
+import Callback from 'lib/Callback';
+import Emitter from 'event/Emitter';
+import AudioManager from 'AudioManager';
 
 var _cache = {};
 
@@ -161,9 +161,11 @@ var Loader = Class(Emitter, function () {
     }
 
 
+
+
     // process an array of items, where cb is run at completion of the final one
     if (isArray(pathPrefix)) {
-      var chainCb = new lib.Callback();
+      var chainCb = new Callback();
       pathPrefix.forEach(function (prefix) {
         if (prefix) {
           this.preload(prefix, opts, chainCb.chain());
@@ -357,7 +359,7 @@ var Loader = Class(Emitter, function () {
 
   this._loadGroup = function (opts, cb) {
     var timeout = opts.timeout;
-    var callback = new lib.Callback();
+    var callback = new Callback();
     var that = this;
 
     // compute a list of images using file extensions

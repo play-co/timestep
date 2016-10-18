@@ -21,9 +21,9 @@
  * pop off the worst deltas within the window for the performance score to rise back up.
  *
 **/
-jsio('import device');
-jsio('import userAgent');
-jsio('import ui.engineInstance as engineInstance');
+import device from 'device';
+import userAgent from 'userAgent';
+import engineInstance from 'ui/engineInstance';
 
 var DEFAULT_RANK = 0;
 var DEFAULT_ALLOW_REDUCTION = true;
