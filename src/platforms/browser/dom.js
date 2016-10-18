@@ -1,3 +1,5 @@
+let exports = {};
+
 import browser from 'util/browser';
 let $ = browser.$;
 
@@ -79,3 +81,5 @@ exports.Stylesheet = Class(function () {
     $.setText(this._el, this.getValue());
   };
 });
+
+export default exports;

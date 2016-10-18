@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -18,3 +20,5 @@ import { logger } from 'base';
 import CellView from 'ui/CellView';
 exports = CellView;
 logger.warn('DEPRECATED. Renamed to ui.CellView');
+
+export default exports;

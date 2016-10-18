@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -135,3 +137,5 @@ exports = Class('ViewPool', function () {
   };
 
 });
+
+export default exports;

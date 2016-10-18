@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -138,3 +140,5 @@ document.__registerCreateElementHandler('CANVAS', function () {
   return new Canvas();
 });
 
+
+export default exports;

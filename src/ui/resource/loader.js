@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -610,3 +612,5 @@ Loader.IMAGE_LOADED = 'imageLoaded';
 exports = new Loader();
 
 exports.IMAGE_LOADED = Loader.IMAGE_LOADED;
+
+export default exports;

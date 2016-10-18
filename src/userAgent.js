@@ -1,3 +1,5 @@
+let exports = {};
+
 import {
   GLOBAL,
   CONFIG
@@ -107,3 +109,5 @@ var UserAgent = Class(function () {
 });
 
 exports = new UserAgent();
+
+export default exports;

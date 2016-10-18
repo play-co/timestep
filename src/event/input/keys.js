@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -68,3 +70,5 @@ exports = {
   STOP: 178,
   PLAY_PAUSE: 179
 };
+
+export default exports;

@@ -1,3 +1,5 @@
+let exports = {};
+
 import device from 'device';
 
 // map input types to native constants
@@ -71,3 +73,5 @@ exports.getNativeType = function (type) {
 exports.getHTMLType = function (type) {
   return exports.htmlTypes[type.toLowerCase()] || type;
 };
+
+export default exports;

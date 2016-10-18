@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -221,3 +223,5 @@ exports.easeInOutBounce = function (n) {
     return exports.easeInBounce(n * 2) * 0.5;
   return exports.easeOutBounce(n * 2 - 1) * 0.5 + 0.5;
 };
+
+export default exports;

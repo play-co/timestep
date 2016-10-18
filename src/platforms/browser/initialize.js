@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -51,3 +53,5 @@ exports.init = function () {
 
   onResize();
 };
+
+export default exports;

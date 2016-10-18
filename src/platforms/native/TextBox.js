@@ -1,3 +1,5 @@
+let exports = {};
+
 import {
   NATIVE,
   logger,
@@ -115,3 +117,5 @@ for (var i = 0, m; m = methods[i]; ++i) {
     }
   })(m);
 }
+
+export default exports;

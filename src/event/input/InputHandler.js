@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -259,3 +261,5 @@ exports = Class(function () {
 
 });
 var InputHandler = exports;
+
+export default exports;

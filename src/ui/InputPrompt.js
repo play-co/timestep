@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -163,3 +165,5 @@ deprecated.method(exports.prototype, 'setHint');
 
 exports.KeyboardTypes = keyboardTypes;
 
+
+export default exports;

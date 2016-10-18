@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -276,3 +278,5 @@ var cache = {
   yellow: new RGBA(255, 255, 0),
   yellowgreen: new RGBA(154, 205, 50)
 };
+
+export default exports;

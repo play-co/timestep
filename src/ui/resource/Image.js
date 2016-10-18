@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -519,3 +521,5 @@ exports.prototype.getMap = exports.prototype.getBounds;
 exports.prototype.setMap = exports.prototype.setBounds;
 
 exports.prototype.isLoaded = exports.prototype.isReady;
+
+export default exports;

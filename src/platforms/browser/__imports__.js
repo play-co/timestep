@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -36,3 +38,5 @@ exports.resolve = function (env, opts) {
     '.EditText'
   ];
 };
+
+export default exports;

@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -255,3 +257,5 @@ exports = Class(PubSub, function (supr) {
 
 });
 var AudioAPI = exports;
+
+export default exports;

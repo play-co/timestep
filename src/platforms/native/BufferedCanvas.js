@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -126,3 +128,5 @@ exports.prototype.scale = wrap('scale');
 
 
 exports.prototype.show = exports.prototype.hide;
+
+export default exports;

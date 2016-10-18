@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -164,3 +166,5 @@ exports.NegativeMaskFilter = Class(Filter, function (supr) {
     return this._mask;
   };
 });
+
+export default exports;

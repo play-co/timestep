@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -817,4 +819,9 @@ if (USE_CLIPPING) {
   exports.prototype.BackingCtor = DEFAULT_BACKING_CTOR;
 }
 
+
+
+
+
+export default exports;
 

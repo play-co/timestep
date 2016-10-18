@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -86,3 +88,5 @@ exports.getTickProgress = function () {
   var now = +new Date();
   return -(Timer.last || now) + now;
 };
+
+export default exports;

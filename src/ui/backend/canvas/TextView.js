@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -508,3 +510,5 @@ var TextView = exports;
 
 exports.clearBuffers = TextView.prototype.clearBuffers;
 exports.getFontBuffer = TextView.prototype.getFontBuffer;
+
+export default exports;

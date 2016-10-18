@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -129,3 +131,5 @@ exports = Class(View, function (supr) {
 });
 
 exports.prototype.clearInput = exports.prototype.onInputSelect;
+
+export default exports;

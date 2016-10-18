@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -416,3 +418,5 @@ exports.prototype.measureText = FontRenderer.wrapMeasureText(function (str) {
 
   return this._ctx.measureText(str + '', font.getSize(), font.getWeight() + ' ' + fontName);
 });
+
+export default exports;

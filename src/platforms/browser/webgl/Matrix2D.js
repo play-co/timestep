@@ -1,3 +1,5 @@
+let exports = {};
+
 var sin = Math.sin;
 var cos = Math.cos;
 
@@ -127,3 +129,5 @@ var Matrix2D = Class(function () {
 var helperMatrix = new Matrix2D();
 
 exports = Matrix2D;
+
+export default exports;

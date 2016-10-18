@@ -1,3 +1,5 @@
+let exports = {};
+
 import { merge } from 'base';
 
 /**
@@ -97,3 +99,5 @@ exports = Class(function () {
     }
   };
 });
+
+export default exports;

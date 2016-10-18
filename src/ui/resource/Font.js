@@ -1,3 +1,5 @@
+let exports = {};
+
 import { merge } from 'base';
 
 /**
@@ -167,3 +169,5 @@ Font.parse = function (str) {
 Font.prototype.constructor.setDefaultFontFamily = function (fontFamily) {
   _defaultFontFamily = fontFamily;
 };
+
+export default exports;

@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -302,3 +304,5 @@ exports = Class(BaseBacking, function () {
   };
 });
 var ViewBacking = exports;
+
+export default exports;

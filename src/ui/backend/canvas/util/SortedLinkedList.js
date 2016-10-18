@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -125,3 +127,5 @@ exports = Class(function (supr) {
     return new Iterator(this);
   };
 });
+
+export default exports;

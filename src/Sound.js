@@ -1,3 +1,5 @@
+let exports = {};
+
 import { logger } from 'base';
 
 /**
@@ -18,3 +20,5 @@ import { logger } from 'base';
 logger.warn('The Sound class is deprecated, use AudioManager instead.');
 import AudioManager from 'AudioManager';
 exports = AudioManager;
+
+export default exports;

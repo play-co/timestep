@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -32,3 +34,5 @@ exports.linear = canvasAnimate.linear;
 exports.easeIn = canvasAnimate.easeIn;
 exports.easeInOut = canvasAnimate.easeInOut;
 exports.easeOut = canvasAnimate.easeOut;
+
+export default exports;

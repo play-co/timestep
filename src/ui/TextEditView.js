@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -218,3 +220,5 @@ exports = Class(ImageScaleView, function (supr) {
     this.setText(this.getText());
   };
 });
+
+export default exports;

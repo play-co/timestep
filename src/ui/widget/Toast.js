@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -141,3 +143,5 @@ exports = Class(ImageView, function (supr) {
     animate(this).now(inAnim).wait(1000).then(outAnim);
   };
 });
+
+export default exports;

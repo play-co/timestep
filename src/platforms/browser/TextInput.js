@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -209,3 +211,5 @@ function checkTab(evt) {
     t.selectionStart = t.selectionEnd = ss + tabLength;
   }
 }
+
+export default exports;

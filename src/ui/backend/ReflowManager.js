@@ -1,3 +1,5 @@
+let exports = {};
+
 import {
   log,
   logger
@@ -247,3 +249,5 @@ var _instance = null;
 exports.get = function () {
   return _instance || (_instance = new ReflowManager());
 };
+
+export default exports;

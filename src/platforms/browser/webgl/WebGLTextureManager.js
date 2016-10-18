@@ -1,3 +1,5 @@
+let exports = {};
+
 import {
   log,
   bind
@@ -190,3 +192,5 @@ var WebGLTextureManager = Class(PubSub, function () {
 WebGLTextureManager.TEXTURE_REMOVED = 'TextureRemoved';
 
 exports = WebGLTextureManager;
+
+export default exports;

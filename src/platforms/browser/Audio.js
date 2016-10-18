@@ -1,3 +1,5 @@
+let exports = {};
+
 import { merge } from 'base';
 
 /**
@@ -40,3 +42,5 @@ exports = function (opts) {
 
   return el;
 };
+
+export default exports;

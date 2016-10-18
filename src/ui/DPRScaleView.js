@@ -1,3 +1,5 @@
+let exports = {};
+
 import { bind } from 'base';
 
 import device from 'device';
@@ -16,3 +18,5 @@ var DPRScaleView = Class(View, function () {
 });
 
 exports = DPRScaleView;
+
+export default exports;

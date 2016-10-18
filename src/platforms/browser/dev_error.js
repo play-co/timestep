@@ -1,3 +1,5 @@
+let exports = {};
+
 import { logger } from 'base';
 
 /**
@@ -50,3 +52,5 @@ function render(ctx, e) {
   y += 40;
   e.stack.split('\n').map(drawLine);
 }
+
+export default exports;

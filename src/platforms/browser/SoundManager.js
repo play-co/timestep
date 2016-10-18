@@ -1,3 +1,5 @@
+let exports = {};
+
 /*
  * @license
  * SoundManager 2: JavaScript Sound for the Web
@@ -3385,5 +3387,12 @@ exports = function SoundManager(smURL, smID) {
 
 
 
+
+
+
+
 };
 var SoundManager = exports;  // SoundManager()
+
+
+export default exports;

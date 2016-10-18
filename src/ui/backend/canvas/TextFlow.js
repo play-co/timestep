@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -624,3 +626,5 @@ exports = Class(PubSub, function (supr) {
   };
 });
 var TextFlow = exports;
+
+export default exports;

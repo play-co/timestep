@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -40,3 +42,5 @@ exports = Class(TextView, function (supr) {
     this.publish('Select');
   };
 });
+
+export default exports;

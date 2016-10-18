@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -69,3 +71,5 @@ if (!NATIVE.gl.initialized) {
     NATIVE.gl.fonts = fontMap;
   }
 }
+
+export default exports;

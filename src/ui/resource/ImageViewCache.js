@@ -1,3 +1,5 @@
+let exports = {};
+
 import Image from './Image';
 
 // cache of Images for ImageView and ImageScaleView
@@ -22,5 +24,9 @@ exports.getImage = function (url, forceReload) {
   }
 
 
+
+
   return img;
 };
+
+export default exports;

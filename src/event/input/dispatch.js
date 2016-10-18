@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -145,3 +147,5 @@ exports.getEvtCbName = function (evtType) {
   var name = exports.eventTypes[evtType];
   return exports._evtCb[evtType] = 'Input' + name.charAt(0) + name.substring(1).toLowerCase();
 };
+
+export default exports;

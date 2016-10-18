@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -22,3 +24,5 @@
  */
 import device from 'device';
 exports = device.importUI('ImageView');
+
+export default exports;

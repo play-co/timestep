@@ -1,3 +1,5 @@
+let exports = {};
+
 import { bind } from 'base';
 
 /**
@@ -256,3 +258,5 @@ exports = Class(function () {
 
 });
 var BoxLayout = exports;
+
+export default exports;

@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -60,3 +62,5 @@ var Listener = Class(function () {
     return this._keys;
   };
 });
+
+export default exports;

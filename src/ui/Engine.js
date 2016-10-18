@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -461,3 +463,5 @@ Engine.prototype.getElement = Engine.prototype.getCanvas;
 exports.get = function () {
   return __instance;
 };
+
+export default exports;

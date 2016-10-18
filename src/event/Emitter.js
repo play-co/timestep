@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -23,3 +25,5 @@
 // FIXME: remove this file
 import libPubSub from 'lib/PubSub';
 exports = libPubSub;
+
+export default exports;

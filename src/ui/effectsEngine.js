@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -1223,3 +1225,5 @@ var propertyPool = new ObjectPool({ ctor: Property });
 var particlePool = new ObjectPool({ ctor: Particle });
 var effectPool = new ObjectPool({ ctor: Effect });
 exports = new EffectsEngine();
+
+export default exports;

@@ -1,3 +1,5 @@
+let exports = {};
+
 import { logger } from 'base';
 
 /**
@@ -129,3 +131,5 @@ exports = Class(function () {
     }
   };
 });
+
+export default exports;

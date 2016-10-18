@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -258,3 +260,5 @@ exports.wrapStrokeText = function (origStrokeText) {
     }
   };
 };
+
+export default exports;

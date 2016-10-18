@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -239,3 +241,5 @@ var Performance = Class(function () {
 });
 
 exports = new Performance();
+
+export default exports;

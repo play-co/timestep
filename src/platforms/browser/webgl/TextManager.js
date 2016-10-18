@@ -1,3 +1,5 @@
+let exports = {};
+
 import browser from 'util/browser';
 let $ = browser.$;
 import timer from 'timer';
@@ -142,3 +144,5 @@ var isFontLoaded = function () {
     return _loaded[font];
   };
 }();
+
+export default exports;

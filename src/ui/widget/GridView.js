@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -233,3 +235,5 @@ GridView = Class(View, function (supr) {
   };
 });
 exports = GridView;
+
+export default exports;

@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -38,3 +40,5 @@ exports = Class(function () {
 if (NATIVE.timestep && NATIVE.timestep.getEvents && !NATIVE.timestep.InputEvent) {
   NATIVE.timestep.InputEvent = InputEvent;
 }
+
+export default exports;

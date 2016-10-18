@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -296,3 +298,5 @@ exports.setDocStyle = function () {
 
 exports.defaultParent = null;
 exports.postCreateHook = null;
+
+export default exports;

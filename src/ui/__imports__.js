@@ -1,3 +1,5 @@
+let exports = {};
+
 import { logger } from 'base';
 
 /**
@@ -96,3 +98,5 @@ exports.resolve = function (env, opts) {
   return imports;
 };
 
+
+export default exports;

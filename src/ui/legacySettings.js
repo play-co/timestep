@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -18,3 +20,5 @@ exports = {
   textViewColor: false  // use this.color in TextView if true
 
 };
+
+export default exports;

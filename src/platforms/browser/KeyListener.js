@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -172,3 +174,5 @@ exports.Shortcut = Class(PubSub, function () {
     return this.ctrl == shortcut.ctrl && this.alt == shortcut.alt && this.meta == shortcut.meta && this.shift == shortcut.shift && this.code == shortcut.code;
   };
 });
+
+export default exports;

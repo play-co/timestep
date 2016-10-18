@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -275,3 +277,5 @@ exports = Class(function () {
     return this._fps;
   };
 });
+
+export default exports;

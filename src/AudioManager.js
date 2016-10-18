@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
 * @license
 * This file is part of the Game Closure SDK.
@@ -662,3 +664,5 @@ exports.muteAll = function (mute) {
     _registeredAudioManagers[i].setMuted(mute);
   }
 };
+
+export default exports;

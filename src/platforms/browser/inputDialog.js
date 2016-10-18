@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -209,3 +211,5 @@ var InputDialog = Class(function () {
     return this._input && this._input.value;
   };
 });
+
+export default exports;

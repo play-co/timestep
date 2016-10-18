@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -23,3 +25,5 @@
 import { importUI } from 'platformImport';
 const TextView = importUI('TextView');
 exports = TextView;
+
+export default exports;

@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -1047,4 +1049,10 @@ for (var i = 0; i < contextProperties.length; i++) {
 
 
 
+
+
+
+
 exports = new GLManager();
+
+export default exports;

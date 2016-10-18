@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -197,3 +199,5 @@ var ImageView = exports;
 
 ImageView.prototype.getOrigWidth = ImageView.prototype.getOrigW;
 ImageView.prototype.getOrigHeight = ImageView.prototype.getOrigH;
+
+export default exports;

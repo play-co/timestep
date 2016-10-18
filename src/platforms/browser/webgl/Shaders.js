@@ -1,3 +1,5 @@
+let exports = {};
+
 var STRIDE = 24;
 
 var Shader = Class(function () {
@@ -204,3 +206,5 @@ exports = {
   MultiplyShader: MultiplyShader,
   RectShader: RectShader
 };
+
+export default exports;

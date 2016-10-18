@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -23,3 +25,5 @@
 // FIXME: remove this file
 import libCallback from 'lib/Callback';
 exports = libCallback;
+
+export default exports;

@@ -1,3 +1,5 @@
+let exports = {};
+
 import { merge } from 'base';
 
 var dragDefaults = {
@@ -37,3 +39,5 @@ exports.makeDraggable = function (view, opts) {
   });
   return view;
 };
+
+export default exports;

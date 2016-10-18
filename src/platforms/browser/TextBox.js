@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -172,3 +174,5 @@ exports = Class(function () {
 exports.prototype.onBlur = exports.prototype.onClick;
 exports.prototype.onFocus = exports.prototype.onClick;
 exports.prototype.onChange = exports.prototype.onClick;
+
+export default exports;

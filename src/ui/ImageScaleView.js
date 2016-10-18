@@ -1,3 +1,5 @@
+let exports = {};
+
 import { merge } from 'base';
 
 /**
@@ -747,3 +749,5 @@ exports = Class(View, function (supr) {
 
 exports.prototype.getOrigWidth = exports.prototype.getOrigW;
 exports.prototype.getOrigHeight = exports.prototype.getOrigH;
+
+export default exports;

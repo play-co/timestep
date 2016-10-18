@@ -1,3 +1,5 @@
+let exports = {};
+
 import { logger } from 'base';
 
 /* globals DEBUG */
@@ -77,3 +79,5 @@ if (DEBUG) {
   exports.check = function () {
   };
 }
+
+export default exports;

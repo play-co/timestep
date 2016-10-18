@@ -1,3 +1,5 @@
+let exports = {};
+
 var instance;
 
 exports.setInstance = function (inst) {
@@ -7,3 +9,5 @@ exports.setInstance = function (inst) {
 exports.get = function () {
   return instance;
 };
+
+export default exports;

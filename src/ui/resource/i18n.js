@@ -1,3 +1,5 @@
+let exports = {};
+
 import {
   merge,
   CACHE
@@ -185,3 +187,5 @@ exports.applyResourceMap = function (map, language) {
   }
   return localizedMap;
 };
+
+export default exports;

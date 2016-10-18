@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
 * Copyright (c) 2010 Rasmus Andersson http://hunch.se/
 *
@@ -295,3 +297,5 @@ LRUCache.prototype.toString = function () {
 };
 
 exports = LRUCache;
+
+export default exports;

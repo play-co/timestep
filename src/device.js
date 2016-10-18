@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -282,3 +284,5 @@ exports.collectGarbage = function () {
   logger.log('collecting garbage');
   NATIVE && NATIVE.gc && NATIVE.gc.runGC();
 };
+
+export default exports;

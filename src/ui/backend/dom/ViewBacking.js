@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -821,5 +823,9 @@ arr.forEach(function (prop) {
   });
 });
 
+
+
+
+export default exports;
 
 

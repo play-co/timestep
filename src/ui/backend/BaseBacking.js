@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -108,3 +110,5 @@ BaseBacking.prototype.constructor.addProperty = function (key, def) {
 for (var key in BASE_STYLE_PROPS) {
   BaseBacking.prototype.constructor.addProperty(key, BASE_STYLE_PROPS[key]);
 }
+
+export default exports;

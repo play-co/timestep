@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -18,3 +20,5 @@ import { logger } from 'base';
 import ListView from 'ui/ListView';
 exports = ListView;
 logger.warn('DEPRECATED. Renamed to ui.ListView');
+
+export default exports;

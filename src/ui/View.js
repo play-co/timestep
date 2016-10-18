@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -897,3 +899,5 @@ View.setDefaultViewBacking = function (ViewBackingCtor) {
 
 // default view backing is canvas
 View.setDefaultViewBacking(ViewBacking);
+
+export default exports;

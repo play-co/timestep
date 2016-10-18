@@ -1,3 +1,5 @@
+let exports = {};
+
 import { logger } from 'base';
 
 /**
@@ -25,3 +27,5 @@ import { logger } from 'base';
 logger.warn('ui.backend.sound.AudioAPI is deprecated. Import Sound instead.');
 import Sound from 'Sound';
 exports = Sound;
+
+export default exports;

@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -399,3 +401,5 @@ exports = Class(function () {
   };
 
 });
+
+export default exports;

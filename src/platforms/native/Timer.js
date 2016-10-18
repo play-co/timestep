@@ -1,3 +1,5 @@
+let exports = {};
+
 import { NATIVE } from 'base';
 
 /**
@@ -29,3 +31,5 @@ exports.last = null;
 // NOTE: The timer is stopped automatically so this is just a stub
 exports.stop = function () {
 };
+
+export default exports;

@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -537,3 +539,5 @@ exports = Class(BoxLayout, function (supr) {
 });
 
 exports.prototype.add = exports.prototype.insertBefore;
+
+export default exports;

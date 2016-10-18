@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -238,3 +240,5 @@ exports = Class(View, function (supr) {
 
 exports.prototype.getOrigWidth = exports.prototype.getOrigW;
 exports.prototype.getOrigHeight = exports.prototype.getOrigH;
+
+export default exports;

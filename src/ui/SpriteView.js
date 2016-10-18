@@ -1,3 +1,5 @@
+let exports = {};
+
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -397,3 +399,5 @@ var Group = Class(jsio.__filename, function () {
     }
   };
 });
+
+export default exports;

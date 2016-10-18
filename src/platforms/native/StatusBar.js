@@ -1,3 +1,5 @@
+let exports = {};
+
 import { NATIVE } from 'base';
 
 exports.show = function () {
@@ -11,3 +13,5 @@ exports.hide = function () {
 exports.getHeight = function () {
   return NATIVE.statusBar && NATIVE.statusBar.statusBarHeight;
 };
+
+export default exports;
