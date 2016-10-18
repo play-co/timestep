@@ -45,6 +45,13 @@ jsio('import .engineInstance');
 jsio('import .StackView');
 jsio('import device');
 
+
+import InputEvent from 'event/input/InputEvent';
+import { getImport } from 'platformImport';
+const KeyListener = getImport('KeyListener');
+const InputListener = getImport('Input');
+
+
 var _timers = [];
 timer.onTick = function (dt) {
   var i = _timers.length;
@@ -67,7 +74,11 @@ exports = Class(Emitter, function (supr) {
 
     var canvas = opts && opts.canvas;
     if (typeof canvas == 'string' && GLOBAL.document && document.getElementById) {
-      canvas = document.getElementById(canvas);
+      const canvasID = canvas;
+      canvas = document.getElementById(canvasID);
+      if (!canvas) {
+        throw new Error('Canvas not found for ID: ' + canvasID);
+      }
     }
 
     this._opts = opts = merge(opts, {
@@ -121,11 +132,11 @@ exports = Class(Emitter, function (supr) {
 
     this._events = [];
 
-    if (dispatch.KeyListener) {
-      this._keyListener = new dispatch.KeyListener();
+    if (KeyListener) {
+      this._keyListener = new KeyListener();
     }
 
-    this._inputListener = new dispatch.InputListener({
+    this._inputListener = new InputListener({
       rootView: this._view,
       el: this._rootElement,
       keyListener: this._keyListener,
@@ -343,7 +354,7 @@ exports = Class(Emitter, function (supr) {
       } else if (this._opts.continuousInputCheck) {
         var prevMove = dispatch._evtHistory['input:move'];
         if (prevMove) {
-          dispatch.dispatchEvent(this._view, new dispatch.InputEvent(prevMove.id, prevMove.type, prevMove.srcPt));
+          dispatch.dispatchEvent(this._view, new InputEvent(prevMove.id, prevMove.type, prevMove.srcPt));
         }
       }
     }
