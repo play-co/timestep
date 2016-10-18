@@ -39,7 +39,7 @@ var defaults = {
 };
 
 exports = class extends TextView {
-  constructor(opts) {
+  constructor (opts) {
     this._opts = merge(opts, defaults);
 
     super(this._opts);
@@ -53,13 +53,13 @@ exports = class extends TextView {
       keyboardType: this._opts.keyboardType
     });
   }
-  onInputSelect() {
+  onInputSelect () {
     this._prompt.show();
   }
-  onSubmit(value) {
+  onSubmit (value) {
     this.publish('Submit', value);
   }
-  onChange(changeValue) {
+  onChange (changeValue) {
     if (changeValue === null) {
       this.publish('Cancel');
     } else {
@@ -70,22 +70,22 @@ exports = class extends TextView {
       }
     }
   }
-  setOkButton(value) {
+  setOkButton (value) {
     this._prompt.setOkButton(value);
     return this;
   }
-  setCancelButton(value) {
+  setCancelButton (value) {
     this._prompt.setCancelButton(value);
     return this;
   }
-  setPrompt(prompt) {
+  setPrompt (prompt) {
     this._prompt.setMessage(prompt);
     return this;
   }
-  showPrompt() {
+  showPrompt () {
     this._prompt.show();
   }
-  setKeyboardType(keyboardType) {
+  setKeyboardType (keyboardType) {
     this._prompt.setKeyboardType(keyboardType);
     return this;
   }

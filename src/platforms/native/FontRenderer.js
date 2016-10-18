@@ -52,7 +52,8 @@ exports.init = function () {
 
 var loadCustomFontImage = function (customFont, index, stroke) {
   var img = new Image();
-  var url = 'resources/fonts/' + customFont.fontName + '_' + index + (stroke ? '_Stroke.png' : '.png');
+  var url = 'resources/fonts/' + customFont.fontName + '_' + index + (stroke ?
+    '_Stroke.png' : '.png');
   img.onload = function () {
     img.onload = null;
     customFont.imagesLoaded++;
@@ -65,11 +66,10 @@ var loadCustomFontImage = function (customFont, index, stroke) {
 
 var findVerticalInfo = function (dimensions) {
   // A..Z, a..z, all
-  var ranges = [
-    {
-      start: 65,
-      end: 90
-    },
+  var ranges = [{
+    start: 65,
+    end: 90
+  },
     {
       start: 97,
       end: 122
@@ -104,11 +104,10 @@ var findVerticalInfo = function (dimensions) {
 
 var findHorizontalInfo = function (dimensions) {
   // a..z, A..Z
-  var ranges = [
-    {
-      start: 97,
-      end: 122
-    },
+  var ranges = [{
+    start: 97,
+    end: 122
+  },
     {
       start: 65,
       end: 90
@@ -141,9 +140,6 @@ var loadingCustomFont = function (customFont) {
     return !customFont.loaded;
   }
 
-
-
-
   var settings = customFont.settings;
   var fontName = settings.fontName;
   var info = _customFontInfo[fontName];
@@ -163,9 +159,6 @@ var loadingCustomFont = function (customFont) {
       vertical: customFont.vertical
     };
   }
-
-
-
 
   var images = customFont.images = [];
   var strokeImages = customFont.strokeImages = [];
@@ -220,9 +213,6 @@ exports.wrapFillText = function (origFillText) {
       return;
     }
 
-
-
-
     var color = Color.parse(this.fillStyle);
     if (this.__compositeColor !== color) {
       this.__compositeColor = color;
@@ -233,7 +223,8 @@ exports.wrapFillText = function (origFillText) {
     }
     this.setFilter(this.__compositeFilter);
 
-    if (!this._ctx.fillTextBitmap(this, x, y, text + '', maxWidth, this.fillStyle, fontInfo, 0)) {
+    if (!this._ctx.fillTextBitmap(this, x, y, text + '', maxWidth, this.fillStyle,
+        fontInfo, 0)) {
       return origFillText.apply(this, arguments);
     }
   };
@@ -250,9 +241,6 @@ exports.wrapStrokeText = function (origStrokeText) {
       return;
     }
 
-
-
-
     var color = Color.parse(this.strokeStyle);
     if (this.__compositeStrokeColor !== color) {
       this.__compositeStrokeColor = color;
@@ -263,7 +251,8 @@ exports.wrapStrokeText = function (origStrokeText) {
     }
     this.setFilter(this.__compositeStrokeFilter);
 
-    if (!this._ctx.fillTextBitmap(this, x, y, text + '', maxWidth, this.strokeStyle, fontInfo, 1)) {
+    if (!this._ctx.fillTextBitmap(this, x, y, text + '', maxWidth, this.strokeStyle,
+        fontInfo, 1)) {
       return origStrokeText.apply(this, arguments);
     }
   };

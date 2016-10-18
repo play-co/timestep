@@ -37,7 +37,7 @@ var defaults = {
 };
 
 exports = class extends ImageScaleView {
-  constructor(opts) {
+  constructor (opts) {
     this._opts = merge(opts || {}, defaults);
     super(this._opts);
 
@@ -73,49 +73,48 @@ exports = class extends ImageScaleView {
     this._normalColor = this._opts.color;
     this._hintColor = this._opts.hintColor;
     this._editText = new EditText(merge({}, // avoid side effects
-    merge(opts, {
-      title: this._hint,
-      textEditView: this,
-      onChange: bind(this, 'onChange'),
-      onSubmit: bind(this, 'onSubmit'),
-      onFinishEditing: bind(this, 'onFinishEditing'),
-      onFocusChange: bind(this, this.onFocusChange)
-    })));
+      merge(opts, {
+        title: this._hint,
+        textEditView: this,
+        onChange: bind(this, 'onChange'),
+        onSubmit: bind(this, 'onSubmit'),
+        onFinishEditing: bind(this, 'onFinishEditing'),
+        onFocusChange: bind(this, this.onFocusChange)
+      })));
 
     this.setText(this._opts.text || '');
   }
-  onSubmit() {
-  }
-  onFinishEditing() {
-  }
-  onInputStart() {
+  onSubmit () {}
+  onFinishEditing () {}
+  onInputStart () {
     this._validInputStart = true;
   }
-  onInputSelect() {
+  onInputSelect () {
     if (this._validInputStart) {
       this.requestFocus();
       this._validInputStart = false;
     }
   }
-  requestFocus(noSubmit) {
+  requestFocus (noSubmit) {
     this._focused = true;
     this._editText.requestFocus(noSubmit);
     this.refresh();
   }
-  removeFocus(noSubmit) {
+  removeFocus (noSubmit) {
     this._editText.closeEditField(noSubmit);
   }
-  refresh() {
-    this._editText.refresh(this.getText(), this._backTextEditView != null, this._forwardTextEditView != null, this._cursorPos);
+  refresh () {
+    this._editText.refresh(this.getText(), this._backTextEditView != null,
+      this._forwardTextEditView != null, this._cursorPos);
   }
-  onFocusChange(focused) {
+  onFocusChange (focused) {
     if (focused) {
       this.emit('focusAdd');
     } else {
       this.emit('focusRemove');
     }
   }
-  onChange(value, prevValue, cursorPos) {
+  onChange (value, prevValue, cursorPos) {
     var isProcessed;
     var isCursorSet;
 
@@ -125,17 +124,12 @@ exports = class extends ImageScaleView {
 
       if (isProcessed) {
         if (isCursorSet) {
-          this._cursorPos = this._textCursorFilter(value || '', prevValue || '', cursorPos || 0);
+          this._cursorPos = this._textCursorFilter(value || '', prevValue ||
+            '', cursorPos || 0);
         }
-
-
-
 
         value = this._textFilter(value || '', prevValue || '');
       }
-
-
-
 
       this.setText(value);
 
@@ -143,24 +137,21 @@ exports = class extends ImageScaleView {
         this.setValue(value, this._cursorPos);
       }
 
-
-
-
       // update native EditText with processed values
       this.emit('onChange', value);
     }
   }
-  setBackward(view) {
+  setBackward (view) {
     this._backTextEditView = view;
   }
-  setForward(view) {
+  setForward (view) {
     this._forwardTextEditView = view;
   }
-  registerTextFilter(fn, fn2) {
+  registerTextFilter (fn, fn2) {
     this._textFilter = fn;
     this._textCursorFilter = fn2;
   }
-  getText() {
+  getText () {
     var result;
 
     if (this._hintSet) {
@@ -169,27 +160,21 @@ exports = class extends ImageScaleView {
       result = this._textBox.getText();
     }
 
-
-
-
-
-
-
-
     return result;
   }
-  getValue() {
+  getValue () {
     return this._editText.getValue();
   }
-  setValue(value) {
+  setValue (value) {
     this.setText(value);
 
     if (this._editText.setValue) {
       this._editText.setValue(value, this._cursorPos);
     }
   }
-  setText(text) {
-    if ((text == null || text != null && text.length == 0) && this._hint != null) {
+  setText (text) {
+    if ((text == null || text != null && text.length == 0) && this._hint !=
+      null) {
       this._hintSet = true;
       text = this._hint;
       this._textBox._opts.color = this._hintColor;
@@ -198,16 +183,9 @@ exports = class extends ImageScaleView {
       this._textBox._opts.color = this._normalColor;
     }
 
-
-
-
-
-
-
-
     this._textBox.setText(text);
   }
-  setHint(hint) {
+  setHint (hint) {
     this._hint = hint;
     this._editText.setHint(hint);
     this.setText(this.getText());

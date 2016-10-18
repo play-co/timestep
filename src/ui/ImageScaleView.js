@@ -30,7 +30,7 @@ var defaults = {
   renderCenter: true
 };
 
-function adjustMiddleSlice(slices) {
+function adjustMiddleSlice (slices) {
   if (slices[1] < 0) {
     var overshoot = -slices[1] + 1;
     slices[1] = 1;
@@ -39,24 +39,10 @@ function adjustMiddleSlice(slices) {
   }
 }
 
-
-
-
-
-
-
-
-function renderCoverOrContain(ctx, opts) {
+function renderCoverOrContain (ctx, opts) {
   if (!this._img) {
     return;
   }
-
-
-
-
-
-
-
 
   var max = Math.max;
   var min = Math.min;
@@ -94,20 +80,15 @@ function renderCoverOrContain(ctx, opts) {
       scale = h / oh;
     }
 
-
-
-
-
-
-
-
     var dw = sw * scale;
     var dh = sh * scale;
     var fw = ow * scale;
     var fh = oh * scale;
 
-    cache.x = this._align == 'left' ? marginLeft * scale : this._align == 'right' ? w - (sw + marginRight) * scale : (w - dw) / 2;
-    cache.y = this._verticalAlign == 'top' ? marginTop * scale : this._verticalAlign == 'bottom' ? h - (sh + marginBottom) * scale : (h - dh) / 2;
+    cache.x = this._align == 'left' ? marginLeft * scale : this._align ==
+      'right' ? w - (sw + marginRight) * scale : (w - dw) / 2;
+    cache.y = this._verticalAlign == 'top' ? marginTop * scale : this._verticalAlign ==
+      'bottom' ? h - (sh + marginBottom) * scale : (h - dh) / 2;
 
     cache.w = dw;
     cache.h = dh;
@@ -153,14 +134,8 @@ function renderCoverOrContain(ctx, opts) {
     }
   }
 
-
-
-
-
-
-
-
-  this._img.render(ctx, cache.sx, cache.sy, cache.sw, cache.sh, cache.x, cache.y, cache.w, cache.h);
+  this._img.render(ctx, cache.sx, cache.sy, cache.sw, cache.sh, cache.x, cache.y,
+    cache.w, cache.h);
 
   if (this.debug) {
     ctx.strokeStyle = debugColors[0];
@@ -168,13 +143,6 @@ function renderCoverOrContain(ctx, opts) {
     ctx.strokeRect(0, 0, s.width, s.height);
   }
 }
-
-
-
-
-
-
-
 
 var renderFunctions = {
   'none': function (ctx, opts) {
@@ -193,22 +161,18 @@ var renderFunctions = {
       return;
     }
 
-
-
-
-
-
-
-
     var s = this.style;
     var w = s.width;
     var h = s.height;
 
     var bounds = this._img.getBounds();
-    var iw = (bounds.marginLeft + bounds.width + bounds.marginRight) / bounds.scale;
-    var ih = (bounds.marginTop + bounds.height + bounds.marginBottom) / bounds.scale;
+    var iw = (bounds.marginLeft + bounds.width + bounds.marginRight) /
+      bounds.scale;
+    var ih = (bounds.marginTop + bounds.height + bounds.marginBottom) /
+      bounds.scale;
 
-    var x = 0, y = 0;
+    var x = 0,
+      y = 0;
 
     if (this.rows) {
       var targetHeight = h / this.rows;
@@ -219,7 +183,8 @@ var renderFunctions = {
           this._img.render(ctx, x, y, targetWidth, targetHeight);
           if (this.debug) {
             ctx.strokeStyle = debugColors[i % 3];
-            ctx.strokeRect(x + 0.5, y + 0.5, targetWidth - 1, targetHeight - 1);
+            ctx.strokeRect(x + 0.5, y + 0.5, targetWidth - 1, targetHeight -
+              1);
           }
           x += targetWidth;
         }
@@ -235,7 +200,8 @@ var renderFunctions = {
           this._img.render(ctx, x, y, targetWidth, targetHeight);
           if (this.debug) {
             ctx.strokeStyle = debugColors[i % 3];
-            ctx.strokeRect(x + 0.5, y + 0.5, targetWidth - 1, targetHeight - 1);
+            ctx.strokeRect(x + 0.5, y + 0.5, targetWidth - 1, targetHeight -
+              1);
           }
           y += targetHeight;
         }
@@ -249,38 +215,24 @@ var renderFunctions = {
       return;
     }
 
-
-
-
-
-
-
-
     var s = this.style;
     var w = s.width;
     var h = s.height;
     var scale = s.scale;
     var cachedKey = this._renderCacheKey;
-    if (cachedKey.width != w || cachedKey.height != h || cachedKey.absScale != scale) {
+    if (cachedKey.width != w || cachedKey.height != h || cachedKey.absScale !=
+      scale) {
       cachedKey.width = w;
       cachedKey.height = h;
       cachedKey.absScale = scale;
       this._computeSlices(w, h, scale);
     }
 
-
-
-
-
-
-
-
     for (var i = 0; i < 9; i++) {
       this._drawSlice(ctx, this._sliceCache[i], i);
     }
   }
 };
-
 
 var debugColors = [
   '#FF0000',
@@ -289,13 +241,13 @@ var debugColors = [
 ];
 
 exports = class extends View {
-  constructor(opts) {
+  constructor (opts) {
     super(merge(opts, defaults));
   }
-  getScaleMethod() {
+  getScaleMethod () {
     return this._scaleMethod;
   }
-  updateSlices(opts) {
+  updateSlices (opts) {
     opts = opts || this._opts;
 
     // reset slice cache
@@ -317,9 +269,6 @@ exports = class extends View {
       this._sliceCache.push(row);
     }
 
-
-
-
     opts.destSlices = opts.destSlices || opts.sourceSlices;
     // {horizontal: {left: n, center: n, right: n}, vertical: {top: n, middle: n, bottom: n}}
     this._sourceSlices = opts.sourceSlices;
@@ -328,20 +277,22 @@ exports = class extends View {
 
     this._imgScale = opts.imgScale || 1;
 
-    if (!opts.sourceSlices || !(opts.sourceSlices.horizontal || opts.sourceSlices.vertical)) {
-      throw new Error('slice views require sourceSlices.horizontal and/or sourceSlices.vertical');
+    if (!opts.sourceSlices || !(opts.sourceSlices.horizontal || opts.sourceSlices
+        .vertical)) {
+      throw new Error(
+        'slice views require sourceSlices.horizontal and/or sourceSlices.vertical'
+      );
     }
-
-
-
 
     if (opts.scaleMethod === '2slice') {
       if (opts.sourceSlices.horizontal && opts.destSlices.horizontal) {
         if (opts.destSlices.horizontal.left) {
-          opts.sourceSlices.horizontal.center = opts.sourceSlices.horizontal.right;
+          opts.sourceSlices.horizontal.center = opts.sourceSlices.horizontal
+            .right;
           opts.sourceSlices.horizontal.right = 0;
         } else if (opts.destSlices.horizontal.right) {
-          opts.sourceSlices.horizontal.center = opts.sourceSlices.horizontal.left;
+          opts.sourceSlices.horizontal.center = opts.sourceSlices.horizontal
+            .left;
           opts.sourceSlices.horizontal.left = 0;
         }
       }
@@ -356,9 +307,6 @@ exports = class extends View {
       }
     }
 
-
-
-
     if (opts.sourceSlices.horizontal) {
       var src = opts.sourceSlices.horizontal;
       var slices = [
@@ -372,9 +320,6 @@ exports = class extends View {
         slices[1] = width ? width - slices[0] - slices[2] : 0;
         adjustMiddleSlice(slices);
       }
-
-
-
 
       this._sourceSlicesHor = slices;
       this._destSlicesHor = [
@@ -395,9 +340,6 @@ exports = class extends View {
       ];
     }
 
-
-
-
     if (opts.sourceSlices.vertical) {
       var src = opts.sourceSlices.vertical;
       var slices = [
@@ -410,9 +352,6 @@ exports = class extends View {
         slices[1] = height ? height - slices[0] - slices[2] : 0;
         adjustMiddleSlice(slices);
       }
-
-
-
 
       this._sourceSlicesVer = slices;
       this._destSlicesVer = [
@@ -433,7 +372,7 @@ exports = class extends View {
       ];
     }
   }
-  updateOpts(opts) {
+  updateOpts (opts) {
     var opts = super.updateOpts(...arguments);
     var changeScaleMethod = opts.scaleMethod && this._scaleMethod != opts.scaleMethod;
     if (changeScaleMethod) {
@@ -442,38 +381,21 @@ exports = class extends View {
         key = 'slice';
       }
 
-
-
-
       this.render = renderFunctions[key].bind(this);
       this._renderCacheKey = {};
       this._scaleMethod = opts.scaleMethod;
       this._isSlice = this._scaleMethod.slice(1) == 'slice';
     }
 
-
-
-
     if ('debug' in opts) {
       this.debug = !!opts.debug;
     }
-
-
-
 
     if (opts.image) {
       this.setImage(opts.image);
     } else if (changeScaleMethod && this._isSlice && this._img) {
       this.updateSlices();
     }
-
-
-
-
-
-
-
-
 
     if (opts.verticalAlign) {
       this._renderCacheKey = {};
@@ -482,9 +404,6 @@ exports = class extends View {
     if (opts.align || opts.horizontalAlign) {
       this._align = opts.align || opts.horizontalAlign;
     }
-
-
-
 
     // tile mode
     if ('rows' in opts) {
@@ -499,21 +418,15 @@ exports = class extends View {
       throw new Error('tile views must define either rows or columns');
     }
 
-
-
-
     return opts;
   }
-  _computeSlices(w, h, absScale) {
+  _computeSlices (w, h, absScale) {
     var bounds = this._img.getBounds();
     var iw = bounds.width;
     var ih = bounds.height;
     if (iw <= 0 || ih <= 0) {
       return;
     }
-
-
-
 
     var image = this._img.getSource();
     var sourceSlicesHor = this._sourceSlicesHor;
@@ -528,14 +441,12 @@ exports = class extends View {
       destSlicesHor[1] = w - destSlicesHor[0] - destSlicesHor[2];
 
       if (destSlicesHor[1] < 0) {
-        destSlicesHor[0] = destSlicesHor[0] * w / (destSlicesHor[0] + destSlicesHor[2]) | 0;
+        destSlicesHor[0] = destSlicesHor[0] * w / (destSlicesHor[0] +
+          destSlicesHor[2]) | 0;
         destSlicesHor[1] = 0;
         destSlicesHor[2] = w - destSlicesHor[0];
       }
     }
-
-
-
 
     if (sourceSlicesVer) {
       var ratio = this.style.fixedAspectRatio ? w / iw : 1;
@@ -544,46 +455,36 @@ exports = class extends View {
       destSlicesVer[1] = h - destSlicesVer[0] - destSlicesVer[2];
 
       if (destSlicesVer[1] < 0) {
-        destSlicesVer[0] = destSlicesVer[0] * h / (destSlicesVer[0] + destSlicesVer[2]) | 0;
+        destSlicesVer[0] = destSlicesVer[0] * h / (destSlicesVer[0] +
+          destSlicesVer[2]) | 0;
         destSlicesVer[1] = 0;
         destSlicesVer[2] = h - destSlicesVer[0];
       }
     }
 
-
-
-
-    var marginLeft = bounds.marginLeft, origLeftSlice = sourceSlicesHor[0] + bounds.marginLeft;
+    var marginLeft = bounds.marginLeft,
+      origLeftSlice = sourceSlicesHor[0] + bounds.marginLeft;
     if (origLeftSlice && destSlicesHor[0]) {
       marginLeft *= destSlicesHor[0] / origLeftSlice;
     }
 
-
-
-
-    var marginRight = bounds.marginRight, origRightSlice = sourceSlicesHor[2] + bounds.marginRight;
+    var marginRight = bounds.marginRight,
+      origRightSlice = sourceSlicesHor[2] + bounds.marginRight;
     if (origRightSlice && destSlicesHor[2]) {
       marginRight *= destSlicesHor[2] / origRightSlice;
     }
 
-
-
-
-    var marginTop = bounds.marginTop, origTopSlice = sourceSlicesVer[0] + bounds.marginTop;
+    var marginTop = bounds.marginTop,
+      origTopSlice = sourceSlicesVer[0] + bounds.marginTop;
     if (origTopSlice && destSlicesVer[0]) {
       marginTop *= destSlicesVer[0] / origTopSlice;
     }
 
-
-
-
-    var marginBottom = bounds.marginBottom, origBottomSlice = sourceSlicesVer[2] + bounds.marginBottom;
+    var marginBottom = bounds.marginBottom,
+      origBottomSlice = sourceSlicesVer[2] + bounds.marginBottom;
     if (origBottomSlice && destSlicesVer[2]) {
       marginBottom *= destSlicesVer[2] / origBottomSlice;
     }
-
-
-
 
     if (destSlicesHor[0]) {
       destSlicesHor[0] -= marginLeft;
@@ -591,17 +492,11 @@ exports = class extends View {
       destSlicesHor[1] -= marginLeft;
     }
 
-
-
-
     if (destSlicesVer[0]) {
       destSlicesVer[0] -= marginTop;
     } else {
       destSlicesVer[1] -= marginTop;
     }
-
-
-
 
     if (destSlicesHor[2]) {
       destSlicesHor[2] -= marginRight;
@@ -609,17 +504,11 @@ exports = class extends View {
       destSlicesHor[1] -= marginRight;
     }
 
-
-
-
     if (destSlicesVer[2]) {
       destSlicesVer[2] -= marginBottom;
     } else {
       destSlicesVer[1] -= marginBottom;
     }
-
-
-
 
     var heightBalance = 0;
     var sx, sw, sh;
@@ -661,9 +550,6 @@ exports = class extends View {
           cache.render = false;
         }
 
-
-
-
         sx += sw;
         dx += dw;
       }
@@ -673,10 +559,10 @@ exports = class extends View {
       marginTop = 0;
     }
   }
-  getImage() {
+  getImage () {
     return this._img;
   }
-  setImage(img, opts) {
+  setImage (img, opts) {
     this._renderCacheKey = {};
 
     var autoSized = false;
@@ -691,9 +577,6 @@ exports = class extends View {
         ih = bounds.h + bounds.marginTop + bounds.marginBottom;
       }
 
-
-
-
       // resolve to object
       img = ImageViewCache.getImage(img, forceReload);
     } else if (img instanceof Image) {
@@ -706,14 +589,6 @@ exports = class extends View {
       }
     }
 
-
-
-
-
-
-
-
-
     if (img && !bounds) {
       if (!img.isError()) {
         img.doOnLoad(this, 'setImage', img);
@@ -721,10 +596,8 @@ exports = class extends View {
       return;
     }
 
-
-
-
-    if (viewOpts.autoSize && this._scaleMethod == 'stretch' && !((viewOpts.width || viewOpts.layoutWidth) && (viewOpts.height || viewOpts.layoutHeight))) {
+    if (viewOpts.autoSize && this._scaleMethod == 'stretch' && !((viewOpts.width ||
+        viewOpts.layoutWidth) && (viewOpts.height || viewOpts.layoutHeight))) {
       autoSized = true;
       if (this.style.fixedAspectRatio) {
         this.style.enforceAspectRatio(iw, ih);
@@ -733,9 +606,6 @@ exports = class extends View {
         this.style.height = ih;
       }
     }
-
-
-
 
     viewOpts.image = this._img = img;
 
@@ -774,20 +644,14 @@ exports = class extends View {
         });
       }
 
-
-
-
       if (viewOpts.autoSize && !autoSized) {
         img.doOnLoad(this, 'autoSize');
       }
 
-
-
-
       img.doOnLoad(this, 'needsRepaint');
     }
   }
-  doOnLoad() {
+  doOnLoad () {
     if (arguments.length == 1) {
       this._img.doOnLoad(this, arguments[0]);
     } else {
@@ -795,19 +659,19 @@ exports = class extends View {
     }
     return this;
   }
-  autoSize() {
+  autoSize () {
     if (this._img && this._img.isLoaded()) {
       this.style.width = this._img.getWidth() || this._opts.width;
       this.style.height = this._img.getHeight() || this._opts.height;
     }
   }
-  getOrigW() {
+  getOrigW () {
     return this._img.getOrigW();
   }
-  getOrigH() {
+  getOrigH () {
     return this._img.getOrigH();
   }
-  _drawSlice(ctx, sliceData, i) {
+  _drawSlice (ctx, sliceData, i) {
     if (!sliceData.render || !this._opts.renderCenter && i == 4) {
       return;
     }
@@ -815,25 +679,21 @@ exports = class extends View {
     if (this.debug) {
       ctx.strokeStyle = debugColors[i % 3];
       ctx.lineWidth = 1;
-      ctx.strokeRect(sliceData[5] + 0.5, sliceData[6] + 0.5, sliceData[7] - 1, sliceData[8] - 1);
+      ctx.strokeRect(sliceData[5] + 0.5, sliceData[6] + 0.5, sliceData[7] -
+        1, sliceData[8] - 1);
     }
   }
-  getTag() {
-    var url = this._img && (this._img.getOriginalURL() || this._img._map && this._img._map.url);
+  getTag () {
+    var url = this._img && (this._img.getOriginalURL() || this._img._map &&
+      this._img._map.url);
     if (url) {
       var match = url.match(/[^\/]+$/);
       if (match) {
         url = match[0];
       }
 
-
-
-
       url = ':' + url.substring(0, 16);
     }
-
-
-
 
     return 'ImageScaleView' + this.uid + (url || '');
   }

@@ -15,39 +15,32 @@ let exports = {};
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-function getter(name) {
+function getter (name) {
   return function () {
     return this._ctxShim[name];
   };
 }
 
-
-
-
-function setter(name) {
+function setter (name) {
   return function (val) {
     this._ctxShim[name] = val;
   };
 }
 
-
-
-
-function wrap(name) {
-  return function () {
-  };
+function wrap (name) {
+  return function () {};
 }
 
-
-
-
 exports = class {
-  constructor() {
+  constructor () {
     this._ctxShim = {};
   }
-  getViewport(targetView) {
+  getViewport (targetView) {
     if (this._viewport) {
-      var viewport = new math2D.Rect(this._viewport), src = this._viewport.src, v = targetView, trace = [targetView];
+      var viewport = new math2D.Rect(this._viewport),
+        src = this._viewport.src,
+        v = targetView,
+        trace = [targetView];
 
       while (v != src) {
         v = v._superview;
@@ -57,37 +50,24 @@ exports = class {
         trace.push(v);
       }
 
-
-
-
       // TODO: finish this - translate viewport to local coordinates?
       // should use a modified View::getAbsolutePos(relativeTo)
-      while (v = trace.pop()) {
-      }
-
-
-
-
-
-
-
+      while (v = trace.pop()) {}
 
       return viewport;
     }
   }
-  swap() {
-  }
-  reset() {
+  swap () {}
+  reset () {
     this._buffer = [];
   }
-  hide() {
+  hide () {
     throw 'abstract';
   }
-  fillCircle(x, y, radius, fillStyle) {
+  fillCircle (x, y, radius, fillStyle) {
     this._buffer.push(['beginPath']);
     this._buffer.push([
-      'arc',
-      [
+      'arc', [
         x,
         y,
         radius,
@@ -100,12 +80,10 @@ exports = class {
   }
 };
 
-
 exports.prototype.drawImage = wrap('drawImage');
 exports.prototype.putImageData = wrap('putImageData');
 
 exports.prototype.fillRect = wrap('fillRect');
-
 
 exports.prototype.fillText = wrap('fillText');
 exports.prototype.measureText = wrap('measureText');
@@ -132,7 +110,6 @@ exports.prototype.fill = wrap('fill');
 exports.prototype.translate = wrap('translate');
 exports.prototype.rotate = wrap('rotate');
 exports.prototype.scale = wrap('scale');
-
 
 exports.prototype.show = exports.prototype.hide;
 

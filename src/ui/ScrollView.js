@@ -51,20 +51,10 @@ if (DEBUG) {
   var _debug = { bounds: [] };
 }
 
-
-
-
-function getBoundingRectangle(pos) {
+function getBoundingRectangle (pos) {
   if (!pos.r) {
     return;
   }
-
-
-
-
-
-
-
 
   var w = pos.width;
   var h = pos.height;
@@ -96,10 +86,9 @@ function getBoundingRectangle(pos) {
   pos.width = Math.max(x1, x2, x3, x4) - pos.x;
   pos.height = Math.max(y1, y2, y3, y4) - pos.y;
   pos.r = 0;
-}
-;
+};
 
-function viewportIntersect(viewport, prevViewport) {
+function viewportIntersect (viewport, prevViewport) {
   var pos = viewport.src.getPosition(prevViewport.src);
 
   pos.x = (prevViewport.x - pos.x) / pos.scale;
@@ -111,9 +100,7 @@ function viewportIntersect(viewport, prevViewport) {
   getBoundingRectangle(pos);
 
   viewport.intersectRect(pos);
-}
-;
-
+};
 
 var defaults = {
   offsetX: 0,
@@ -132,8 +119,7 @@ var defaults = {
   layout: 'box'
 };
 
-
-function clippedWrapRender(contentView, backing, ctx, opts) {
+function clippedWrapRender (contentView, backing, ctx, opts) {
   if (!backing.visible) {
     return;
   }
@@ -143,18 +129,12 @@ function clippedWrapRender(contentView, backing, ctx, opts) {
     backing._subviews.sort();
   }
 
-
-
-
   ctx.save();
   ctx.translate(backing.x + backing.anchorX, backing.y + backing.anchorY);
 
   if (backing.r) {
     ctx.rotate(backing.r);
   }
-
-
-
 
   // clip this render to be within its view;
   if (backing.scale != 1) {
@@ -164,9 +144,6 @@ function clippedWrapRender(contentView, backing, ctx, opts) {
     ctx.globalAlpha *= backing.opacity;
   }
 
-
-
-
   ctx.translate(-backing.anchorX, -backing.anchorY);
 
   // if (backing._circle) { ctx.translate(-backing.width / 2, -backing.height / 2); }
@@ -174,24 +151,19 @@ function clippedWrapRender(contentView, backing, ctx, opts) {
     ctx.clipRect(0, 0, backing.width, backing.height);
   }
 
-
-
-
   try {
     if (backing.backgroundColor) {
       ctx.fillStyle = backing.backgroundColor;
       ctx.fillRect(0, 0, backing.width, backing.height);
     }
 
-
-
-
     backing._view.render && backing._view.render(ctx, opts);
 
     var viewport = opts.viewport;
     var subviews = backing._subviews;
 
-    var i = 0, subview;
+    var i = 0,
+      subview;
     while (subview = subviews[i++]) {
       if (subview == contentView) {
         clippedWrapRender(contentView, subview.__view, ctx, opts);
@@ -206,13 +178,6 @@ function clippedWrapRender(contentView, backing, ctx, opts) {
           clippedWrapRender(contentView, subview.__view, ctx, opts);
         }
 
-
-
-
-
-
-
-
         if (DEBUG) {
           _debug.bounds.push(pos);
         }
@@ -226,12 +191,9 @@ function clippedWrapRender(contentView, backing, ctx, opts) {
   }
 }
 
-
-
-
 // extend the default backing ctor
 class DEFAULT_BACKING_CTOR extends View.prototype.BackingCtor {
-  wrapRender(ctx, opts) {
+  wrapRender (ctx, opts) {
     clippedWrapRender(this._view._contentView, this, ctx, opts);
 
     if (DEBUG) {
@@ -262,11 +224,9 @@ class DEFAULT_BACKING_CTOR extends View.prototype.BackingCtor {
   }
 }
 
-
 var PI_2 = Math.PI / 2;
 
-
-/*function customEaseOut(x) {
+/* function customEaseOut(x) {
   var x = (1 - x);
   x *= x;
   return 1 - x * x;
@@ -275,7 +235,7 @@ var PI_2 = Math.PI / 2;
  * @extends ui.View
  */
 exports = class extends View {
-  constructor(opts) {
+  constructor (opts) {
     opts = merge(opts, defaults);
 
     opts['dom:noCanvas'] = true;
@@ -312,9 +272,8 @@ exports = class extends View {
 
     super(opts);
     super.addSubview(this._contentView);
-
   }
-  updateOpts(opts) {
+  updateOpts (opts) {
     super.updateOpts(...arguments);
 
     if ('useContentBounds' in opts) {
@@ -324,36 +283,25 @@ exports = class extends View {
         this._contentView.subscribe('resize', this, '_updateContentBounds');
         this._updateContentBounds();
       } else {
-        this._contentView.unsubscribe('resize', this, '_updateContentBounds');
+        this._contentView.unsubscribe('resize', this,
+          '_updateContentBounds');
       }
     }
-
-
-
 
     if ('scrollBounds' in opts) {
       this.setScrollBounds(opts.scrollBounds);
     }
 
-
-
-
     if ('bounceRadius' in opts) {
       this._bounceRadius = opts.bounceRadius;
     }
 
-
-
-
     return opts;
   }
-  _updateContentBounds() {
+  _updateContentBounds () {
     if (!this._opts.useContentBounds) {
       return;
     }
-
-
-
 
     var bounds = this._scrollBounds;
     var s = this._contentView.style;
@@ -362,27 +310,27 @@ exports = class extends View {
     bounds.minY = s.y;
     bounds.maxY = s.y + s.height + this.style.padding.bottom;
   }
-  buildView() {
+  buildView () {
     this._snapPixels = this._opts.snapPixels || 1 / this.getPosition().scale;
   }
-  addSubview(view) {
+  addSubview (view) {
     this._contentView.addSubview(view);
     this._updateContentBounds();
   }
-  removeSubview(view) {
+  removeSubview (view) {
     this._contentView.removeSubview(view);
     this._updateContentBounds();
   }
-  removeAllSubviews() {
+  removeAllSubviews () {
     this._contentView.removeAllSubviews();
   }
-  addFixedView(view) {
+  addFixedView (view) {
     return super.addSubview(view);
   }
-  removeFixedView(view) {
+  removeFixedView (view) {
     return super.removeSubview(view);
   }
-  getStyleBounds() {
+  getStyleBounds () {
     var bounds = this._scrollBounds;
     var minY = -bounds.maxY;
     var maxY = -bounds.minY < minY ? minY : -bounds.minY;
@@ -395,42 +343,35 @@ exports = class extends View {
       maxX: maxX
     };
   }
-  getOffset() {
+  getOffset () {
     return new Point(this._contentView.style);
   }
-  getOffsetX() {
+  getOffsetX () {
     return this._contentView.style.x;
   }
-  getOffsetY() {
+  getOffsetY () {
     return this._contentView.style.y;
   }
-  setOffset(x, y) {
-    var style = this._contentView.style, delta = {
+  setOffset (x, y) {
+    var style = this._contentView.style,
+      delta = {
         x: 0,
         y: 0
       };
 
     var bounds = this.getStyleBounds();
-    //threshold for which if the current bounce radius minus the current
-    //bounced amount is under, the bounce will be ended
+    // threshold for which if the current bounce radius minus the current
+    // bounced amount is under, the bounce will be ended
     var BOUNCE_THRESHOLD = 1;
     if (typeof x == 'number' && this._opts.scrollX !== false) {
-      if (this._isBouncing) {
-      } else if (this._canBounce) {
+      if (this._isBouncing) {} else if (this._canBounce) {
         if (x < bounds.minX) {
           var temp = (bounds.minX - x) / this._bounceRadius;
           x = bounds.minX - Math.atan(temp) * this._bounceRadius / PI_2;
           if (this._bounceRadius - (bounds.minX - x) < BOUNCE_THRESHOLD) {
             this._endBounce();
           }
-
-
-
-
         }
-
-
-
 
         if (x > bounds.maxX) {
           var temp = (x - bounds.maxX) / this._bounceRadius;
@@ -438,10 +379,6 @@ exports = class extends View {
           if (this._bounceRadius - x < BOUNCE_THRESHOLD) {
             this._endBounce();
           }
-
-
-
-
         }
       } else {
         if (x < bounds.minX) {
@@ -452,26 +389,14 @@ exports = class extends View {
         }
       }
 
-
-
-
-
-
-
-
-
       if (x != style.x) {
         delta.x = x - style.x;
         style.x = (x / this._snapPixels | 0) * this._snapPixels;
       }
     }
 
-
-
-
     if (typeof y == 'number' && this._opts.scrollY !== false) {
-      if (this._isBouncing) {
-      } else if (this._canBounce) {
+      if (this._isBouncing) {} else if (this._canBounce) {
         if (y < bounds.minY) {
           var temp = (bounds.minY - y) / this._bounceRadius;
           y = bounds.minY - Math.atan(temp) * this._bounceRadius / PI_2;
@@ -479,9 +404,6 @@ exports = class extends View {
             this._endBounce();
           }
         }
-
-
-
 
         if (y > bounds.maxY) {
           var temp = (y - bounds.maxY) / this._bounceRadius;
@@ -499,32 +421,21 @@ exports = class extends View {
         }
       }
 
-
-
-
-
-
-
-
-
       if (y != style.y) {
         delta.y = y - style.y;
         style.y = (y / this._snapPixels | 0) * this._snapPixels;
       }
     }
 
-
-
-
     this.publish('Scrolled', delta);
   }
-  isScrolling() {
+  isScrolling () {
     return this.isDragging() || this._anim && this._anim.hasFrames();
   }
-  stopScrolling() {
+  stopScrolling () {
     this._anim && this._anim.now({}, 1);
   }
-  onInputStart(evt, pt) {
+  onInputStart (evt, pt) {
     if (this._opts.drag && (this._opts.scrollX || this._opts.scrollY)) {
       this.startDrag({ radius: this._opts.dragRadius * this._snapPixels });
 
@@ -532,13 +443,10 @@ exports = class extends View {
         this._anim.clear();
       }
 
-
-
-
       evt.cancel();
     }
   }
-  onDragStart(dragEvt) {
+  onDragStart (dragEvt) {
     input.clearOverState(dragEvt.id);
 
     this._contentView.getInput().blockEvents = true;
@@ -546,7 +454,7 @@ exports = class extends View {
     this._animState.offset = this.getOffset();
     this._anim = animate(this._animState).clear();
   }
-  onDrag(dragEvt, moveEvt, delta) {
+  onDrag (dragEvt, moveEvt, delta) {
     var state = this._animState;
     state.dt = delta.t;
     state.lastDelta = delta;
@@ -559,35 +467,31 @@ exports = class extends View {
       delta.x = 0;
     }
 
-
-
-
     this.setOffset(state.offset.x += delta.x, state.offset.y += delta.y);
     moveEvt.cancel();
   }
-  onDragStop(dragEvt, selectEvt) {
+  onDragStop (dragEvt, selectEvt) {
     this._contentView.getInput().blockEvents = false;
 
     if (this._opts.inertia) {
-      //how much of the current event
-      //should be favored over older events in the running
-      //weighted average being computed
+      // how much of the current event
+      // should be favored over older events in the running
+      // weighted average being computed
       var WEIGHT = 0.5;
-      //how much to deccelerate when
-      //scrolling
+      // how much to deccelerate when
+      // scrolling
       var ACCEL = -0.45;
-      //multiplier for mapping the calculated time to
-      //a more reasonable real time for scrolling
+      // multiplier for mapping the calculated time to
+      // a more reasonable real time for scrolling
       var TIME_MULTIPLIER = 8;
 
       var avgDelta = new Point(0, 0);
       for (var i in this.scrollData) {
-        avgDelta.x = avgDelta.x * (1 - WEIGHT) + this.scrollData[i].x * WEIGHT;
-        avgDelta.y = avgDelta.y * (1 - WEIGHT) + this.scrollData[i].y * WEIGHT;
+        avgDelta.x = avgDelta.x * (1 - WEIGHT) + this.scrollData[i].x *
+          WEIGHT;
+        avgDelta.y = avgDelta.y * (1 - WEIGHT) + this.scrollData[i].y *
+          WEIGHT;
       }
-
-
-
 
       this.scrollData = [];
 
@@ -595,15 +499,15 @@ exports = class extends View {
       var offset = this._animState.offset;
 
       var velocity = delta.getMagnitude();
-      //calculate the travel time of the scroll
-      //vf = vi + at -> t = vf - vi / a
+      // calculate the travel time of the scroll
+      // vf = vi + at -> t = vf - vi / a
       var time = -velocity / ACCEL;
-      //vf^2 = vi^2 + 2ax -> x = - (vi^2) / (2 *a)
+      // vf^2 = vi^2 + 2ax -> x = - (vi^2) / (2 *a)
       var distance = 0.5 * -(velocity * velocity) / ACCEL;
       var tempDelta = delta;
       tempDelta = tempDelta.normalize();
-      //distance to travel from start to finish
-      //in the x and y directions
+      // distance to travel from start to finish
+      // in the x and y directions
       delta.x = tempDelta.x * distance;
       delta.y = tempDelta.y * distance;
 
@@ -621,17 +525,11 @@ exports = class extends View {
         }
       }
 
-
-
-
       if (target.y > bounds.maxY + this._bounceRadius) {
         if (offset.y > bounds.maxY) {
           animateY = false;
         }
       }
-
-
-
 
       if (target.x < bounds.minX - this._bounceRadius) {
         if (offset.x < bounds.minX) {
@@ -639,56 +537,45 @@ exports = class extends View {
         }
       }
 
-
-
-
       if (target.x > bounds.maxX + this._bounceRadius) {
         if (offset.x > bounds.maxX) {
           animateX = false;
         }
       }
 
-
-
-
       if (distance && (animateX || animateY)) {
         this._anim.now(bind(this, function (tt, t) {
-          this.setOffset(offset.x + delta.x * tt, offset.y + delta.y * tt);
-        }), time * TIME_MULTIPLIER, animate.easeOut).then(bind(this, function () {
-          this._endBounce(offset);
-        }));
+          this.setOffset(offset.x + delta.x * tt, offset.y + delta.y *
+            tt);
+        }), time * TIME_MULTIPLIER, animate.easeOut).then(bind(this,
+          function () {
+            this._endBounce(offset);
+          }));
       } else {
         this._endBounce(offset);
       }
     }
   }
-  _startBounce() {
+  _startBounce () {
     this._isBouncing = false;
     if (this._opts.inertia && this._opts.bounce) {
       this._canBounce = true;
     }
   }
-  _endBounce() {
+  _endBounce () {
     var offset = this.getOffset();
     var bounds = this.getStyleBounds();
 
     var dx = 0;
     var dy = 0;
 
-    var ty = offset.y, tx = offset.x;
+    var ty = offset.y,
+      tx = offset.x;
     if (offset.y < bounds.minY) {
       ty = bounds.minY;
     } else if (offset.y > bounds.maxY) {
       ty = bounds.maxY;
     }
-
-
-
-
-
-
-
-
 
     if (offset.x < bounds.minX) {
       tx = bounds.minX;
@@ -696,23 +583,12 @@ exports = class extends View {
       tx = bounds.maxX;
     }
 
-
-
-
-
-
-
-
-
     dy = ty - offset.y;
     dx = tx - offset.x;
 
     if (dy === 0 && dx === 0) {
       return;
     }
-
-
-
 
     this._isBouncing = true;
     this._anim.now(bind(this, function (tt, t) {
@@ -726,7 +602,7 @@ exports = class extends View {
       this.scrollTo(undefined, undefined, 0);
     }));
   }
-  setScrollBounds(bounds) {
+  setScrollBounds (bounds) {
     if (bounds) {
       if ('minX' in bounds) {
         this._scrollBounds.minX = bounds.minX || 0;
@@ -741,9 +617,6 @@ exports = class extends View {
         this._scrollBounds.maxY = bounds.maxY || 0;
       }
 
-
-
-
       // If not in the middle of a bounce animation,
       if (!this._canBounce) {
         // Scroll to current position with duration 0. If the bounds have
@@ -753,22 +626,23 @@ exports = class extends View {
       }
     }
   }
-  getScrollBounds() {
+  getScrollBounds () {
     return this._scrollBounds;
   }
-  addOffset(x, y) {
-    this.setOffset(x != undefined && x != null && this._contentView.style.x + x, y != undefined && y != null && this._contentView.style.y + y);
+  addOffset (x, y) {
+    this.setOffset(x != undefined && x != null && this._contentView.style.x +
+      x, y != undefined && y != null && this._contentView.style.y + y);
   }
-  getContentView() {
+  getContentView () {
     return this._contentView;
   }
-  getFullWidth() {
+  getFullWidth () {
     return this._contentView.style.width;
   }
-  getFullHeight() {
+  getFullHeight () {
     return this._contentView.style.height;
   }
-  render(ctx, opts) {
+  render (ctx, opts) {
     var s = this.style;
     var cvs = this._contentView.style;
 
@@ -791,14 +665,12 @@ exports = class extends View {
       viewportIntersect(viewport, opts.viewport);
     }
 
-
-
-
     opts.viewport = viewport;
 
-    return viewport.x != x || viewport.y != y || viewport.width != width || viewport.height != height;
+    return viewport.x != x || viewport.y != y || viewport.width != width ||
+      viewport.height != height;
   }
-  onInputScroll(evt) {
+  onInputScroll (evt) {
     var style = this._contentView.style;
     var x = style.x;
     var y = style.y;
@@ -809,19 +681,11 @@ exports = class extends View {
       this.addOffset(evt.scrollDelta * 40);
     }
 
-
-
-
-
-
-
-
-
     if (style.y != y || style.x != x) {
       evt.cancel();
     }
   }
-  scrollTo(x, y, opts, cb) {
+  scrollTo (x, y, opts, cb) {
     var bounds = this.getStyleBounds();
     var cvs = this._contentView.style;
 
@@ -849,21 +713,10 @@ exports = class extends View {
         duration = 500;
       }
 
-
-
-
-
-
-
-
-
       if (opts.maxDuration) {
         duration = Math.min(duration, opts.maxDuration);
       }
     }
-
-
-
 
     if (duration) {
       var anim = animate(this._contentView).now({
@@ -888,14 +741,4 @@ if (USE_CLIPPING) {
   exports.prototype.BackingCtor = DEFAULT_BACKING_CTOR;
 }
 
-
-
-
-
-
-
-
-
-
 export default exports;
-

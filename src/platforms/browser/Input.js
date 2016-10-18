@@ -35,22 +35,19 @@ var eventTypes = input.eventTypes;
 
 import InputEvent from 'event/input/InputEvent';
 
-
 // import ...FPSCounter;
 var UID = -1;
 
 var isIOS7 = device.iosVersion === 7;
-var isIOSSafari = device.iosVersion >= 7 && !device.isIpad && !device.isStandalone && !device.isUIWebView;
+var isIOSSafari = device.iosVersion >= 7 && !device.isIpad && !device.isStandalone &&
+  !device.isUIWebView;
 var enableLandscapeScroll = isIOSSafari;
 
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     if (device.simulatingMobileNative || device.simulatingMobileBrowser) {
       this._simulateMobile = true;
     }
-
-
-
 
     this._evtQueue = [];
     this._rootView = opts.rootView;
@@ -61,9 +58,6 @@ exports = class {
       }
       this.setElement(opts.el);
     }
-
-
-
 
     // Mouseover/out events do not fire for mobile browsers
     // that are driven solely by touch events, so in mobile
@@ -76,23 +70,18 @@ exports = class {
     this._keyListener = opts.keyListener;
 
     if (device.useDOM) {
-      $.onEvent(document, device.events.start, this, 'handleMouse', eventTypes.START);
+      $.onEvent(document, device.events.start, this, 'handleMouse',
+        eventTypes.START);
     }
 
-
-
-
     if (opts.engine) {
-      if (opts.engine.getOpt('minIOSLandscapeScroll') > device.iosVersion || opts.engine.getOpt('disableIOSLandscapeScroll')) {
+      if (opts.engine.getOpt('minIOSLandscapeScroll') > device.iosVersion ||
+        opts.engine.getOpt('disableIOSLandscapeScroll')) {
         enableLandscapeScroll = false;
       }
     }
 
-
-
-
     this.enable();
-
 
     // this._evtFps = new FPSCounter({name: "mouse events"});
     this._hasFocus = false;
@@ -101,22 +90,26 @@ exports = class {
       document.addEventListener('blur', bind(this, 'onBlurCapture'), true);
     }
   }
-  enable() {
+  enable () {
     if (this._isEnabled) {
       return;
     }
     this._isEnabled = true;
 
-    this._handleMove = $.onEvent(document, device.events.move, this, 'handleMouse', eventTypes.MOVE);
-    this._handleSelect = $.onEvent(document, device.events.end, this, 'handleMouse', eventTypes.SELECT);
-    this._handleScroll = $.onEvent(window, 'DOMMouseScroll', this, 'handleMouse', eventTypes.SCROLL);
+    this._handleMove = $.onEvent(document, device.events.move, this,
+      'handleMouse', eventTypes.MOVE);
+    this._handleSelect = $.onEvent(document, device.events.end, this,
+      'handleMouse', eventTypes.SELECT);
+    this._handleScroll = $.onEvent(window, 'DOMMouseScroll', this,
+      'handleMouse', eventTypes.SCROLL);
     // FF
-    this._handleWheel = $.onEvent(window, 'mousewheel', this, 'handleMouse', eventTypes.SCROLL);
+    this._handleWheel = $.onEvent(window, 'mousewheel', this, 'handleMouse',
+      eventTypes.SCROLL);
 
     // webkit
     this._addElEvents();
   }
-  disable() {
+  disable () {
     if (!this._isEnabled) {
       return;
     }
@@ -139,32 +132,29 @@ exports = class {
       this._handleWheel = false;
     }
 
-
-
-
     this._removeElEvents();
   }
-  onFocusCapture(e) {
+  onFocusCapture (e) {
     var tag = e.target.tagName;
     if (tag == 'TEXTAREA' || tag == 'INPUT') {
       this._hasFocus = e.target;
       this._keyListener && this._keyListener.setEnabled(false);
     }
   }
-  onBlurCapture(e) {
+  onBlurCapture (e) {
     if (this._hasFocus) {
       this._hasFocus = null;
       this._keyListener && this._keyListener.setEnabled(true);
     }
   }
-  _removeElEvents() {
+  _removeElEvents () {
     if (this._elEvents) {
       for (var i = 0, detach; detach = this._elEvents[i]; ++i) {
         detach();
       }
     }
   }
-  _addElEvents() {
+  _addElEvents () {
     this._removeElEvents();
 
     var el = this._el;
@@ -178,48 +168,43 @@ exports = class {
     this._elEvents = [];
 
     if (!device.useDOM) {
-      this._elEvents.push($.onEvent(el, device.events.start, this, 'handleMouse', eventTypes.START));
+      this._elEvents.push($.onEvent(el, device.events.start, this,
+        'handleMouse', eventTypes.START));
     }
-
-
-
 
     if (!device.isMobileBrowser && !device.isNative) {
       this._elEvents.push($.onEvent(el, 'mouseover', this, 'onMouseOver'));
       this._elEvents.push($.onEvent(el, 'mouseout', this, 'onMouseOut'));
     }
   }
-  setElement(el) {
+  setElement (el) {
     this._removeElEvents();
     this._el = el;
     this._addElEvents();
   }
-  onMouseOver() {
+  onMouseOver () {
     this._isOver = true;
   }
-  onMouseOut() {
+  onMouseOut () {
     this._isOver = false;
   }
-  onMouseDown() {
+  onMouseDown () {
     this._isMouseDown = true;
   }
-  onMouseUp() {
+  onMouseUp () {
     this._isMouseUp = true;
   }
-  getEvents() {
+  getEvents () {
     return this._evtQueue;
   }
-  allowScrollEvents(allowScrollEvents) {
+  allowScrollEvents (allowScrollEvents) {
     this._allowScrollEvents = allowScrollEvents;
   }
-  handleMouse(type, evt) {
+  handleMouse (type, evt) {
     var target = evt.target;
     if (!device.useDOM && !this._isDown && this._el && evt.target != this._el) {
       return;
     }
-
-
-
 
     var isMobileBrowser = device.isMobileBrowser;
 
@@ -231,7 +216,8 @@ exports = class {
       var innerHeight = window.innerHeight;
       var docHeight = document.documentElement.offsetHeight;
       var matches = docHeight === innerHeight;
-      var allowIOSScroll = enableLandscapeScroll && isLandscape && (isIOS7 ? innerHeight !== 320 : !matches);
+      var allowIOSScroll = enableLandscapeScroll && isLandscape && (isIOS7 ?
+        innerHeight !== 320 : !matches);
       if (isIOS7) {
         if (allowIOSScroll) {
           document.documentElement.style.height = '640px';
@@ -240,28 +226,21 @@ exports = class {
         }
       }
 
-
-
-
       if (allowIOSScroll && type === eventTypes.SCROLL) {
         return;
       }
-
-
-
 
       if (!allowIOSScroll) {
         $.stopEvent(evt);
         evt.returnValue = false;
       }
 
-
-
-
-      if (type === eventTypes.SELECT && enableLandscapeScroll && isLandscape && window.scrollY) {
+      if (type === eventTypes.SELECT && enableLandscapeScroll &&
+        isLandscape && window.scrollY) {
         window.scrollTo(0, 0);
       }
-    } else if (this._isOver && (!this._allowScrollEvents || type != eventTypes.SCROLL)) {
+    } else if (this._isOver && (!this._allowScrollEvents || type !=
+        eventTypes.SCROLL)) {
       if (evt.stopPropagation) {
         evt.stopPropagation();
       }
@@ -271,14 +250,6 @@ exports = class {
       }
     }
 
-
-
-
-
-
-
-
-
     // On ios devices, this event could correspond to multiple touches.  We recall
     // ourselves with each changed touch independently.
     if (evt.touches) {
@@ -287,9 +258,6 @@ exports = class {
       }
       return;
     }
-
-
-
 
     var x, y;
     // Figure out where in the canvas the event fired.
@@ -324,41 +292,27 @@ exports = class {
         parent = parent.parentNode;
       }
 
-
-
-
       x = evt.pageX - offsetX;
       y = evt.pageY - offsetY;
     }
-
-
-
-
-
-
-
-
 
     var id = evt.identifier || UID;
 
     if (this._simulateMobile) {
       switch (type) {
-      case eventTypes.START:
-        this._moveOK = true;
-        break;
-      case eventTypes.MOVE:
-        if (!this._moveOK) {
-          return;
-        }
-        break;
-      case eventTypes.SELECT:
-        this._moveOK = false;
-        break;
+        case eventTypes.START:
+          this._moveOK = true;
+          break;
+        case eventTypes.MOVE:
+          if (!this._moveOK) {
+            return;
+          }
+          break;
+        case eventTypes.SELECT:
+          this._moveOK = false;
+          break;
       }
     }
-
-
-
 
     if (type == eventTypes.START) {
       this._isDown = true;
@@ -370,14 +324,6 @@ exports = class {
         document.body.appendChild(this._toggleNode);
       }
     }
-
-
-
-
-
-
-
-
 
     var dpr = device.screen.devicePixelRatio;
 
@@ -391,9 +337,6 @@ exports = class {
       }
       inputEvent.target = target._view;
     }
-
-
-
 
     if (type == eventTypes.SCROLL) {
       // try to normalize scroll events! :-(
@@ -417,27 +360,17 @@ exports = class {
           inputEvent.scrollDelta = evt.wheelDeltaX / 120;
           inputEvent.scrollAxis = input.HORIZONTAL_AXIS;
         }
-
-
-
-
-
-
-
-
-
       } else if (evt.detail) {
         inputEvent.scrollDelta = -evt.detail;
-        inputEvent.scrollAxis = 'axis' in evt ? evt.axis == evt.VERTICAL_AXIS ? input.VERTICAL_AXIS : input.HORIZONTAL_AXIS : input.VERTICAL_AXIS;
+        inputEvent.scrollAxis = 'axis' in evt ? evt.axis == evt.VERTICAL_AXIS ?
+          input.VERTICAL_AXIS : input.HORIZONTAL_AXIS : input.VERTICAL_AXIS;
       } else if (evt.wheelDelta) {
         // IE/Opera
-        inputEvent.scrollDelta = (window.opera ? 1 : -1) * evt.wheelDelta / 120;
+        inputEvent.scrollDelta = (window.opera ? 1 : -1) * evt.wheelDelta /
+          120;
         inputEvent.scrollAxis = input.VERTICAL_AXIS;
       }
     }
-
-
-
 
     input.dispatchEvent(this._rootView, inputEvent);
   }

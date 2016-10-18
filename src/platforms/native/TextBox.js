@@ -35,45 +35,44 @@ var defaults = {
 };
 
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     logger.log('in init');
     opts = merge(opts, defaults);
     logger.log('making a textbox with opts', JSON.stringify(opts));
     this._id = T.create(opts.x, opts.y, opts.width, opts.height, opts.text);
   }
-  setPosition(p) {
+  setPosition (p) {
     T.setPosition(this._id, p.x, p.y);
     return this;
   }
-  getPosition() {
+  getPosition () {
     return {
       x: this.getX(),
       y: this.getY()
     };
   }
-  setDimensions(d) {
+  setDimensions (d) {
     T.setDimensions(this._id, d.width, d.height);
     return this;
   }
-  getDimensions() {
+  getDimensions () {
     return {
       width: this.getWidth(),
       height: this.getHeight()
     };
   }
-  setApp() {
-  }
-  setOpacity(opacity) {
+  setApp () {}
+  setOpacity (opacity) {
     T.setOpacity(this._id, opacity);
   }
-  setVisible(isVisible) {
+  setVisible (isVisible) {
     if (isVisible) {
       T.show(this._id);
     } else {
       T.hide(this._id);
     }
   }
-  setValue(text) {
+  setValue (text) {
     T.setValue(this._id, text);
   }
 };
@@ -111,6 +110,5 @@ for (var i = 0, m; m = methods[i]; ++i) {
     }
   })(m);
 }
-
 
 export default exports;

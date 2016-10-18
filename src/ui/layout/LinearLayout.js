@@ -53,31 +53,22 @@ if (DEBUG) {
       return true;
     },
     log: function () {
-      logger.log.apply(logger, [this.space].concat(Array.prototype.slice.call(arguments, 0)));
+      logger.log.apply(logger, [this.space].concat(Array.prototype.slice.call(
+        arguments, 0)));
       return true;
     }
   };
 }
 
-
-
-
-
-
-
-
 // TODO: native
 // TODO: Resize event on width/height change
 // TODO: reflow on subview visibility change
-function toStringSort() {
+function toStringSort () {
   return this.view.style._sortOrder + this.index;
 }
 
-
-
-
 exports = class extends BoxLayout {
-  constructor() {
+  constructor () {
     super(...arguments);
 
     this._view.subscribe('SubviewAdded', this, '_onSubviewAdded');
@@ -91,28 +82,25 @@ exports = class extends BoxLayout {
       }
     }
 
-
-
-
     this._forwardEvents();
 
     this._debug = DEBUG;
   }
-  _onSubviewRemoved(view) {
+  _onSubviewRemoved (view) {
     if (view.style.inLayout) {
       this.remove(view);
     }
   }
-  _onSubviewAdded(view) {
+  _onSubviewAdded (view) {
     if (view.style.inLayout) {
       this.add(view);
     }
   }
-  debug() {
+  debug () {
     this._debug = true;
     return this;
   }
-  _setDirection(direction) {
+  _setDirection (direction) {
     this._direction = direction;
 
     var isVertical = this.isVertical();
@@ -128,26 +116,28 @@ exports = class extends BoxLayout {
 
     this._flexProp = isVertical ? 'vflex' : 'hflex';
   }
-  isVertical() {
+  isVertical () {
     return this._direction == 'vertical';
   }
-  isHorizontal() {
+  isHorizontal () {
     return this._direction == 'horizontal';
   }
-  _forwardEvents() {
+  _forwardEvents () {
     for (var i = 0, a; a = this._events[i]; ++i) {
       this._view.subscribe(a, this, '_forwardSignal', a);
     }
   }
-  _forwardSignal() {
+  _forwardSignal () {
     for (var i = 0, v; v = this._views[i]; ++i) {
       v.view.publish.apply(v.view, arguments);
     }
   }
-  _initLayoutView(view) {
+  _initLayoutView (view) {
     view.style.inLayout = true;
 
-    this._debug && _debug.log('view', this._view.uid, 'layout: adding view', view.uid, '(' + this._propDim, '=', view.style[this._propDim] + ')');
+    this._debug && _debug.log('view', this._view.uid, 'layout: adding view',
+      view.uid, '(' + this._propDim, '=', view.style[this._propDim] + ')'
+    );
 
     // use connectEvent: prevents a memory leak
     // acts like subscribe, but disconnects the event when this._view
@@ -160,10 +150,10 @@ exports = class extends BoxLayout {
       toString: toStringSort
     };
   }
-  getSize() {
+  getSize () {
     return this._size;
   }
-  getViewIndex(view) {
+  getViewIndex (view) {
     for (var i = 0, d; d = this._views[i]; ++i) {
       if (d.view == view) {
         return i;
@@ -171,8 +161,9 @@ exports = class extends BoxLayout {
     }
     return -1;
   }
-  addSubviews(views) {
-    this._debug && _debug.log(this._view.uid, 'adding', views.length, 'views');
+  addSubviews (views) {
+    this._debug && _debug.log(this._view.uid, 'adding', views.length,
+      'views');
     if (isArray(views)) {
       for (var i = 0, n = views.length; i < n; ++i) {
         var view = views[i];
@@ -181,26 +172,20 @@ exports = class extends BoxLayout {
         }
       }
 
-
-
-
       this._view.needsReflow();
     } else {
       this.insertBefore(views);
     }
 
-
-
-
     return this;
   }
 
-  getSubviews() {
+  getSubviews () {
     return this._views.map(function (v) {
       return v.view;
     });
   }
-  remove(view) {
+  remove (view) {
     var i = this.getViewIndex(view);
     if (i != -1) {
       this._views.splice(i, 1);
@@ -210,13 +195,10 @@ exports = class extends BoxLayout {
     }
   }
 
-  insertBefore(view, before) {
+  insertBefore (view, before) {
     if (this.getViewIndex(view) != -1) {
       return;
     }
-
-
-
 
     var item = this._initLayoutView(view);
     var added = false;
@@ -228,26 +210,17 @@ exports = class extends BoxLayout {
       }
     }
 
-
-
-
     if (!added) {
       this._views.push(item);
     }
 
-
-
-
     this._view.needsReflow();
   }
 
-  insertAfter(view, after) {
+  insertAfter (view, after) {
     if (this.getViewIndex(view) != -1) {
       return;
     }
-
-
-
 
     var item = this._initLayoutView(view);
     var added = false;
@@ -259,20 +232,14 @@ exports = class extends BoxLayout {
       }
     }
 
-
-
-
     if (!added) {
       this._views.unshift(item);
     }
 
-
-
-
     this._view.needsReflow();
   }
 
-  reflow() {
+  reflow () {
     super.reflow(...arguments);
 
     // Get the position of each view in the subview array. This index
@@ -282,9 +249,6 @@ exports = class extends BoxLayout {
     for (var i = 0, v; v = children[i]; ++i) {
       indexMap[v.uid] = strPad.pad(i);
     }
-
-
-
 
     // style.order is first, then default to the views position in the
     // subview array.
@@ -297,15 +261,9 @@ exports = class extends BoxLayout {
       }
     }
 
-
-
-
     if (!n) {
       return;
     }
-
-
-
 
     this._views.sort();
 
@@ -313,9 +271,6 @@ exports = class extends BoxLayout {
     if (layoutStyle.direction != this._direction) {
       this._setDirection(layoutStyle.direction);
     }
-
-
-
 
     var scale = this._view.getPosition().scale;
 
@@ -326,11 +281,13 @@ exports = class extends BoxLayout {
     var propA = this._propSideA;
     var propB = this._propSideB;
     var padding = layoutStyle.padding;
-    var paddingSum = padding && (isVertical ? padding.getVertical() : padding.getHorizontal()) || 0;
+    var paddingSum = padding && (isVertical ? padding.getVertical() :
+      padding.getHorizontal()) || 0;
     var parentDim = layoutStyle[propDim];
     var views = this._views;
 
-    this._debug && _debug.log(VIEW_STR(this._view) + ': layout', this._direction + ',', views.length, 'subview(s):') && _debug.stepIn() && this._summarize();
+    this._debug && _debug.log(VIEW_STR(this._view) + ': layout', this._direction +
+      ',', views.length, 'subview(s):') && _debug.stepIn() && this._summarize();
 
     // compute the total size of the fixed views and count
     // how many dynamically sized views we have
@@ -354,24 +311,15 @@ exports = class extends BoxLayout {
       }
     }
 
-
-
-
     if (flexSum && parentDim == undefined) {
       return;
     }
-
-
-
 
     // compute available space
     var availableSpace = parentDim - paddingSum;
     if (availableSpace < 0) {
       return;
     }
-
-
-
 
     // if there's a flex subview, the total size is the availableSpace
     // otherwise the totalSize is the sum of the subview sizes
@@ -388,12 +336,10 @@ exports = class extends BoxLayout {
         continue;
       }
 
-
-
-
       if (s.flex) {
         // compute the ideal space for the flex view
-        var idealSpace = v.baseSize + flexSize * (s.flex / flexSum) / s.scale + balance;
+        var idealSpace = v.baseSize + flexSize * (s.flex / flexSum) / s.scale +
+          balance;
 
         // round to the nearest screen pixel (take into account the global scale of the layout view)
         var roundedSpace = Math.round(idealSpace * scale) / scale;
@@ -409,16 +355,10 @@ exports = class extends BoxLayout {
           v.dim = s[this._maxPropDim];
         }
 
-
-
-
         // keep track of used flex space
         flexUsed += roundedSpace;
       }
     }
-
-
-
 
     var flexRemaining = flexSize - flexUsed;
 
@@ -428,27 +368,24 @@ exports = class extends BoxLayout {
     if (flexRemaining > 0) {
       // there's unused space, so justify our views
       switch (justifyContent) {
-      case 'end':
-        pos += flexRemaining;
-        break;
-      case 'center':
-        pos += flexRemaining / 2;
-        break;
-      case 'space':
-        gap = flexRemaining / (n - 1) || 0;
-        break;
-      case 'space-outside':
-        gap = flexRemaining / (n + 1) || 0;
-        pos += gap;
-        break;
-      case 'start':
-      default:
-        break;
+        case 'end':
+          pos += flexRemaining;
+          break;
+        case 'center':
+          pos += flexRemaining / 2;
+          break;
+        case 'space':
+          gap = flexRemaining / (n - 1) || 0;
+          break;
+        case 'space-outside':
+          gap = flexRemaining / (n + 1) || 0;
+          pos += gap;
+          break;
+        case 'start':
+        default:
+          break;
       }
     }
-
-
-
 
     // position and size views!
     var propPos = this._propPos;
@@ -459,30 +396,23 @@ exports = class extends BoxLayout {
         continue;
       }
 
-
-
-
       // set position
       s[propPos] = pos + (s[propA] || 0);
 
-      this._debug && _debug.log('->', VIEW_STR(v.view), propPos, '=', s[propPos]);
+      this._debug && _debug.log('->', VIEW_STR(v.view), propPos, '=', s[
+        propPos]);
 
       if (s.flex) {
         // set width
         s[propDim] = v.dim;
 
-        this._debug && _debug.log('->', VIEW_STR(v.view), propDim, '=', s[propDim]);
+        this._debug && _debug.log('->', VIEW_STR(v.view), propDim, '=', s[
+          propDim]);
       }
-
-
-
 
       // advance position
       pos += gap + (s[propDim] || 0) * s.scale + v.margins;
     }
-
-
-
 
     this._debug && this._summarize() && _debug.stepOut();
 
@@ -492,27 +422,18 @@ exports = class extends BoxLayout {
       this.reflowX();
     }
 
-
-
-
-
-
-
-
-
     if (this._size != totalSize) {
       this._size = totalSize;
     }
   }
-  _summarize() {
+  _summarize () {
     var views = this._views;
     for (var i = 0, v; v = views[i]; ++i) {
       var s = v.view.style;
-      _debug.log('*', VIEW_STR(v.view) + ': ' + (!s.visible ? 'invisible' : ''), s.x + ',' + s.y + '-' + s.width + 'x' + s.height + ' (flex=' + (s.flex || 0) + ')');
+      _debug.log('*', VIEW_STR(v.view) + ': ' + (!s.visible ? 'invisible' :
+          ''), s.x + ',' + s.y + '-' + s.width + 'x' + s.height +
+        ' (flex=' + (s.flex || 0) + ')');
     }
-
-
-
 
     return true;
   }

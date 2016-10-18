@@ -20,11 +20,12 @@ import { NATIVE } from 'base';
 import InputEvent from 'event/input/InputEvent';
 
 exports = class {
-  getEvents() {
+  getEvents () {
     if (NATIVE.timestep && NATIVE.timestep.getEvents) {
       return NATIVE.timestep.getEvents();
     } else {
-      var raw = NATIVE.input.getTouchEvents(), evts = [];
+      var raw = NATIVE.input.getTouchEvents(),
+        evts = [];
       var j = 0;
       for (var i = 0, e; e = raw[i]; ++i) {
         evts[j++] = new InputEvent(e.id, e.type, e.pt);
@@ -40,6 +41,5 @@ exports = class {
 if (NATIVE.timestep && NATIVE.timestep.getEvents && !NATIVE.timestep.InputEvent) {
   NATIVE.timestep.InputEvent = InputEvent;
 }
-
 
 export default exports;

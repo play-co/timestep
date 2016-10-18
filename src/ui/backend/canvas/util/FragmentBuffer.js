@@ -25,7 +25,6 @@ import device from 'device';
 import FragmentBin from './FragmentBin';
 import SortedList from './SortedLinkedList';
 
-
 var debug = false;
 
 var sort = function (a, b) {
@@ -33,7 +32,8 @@ var sort = function (a, b) {
 };
 
 var randomColor = function () {
-  var color = 'rgba(' + (Math.random() * 255).toFixed() + ',' + (Math.random() * 255).toFixed() + ',' + (Math.random() * 255).toFixed() + ',' + '1)';
+  var color = 'rgba(' + (Math.random() * 255).toFixed() + ',' + (Math.random() *
+    255).toFixed() + ',' + (Math.random() * 255).toFixed() + ',' + '1)';
   return color;
 };
 
@@ -65,22 +65,23 @@ var debugCheck = function (bin, list) {
   }
 };
 
-
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     this.opts = merge(opts, {});
     this._cache = {};
     this._decriptions = [];
     window.addEventListener('pageshow', bind(this, 'clearBuffer'), false);
   }
-  _build() {
+  _build () {
     var Canvas = device.get('Canvas');
     this._canvas = new Canvas({
       width: 1024,
       height: 1024
     });
     this._ctx = this.getCanvas().getContext('2d', bind(this, function () {
-      logger.log('{fragment-buffer} Reacting to lost canvas by clearing text buffer');
+      logger.log(
+        '{fragment-buffer} Reacting to lost canvas by clearing text buffer'
+      );
       // On canvas loss:
       this._canvas = null;
       this.clearBuffer();
@@ -99,22 +100,22 @@ exports = class {
     this._binList.insert(head);
     debug && window.open().document.body.appendChild(this._canvas);
   }
-  getCanvas() {
+  getCanvas () {
     if (!this._canvas) {
       this._build();
     }
     return this._canvas;
   }
-  getContext() {
+  getContext () {
     if (!this._ctx) {
       this._build();
     }
     return this._ctx;
   }
-  onGetHash(description) {
+  onGetHash (description) {
     throw Error('onGetHash should be implemented.');
   }
-  _insertText(description) {
+  _insertText (description) {
     var width = Math.ceil(description.width) + 1;
     var height = Math.ceil(description.height) + 1;
     var iter = this._binList.iterator();
@@ -125,7 +126,7 @@ exports = class {
       if (!bin.filled && bin.width >= width && bin.height >= height) {
         found = true;
       } else {
-        //we don't want to insert in filled bins
+        // we don't want to insert in filled bins
         bin = null;
       }
     }
@@ -138,14 +139,11 @@ exports = class {
       logger.log('buffer full, further TextViews will not be cached');
     }
 
-
-
-
     // When we support clearing buffers then this should be enabled again...
     // this.clearBuffer();
     return bin;
   }
-  getPositionForText(description) {
+  getPositionForText (description) {
     var hash = this.onGetHash(description);
     var width = Math.ceil(description.width) + 1;
 
@@ -158,11 +156,10 @@ exports = class {
     }
     return this._cache[hash];
   }
-  releaseBin(hash) {
-    if (this._cache[hash]) {
-    }
+  releaseBin (hash) {
+    if (this._cache[hash]) {}
   }
-  clearBuffer() {
+  clearBuffer () {
     this._cache = {};
     this._binList = new SortedList(sort);
     this._binList.insert(new FragmentBin({

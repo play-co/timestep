@@ -34,28 +34,25 @@ import animate from 'animate';
  * @extends ui.View
  */
 exports = class extends View {
-  constructor(opts) {
+  constructor (opts) {
     opts = merge(opts, { layout: 'box' });
     super(opts);
     this.stack = [];
   }
-  getStack() {
+  getStack () {
     return this.stack;
   }
-  getCurrentView() {
+  getCurrentView () {
     if (!this.stack.length) {
       return null;
     }
     return this.stack[this.stack.length - 1];
   }
-  push(view, dontAnimate, reverse) {
+  push (view, dontAnimate, reverse) {
     // don't animate the first (base) view of a stackview unless explicitly asked to
     if (!this.stack[0] && dontAnimate !== false) {
       dontAnimate = true;
     }
-
-
-
 
     var current = this.getCurrentView();
     if (current) {
@@ -68,60 +65,59 @@ exports = class extends View {
     this._show(view, dontAnimate, reverse);
     return view;
   }
-  _hide(view, dontAnimate, reverse) {
+  _hide (view, dontAnimate, reverse) {
     view.publish('ViewWillDisappear');
     if (!dontAnimate) {
       this.getInput().blockEvents = true;
-      animate(view).then({ x: (reverse ? 1 : -1) * this.style.width }).then(bind(this, function () {
-        this.removeSubview(view);
-        view.publish('ViewDidDisappear');
-        this.getInput().blockEvents = false;
-      }));
+      animate(view).then({ x: (reverse ? 1 : -1) * this.style.width }).then(
+        bind(this, function () {
+          this.removeSubview(view);
+          view.publish('ViewDidDisappear');
+          this.getInput().blockEvents = false;
+        }));
     } else {
       this.removeSubview(view);
       view.publish('ViewDidDisappear');
     }
   }
-  _show(view, dontAnimate, reverse) {
+  _show (view, dontAnimate, reverse) {
     view.publish('ViewWillAppear');
     view.style.visible = true;
     if (!dontAnimate) {
       view.style.x = (reverse ? -1 : 1) * this.style.width;
       this.addSubview(view);
-      animate(view).then({ x: 0 }).then(bind(view, 'publish', 'ViewDidAppear'));
+      animate(view).then({ x: 0 }).then(bind(view, 'publish',
+        'ViewDidAppear'));
     } else {
       this.addSubview(view);
       view.style.x = 0;
       view.publish('ViewDidAppear');
     }
   }
-  hasView(view) {
+  hasView (view) {
     return this.stack.indexOf(view) >= 0;
   }
-  remove(view) {
+  remove (view) {
     var i = this.stack.indexOf(view);
     if (i >= 0) {
       this.stack.splice(i, 1);
     }
   }
-  pop(dontAnimate, reverse) {
+  pop (dontAnimate, reverse) {
     if (!this.stack.length) {
       return false;
     }
     var view = this.stack.pop();
-    //reverse by default
+    // reverse by default
     this._hide(view, dontAnimate, reverse === false ? false : true);
 
     if (this.stack.length) {
       this._show(this.stack[this.stack.length - 1], dontAnimate, true);
     }
 
-
-
-
     return view;
   }
-  popAll(dontAnimate) {
+  popAll (dontAnimate) {
     while (this.stack[1]) {
       this.pop(dontAnimate);
     }

@@ -35,10 +35,11 @@ import browser from 'util/browser';
 let $ = browser.$;
 
 var gListenerSingleton = null;
-var gCancelKeys = Enum(keyConstants.SPACE, keyConstants.LEFT, keyConstants.RIGHT, keyConstants.UP, keyConstants.DOWN);
+var gCancelKeys = Enum(keyConstants.SPACE, keyConstants.LEFT, keyConstants.RIGHT,
+  keyConstants.UP, keyConstants.DOWN);
 
 exports = class {
-  constructor(el, events) {
+  constructor (el, events) {
     if (gListenerSingleton) {
       return gListenerSingleton;
     }
@@ -55,22 +56,19 @@ exports = class {
     $.onEvent(el, 'keyup', this, 'onKeyUp');
     $.onEvent(window, 'blur', this, 'liftAll');
   }
-  setEnabled(isEnabled) {
+  setEnabled (isEnabled) {
     this._isEnabled = isEnabled;
   }
-  captureShortcut(shortcut) {
+  captureShortcut (shortcut) {
     this._shortcuts.push(shortcut);
   }
-  getPressed() {
+  getPressed () {
     return this._keyMap;
   }
-  onKeyDown(e) {
+  onKeyDown (e) {
     if (!this._isEnabled) {
       return;
     }
-
-
-
 
     var evt = {
       code: e.keyCode,
@@ -92,9 +90,6 @@ exports = class {
         }
       }
 
-
-
-
       if (captured) {
         $.stopEvent(e);
       }
@@ -105,25 +100,15 @@ exports = class {
       $.stopEvent(e);
     }
 
-
-
-
     // We already know that key is down; ignore repeat events.
     if (e.keyCode in this._keyMap) {
       return;
     }
 
-
-
-
-
-
-
-
     this._events.push(evt);
     this._keyMap[e.keyCode] = +new Date();
   }
-  liftAll() {
+  liftAll () {
     var progressDt = timer.getTickProgress();
     for (var code in this._keyMap) {
       this._events.push({
@@ -134,7 +119,7 @@ exports = class {
     }
     this._keyMap = {};
   }
-  onKeyUp(e) {
+  onKeyUp (e) {
     var progressDt = timer.getTickProgress();
     delete this._keyMap[e.keyCode];
     this._events.push({
@@ -144,7 +129,7 @@ exports = class {
     });
     $.stopEvent(e);
   }
-  onKeyPress(e) {
+  onKeyPress (e) {
     if (!this._isEnabled) {
       return;
     }
@@ -152,10 +137,10 @@ exports = class {
       $.stopEvent(e);
     }
   }
-  peekEvents() {
+  peekEvents () {
     return this._events;
   }
-  popEvents() {
+  popEvents () {
     return this._events.splice(0, this._events.length);
   }
 };
@@ -164,7 +149,7 @@ exports = class {
 merge(exports.prototype, keyConstants);
 
 exports.Shortcut = class extends PubSub {
-  constructor(keyCode, ctrl, shift, alt, meta) {
+  constructor (keyCode, ctrl, shift, alt, meta) {
     super();
 
     this.ctrl = !!ctrl;
@@ -173,8 +158,10 @@ exports.Shortcut = class extends PubSub {
     this.meta = !!meta;
     this.code = !!keyCode;
   }
-  compare(shortcut) {
-    return this.ctrl == shortcut.ctrl && this.alt == shortcut.alt && this.meta == shortcut.meta && this.shift == shortcut.shift && this.code == shortcut.code;
+  compare (shortcut) {
+    return this.ctrl == shortcut.ctrl && this.alt == shortcut.alt && this.meta ==
+      shortcut.meta && this.shift == shortcut.shift && this.code ==
+      shortcut.code;
   }
 };
 

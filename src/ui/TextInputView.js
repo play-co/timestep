@@ -32,7 +32,7 @@ import View from 'ui/View';
 var TextBox = device.get('TextBox');
 
 exports = class extends View {
-  constructor(opts) {
+  constructor (opts) {
     opts = merge(opts, {
       color: 'black',
       height: 20,
@@ -46,38 +46,34 @@ exports = class extends View {
     this._opts = opts;
     this.updatePosition();
   }
-  getOpacity() {
-    var view = this, opacity = this.style.opacity;
+  getOpacity () {
+    var view = this,
+      opacity = this.style.opacity;
     while (view._superview) {
       view = view._superview;
       opacity *= view.style.opacity;
     }
     return opacity;
   }
-  _clearSuperview() {
+  _clearSuperview () {
     super._clearSuperview(...arguments);
 
     this._textBox.destroy();
     this._textBox = null;
   }
-  updatePosition() {
+  updatePosition () {
     var app = this.getApp();
     if (!app) {
       return;
     }
 
-
-
-
     var s = this.style;
     var a = this._props;
     var b = this.getPosition();
-    if (this._textBox && a.x == b.x && a.y == b.y && a.width == b.width && a.height == b.height && a.opacity == s.opacity) {
+    if (this._textBox && a.x == b.x && a.y == b.y && a.width == b.width &&
+      a.height == b.height && a.opacity == s.opacity) {
       return;
     }
-
-
-
 
     var box = this._textBox;
     if (!box) {
@@ -85,9 +81,6 @@ exports = class extends View {
       this._textBox.onChange = bind(this, '_onValueChanged');
       box.setValue(this._opts.value || '');
     }
-
-
-
 
     box.setApp(app);
     box.setPosition(b);
@@ -97,22 +90,22 @@ exports = class extends View {
 
     this._props = b;
   }
-  _onValueChanged() {
+  _onValueChanged () {
     this.publish('ValueChanged', this.getValue());
   }
-  setValue(value) {
+  setValue (value) {
     return this._textBox.setValue(value);
   }
-  getValue() {
+  getValue () {
     return this._textBox.getValue();
   }
-  updateStyle(style) {
+  updateStyle (style) {
     this._el.style = merge(style, this._el.style);
   }
-  updateOpts(opts) {
+  updateOpts (opts) {
     this.opts = merge(opts, this.opts);
   }
-  render() {
+  render () {
     this.updatePosition();
   }
 };

@@ -126,12 +126,11 @@ var PARTICLE_KEYS = Object.keys(PARTICLE_DEFAULTS);
 var MAX_TEX_WIDTH = 1024;
 var MAX_TEX_HEIGHT = 1024;
 
-
 /**
  * @extends ui.View, same API as ui.ParticleEngine.js
  */
 exports = class extends View {
-  constructor(opts) {
+  constructor (opts) {
     opts = opts || {};
     // blend engines don't allow input events
     opts.canHandleEvents = false;
@@ -160,7 +159,7 @@ exports = class extends View {
       useWebGL: true
     });
   }
-  obtainParticleArray(count, opts) {
+  obtainParticleArray (count, opts) {
     var isBrowser = userAgent.APP_RUNTIME === 'browser';
     var isMobile = userAgent.DEVICE_TYPE === 'mobile';
     var isSimulator = userAgent.SIMULATED;
@@ -168,7 +167,9 @@ exports = class extends View {
     opts = opts || {};
 
     // TODO: disable blend engine on mobile browsers until the performance is improved
-    count = opts.performanceScore && isBrowser && isMobile && !isSimulator ? 0 : performance.getAdjustedParticleCount(count, opts.performanceScore, opts.allowReduction);
+    count = opts.performanceScore && isBrowser && isMobile && !isSimulator ?
+      0 : performance.getAdjustedParticleCount(count, opts.performanceScore,
+        opts.allowReduction);
 
     for (var i = 0; i < count; i++) {
       // duplicate copy of default properties for optimal performance
@@ -234,7 +235,7 @@ exports = class extends View {
     }
     return this._particleDataArray;
   }
-  _cleanObject(obj) {
+  _cleanObject (obj) {
     for (var i = 0, len = PARTICLE_KEYS.length; i < len; i++) {
       var key = PARTICLE_KEYS[i];
       obj[key] = PARTICLE_DEFAULTS[key];
@@ -243,7 +244,7 @@ exports = class extends View {
     // don't keep an array in the PARTICLE_DEFAULTS object
     return obj;
   }
-  emitParticles(particleDataArray) {
+  emitParticles (particleDataArray) {
     var count = particleDataArray.length;
     var active = this._activeParticleObjects;
     for (var i = 0; i < count; i++) {
@@ -253,19 +254,16 @@ exports = class extends View {
         img = imageCache[data.image] = new Image({ url: data.image });
       }
 
-
-
-
       // Inverse scale will be calculated incorrectly for non-sprited images that haven't previously
       // been loaded.  We detect those here and redo the calculation.
-      var needsInverseScale = img._invScaleX === undefined || img._invScaleY === undefined || img._invScaleX < 0 || img._invScaleY < 0;
+      var needsInverseScale = img._invScaleX === undefined || img._invScaleY ===
+        undefined || img._invScaleX < 0 || img._invScaleY < 0;
       if (needsInverseScale) {
-        img._invScaleX = 1 / (img._map.marginLeft + img._map.width + img._map.marginRight);
-        img._invScaleY = 1 / (img._map.marginTop + img._map.height + img._map.marginBottom);
+        img._invScaleX = 1 / (img._map.marginLeft + img._map.width + img._map
+          .marginRight);
+        img._invScaleY = 1 / (img._map.marginTop + img._map.height + img._map
+          .marginBottom);
       }
-
-
-
 
       if (!data.delay) {
         data.onStart && data.onStart(data);
@@ -273,31 +271,21 @@ exports = class extends View {
         throw new Error('Particles cannot have negative delay values!');
       }
 
-
-
-
-
-
-
-
-
       if (data.ttl < 0) {
-        throw new Error('Particles cannot have negative time-to-live values!');
+        throw new Error(
+          'Particles cannot have negative time-to-live values!');
       }
-
-
-
 
       active.push(data);
     }
     particleDataArray.length = 0;
   }
-  _killParticle(index) {
+  _killParticle (index) {
     var data = this._activeParticleObjects.splice(index, 1)[0];
     data.onDeath && data.onDeath(data);
     this._freeParticleObjects.push(this._cleanObject(data));
   }
-  killAllParticles() {
+  killAllParticles () {
     // protect against canvas context clear before native texture is ready
     if (this._activeParticleObjects.length) {
       while (this._activeParticleObjects.length) {
@@ -310,7 +298,7 @@ exports = class extends View {
       this._canvas.getContext('2D').clear();
     }
   }
-  runTick(dt) {
+  runTick (dt) {
     var active = this._activeParticleObjects;
     var free = this._freeParticleObjects;
     var i = 0;
@@ -334,18 +322,12 @@ exports = class extends View {
         }
       }
 
-
-
-
       // is it dead yet?
       data.elapsed += dt;
       if (data.elapsed >= data.ttl) {
         this._killParticle(i);
         continue;
       }
-
-
-
 
       // calculate the percent of one second elapsed; deltas are in units / second
       var pct = dt / 1000;
@@ -355,9 +337,6 @@ exports = class extends View {
         var prgAfter = getTransitionProgress(data.elapsed / data.ttl);
         pct = (prgAfter - prgBefore) * data.ttl / 1000;
       }
-
-
-
 
       // translation
       if (data.polar) {
@@ -380,9 +359,6 @@ exports = class extends View {
         data.dx += pct * data.ddx;
         data.dy += pct * data.ddy;
       }
-
-
-
 
       // anchor translation
       data.anchorX += pct * data.danchorX;
@@ -439,12 +415,11 @@ exports = class extends View {
         index += 1;
       }
 
-
-
-
       // establish absolute bounds
-      var absX = data.absX = data.x + data.anchorX * (1 - data.scale * data.scaleX);
-      var absY = data.absY = data.y + data.anchorY * (1 - data.scale * data.scaleY);
+      var absX = data.absX = data.x + data.anchorX * (1 - data.scale * data
+        .scaleX);
+      var absY = data.absY = data.y + data.anchorY * (1 - data.scale * data
+        .scaleY);
       var absW = data.absW = data.width * data.scale * data.scaleX;
       var absH = data.absH = data.height * data.scale * data.scaleY;
       if (absX < minX) {
@@ -462,9 +437,6 @@ exports = class extends View {
       i += 1;
     }
 
-
-
-
     // establish canvas size and position, bounded by max texture size
     if (shouldUpdate) {
       if (minX > maxX) {
@@ -480,18 +452,17 @@ exports = class extends View {
       var canvW = maxX - minX;
       var canvH = maxY - minY;
       if (canvW > MAX_TEX_WIDTH) {
-        var cx = this._forceCenterX !== void 0 ? this._forceCenterX : canvX + canvW / 2;
+        var cx = this._forceCenterX !== void 0 ? this._forceCenterX : canvX +
+          canvW / 2;
         canvX = cx - MAX_TEX_WIDTH / 2;
         canvW = MAX_TEX_WIDTH;
       }
       if (canvH > MAX_TEX_HEIGHT) {
-        var cy = this._forceCenterY !== void 0 ? this._forceCenterY : canvY + canvH / 2;
+        var cy = this._forceCenterY !== void 0 ? this._forceCenterY : canvY +
+          canvH / 2;
         canvY = cy - MAX_TEX_HEIGHT / 2;
         canvH = MAX_TEX_HEIGHT;
       }
-
-
-
 
       // render our particle images to the canvas's context
       var ctx = this._canvas.getContext('2D');
@@ -504,21 +475,17 @@ exports = class extends View {
 
         // context rotation
         if (data.r !== 0) {
-          ctx.translate(data.x + data.anchorX - canvX, data.y + data.anchorY - canvY);
+          ctx.translate(data.x + data.anchorX - canvX, data.y + data.anchorY -
+            canvY);
           ctx.rotate(data.r);
-          ctx.translate(-data.x - data.anchorX + canvX, -data.y - data.anchorY + canvY);
+          ctx.translate(-data.x - data.anchorX + canvX, -data.y - data.anchorY +
+            canvY);
         }
-
-
-
 
         // context opacity
         if (data.opacity !== 1) {
           ctx.globalAlpha *= data.opacity;
         }
-
-
-
 
         ctx.globalCompositeOperation = data.compositeOperation;
 
@@ -531,17 +498,13 @@ exports = class extends View {
         var scaleX = destW * img._invScaleX;
         var scaleY = destH * img._invScaleY;
         if (map.width > 0 && map.height > 0) {
-          ctx.drawImage(img._srcImg, map.x, map.y, map.width, map.height, destX + scaleX * map.marginLeft, destY + scaleY * map.marginTop, scaleX * map.width, scaleY * map.height);
+          ctx.drawImage(img._srcImg, map.x, map.y, map.width, map.height,
+            destX + scaleX * map.marginLeft, destY + scaleY * map.marginTop,
+            scaleX * map.width, scaleY * map.height);
         }
-
-
-
 
         _ctx.restore();
       }
-
-
-
 
       // update our current canvas rendering size and position
       this._canvX = canvX;
@@ -550,13 +513,14 @@ exports = class extends View {
       this._canvH = canvH;
     }
   }
-  render(ctx) {
-    ctx.drawImage(this._canvas, 0, 0, this._canvW, this._canvH, this._canvX, this._canvY, this._canvW, this._canvH);
+  render (ctx) {
+    ctx.drawImage(this._canvas, 0, 0, this._canvW, this._canvH, this._canvX,
+      this._canvY, this._canvW, this._canvH);
   }
-  getActiveParticles() {
+  getActiveParticles () {
     return this._activeParticleObjects;
   }
-  forEachActiveParticle(fn, ctx) {
+  forEachActiveParticle (fn, ctx) {
     var active = this._activeParticleObjects;
     var f = bind(ctx, fn);
     for (var i = active.length - 1; i >= 0; i--) {

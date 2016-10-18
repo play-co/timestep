@@ -26,18 +26,16 @@ import device from 'device';
 import underscore from 'util/underscore';
 let _ = underscore._;
 
-
 var defaults = {
   oneChannelOnly: device.isMobileBrowser,
   compiledFilename: 'compiled'
 };
 
-
 /**
  * @extends lib.PubSub
  */
 exports = class extends PubSub {
-  constructor(opts) {
+  constructor (opts) {
     opts = merge(opts, defaults);
     super(opts);
     this._opts = opts;
@@ -53,23 +51,17 @@ exports = class extends PubSub {
       }, this);
     }
 
-
-
-
-
-
-
-
     // Install the event listener right away. Set usecapture=true so that
     // nothing else will affect us from intercepting this event.
     this._load();
     if (this.oneChannelOnly) {
       this._boundLoadHandler = bind(this, '_playFirst');
-      document.body.addEventListener(device.events.start, this._boundLoadHandler, true);
+      document.body.addEventListener(device.events.start, this._boundLoadHandler,
+        true);
     }
     window.addEventListener('pagehide', bind(this, 'pause'), false);
   }
-  _createChannel(name, src) {
+  _createChannel (name, src) {
     var audio = new Audio(src);
     this._audios[name] = audio;
 
@@ -78,40 +70,38 @@ exports = class extends PubSub {
 
     audio.load();
   }
-  setMuted(muted) {
+  setMuted (muted) {
     this.muted = muted;
     if (muted) {
       this.setVolume(0);
     }
   }
-  setVolume(volume) {
+  setVolume (volume) {
     _.each(this._audios, function (audio, key) {
       audio.volume = volume;
     });
   }
-  unload() {
+  unload () {
     this.pause();
     _.each(this._audios, function (audio, key) {
       audio.src = '';
     }, this);
   }
-  _load() {
+  _load () {
     this._audios = {};
     var path = this._opts.path.replace(/\/$/, '');
     if (this.oneChannelOnly) {
-      this._createChannel('AUDIO', path + '/' + this._opts.compiledFilename + '.m4a');
+      this._createChannel('AUDIO', path + '/' + this._opts.compiledFilename +
+        '.m4a');
     } else {
       for (var key in this._map)
-        if (this._map.hasOwnProperty(key)) {
+        { if (this._map.hasOwnProperty(key)) {
           if (key == 'SILENCE') {
             continue;
           }
           this._createChannel(key, path + '/' + key + '.mp3');
-        }
+        } }
     }
-
-
-
 
     logger.info('now loading', this._opts.src);
 
@@ -121,12 +111,13 @@ exports = class extends PubSub {
       this._publishedReady = true;
     }
   }
-  _playFirst() {
-    document.body.removeEventListener(device.events.start, this._boundLoadHandler, true);
+  _playFirst () {
+    document.body.removeEventListener(device.events.start, this._boundLoadHandler,
+      true);
 
     this._audios['AUDIO'].play();
   }
-  _ontimeupdate(evt) {
+  _ontimeupdate (evt) {
     _.each(this._audios, function (audio, key) {
       if (audio.paused && !audio._pausedOnce) {
         audio.pause();
@@ -134,31 +125,24 @@ exports = class extends PubSub {
         audio._ready = true;
       }
 
-
-
-
       if (this.oneChannelOnly) {
         if (!this._nowPlaying || audio.currentTime >= this._nowPlaying.end) {
           this.play('SILENCE');
         }
       }
     }, this);
-
   }
-  _onerror(event) {
+  _onerror (event) {
     var s = '';
     for (var key in event) {
       s += event[key] + ' ';
     }
     logger.info('ERROR', s);
   }
-  canPlay(name) {
+  canPlay (name) {
     if (!this._map[name]) {
       return false;
     }
-
-
-
 
     var requiredEnd = null;
     if (this.oneChannelOnly) {
@@ -169,9 +153,6 @@ exports = class extends PubSub {
     if (!audio) {
       return false;
     }
-
-
-
 
     // if (!audio._ready) {
     //  return; // try downloading the whole file...
@@ -188,13 +169,10 @@ exports = class extends PubSub {
       }
     }
   }
-  play(name, volume, loop) {
+  play (name, volume, loop) {
     if (this.muted) {
       return;
     }
-
-
-
 
     if (volume === undefined) {
       volume = 1;
@@ -203,9 +181,6 @@ exports = class extends PubSub {
       logger.info('Not ready yet');
       return;
     }
-
-
-
 
     var audio = this._audios[this.oneChannelOnly ? 'AUDIO' : name];
     try {
@@ -218,40 +193,33 @@ exports = class extends PubSub {
         startTime = this._map[name].start;
       }
       if (audio.currentTime != startTime) {
-        // logger.log('SEEK to play',name, startTime, 'from',audio.currentTime); // 
+        // logger.log('SEEK to play',name, startTime, 'from',audio.currentTime); //
         audio.currentTime = startTime;
       }
       audio.volume = volume;
       audio.play();
       this._nowPlaying = this._map[name];
-    } catch (e) {
-    }
+    } catch (e) {}
   }
-  pause() {
+  pause () {
     _.each(this._audios, function (audio, key) {
       audio.pause();
     }, this);
   }
-  playBackgroundMusic(name, volume) {
+  playBackgroundMusic (name, volume) {
     if (this.muted) {
       return;
     }
-
-
-
 
     if (this.oneChannelOnly) {
       return false;
     }
 
-
-
-
     // cannot play bg music here.
     this._backgroundSoundPlaying = name;
     this.play(name, volume);
   }
-  pauseBackgroundMusic() {
+  pauseBackgroundMusic () {
     if (!this._backgroundSoundPlaying) {
       return;
     }

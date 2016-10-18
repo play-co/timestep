@@ -17,25 +17,24 @@ let exports = {};
  */
 import setProperty from 'util/setProperty';
 
-
 // keys map to properties
 var BASE_STYLE_PROPS = {
   'x': { value: 0 },
   'y': { value: 0 },
   'offsetX': { value: 0 },
-  //translate
+  // translate
   'offsetY': { value: 0 },
   'offsetXPercent': {
     value: undefined,
     cb: '_onOffsetX'
   },
-  //not implemented
+  // not implemented
   'offsetYPercent': {
     value: undefined,
     cb: '_onOffsetY'
   },
   'anchorX': { value: 0 },
-  //rotation and scale
+  // rotation and scale
   'anchorY': { value: 0 },
   'centerAnchor': { value: false },
   'width': { cb: '_onResize' },
@@ -53,15 +52,14 @@ var BASE_STYLE_PROPS = {
   'flipY': { value: false },
   'visible': { value: true },
   'shadowColor': { value: 'black' },
-  //only has an effect in TextView??
+  // only has an effect in TextView??
   'clip': { value: false },
   'backgroundColor': { value: '' },
   'compositeOperation': { value: undefined }
 };
 
-
 exports = class {
-  localizePoint(pt) {
+  localizePoint (pt) {
     pt.x -= this.x + this.anchorX + this.offsetX;
     pt.y -= this.y + this.anchorY + this.offsetY;
     if (this.r) {
@@ -72,22 +70,15 @@ exports = class {
     pt.y += this.anchorY;
     return pt;
   }
-  copy() {
+  copy () {
     var copy = {};
     for (var key in styleKeys) {
       copy[key] = this[key];
     }
 
-
-
-
-
-
-
-
     return copy;
   }
-  update(style) {
+  update (style) {
     for (var i in style) {
       if (style.hasOwnProperty(i) && styleKeys.hasOwnProperty(i)) {
         this[i] = style[i];
@@ -108,6 +99,5 @@ BaseBacking.prototype.constructor.addProperty = function (key, def) {
 for (var key in BASE_STYLE_PROPS) {
   BaseBacking.prototype.constructor.addProperty(key, BASE_STYLE_PROPS[key]);
 }
-
 
 export default exports;

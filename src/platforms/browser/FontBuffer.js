@@ -29,28 +29,30 @@ var randomColorElement = function () {
 };
 
 var randomColor = function () {
-  return '#' + randomColorElement() + randomColorElement() + randomColorElement();
+  return '#' + randomColorElement() + randomColorElement() +
+    randomColorElement();
 };
 
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     // 8 * 24
     // 10 * 32
     // 8 * 64
-    var lineSizes = [
-        {
-          size: 24,
-          count: 8
-        },
-        {
-          size: 32,
-          count: 10
-        },
-        {
-          size: 64,
-          count: 8
-        }
-      ], lineSize, lines, item, y = 0, i, j;
+    var lineSizes = [{
+        size: 24,
+        count: 8
+      },
+      {
+        size: 32,
+        count: 10
+      },
+      {
+        size: 64,
+        count: 8
+      }
+      ],
+      lineSize, lines, item, y = 0,
+      i, j;
 
     this._canvas = document.createElement('canvas');
     this._canvas.width = 1024;
@@ -79,17 +81,11 @@ exports = class {
         y += lineSize.size;
       }
 
-
-
-
       this._list.push({
         size: lineSize.size,
         lines: lines
       });
     }
-
-
-
 
     this._hashMap = {};
 
@@ -98,10 +94,13 @@ exports = class {
 
     engineInstance.get().subscribe('Tick', this, this._onTick);
   }
-  _onTick(dt) {
+  _onTick (dt) {
     this._currentFrame++;
 
-    var remove, currentFrame = this._currentFrame, frameTimeout = this._frameTimeout, list = this._list, lines, item, i, j, k, l;
+    var remove, currentFrame = this._currentFrame,
+      frameTimeout = this._frameTimeout,
+      list = this._list,
+      lines, item, i, j, k, l;
 
     for (i = 0, j = list.length; i < j; i++) {
       lines = list[i].lines;
@@ -125,19 +124,23 @@ exports = class {
       }
     }
   }
-  alloc(opts) {
-    var requestHeight = opts.height, requestWidth = opts.width + 3,
+  alloc (opts) {
+    var requestHeight = opts.height,
+      requestWidth = opts.width + 3,
       // Add some extra pixels to allow color bleeding...
-      strokeStyle = opts.strokeStyle || '', fillStyle = opts.fillStyle || '', font = opts.font || '', hash = strokeStyle + '_' + fillStyle + '_' + font + '_' + opts.text, list = this._list, lines, item = this._hashMap[hash], i, j, k, l;
+      strokeStyle = opts.strokeStyle || '',
+      fillStyle = opts.fillStyle || '',
+      font = opts.font || '',
+      hash = strokeStyle + '_' + fillStyle + '_' + font + '_' + opts.text,
+      list = this._list,
+      lines, item = this._hashMap[hash],
+      i, j, k, l;
 
     if (item) {
       item.frame = this._currentFrame;
       item.refresh = false;
       return item;
     }
-
-
-
 
     for (i = 0, j = list.length; i < j; i++) {
       if (requestHeight <= list[i].size) {
@@ -147,7 +150,7 @@ exports = class {
           while (item) {
             if (requestWidth <= item.width && item.hash === null) {
               if (requestWidth !== item.width) {
-                //console.log('request:', requestWidth, 'width:', item.width, 'rest:', item.width - requestWidth);
+                // console.log('request:', requestWidth, 'width:', item.width, 'rest:', item.width - requestWidth);
                 item.next = {
                   previous: item,
                   next: item.next,
@@ -160,16 +163,14 @@ exports = class {
                 };
               }
 
-
-
-
               item.frame = this._currentFrame;
               item.hash = hash;
               item.width = requestWidth;
               item.height = requestHeight;
               item.refresh = true;
 
-              this._ctx.clearRect(item.x, item.y, requestWidth, requestHeight);
+              this._ctx.clearRect(item.x, item.y, requestWidth,
+                requestHeight);
 
               this._hashMap[hash] = item;
               return item;
@@ -178,19 +179,13 @@ exports = class {
           }
         }
 
-
-
-
         break;
       }
     }
 
-
-
-
     return false;
   }
-  getCanvas() {
+  getCanvas () {
     return this._canvas;
   }
 };

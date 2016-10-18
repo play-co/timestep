@@ -33,23 +33,21 @@ import dispatch from 'event/input/dispatch';
 
 var viewModes = new Enum('FPS', 'DT');
 
-function strokeRect(ctx, rect, color) {
+function strokeRect (ctx, rect, color) {
   ctx.fillStyle = color;
   ctx.fillRect(rect.x, rect.y, 1, rect.height);
   ctx.fillRect(rect.x, rect.y, rect.width, 1);
   ctx.fillRect(rect.x + rect.width - 1, rect.y, 1, rect.height);
   ctx.fillRect(rect.x, rect.y + rect.height - 1, rect.width, 1);
-}
-;
+};
 
-function fillRect(ctx, rect, color) {
+function fillRect (ctx, rect, color) {
   ctx.fillStyle = color;
   ctx.fillRect(rect.x, rect.y, rect.width, rect.height);
-}
-;
+};
 
 class Graph {
-  constructor(opts) {
+  constructor (opts) {
     var Canvas = device.get('Canvas');
 
     this._width = opts.width;
@@ -71,8 +69,14 @@ class Graph {
     this._offset = 0;
     this._index = 0;
   }
-  addValues(values, timeAxis) {
-    var ctx = this._ctx, width = this._width, height = this._height, value, maxValue = this._maxValue, x = (this._offset + this._index) % width, y = this._height, n, i, j;
+  addValues (values, timeAxis) {
+    var ctx = this._ctx,
+      width = this._width,
+      height = this._height,
+      value, maxValue = this._maxValue,
+      x = (this._offset + this._index) % width,
+      y = this._height,
+      n, i, j;
 
     ctx.fillStyle = this._backgroundColor;
     ctx.fillRect(x, 0, 2, height);
@@ -87,9 +91,6 @@ class Graph {
       ctx.fillStyle = this._colors[i];
       ctx.fillRect(x, height - n, 2, n);
     }
-
-
-
 
     ctx.fillStyle = this._axisColor;
     if (timeAxis) {
@@ -108,20 +109,24 @@ class Graph {
       }
     }
   }
-  render(ctx, x, y) {
-    var offset = this._offset, width = this._width, height = this._height;
+  render (ctx, x, y) {
+    var offset = this._offset,
+      width = this._width,
+      height = this._height;
 
     if (offset === 0) {
       ctx.drawImage(this._canvas, 0, 0, width, height, x, y, width, height);
     } else {
-      ctx.drawImage(this._canvas, offset, 0, width - offset, height, x, y, width - offset, height);
-      ctx.drawImage(this._canvas, 0, 0, offset, height, width - offset + x, y, offset, height);
+      ctx.drawImage(this._canvas, offset, 0, width - offset, height, x, y,
+        width - offset, height);
+      ctx.drawImage(this._canvas, 0, 0, offset, height, width - offset + x, y,
+        offset, height);
     }
   }
 }
 
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     this._application = opts.application;
 
     this._time = +new Date() + 1000;
@@ -131,7 +136,8 @@ exports = class {
 
     this._minimized = true;
 
-    var width = 200, height = 100;
+    var width = 200,
+      height = 100;
 
     this._rectTop = new Rect(1, 1, width, 16);
     this._rectMin = new Rect(0, 0, 24, 15);
@@ -171,7 +177,7 @@ exports = class {
       axisColor: '#FFFFFF'
     });
   }
-  tick(dt) {
+  tick (dt) {
     var time = +new Date();
     if (time > this._time) {
       this._time = time + 1000;
@@ -181,67 +187,58 @@ exports = class {
       this._frames++;
     }
 
-
-
-
     var events = this._application.getEvents();
     if (events.length) {
       this._handleEvents(events);
     }
 
-
-
-
     this._dt = this._dt * 0.8 + dt * 0.2;
 
     if (!this._minimized) {
       switch (this._viewMode) {
-      case viewModes.DT:
-        this._graphs[viewModes.DT].addValues([
-          this._dt,
-          dt
-        ], this._frames === 1);
-        break;
+        case viewModes.DT:
+          this._graphs[viewModes.DT].addValues([
+            this._dt,
+            dt
+          ], this._frames === 1);
+          break;
 
-
-
-
-      case viewModes.FPS:
-        this._graphs[viewModes.FPS].addValues([
-          this._fps,
-          1000 / dt
-        ], this._frames === 1);
-        break;
+        case viewModes.FPS:
+          this._graphs[viewModes.FPS].addValues([
+            this._fps,
+            1000 / dt
+          ], this._frames === 1);
+          break;
       }
     }
   }
-  _handleEvents(events) {
+  _handleEvents (events) {
     var types = dispatch.eventTypes;
     var i = events.length;
 
     while (i) {
       var event = events[--i];
       switch (event.type) {
-      case types.START:
-        if (intersect.ptAndRect(event.srcPt, this._rect)) {
-          if (this._minimized) {
-            this._minimized = false;
-          } else {
-            if (intersect.ptAndRect(event.srcPt, this._rectFPS)) {
-              this._viewMode = viewModes.FPS;
-            } else if (intersect.ptAndRect(event.srcPt, this._rectDT)) {
-              this._viewMode = viewModes.DT;
+        case types.START:
+          if (intersect.ptAndRect(event.srcPt, this._rect)) {
+            if (this._minimized) {
+              this._minimized = false;
             } else {
-              this._minimized = true;
+              if (intersect.ptAndRect(event.srcPt, this._rectFPS)) {
+                this._viewMode = viewModes.FPS;
+              } else if (intersect.ptAndRect(event.srcPt, this._rectDT)) {
+                this._viewMode = viewModes.DT;
+              } else {
+                this._minimized = true;
+              }
             }
+            this._rect = this._minimized ? this._rectMin : this._rectMax;
           }
-          this._rect = this._minimized ? this._rectMin : this._rectMax;
-        }
-        break;
+          break;
       }
     }
   }
-  render(ctx) {
+  render (ctx) {
     ctx.save();
 
     ctx.textBaseline = 'top';
@@ -256,7 +253,8 @@ exports = class {
       ctx.fillStyle = this._borderColor;
       ctx.fillRect(0, 16, this._rect.width, 1);
 
-      var fpsMode = this._viewMode === viewModes.FPS, dtMode = this._viewMode === viewModes.DT;
+      var fpsMode = this._viewMode === viewModes.FPS,
+        dtMode = this._viewMode === viewModes.DT;
 
       fillRect(ctx, this._rectFPS, fpsMode ? this._borderColor : this._backgroundColor);
       ctx.fillStyle = fpsMode ? this._textColor : this._borderColor;
@@ -267,9 +265,6 @@ exports = class {
       ctx.fillText('DT', this._rectDT.x + this._rectDT.width / 2, 0);
     }
 
-
-
-
     strokeRect(ctx, this._rect, this._borderColor);
 
     ctx.fillStyle = this._textColor;
@@ -277,7 +272,7 @@ exports = class {
 
     ctx.restore();
   }
-  getFPS() {
+  getFPS () {
     return this._fps;
   }
 };

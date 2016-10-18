@@ -18,17 +18,17 @@ let exports = {};
 /**
  * @class event.input.InputEvent;
  * This class represents an input event.
- * 
+ *
  * It assumes a tree structure of View objects.  The top (root) of the
- * tree is typically the main Application view.  
- * 
+ * tree is typically the main Application view.
+ *
  * Events are assigned a root and a target.  View::dispatchEvent
  * computes the root and target from the event location (x, y).
  *
- * Propogation has two phases: capturing and bubbling.  Users 
- * can mostly ignore capturing as the primary hooks are in the 
+ * Propogation has two phases: capturing and bubbling.  Users
+ * can mostly ignore capturing as the primary hooks are in the
  * bubbling.  Bubbling is defined as calling event handlers on
- * each view starting with 'target' and then continuing up 
+ * each view starting with 'target' and then continuing up
  * superview pointers until reaching 'root'.  Views can listen
  * to the event bubbling by adding methods such as:
  * "input:start" -> "function onInputStart(evt)"
@@ -52,7 +52,7 @@ import Point from 'math/geom/Point';
 import timer from 'timer';
 
 exports = class {
-  constructor(id, evtType, x, y, root, target) {
+  constructor (id, evtType, x, y, root, target) {
     // unique ID for a particular input - the ID should be constant for a given input
     // for example, the mouse should always have the same ID.  Each finger (touch)
     // should have the same ID throughout the touch start/move/end process
@@ -80,11 +80,12 @@ exports = class {
     // Bottom-most view where the event occurred
     this.target = target || null;
   }
-  cancel() {
+  cancel () {
     this.cancelled = true;
   }
-  clone() {
-    return new InputEvent(this.id, this.type, this.srcPt.x, this.srcPt.y, this.root, this.target);
+  clone () {
+    return new InputEvent(this.id, this.type, this.srcPt.x, this.srcPt.y,
+      this.root, this.target);
   }
 };
 exports.prototype.cancelled = false;

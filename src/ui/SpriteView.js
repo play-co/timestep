@@ -28,9 +28,9 @@ let exports = {};
  *     someFolder/spriteName-animationName-0002.png
  *
  * You'd instantiate a Sprite like so:
- * 
+ *
  *     var mySprite = new SpriteView({url: "someFolder/spriteName"})
- * 
+ *
  * The SpriteView class automatically find the images associated with that
  * sprite and generates the configuration for each of the animations.
  *
@@ -55,16 +55,13 @@ import loader from 'ui/resource/loader';
 var GROUPS = {};
 
 exports = class extends ImageView {
-  constructor(opts) {
+  constructor (opts) {
     this._opts = opts = merge(opts, this.defaults);
     opts.visible = false;
 
     if (DEBUG && device.useDOM) {
       opts['dom:multipleImageNodes'] = true;
     }
-
-
-
 
     super(opts);
 
@@ -73,7 +70,7 @@ exports = class extends ImageView {
 
     this.resetAllAnimations(opts);
   }
-  resetAllAnimations(opts) {
+  resetAllAnimations (opts) {
     this.stopAnimation();
 
     this._opts = opts = merge(opts, this.defaults);
@@ -87,9 +84,6 @@ exports = class extends ImageView {
       GROUPS[this.groupID] = new Group();
     }
 
-
-
-
     this._animations = {};
 
     if (opts.sheetData) {
@@ -99,7 +93,9 @@ exports = class extends ImageView {
         if (!this._opts.defaultAnimation) {
           this._opts.defaultAnimation = animName;
         }
-        this.loadFromSheet(animName, opts.sheetData.url, w, h, opts.sheetData.offsetX || w, opts.sheetData.offsetY || h, opts.sheetData.startX || 0, opts.sheetData.startY || 0, opts.sheetData.anims[animName]);
+        this.loadFromSheet(animName, opts.sheetData.url, w, h, opts.sheetData
+          .offsetX || w, opts.sheetData.offsetY || h, opts.sheetData.startX ||
+          0, opts.sheetData.startY || 0, opts.sheetData.anims[animName]);
       }
     } else {
       for (var animName in animations) {
@@ -110,9 +106,6 @@ exports = class extends ImageView {
       }
     }
 
-
-
-
     if (opts.autoSize && this._opts.defaultAnimation) {
       var frameImages = this._animations[this._opts.defaultAnimation].frames;
       if (frameImages[0]) {
@@ -121,12 +114,10 @@ exports = class extends ImageView {
       }
     }
 
-
-
-
     opts.autoStart && this.startAnimation(this._opts.defaultAnimation, opts);
   }
-  loadFromSheet(animName, sheetUrl, width, height, offsetX, offsetY, startX, startY, frames) {
+  loadFromSheet (animName, sheetUrl, width, height, offsetX, offsetY, startX,
+    startY, frames) {
     var frameImages = [];
     for (var i = 0; i < frames.length; i++) {
       frameImages.push(new Image({
@@ -139,7 +130,7 @@ exports = class extends ImageView {
     }
     this._animations[animName] = { frames: frameImages };
   }
-  addAnimation(animName, frameData) {
+  addAnimation (animName, frameData) {
     if (!isArray(frameData)) {
       frameData = SpriteView.allAnimations[frameData][animName];
     }
@@ -153,31 +144,25 @@ exports = class extends ImageView {
     }
     this._animations[animName] = { frames: frameImages };
   }
-  getFrame(animName, index) {
+  getFrame (animName, index) {
     return this._animations[animName].frames[index];
   }
-  getFrameCount(animName) {
+  getFrameCount (animName) {
     return this._animations[animName].frames.length;
   }
-  getGroup(groupID) {
+  getGroup (groupID) {
     return GROUPS[groupID || this.groupID];
   }
-  startAnimation(name, opts) {
+  startAnimation (name, opts) {
     opts = opts || {};
 
     if (opts.randomFrame === true && opts.frame == null) {
       opts.frame = Math.random() * this._animations[name].frames.length | 0;
     }
 
-
-
-
     if (opts.loop === true) {
       opts.iterations = Infinity;
     }
-
-
-
 
     this._iterationsLeft = opts.iterations || 1;
     this._callback = opts.callback || null;
@@ -187,11 +172,9 @@ exports = class extends ImageView {
     this._delay = 0;
 
     if (!this._animations[name]) {
-      throw new Error('Animation ' + name + ' does not exist: ' + this._opts.url + '.');
+      throw new Error('Animation ' + name + ' does not exist: ' + this._opts
+        .url + '.');
     }
-
-
-
 
     if (!this.isPlaying) {
       this.tick = this._tickSprite;
@@ -200,49 +183,43 @@ exports = class extends ImageView {
       this.style.visible = true;
     }
 
-
-
-
     // align the image for the first time
     this._tickSprite(0);
   }
-  stopAnimation() {
+  stopAnimation () {
     if (this.isPlaying) {
       this.style.visible = false;
       this.tick = null;
       this.isPlaying = this.running = false;
-      //use isPlaying, this.running is deprecated
+      // use isPlaying, this.running is deprecated
       this.isPaused = this._isPaused = false;
-      //use isPaused instead, _isPaused is deprecated
+      // use isPaused instead, _isPaused is deprecated
       GROUPS[this.groupID].remove(this.uid);
     }
   }
-  resetAnimation() {
+  resetAnimation () {
     if (!this._opts.loop) {
       this.stopAnimation();
     } else {
       this.startAnimation(this._opts.defaultAnimation);
     }
   }
-  hasAnimation(name) {
+  hasAnimation (name) {
     return !!this._animations[name];
   }
-  setFramerate(fps) {
+  setFramerate (fps) {
     this.frameRate = fps || 0.00001;
   }
-  pause() {
+  pause () {
     this.isPaused = this._isPaused = true;
   }
-  resume() {
+  resume () {
     this.isPaused = this._isPaused = false;
   }
-  _tickSprite(dt) {
+  _tickSprite (dt) {
     if (this.isPaused) {
       return;
     }
-
-
-
 
     dt += this._dt;
 
@@ -254,9 +231,6 @@ exports = class extends ImageView {
       return;
     }
 
-
-
-
     var anim = this._animations[this._currentAnimationName];
     var stepTime = 1000 / this.frameRate;
     var frameSteps = dt / stepTime | 0;
@@ -267,9 +241,6 @@ exports = class extends ImageView {
     if (this._currentFrame < 0) {
       this._currentFrame += anim.frames.length;
     }
-
-
-
 
     if (this.onScreen && (frameSteps !== 0 || dt === 0)) {
       var image = this._animations[this._currentAnimationName].frames[this._currentFrame];
@@ -283,10 +254,8 @@ exports = class extends ImageView {
       }
     }
 
-
-
-
-    var iterationsCompleted = (prevFrame + frameSteps) / anim.frames.length | 0;
+    var iterationsCompleted = (prevFrame + frameSteps) / anim.frames.length |
+      0;
     if (iterationsCompleted) {
       this._delay = this._opts.delay;
       if (--this._iterationsLeft <= 0) {
@@ -295,7 +264,7 @@ exports = class extends ImageView {
 
         this.resetAnimation();
         if (cb)
-          cb();
+          { cb(); }
       }
     }
   }
@@ -316,7 +285,7 @@ var SpriteView = exports;
 SpriteView.allAnimations = {};
 SpriteView.getGroup = SpriteView.prototype.getGroup;
 
-(function loadAnimations() {
+(function loadAnimations () {
   // build the animation frame map
   var resourceMap = loader.getMap();
   var allAnimations = SpriteView.allAnimations;
@@ -346,35 +315,34 @@ SpriteView.getGroup = SpriteView.prototype.getGroup;
   }
 }());
 
-
 /**
  * Group class
  */
 class Group extends jsio.__filename {
-  constructor() {
+  constructor () {
     super();
 
     this.sprites = {};
   }
-  add(sprite) {
+  add (sprite) {
     this.sprites[sprite.uid] = sprite;
   }
-  remove(uid) {
+  remove (uid) {
     delete this.sprites[uid];
   }
-  pause() {
+  pause () {
     this._forEachSprite('pause');
   }
-  resume() {
+  resume () {
     this._forEachSprite('resume');
   }
-  stopAnimation() {
+  stopAnimation () {
     this._forEachSprite('stopAnimation');
   }
-  resetAnimation() {
+  resetAnimation () {
     this._forEachSprite('resetAnimation');
   }
-  _forEachSprite(method) {
+  _forEachSprite (method) {
     for (var i in this.sprites) {
       this.sprites[i][method]();
     }

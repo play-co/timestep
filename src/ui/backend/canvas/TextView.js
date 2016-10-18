@@ -35,7 +35,6 @@ var messageFont = true;
 // Report first font error message
 var textViewID = 1;
 
-
 var DEPRECATED = {
   multiline: { replacement: 'wrap' },
   textAlign: { replacement: 'horizontalAlign' },
@@ -124,12 +123,11 @@ fontBuffer.onGetHash = function (desc) {
   return desc.textView.getHash();
 };
 
-
 /**
  * @extends ui.View
  */
 exports = class extends View {
-  constructor(opts) {
+  constructor (opts) {
     opts = merge(opts, defaults);
     super(opts);
 
@@ -147,27 +145,25 @@ exports = class extends View {
     this._initComplete = true;
     this.updateOpts(opts);
   }
-  onChangeWidth(width) {
+  onChangeWidth (width) {
     this.updateOpts({ width: width }, true);
   }
-  onChangeHeight(height) {
+  onChangeHeight (height) {
     this.updateOpts({ height: height }, true);
   }
-  onChangeSize(size, ctx) {
+  onChangeSize (size, ctx) {
     this.updateOpts({ size: size }, true);
     if (ctx) {
-      ctx.font = this._opts.fontWeight + ' ' + this._opts.size + 'px ' + this._opts.fontFamily;
+      ctx.font = this._opts.fontWeight + ' ' + this._opts.size + 'px ' +
+        this._opts.fontFamily;
     }
   }
-  _restoreOpts() {
+  _restoreOpts () {
     var optsLast = this._optsLast;
     if (!optsLast) {
       console.warn('No _optsLast to restore');
       return;
     }
-
-
-
 
     var optsKey;
     var i = savedOpts.length;
@@ -178,15 +174,12 @@ exports = class extends View {
       }
     }
   }
-  _checkOpts(opts) {
+  _checkOpts (opts) {
     var optsLast = this._optsLast;
     if (!optsLast) {
       console.warn('No _optsLast to check against');
       return;
     }
-
-
-
 
     var optsKey;
     var i = clearCacheKeys.length;
@@ -197,7 +190,8 @@ exports = class extends View {
     }
     while (i) {
       optsKey = clearCacheKeys[--i];
-      if (optsKey in opts && clearCache[optsKey] && optsLast[optsKey] !== opts[optsKey]) {
+      if (optsKey in opts && clearCache[optsKey] && optsLast[optsKey] !==
+        opts[optsKey]) {
         this._cacheUpdate = true;
       }
       if (optsKey in opts) {
@@ -209,13 +203,14 @@ exports = class extends View {
       }
     }
   }
-  _checkDeprecatedOpts(opts) {
+  _checkDeprecatedOpts (opts) {
     opts.allowVerticalSizing = !legacySettings.disableVerticalAutoSize;
     for (var k in DEPRECATED) {
       if (k in opts) {
         var dep = DEPRECATED[k];
         if (DEBUG && !dep.hasWarned) {
-          console.warn('TextView opts.' + k + ' is deprecated, please use ' + dep.replacement + '...');
+          console.warn('TextView opts.' + k + ' is deprecated, please use ' +
+            dep.replacement + '...');
           dep.hasWarned = true;
         }
         opts[dep.replacement] = opts[k];
@@ -224,7 +219,9 @@ exports = class extends View {
     var font = opts.font;
     if (font) {
       if (DEBUG && messageFont) {
-        console.warn('TextView opts.font is deprecated, please use fontFamily and size...');
+        console.warn(
+          'TextView opts.font is deprecated, please use fontFamily and size...'
+        );
         messageFont = false;
       }
       while (font.length && font[0] === ' ') {
@@ -232,23 +229,21 @@ exports = class extends View {
       }
       var i = font.indexOf(' ');
       if (i !== -1) {
-        opts.size = parseInt(font.substr(0, i).replace(/[pxtem\s]/gi, ''), 10);
+        opts.size = parseInt(font.substr(0, i).replace(/[pxtem\s]/gi, ''),
+          10);
         opts.fontFamily = font.substr(i + 1 - font.length);
       }
     }
   }
-  updateCache() {
+  updateCache () {
     this._cacheUpdate = true;
     this._hash = false;
   }
-  updateOpts(opts, dontCheck) {
+  updateOpts (opts, dontCheck) {
     if (!this._initComplete) {
       console.warn('TextView instance not yet ready');
       return;
     }
-
-
-
 
     // update emoticon data
     if (opts.emoticonData) {
@@ -259,9 +254,6 @@ exports = class extends View {
         }
       }
     }
-
-
-
 
     if (this._opts.buffer) {
       fontBuffer.releaseBin(this.getHash());
@@ -281,9 +273,6 @@ exports = class extends View {
       }
     }
 
-
-
-
     opts = super.updateOpts(...arguments);
 
     'text' in opts && this.setText(opts.text);
@@ -291,7 +280,7 @@ exports = class extends View {
 
     return opts;
   }
-  _updateCtx(ctx) {
+  _updateCtx (ctx) {
     var opts = this._opts;
 
     ctx.textAlign = 'left';
@@ -300,10 +289,11 @@ exports = class extends View {
     ctx.font = opts.fontWeight + ' ' + opts.size + 'px ' + opts.fontFamily;
     ctx.lineWidth = this.getStrokeWidth();
   }
-  _renderToCtx(ctx, offsetX, offsetY) {
+  _renderToCtx (ctx, offsetX, offsetY) {
     var opts = this._opts;
     var words = this._textFlow.getWords();
-    var maxWidth = opts.autoFontSize ? this._textFlow.getAvailableWidth() : 1000000;
+    var maxWidth = opts.autoFontSize ? this._textFlow.getAvailableWidth() :
+      1000000;
     var item;
     var word;
     var color = opts.color;
@@ -317,9 +307,6 @@ exports = class extends View {
       color = this.color;
     }
 
-
-
-
     this._updateCtx(ctx);
 
     while (i) {
@@ -329,17 +316,15 @@ exports = class extends View {
       x = offsetX + item.x;
       y = offsetY + item.y;
 
-      var emoticonData = word[0] == '(' && opts.emoticonData && opts.emoticonData.data[word];
+      var emoticonData = word[0] == '(' && opts.emoticonData && opts.emoticonData
+        .data[word];
       if (emoticonData) {
-        //ctx.fillStyle = color;
-        //ctx.fillRect(x + lineOffset, y + lineOffset, opts.size, opts.size);
+        // ctx.fillStyle = color;
+        // ctx.fillRect(x + lineOffset, y + lineOffset, opts.size, opts.size);
         if (emoticonData.image) {
-          emoticonData.image.render(ctx, x + lineOffset, y + lineOffset, opts.size, opts.size);
+          emoticonData.image.render(ctx, x + lineOffset, y + lineOffset,
+            opts.size, opts.size);
         }
-
-
-
-
       } else {
         if (shadowColor) {
           var shadowOffsetX = this._opts.shadowWidth || 0;
@@ -355,26 +340,22 @@ exports = class extends View {
           }
           if (strokeColor) {
             ctx.strokeStyle = shadowColor;
-            ctx.strokeText(word, x + lineOffset + shadowOffsetX, y + lineOffset + shadowOffsetY, maxWidth);
+            ctx.strokeText(word, x + lineOffset + shadowOffsetX, y +
+              lineOffset + shadowOffsetY, maxWidth);
           } else {
             ctx.fillStyle = shadowColor;
-            ctx.fillText(word, x + lineOffset + shadowOffsetX, y + lineOffset + shadowOffsetY, maxWidth);
+            ctx.fillText(word, x + lineOffset + shadowOffsetX, y +
+              lineOffset + shadowOffsetY, maxWidth);
           }
           if (hasShadowOpacity) {
             ctx.globalAlpha = oldOpacity;
           }
         }
 
-
-
-
         if (strokeColor) {
           ctx.strokeStyle = strokeColor;
           ctx.strokeText(word, x + lineOffset, y + lineOffset, maxWidth);
         }
-
-
-
 
         ctx.fillStyle = color;
         ctx.fillText(word, x + lineOffset, y + lineOffset, maxWidth);
@@ -387,7 +368,7 @@ exports = class extends View {
       ctx.strokeRect(0, 0, this.style.width, this.style.height);
     }
   }
-  _renderBuffer(ctx) {
+  _renderBuffer (ctx) {
     var fontBufferCtx = fontBuffer.getContext();
     var offsetRect = this._textFlow.getOffsetRect();
     var width = offsetRect.width;
@@ -405,30 +386,30 @@ exports = class extends View {
       if (desc != null) {
         if (this._cacheUpdate) {
           fontBufferCtx.clearRect(desc.x, desc.y, desc.width, desc.height);
-          this._renderToCtx(fontBufferCtx, desc.x - offsetRect.x, desc.y - offsetRect.y);
+          this._renderToCtx(fontBufferCtx, desc.x - offsetRect.x, desc.y -
+            offsetRect.y);
         }
-        ctx.drawImage(fontBuffer.getCanvas(), desc.x, desc.y, width, height, offsetRect.x, offsetRect.y, width, height);
+        ctx.drawImage(fontBuffer.getCanvas(), desc.x, desc.y, width, height,
+          offsetRect.x, offsetRect.y, width, height);
       } else {
         this._opts.buffer = false;
       }
     }
   }
-  computeSize(ctx) {
+  computeSize (ctx) {
     if (this._cacheUpdate) {
       this._updateCtx(ctx);
       var opts = this._opts;
-      this._textFlow.reflow(ctx, 1 + (opts.autoFontSize ? 4 : 0) + (opts.autoSize ? 2 : 0) + (opts.wrap ? 1 : 0));
+      this._textFlow.reflow(ctx, 1 + (opts.autoFontSize ? 4 : 0) + (opts.autoSize ?
+        2 : 0) + (opts.wrap ? 1 : 0));
     }
   }
-  render(ctx) {
+  render (ctx) {
     this.computeSize(ctx);
     if (!this._textFlow.getWords().length) {
       this._cacheUpdate = false;
       return;
     }
-
-
-
 
     if (this._opts.buffer) {
       this._renderBuffer(ctx);
@@ -437,38 +418,30 @@ exports = class extends View {
       this._renderToCtx(ctx, strokeWidthOffset, strokeWidthOffset);
     }
 
-
-
-
     this._cacheUpdate = false;
   }
-  clearBuffers() {
+  clearBuffers () {
     fontBuffer.clearBuffer();
   }
-  getFontBuffer() {
+  getFontBuffer () {
     return fontBuffer;
   }
-  setText(textData) {
+  setText (textData) {
     var text = textData != undefined ? textData.toString() : '';
 
     var emoticonData = this._opts.emoticonData;
     if (emoticonData) {
       for (var key in emoticonData.map) {
-        var re = new RegExp(key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g');
+        var re = new RegExp(key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'),
+          'g');
         text = text.replace(re, emoticonData.map[key]);
       }
     }
-
-
-
 
     if (this._opts.text !== text) {
       if (this._opts.buffer) {
         fontBuffer.releaseBin(this.getHash());
       }
-
-
-
 
       this._restoreOpts();
       this._opts.text = text;
@@ -476,19 +449,20 @@ exports = class extends View {
       this.needsRepaint();
     }
   }
-  getStrokeWidth() {
+  getStrokeWidth () {
     return this._opts.strokeColor ? this._opts.strokeWidth : 0;
   }
-  getText() {
+  getText () {
     return this._opts.text;
   }
-  getTag() {
-    return 'TextView' + this.uid + ':' + (this.tag || (this._opts.text || '').substring(0, 20));
+  getTag () {
+    return 'TextView' + this.uid + ':' + (this.tag || (this._opts.text ||
+      '').substring(0, 20));
   }
-  getOpts() {
+  getOpts () {
     return this._opts;
   }
-  getHash() {
+  getHash () {
     if (!this._hash) {
       this._hash = '';
 
@@ -499,9 +473,8 @@ exports = class extends View {
       }
     }
     return this._hash;
-
   }
-  reflow() {
+  reflow () {
     this._restoreOpts();
     this._cacheUpdate = true;
   }

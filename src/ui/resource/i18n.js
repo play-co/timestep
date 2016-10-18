@@ -56,7 +56,6 @@ var EU_REGIONS = [
   'YT'
 ];
 
-
 var defaultOpts = {
   languageCode: LANGUAGE_CODE,
   regionCode: REGION_CODE,
@@ -64,12 +63,11 @@ var defaultOpts = {
   defaultStringsFile: 'en.json'
 };
 
-
 /**
  * The i18n Class provides localization support for string JSON files.
  */
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     opts = merge(opts, defaultOpts);
     this._languageCode = opts.languageCode;
     this._regionCode = opts.regionCode;
@@ -79,13 +77,13 @@ exports = class {
 
     this.loadStrings(this._stringsPath, this._defaultStringsFile);
   }
-  getLanguageCode() {
+  getLanguageCode () {
     return this._languageCode;
   }
-  getRegionCode() {
+  getRegionCode () {
     return this._regionCode;
   }
-  loadStrings(path, defaultFile) {
+  loadStrings (path, defaultFile) {
     var lc = this._languageCode;
     var rc = this._regionCode;
     var locPath = path + lc + '-' + rc + '.json';
@@ -103,7 +101,7 @@ exports = class {
       console.error('No JSON found for files:', locPath, langPath, defPath);
     }
   }
-  getString(key) {
+  getString (key) {
     var value = this._strings[key];
     return value !== undefined ? value : key;
   }
@@ -112,7 +110,7 @@ exports = class {
 /**
  * This function is used by resource/loader to map localized resources to
  * the base resources directory automatically.
- * 
+ *
  * To leverage this resource localization, structure your resource
  * directories like this:
  *
@@ -120,17 +118,17 @@ exports = class {
  *   resources
  *   └── images
  *       └── hero.png
- * 
+ *
  * language localized directory:
  *   resources-zh
  *   └── images
  *       └── hero.png
- * 
+ *
  * regional localized directory:
  *   resources-zh-TW
  *   └── images
  *       └── hero.png
- * 
+ *
  * You can then always use resources/images/hero.png, and the image will
  * automatically point to the best image for your user's language or region.
  *

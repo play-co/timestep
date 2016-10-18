@@ -32,9 +32,11 @@ NATIVE.input.subscribe('KeyUp', function (evt) {
 });
 
 NATIVE.input.subscribe('FocusNext', function (evt) {
-  if (evt.next && focused && focused._textEditView && focused._textEditView._forwardTextEditView) {
+  if (evt.next && focused && focused._textEditView && focused._textEditView
+    ._forwardTextEditView) {
     focused._textEditView._forwardTextEditView.requestFocus();
-  } else if (!evt.next && focused && focused._textEditView && focused._textEditView._backTextEditView) {
+  } else if (!evt.next && focused && focused._textEditView && focused._textEditView
+    ._backTextEditView) {
     focused._textEditView._backTextEditView.requestFocus();
   }
 });
@@ -43,11 +45,9 @@ NATIVE.input.subscribe('Submit', function (evt) {
   focused && focused.submit(evt.close);
 });
 
-
 NATIVE.events.registerHandler('editText.onFinishEditing', function (evt) {
   focused && focused.finishEditing();
 });
-
 
 var defaults = {
   hint: '',
@@ -57,28 +57,25 @@ var defaults = {
   inputReturnButton: 'default'
 };
 
-
 // default (return) | go | google | join | next | route | search | send | yahoo | done | emergencycall,
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     console.log('instantiate EditText with hint: ' + opts.hint);
     this._opts = merge(opts, defaults);
     this._textEditView = opts.textEditView;
-    this.onFocusChange = opts.onFocusChange || function () {
-    };
-    this.onSubmit = opts.onSubmit || function () {
-    };
+    this.onFocusChange = opts.onFocusChange || function () {};
+    this.onSubmit = opts.onSubmit || function () {};
   }
-  onChange(value, prevValue, cursorPos) {
+  onChange (value, prevValue, cursorPos) {
     this._value = value;
     if (this._opts.onChange) {
       this._opts.onChange(value, prevValue, cursorPos);
     }
   }
-  getValue() {
+  getValue () {
     return this._value;
   }
-  setValue(value, cursorPos) {
+  setValue (value, cursorPos) {
     this._value = value;
     this.onChange(value);
     NATIVE.call('editText.setText', {
@@ -86,28 +83,21 @@ exports = class {
       cursorPos: cursorPos
     });
   }
-  requestFocus() {
+  requestFocus () {
     if (focused !== this) {
       if (focused != null)
-        focused.removeFocus();
+        { focused.removeFocus(); }
       this.onFocusChange(true);
     }
 
-
-
-
-
-
-
-
     focused = this;
   }
-  closeEditField() {
+  closeEditField () {
     if (focused == this) {
       this.removeFocus();
     }
   }
-  finishEditing() {
+  finishEditing () {
     this.onFocusChange(false);
     if (focused == this) {
       focused = null;
@@ -116,13 +106,13 @@ exports = class {
       textBox.style.visible = true;
     }
   }
-  submit(close) {
+  submit (close) {
     this.onSubmit(this._value);
     if (focused != null && close) {
       focused.removeFocus();
     }
   }
-  refresh(currentVal, hasBack, hasForward, cursorPos) {
+  refresh (currentVal, hasBack, hasForward, cursorPos) {
     var textBox = this._textEditView._textBox;
     textBox.style.visible = false;
     var pos = this._textEditView.getPosition();
@@ -132,9 +122,6 @@ exports = class {
     if (this._opts.closeOnDone === false) {
       closeOnDone = false;
     }
-
-
-
 
     NATIVE.call('editText.focus', {
       id: this._id,
@@ -158,12 +145,11 @@ exports = class {
       hasForward: hasForward,
       closeOnDone: closeOnDone
     });
-
   }
-  hasFocus() {
+  hasFocus () {
     return focused == this;
   }
-  removeFocus() {
+  removeFocus () {
     this.onFocusChange(false);
     if (focused == this) {
       focused = null;
@@ -171,16 +157,8 @@ exports = class {
       textBox.style.visible = true;
       NATIVE.call('editText.clearFocus', {});
     }
-
-
-
-
-
-
-
-
   }
-  setHint(hint) {
+  setHint (hint) {
     this._opts.hint = hint;
   }
 };

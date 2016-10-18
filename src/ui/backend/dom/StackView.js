@@ -23,24 +23,21 @@ import View from 'ui/View';
  * @extends timestep.dom.View
  */
 exports = class extends View {
-  constructor(opts) {
+  constructor (opts) {
     super(...arguments);
     this.stack = [];
   }
-  getCurrentView() {
+  getCurrentView () {
     if (!this.stack.length) {
       return null;
     }
     return this.stack[this.stack.length - 1];
   }
-  push(view, dontAnimate) {
+  push (view, dontAnimate) {
     // don't animate the first (base) view of a stackview unless explicitly asked to
     if (!this.stack[0] && dontAnimate !== false) {
       dontAnimate = true;
     }
-
-
-
 
     var current = this.getCurrentView();
     if (current) {
@@ -52,7 +49,7 @@ exports = class extends View {
     this._show(view, dontAnimate);
     return view;
   }
-  _hide(view, dontAnimate, backward) {
+  _hide (view, dontAnimate, backward) {
     view.publish('ViewWillDisappear');
     if (!dontAnimate) {
       // Prevent touches from triggering buttons/UI on the
@@ -63,13 +60,15 @@ exports = class extends View {
         parent: view,
         zIndex: 100000
       });
-      view.then({ x: (backward ? 1 : -1) * view.style.width }).then(bind(this, 'removeSubview', view)).then(bind(view, 'publish', 'ViewDidDisappear')).then(bind(overlay, 'removeFromSuperview'));
+      view.then({ x: (backward ? 1 : -1) * view.style.width }).then(bind(
+        this, 'removeSubview', view)).then(bind(view, 'publish',
+        'ViewDidDisappear')).then(bind(overlay, 'removeFromSuperview'));
     } else {
       this.removeSubview(view);
       view.publish('ViewDidDisappear');
     }
   }
-  _show(view, dontAnimate, backward) {
+  _show (view, dontAnimate, backward) {
     view.publish('ViewWillAppear');
     view.style.visible = true;
     if (!dontAnimate) {
@@ -82,7 +81,7 @@ exports = class extends View {
       view.publish('ViewDidAppear');
     }
   }
-  pop(dontAnimate) {
+  pop (dontAnimate) {
     if (!this.stack.length) {
       return false;
     }
@@ -93,16 +92,9 @@ exports = class extends View {
       this._show(this.stack[this.stack.length - 1], dontAnimate, true);
     }
 
-
-
-
-
-
-
-
     return view;
   }
-  popAll(dontAnimate) {
+  popAll (dontAnimate) {
     while (this.stack[1]) {
       this.pop(dontAnimate);
     }

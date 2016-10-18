@@ -16,79 +16,79 @@ let exports = {};
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 class Iterator {
-  constructor(list) {
+  constructor (list) {
     this.update(list);
   }
-  update(list) {
+  update (list) {
     this._list = list || this._list;
     this._current = list.head;
     this._count = 0;
   }
-  next() {
+  next () {
     var data = this._current.data;
     this._current = this._current.next;
     this._count++;
     return data;
   }
-  current() {
+  current () {
     return this._current.data;
   }
-  insertBefore(data) {
+  insertBefore (data) {
     this._current.insertBefore(data);
     this._list.count++;
   }
-  insertAfter(data) {
+  insertAfter (data) {
     this._current.insertAfter(data);
     this._list.count++;
   }
-  remove() {
+  remove () {
     this._current.prev.remove();
     if (this._current.prev == this._current) {
       this._list.head = null;
     }
     this._list.count--;
   }
-  hasNext() {
+  hasNext () {
     return this._count < this._list.count;
   }
-  atHead() {
+  atHead () {
     return this._current == this._list.head;
   }
 }
 
 class Item {
-  constructor(data, prev, next) {
+  constructor (data, prev, next) {
     this.data = data;
     this.prev = prev || this;
     this.next = next || this;
   }
-  insertBefore(data) {
+  insertBefore (data) {
     var item = new Item(data, this.prev, this);
     this.prev.next = item;
     this.prev = item;
   }
-  insertAfter(data) {
+  insertAfter (data) {
     var item = new Item(data, this, this.next);
     this.next.prev = item;
     this.next = item;
   }
-  remove() {
+  remove () {
     this.prev.next = this.next;
     this.next.prev = this.prev;
   }
 }
 
 exports = class {
-  constructor(comparator) {
+  constructor (comparator) {
     this.head = null;
     this._comparator = comparator;
     this.count = 0;
   }
-  append(data) {
+  append (data) {
     this._head.insertAfter(data);
     this.count++;
   }
-  insert(data) {
+  insert (data) {
     if (!this.head) {
       this.head = new Item(data);
       this.count++;
@@ -109,7 +109,7 @@ exports = class {
       }
     }
   }
-  iterator() {
+  iterator () {
     return new Iterator(this);
   }
 };

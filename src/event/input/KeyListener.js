@@ -25,36 +25,36 @@ let $ = browser.$;
 var listener = null;
 
 exports = class {
-  constructor() {
+  constructor () {
     if (!listener) {
       listener = new Listener();
     }
   }
-  getKeys() {
+  getKeys () {
     return listener.getKeys();
   }
 };
 
 class Listener {
-  constructor(el, events) {
+  constructor (el, events) {
     this._el = el = el || document;
     this._keys = {};
 
     $.onEvent(el, 'keydown', this, 'onKeyDown');
-    //$.onEvent(el, 'click', this, 'click');
+    // $.onEvent(el, 'click', this, 'click');
     $.onEvent(el, 'keyup', this, 'onKeyUp');
     $.onEvent(el, 'blur', this, 'clear');
   }
-  onKeyUp(e) {
+  onKeyUp (e) {
     this._keys[e.keyCode] = false;
     delete this._keys[e.keyCode];
     $.stopEvent(e);
   }
-  onKeyDown(e) {
+  onKeyDown (e) {
     this._keys[e.keyCode] = true;
     $.stopEvent(e);
   }
-  getKeys() {
+  getKeys () {
     return this._keys;
   }
 }

@@ -32,7 +32,7 @@ var min = Math.min;
 var max = Math.max;
 
 exports = class extends View {
-  constructor(opts) {
+  constructor (opts) {
     opts.blockEvents = true;
     super(...arguments);
 
@@ -52,7 +52,8 @@ exports = class extends View {
     });
 
     // text options
-    this._horizontalAlign = opts.horizontalAlign || opts.textAlign || 'center';
+    this._horizontalAlign = opts.horizontalAlign || opts.textAlign ||
+      'center';
     this._verticalAlign = opts.verticalAlign || 'middle';
     this._srcHeight = opts.srcHeight || this.style.height;
     this._spacing = opts.spacing || 0;
@@ -60,14 +61,15 @@ exports = class extends View {
     opts.characterData && this.setCharacterData(opts.characterData);
     opts.text && this.setText(opts.text);
   }
-  setCharacterData(data) {
+  setCharacterData (data) {
     this._characterData = data;
     var srcHeight = 0;
     for (var i in data) {
       var d = data[i];
       d.img = new Image({ url: d.image });
       var map = d.img.getMap();
-      d.width = d.width || (map.width + map.marginLeft + map.marginRight) / map.scale;
+      d.width = d.width || (map.width + map.marginLeft + map.marginRight) /
+        map.scale;
       var h = (map.height + map.marginTop + map.marginBottom) / map.scale;
       if (srcHeight === 0 && h > 0) {
         // accept the first height we find and use it
@@ -80,7 +82,7 @@ exports = class extends View {
     this._srcHeight = srcHeight || this._srcHeight;
     this._text && this.setText(this._text);
   }
-  setText(text) {
+  setText (text) {
     text = '' + text;
     var width = this.style.width;
     var height = this.style.height;
@@ -99,9 +101,6 @@ exports = class extends View {
     if (!this._characterData) {
       return;
     }
-
-
-
 
     var i = 0;
     while (i < textLength) {
@@ -128,9 +127,6 @@ exports = class extends View {
     } else {
       this._container.style.scale = 1;
     }
-
-
-
 
     if (this._horizontalAlign === 'center') {
       offsetX = (width - textWidth) / 2;
@@ -162,9 +158,6 @@ exports = class extends View {
         continue;
       }
 
-
-
-
       var view = this._imageViews[i];
       var s = view.style;
       var w = data.width * scale;
@@ -181,38 +174,32 @@ exports = class extends View {
         continue;
       }
 
-
-
-
       view.setImage(data.img);
 
       // update color filters
       this._updateFilter(view, fc, fcHash);
     }
 
-
-
-
     while (i < this._imageViews.length) {
       this._imageViews[i].style.visible = false;
       i++;
     }
   }
-  setFilterColor(color) {
+  setFilterColor (color) {
     this._filterColor = color;
     this._updateFilters();
   }
-  clearFilterColor() {
+  clearFilterColor () {
     this.setFilterColor(null);
   }
-  _updateFilters() {
+  _updateFilters () {
     var fc = this._filterColor;
     var fcHash = this._getColorHash(fc);
     for (var i = 0, len = this._activeCharacters.length; i < len; i++) {
       this._updateFilter(this._imageViews[i], fc, fcHash);
     }
   }
-  _updateFilter(view, color, hash) {
+  _updateFilter (view, color, hash) {
     if (color) {
       if (!view.colorFilter) {
         view.colorFilter = new filter.MultiplyFilter(color);
@@ -228,7 +215,7 @@ exports = class extends View {
       view.lastColorHash = 0;
     }
   }
-  _getColorHash(color) {
+  _getColorHash (color) {
     var hash = 0;
     if (color) {
       hash = 1000 * color.r + color.g + 0.001 * color.b + 0.0001 * color.a;

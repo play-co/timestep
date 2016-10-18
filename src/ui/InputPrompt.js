@@ -36,15 +36,12 @@ var inputDialog = device.get('inputDialog');
  *
  */
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     opts = opts || {};
 
-    function get(prop, defaultValue) {
+    function get (prop, defaultValue) {
       return opts[prop] !== undefined ? opts[prop] : defaultValue;
     }
-
-
-
 
     this._opts = merge({
       title: get('title', ''),
@@ -109,29 +106,29 @@ exports = class {
       });
     }
   }
-  show() {
+  show () {
     this._prompt = inputDialog.show(this, this._opts);
   }
-  getValue() {
+  getValue () {
     return this._opts.value;
   }
-  setValue(value) {
+  setValue (value) {
     this._opts.value = value;
     return this;
   }
-  setOkButton(value) {
+  setOkButton (value) {
     this._opts.okText = value;
     return this;
   }
-  setCancelButton(value) {
+  setCancelButton (value) {
     this._opts.cancelText = value;
     return this;
   }
-  setKeyboardType(keyboardType) {
+  setKeyboardType (keyboardType) {
     this._opts.keyboardType = keyboardType;
     return this;
   }
-  setMessage(message) {
+  setMessage (message) {
     this._opts.message = message;
     return this;
   }
@@ -146,6 +143,5 @@ deprecated.method(exports.prototype, 'refresh');
 deprecated.method(exports.prototype, 'setHint');
 
 exports.KeyboardTypes = keyboardTypes;
-
 
 export default exports;

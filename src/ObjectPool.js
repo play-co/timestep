@@ -21,7 +21,7 @@ let exports = {};
  *  be good to the environment, and always recycle!
  */
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     this._ctor = opts.ctor;
     this._pool = [];
     this._freshIndex = 0;
@@ -31,14 +31,14 @@ exports = class {
       this.create();
     }
   }
-  create() {
+  create () {
     var pool = this._pool;
     var obj = new this._ctor();
     obj._poolIndex = pool.length;
     pool.push(obj);
     return obj;
   }
-  obtain() {
+  obtain () {
     var obj;
     var pool = this._pool;
     if (this._freshIndex < pool.length) {
@@ -50,7 +50,7 @@ exports = class {
     this._freshIndex++;
     return obj;
   }
-  release(obj) {
+  release (obj) {
     var pool = this._pool;
     if (obj._obtainedFromPool) {
       obj._obtainedFromPool = false;
@@ -63,16 +63,16 @@ exports = class {
       this._freshIndex--;
     }
   }
-  forEachActive(fn, ctx) {
+  forEachActive (fn, ctx) {
     var pool = this._pool;
     for (var i = this._freshIndex - 1; i >= 0; i--) {
       fn.call(ctx, pool[i], i);
     }
   }
-  getActiveCount() {
+  getActiveCount () {
     return this._freshIndex;
   }
-  getTotalCount() {
+  getTotalCount () {
     return this._pool.length;
   }
 };

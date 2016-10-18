@@ -16,35 +16,30 @@ let exports = {};
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 exports = class {
-  constructor() {
+  constructor () {
     this._shortcuts = [];
     this._events = [];
   }
 
-  setEnabled(isEnabled) {
+  setEnabled (isEnabled) {
     this._isEnabled = isEnabled;
   }
-  captureShortcut(shortcut) {
+  captureShortcut (shortcut) {
     this._shortcuts.push(shortcut);
   }
-  getPressed() {
+  getPressed () {
     return {};
   }
-  onKeyDown(e) {
-  }
-  liftAll() {
-  }
-  onKeyUp(e) {
-  }
-  onKeyPress(e) {
-  }
-  peekEvents() {
+  onKeyDown (e) {}
+  liftAll () {}
+  onKeyUp (e) {}
+  onKeyPress (e) {}
+  peekEvents () {
     return this._events;
   }
-  popEvents() {
+  popEvents () {
     return this._events.splice(0, this._events.length);
   }
 };
-
 
 export default exports;

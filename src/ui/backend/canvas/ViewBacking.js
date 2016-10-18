@@ -37,7 +37,7 @@ var cos = Math.cos;
 var ADD_COUNTER = 900000;
 
 exports = class extends BaseBacking {
-  constructor(view) {
+  constructor (view) {
     super();
 
     this._globalTransform = {
@@ -57,10 +57,10 @@ exports = class extends BaseBacking {
     this._subviews = [];
     this._childCount = 0;
   }
-  getSuperview() {
+  getSuperview () {
     return this._superview;
   }
-  getSubviews() {
+  getSubviews () {
     if (this._needsSort) {
       this._needsSort = false;
       this._subviews.sort();
@@ -72,12 +72,9 @@ exports = class extends BaseBacking {
       subviews[i] = backings[i]._view;
     }
 
-
-
-
     return subviews;
   }
-  addSubview(view) {
+  addSubview (view) {
     var backing = view.__view;
     var superview = backing._superview;
     if (superview == this._view || this == backing) {
@@ -86,9 +83,6 @@ exports = class extends BaseBacking {
     if (superview) {
       superview.__view.removeSubview(view);
     }
-
-
-
 
     var n = this._subviews.length;
     this._subviews[n] = backing;
@@ -101,12 +95,9 @@ exports = class extends BaseBacking {
       this._needsSort = true;
     }
 
-
-
-
     return true;
   }
-  removeSubview(targetView) {
+  removeSubview (targetView) {
     var index = this._subviews.indexOf(targetView.__view);
     if (index != -1) {
       this._subviews.splice(index, 1);
@@ -117,12 +108,9 @@ exports = class extends BaseBacking {
       return true;
     }
 
-
-
-
     return false;
   }
-  wrapTick(dt, app) {
+  wrapTick (dt, app) {
     this._view._tick && this._view._tick(dt, app);
 
     var views = this._subviews;
@@ -130,7 +118,7 @@ exports = class extends BaseBacking {
       views[i].wrapTick(dt, app);
     }
   }
-  updateGlobalTransform() {
+  updateGlobalTransform () {
     var flipX = this.flipX ? -1 : 1;
     var flipY = this.flipY ? -1 : 1;
 
@@ -143,9 +131,6 @@ exports = class extends BaseBacking {
       pgt = IDENTITY_MATRIX;
       this._globalOpacity = this.opacity;
     }
-
-
-
 
     var gt = this._globalTransform;
     var sx = this.scaleX * this.scale * flipX;
@@ -180,9 +165,6 @@ exports = class extends BaseBacking {
         ty -= b * ax + d * ay;
       }
 
-
-
-
       gt.a = a * pgt.a + b * pgt.c;
       gt.b = a * pgt.b + b * pgt.d;
       gt.c = c * pgt.a + d * pgt.c;
@@ -191,21 +173,15 @@ exports = class extends BaseBacking {
       gt.ty = tx * pgt.b + ty * pgt.d + pgt.ty;
     }
   }
-  wrapRender(ctx, opts) {
+  wrapRender (ctx, opts) {
     if (!this.visible) {
       return;
     }
-
-
-
 
     if (this._needsSort) {
       this._needsSort = false;
       this._subviews.sort();
     }
-
-
-
 
     var width = this._width;
     var height = this._height;
@@ -213,16 +189,10 @@ exports = class extends BaseBacking {
       return;
     }
 
-
-
-
     var saveContext = this.clip || this.compositeOperation || !this._view.__parent;
     if (saveContext) {
       ctx.save();
     }
-
-
-
 
     this.updateGlobalTransform();
     var gt = this._globalTransform;
@@ -233,9 +203,6 @@ exports = class extends BaseBacking {
       ctx.clipRect(0, 0, width, height);
     }
 
-
-
-
     var filter = this._view.getFilter();
     if (filter) {
       ctx.setFilter(filter);
@@ -243,23 +210,14 @@ exports = class extends BaseBacking {
       ctx.clearFilter();
     }
 
-
-
-
     if (this.compositeOperation) {
       ctx.globalCompositeOperation = this.compositeOperation;
     }
-
-
-
 
     if (this.backgroundColor) {
       ctx.fillStyle = this.backgroundColor;
       ctx.fillRect(0, 0, width, height);
     }
-
-
-
 
     var viewport = opts.viewport;
     this._view._render && this._view._render(ctx, opts);
@@ -271,13 +229,13 @@ exports = class extends BaseBacking {
       ctx.restore();
     }
   }
-  _renderSubviews(ctx, opts) {
+  _renderSubviews (ctx, opts) {
     var subviews = this._subviews;
     for (var i = 0; i < this._childCount; i++) {
       subviews[i].wrapRender(ctx, opts);
     }
   }
-  _onResize(prop, value, prevValue) {
+  _onResize (prop, value, prevValue) {
     // child view properties might be invalidated
     this._view.needsReflow();
 
@@ -288,7 +246,7 @@ exports = class extends BaseBacking {
       s.anchorY = (s.height || 0) / 2;
     }
   }
-  _onZIndex(_, zIndex) {
+  _onZIndex (_, zIndex) {
     this._sortIndex = strPad.pad(zIndex);
 
     this._setSortKey();
@@ -299,20 +257,20 @@ exports = class extends BaseBacking {
       superview.__view._needsSort = true;
     }
   }
-  _setAddedAt(addedAt) {
+  _setAddedAt (addedAt) {
     this._addedAt = addedAt;
     this._setSortKey();
   }
-  _setSortKey() {
+  _setSortKey () {
     this.__sortKey = this._sortIndex + this._addedAt;
   }
-  _onOffsetX(n) {
+  _onOffsetX (n) {
     this.offsetX = n * this.width / 100;
   }
-  _onOffsetY(n) {
+  _onOffsetY (n) {
     this.offsetY = n * this.height / 100;
   }
-  toString() {
+  toString () {
     return this.__sortKey;
   }
 };

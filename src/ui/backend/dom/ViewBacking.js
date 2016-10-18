@@ -36,8 +36,10 @@ var Canvas = device.get('Canvas');
 var AVOID_CSS_ANIM = device.isAndroid;
 
 var TRANSFORM_PREFIX = 'transform';
-function CHECK_TRANSLATE3D() {
-  var el = document.createElement('p'), has3d, transforms = {
+
+function CHECK_TRANSLATE3D () {
+  var el = document.createElement('p'),
+    has3d, transforms = {
       'webkitTransform': '-webkit-transform',
       'OTransform': '-o-transform',
       'msTransform': '-ms-transform',
@@ -56,24 +58,17 @@ function CHECK_TRANSLATE3D() {
     }
   }
 
-
-
-
   document.body.removeChild(el);
 
   return has3d !== undefined && has3d.length > 0 && has3d !== 'none';
 }
 
-
-
-
 var SUPPORTS_TRANSLATE3D = false;
 
-
-//CHECK_TRANSLATE3D();
+// CHECK_TRANSLATE3D();
 var ADD_COUNTER = 900000;
 
-function getEasing(fn) {
+function getEasing (fn) {
   if (typeof fn == 'string') {
     return fn;
   }
@@ -90,8 +85,7 @@ function getEasing(fn) {
     return 'linear';
   }
   return 'ease';
-}
-;
+};
 
 var LEN_Z = 8;
 var MAX_Z = 99999999;
@@ -100,35 +94,31 @@ var PAD = '00000000';
 
 var DURATION = 600;
 
-
 exports = class extends BaseBacking {
-  constructor(view, opts) {
+  constructor (view, opts) {
     super();
 
     this._view = view;
     this._subviews = [];
     this._noCanvas = opts['dom:noCanvas'];
 
-    var n = this._node = document.createElement(opts['dom:elementType'] || 'div');
+    var n = this._node = document.createElement(opts['dom:elementType'] ||
+      'div');
 
     // used to identify dom nodes
     n._view = view;
-    n.addEventListener('webkitTransitionEnd', bind(this, '_transitionEnd'), false);
+    n.addEventListener('webkitTransitionEnd', bind(this, '_transitionEnd'),
+      false);
     n.className = 'view';
     if (opts['dom:className']) {
       n.className += ' ' + opts['dom:className'];
     }
 
-
-
-
-    var cssText = 'fontSize:1px;position:absolute;top:0px;left:0px;-webkit-transform-origin:0px 0px;';
+    var cssText =
+      'fontSize:1px;position:absolute;top:0px;left:0px;-webkit-transform-origin:0px 0px;';
     if (!device.isAndroid) {
       cssText += '-webkit-backface-visibility:hidden;';
     }
-
-
-
 
     var s = n.style;
     s.cssText = cssText;
@@ -141,9 +131,6 @@ exports = class extends BaseBacking {
     for (var name in domStyles) {
       s[name] = domStyles[name];
     }
-
-
-
 
     // store for the computed styles
     this._computed = {
@@ -175,10 +162,10 @@ exports = class extends BaseBacking {
       n.setAttribute('TAG:', view.getTag());
     }
   }
-  getElement() {
+  getElement () {
     return this._node;
   }
-  addSubview(view) {
+  addSubview (view) {
     var backing = view.__view;
     var node = backing._node;
     var superview = node.parentNode && node.parentNode._view;
@@ -197,17 +184,10 @@ exports = class extends BaseBacking {
         this._needsSort = true;
       }
 
-
-
-
-
-
-
-
       return true;
     }
   }
-  removeSubview(targetView) {
+  removeSubview (targetView) {
     var index = this._subviews.indexOf(targetView.__view);
     if (index != -1) {
       this._subviews.splice(index, 1);
@@ -215,31 +195,17 @@ exports = class extends BaseBacking {
       return true;
     }
 
-
-
-
-
-
-
-
     return false;
   }
-  getSuperview() {
+  getSuperview () {
     var p = this._node.parentNode;
     if (p == document.body || !p) {
       return null;
     }
 
-
-
-
-
-
-
-
     return p._view;
   }
-  getSubviews() {
+  getSubviews () {
     if (this._needsSort) {
       this._needsSort = false;
       this._subviews.sort();
@@ -251,14 +217,14 @@ exports = class extends BaseBacking {
     }
     return subviews;
   }
-  wrapTick(dt, app) {
+  wrapTick (dt, app) {
     this._view.tick && this._view.tick(dt, app);
 
     for (var i = 0, view; view = this._subviews[i]; ++i) {
       view.wrapTick(dt, app);
     }
   }
-  wrapRender(ctx, opts) {
+  wrapRender (ctx, opts) {
     if (!this.visible) {
       return;
     }
@@ -267,17 +233,11 @@ exports = class extends BaseBacking {
       this._subviews.sort();
     }
 
-
-
-
     var width = this._computed.width;
     var height = this._computed.height;
     if (width < 0 || height < 0) {
       return;
     }
-
-
-
 
     try {
       var render = this._view.render;
@@ -285,15 +245,12 @@ exports = class extends BaseBacking {
         this._render(render, width, height, opts);
       }
 
-
-
-
       this._renderSubviews(ctx, opts);
     } catch (e) {
       logger.error(this, e.message, e.stack);
     }
   }
-  _render(render, width, height, opts) {
+  _render (render, width, height, opts) {
     if (this._noCanvas) {
       render.call(this._view, null, opts);
     } else {
@@ -304,20 +261,15 @@ exports = class extends BaseBacking {
         this.ctx = this._canvas.getContext('2d');
       }
 
-
-
-
       var needsRepaint = this._view._needsRepaint;
 
       // clear the canvas
-      if ((width | 0) != this._canvas.width || (height | 0) != this._canvas.height) {
+      if ((width | 0) != this._canvas.width || (height | 0) != this._canvas
+        .height) {
         needsRepaint = true;
         this._canvas.width = width;
         this._canvas.height = height;
       }
-
-
-
 
       if (needsRepaint) {
         this._view._needsRepaint = false;
@@ -332,7 +284,7 @@ exports = class extends BaseBacking {
       }
     }
   }
-  _renderSubviews(ctx, opts) {
+  _renderSubviews (ctx, opts) {
     var i = 0;
     var view;
     var subviews = this._subviews;
@@ -340,7 +292,7 @@ exports = class extends BaseBacking {
       view.wrapRender(ctx, opts);
     }
   }
-  localizePoint(pt) {
+  localizePoint (pt) {
     var s = this._computed;
     pt.x -= s.x + s.anchorX + s.offsetX;
     pt.y -= s.y + s.anchorY + s.offsetY;
@@ -352,13 +304,13 @@ exports = class extends BaseBacking {
     pt.y += s.anchorY;
     return pt;
   }
-  copy() {
+  copy () {
     return merge({}, this._computed);
   }
-  update(style) {
+  update (style) {
     this._setProps(style);
   }
-  position(x, y) {
+  position (x, y) {
     var s = this._node.style;
 
     if (SUPPORTS_TRANSLATE3D) {
@@ -370,19 +322,16 @@ exports = class extends BaseBacking {
       } else {
         s[TRANSFORM_PREFIX] = translate;
       }
-
-
-
-
     } else {
       s.left = x + 'px';
       s.top = y + 'px';
     }
   }
-  _updateOrigin() {
-    this._node.style.webkitTransformOrigin = (this._computed.anchorX || 0) + 'px ' + (this._computed.anchorY || 0) + 'px';
+  _updateOrigin () {
+    this._node.style.webkitTransformOrigin = (this._computed.anchorX || 0) +
+      'px ' + (this._computed.anchorY || 0) + 'px';
   }
-  _setProps(props, anim) {
+  _setProps (props, anim) {
     var setMatrix = false;
     var s = this._node.style;
     var animCount = 0;
@@ -395,48 +344,47 @@ exports = class extends BaseBacking {
         value = this._computed[key] + value;
       }
       switch (key) {
-      case 'anchorX':
-      case 'anchorY':
-        this._computed[key] = value;
-        this._updateOrigin();
-        break;
-      case 'clip':
-        this._computed.clip = value;
-        s.overflow = value ? 'hidden' : 'visible';
-        break;
-      case 'zIndex':
-        if (this._computed.zIndex != value) {
-          this._computed.zIndex = value;
-          s.zIndex = value;
-          this._onZIndex(value);
-        }
-        break;
-      case 'offsetX':
-      case 'offsetY':
-      case 'x':
-      case 'y':
-      case 'r':
-      case 'scale':
-        if (this._computed[key] != value) {
-          previous[key] = this._computed[key];
+        case 'anchorX':
+        case 'anchorY':
           this._computed[key] = value;
-          setMatrix = true;
-        }
-        break;
-      default:
-        if (this._computed[key] != value) {
-          ++animCount;
-          this._computed[key] = value;
-          if (key == 'width' || key == 'height') {
-            s[key] = value + 'px';
-            resized = true;
-          } else if (key == 'visible') {
-            s.display = value ? this._displayStyle || 'block' : 'none';
-
-          } else //s.visibility = (value ? 'visible' : 'hidden');
+          this._updateOrigin();
+          break;
+        case 'clip':
+          this._computed.clip = value;
+          s.overflow = value ? 'hidden' : 'visible';
+          break;
+        case 'zIndex':
+          if (this._computed.zIndex != value) {
+            this._computed.zIndex = value;
+            s.zIndex = value;
+            this._onZIndex(value);
+          }
+          break;
+        case 'offsetX':
+        case 'offsetY':
+        case 'x':
+        case 'y':
+        case 'r':
+        case 'scale':
+          if (this._computed[key] != value) {
+            previous[key] = this._computed[key];
+            this._computed[key] = value;
+            setMatrix = true;
+          }
+          break;
+        default:
+          if (this._computed[key] != value) {
+            ++animCount;
+            this._computed[key] = value;
+            if (key == 'width' || key == 'height') {
+              s[key] = value + 'px';
+              resized = true;
+            } else if (key == 'visible') {
+              s.display = value ? this._displayStyle || 'block' : 'none';
+            } else // s.visibility = (value ? 'visible' : 'hidden');
           // chrome has an obscure rendering bug where visibility:hidden won't
           // hide the canvas element child nodes sometimes. If you set opacity to zero, it will.
-          //s.opacity = (value ? this._computed['opacity'] : 0);
+          // s.opacity = (value ? this._computed['opacity'] : 0);
           if (key == 'opacity') {
             s[key] = value;
           } else {
@@ -446,24 +394,8 @@ exports = class extends BaseBacking {
               this[key] = value;
             }
           }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        }
-        break;
+          }
+          break;
       }
     }
     if (setMatrix) {
@@ -489,23 +421,20 @@ exports = class extends BaseBacking {
             scale: c.scale,
             r: c.r
           }, anim.duration, anim.easing, bind(this, function () {
-            s.WebkitTransform = 'scale(' + (c.flipX ? obj.scale * -1 : obj.scale) + ',' + (c.flipY ? obj.scale * -1 : obj.scale) + ') ' + 'rotate(' + obj.r + 'rad)';
+            s.WebkitTransform = 'scale(' + (c.flipX ? obj.scale * -1 :
+                obj.scale) + ',' + (c.flipY ? obj.scale * -1 : obj.scale) +
+              ') ' + 'rotate(' + obj.r + 'rad)';
           })).then(bind(this, function () {
-            s.WebkitTransform = 'scale(' + (c.flipX ? obj.scale * -1 : obj.scale) + ',' + (c.flipY ? obj.scale * -1 : obj.scale) + ') ' + 'rotate(' + c.r + 'rad)';
+            s.WebkitTransform = 'scale(' + (c.flipX ? obj.scale * -1 :
+                obj.scale) + ',' + (c.flipY ? obj.scale * -1 : obj.scale) +
+              ') ' + 'rotate(' + c.r + 'rad)';
           }));
-
         } else if (obj.scale != c.scale || obj.r != c.r) {
           // logger.log('set transform', c.scale, c.r);
-          s.WebkitTransform = 'scale(' + (c.flipX ? c.scale * -1 : c.scale) + ',' + (c.flipY ? c.scale * -1 : c.scale) + ') ' + 'rotate(' + c.r + 'rad)';
+          s.WebkitTransform = 'scale(' + (c.flipX ? c.scale * -1 : c.scale) +
+            ',' + (c.flipY ? c.scale * -1 : c.scale) + ') ' + 'rotate(' + c
+            .r + 'rad)';
         }
-
-
-
-
-
-
-
-
 
         // use CSS animations for left and top though, since
         // those can still be taken out of javascript.
@@ -517,13 +446,12 @@ exports = class extends BaseBacking {
         matrix = matrix.scale(c.scale);
 
         if (c.flipX || c.flipY) {
-          matrix = matrix.translate(c.flipX ? -c.width : 0, c.flipY ? c.height / 2 : 0);
+          matrix = matrix.translate(c.flipX ? -c.width : 0, c.flipY ? c.height /
+            2 : 0);
           matrix = matrix.scale(c.flipX ? -1 : 1, c.flipY ? -1 : 1);
-          matrix = matrix.translate(c.flipX ? c.width : 0, c.flipY ? -c.height / 2 : 0);
+          matrix = matrix.translate(c.flipX ? c.width : 0, c.flipY ? -c.height /
+            2 : 0);
         }
-
-
-
 
         // on iOS, forcing a 3D matrix provides huge performance gains.
         // Rotate it about the y axis 360 degrees to achieve this.
@@ -532,19 +460,13 @@ exports = class extends BaseBacking {
       }
     }
 
-
-
-
     if (resized) {
       this._view.needsReflow();
     }
 
-
-
-
     return animCount;
   }
-  _onZIndex(zIndex) {
+  _onZIndex (zIndex) {
     zIndex = ~~zIndex;
 
     if (zIndex < MIN_Z) {
@@ -555,39 +477,31 @@ exports = class extends BaseBacking {
     }
     if (zIndex < 0) {
       zIndex *= -1;
-      this._sortIndex = '-' + PAD.substring(0, LEN_Z - ('' + zIndex).length) + zIndex;
+      this._sortIndex = '-' + PAD.substring(0, LEN_Z - ('' + zIndex).length) +
+        zIndex;
     } else {
-      this._sortIndex = PAD.substring(0, LEN_Z - ('' + zIndex).length) + zIndex;
+      this._sortIndex = PAD.substring(0, LEN_Z - ('' + zIndex).length) +
+        zIndex;
     }
-
-
-
-
-
-
-
 
     this._setSortKey();
   }
-  _setAddedAt(addedAt) {
+  _setAddedAt (addedAt) {
     this._addedAt = addedAt;
     this._setSortKey();
   }
-  _setSortKey() {
+  _setSortKey () {
     this.__sortKey = this._sortIndex + this._addedAt;
   }
-  toString() {
+  toString () {
     return this.__sortKey;
   }
 
-  _transitionEnd(evt) {
+  _transitionEnd (evt) {
     $.stopEvent(evt);
     if (this.transitionCallback.fired()) {
       return;
     }
-
-
-
 
     this.transitionCallback.fire();
     this.transitionCallback.reset();
@@ -598,14 +512,6 @@ exports = class extends BaseBacking {
       this._transitionEndTimeout = null;
     }
 
-
-
-
-
-
-
-
-
     this._node.style.webkitTransition = 'none';
 
     this._animating = false;
@@ -615,12 +521,9 @@ exports = class extends BaseBacking {
       callback();
     }
 
-
-
-
     this._processAnimation();
   }
-  _processAnimation(doNow) {
+  _processAnimation (doNow) {
     if (this._animationQueue.length == 0 || this._isPaused) {
       return;
     }
@@ -641,61 +544,55 @@ exports = class extends BaseBacking {
       return;
     }
 
-
-
-
     var anim = this._animationQueue.shift();
     switch (anim.type) {
-    case 'animate':
-      var s = this._node.style;
-      if (AVOID_CSS_ANIM) {
-        s.webkitTransitionProperty = 'left, top, opacity, width, height';
-      } else {
-        s.webkitTransitionProperty = '-webkit-transform, opacity, width, height';
-      }
-      s.webkitTransitionDuration = (anim.duration | 0) + 'ms';
-      s.webkitTransitionTimingFunction = getEasing(anim.easing);
-      this._setProps(anim.props, anim);
+      case 'animate':
+        var s = this._node.style;
+        if (AVOID_CSS_ANIM) {
+          s.webkitTransitionProperty = 'left, top, opacity, width, height';
+        } else {
+          s.webkitTransitionProperty =
+          '-webkit-transform, opacity, width, height';
+        }
+        s.webkitTransitionDuration = (anim.duration | 0) + 'ms';
+        s.webkitTransitionTimingFunction = getEasing(anim.easing);
+        this._setProps(anim.props, anim);
 
+      // fall through
+      case 'wait':
+        this._animating = true;
+        this._animationCallback = anim.callback || null;
 
+        this.transitionCallback = new Callback();
 
-
-    // fall through
-    case 'wait':
-      this._animating = true;
-      this._animationCallback = anim.callback || null;
-
-      this.transitionCallback = new Callback();
-
-      this.transitionCallback.runOrTimeout(function () {
-      }, bind(this, function (evt) {
-        // webkitTransitionEnd is too late, baby, it's too late
-        this._transitionEnd(evt);
-      }), anim.duration);
-      break;
-    case 'callback':
-      //logger.log('doing callback', anim.callback, doNow);
-      anim.callback();
-      if (!this._animating) {
-        this._processAnimation();
-      }
-      break;
+        this.transitionCallback.runOrTimeout(function () {}, bind(this,
+        function (evt) {
+          // webkitTransitionEnd is too late, baby, it's too late
+          this._transitionEnd(evt);
+        }), anim.duration);
+        break;
+      case 'callback':
+      // logger.log('doing callback', anim.callback, doNow);
+        anim.callback();
+        if (!this._animating) {
+          this._processAnimation();
+        }
+        break;
     }
-
   }
-  getQueue() {
+  getQueue () {
     return [];
   }
-  getAnimation() {
+  getAnimation () {
     return this;
   }
-  animate() {
+  animate () {
     if (!arguments[0]) {
       return this;
     }
     return this.next.apply(this, arguments);
   }
-  clear() {
+  clear () {
     this.transitionCallback && this.transitionCallback.fire();
     if (this._transitionEndTimeout) {
       clearTimeout(this._transitionEndTimeout);
@@ -705,7 +602,7 @@ exports = class extends BaseBacking {
     this._animating = false;
     return this;
   }
-  commit() {
+  commit () {
     this._node.style.webkitTransition = 'none';
     var queue = this._animationQueue;
     this._animationQueue = [];
@@ -713,34 +610,34 @@ exports = class extends BaseBacking {
     for (var i = 0; i < n; ++i) {
       var anim = queue[i];
       switch (anim.type) {
-      case 'animate':
-        this._setProps(anim.props);
-        break;
-      case 'wait':
-        break;
-      case 'callback':
-        anim.callback();
-        break;
+        case 'animate':
+          this._setProps(anim.props);
+          break;
+        case 'wait':
+          break;
+        case 'callback':
+          anim.callback();
+          break;
       }
     }
     return this;
   }
-  pause() {
+  pause () {
     this._isPaused = true;
   }
-  resume() {
+  resume () {
     this._isPaused = false;
     this._processAnimation();
   }
-  animate(props, duration, easing, callback) {
-    //this.clear();
+  animate (props, duration, easing, callback) {
+    // this.clear();
     return this.then(props, duration, easing, callback);
   }
-  now(props, duration, easing, callback) {
+  now (props, duration, easing, callback) {
     this.clear();
     return this.then(props, duration, easing, callback);
   }
-  then(props, duration, easing, callback) {
+  then (props, duration, easing, callback) {
     if (arguments.length == 1 && typeof props === 'function') {
       return this.callback(props);
     }
@@ -756,7 +653,7 @@ exports = class extends BaseBacking {
     }
     return this;
   }
-  callback(fn) {
+  callback (fn) {
     this._animationQueue.push({
       type: 'callback',
       duration: 0,
@@ -767,7 +664,7 @@ exports = class extends BaseBacking {
     }
     return this;
   }
-  wait(duration, callback) {
+  wait (duration, callback) {
     this._animationQueue.push({
       type: 'wait',
       duration: duration,
@@ -778,7 +675,7 @@ exports = class extends BaseBacking {
     }
     return this;
   }
-  fadeIn(duration, callback) {
+  fadeIn (duration, callback) {
     this.show();
 
     if (this._node.style.opacity == 1) {
@@ -788,13 +685,10 @@ exports = class extends BaseBacking {
       return;
     }
 
-
-
-
     this.then({ opacity: 1 }, duration, null, callback);
     return this;
   }
-  fadeOut(duration, callback) {
+  fadeOut (duration, callback) {
     if (this._node.style.opacity == 0) {
       this.hide();
       if (callback) {
@@ -802,9 +696,6 @@ exports = class extends BaseBacking {
       }
       return;
     }
-
-
-
 
     this.then({ opacity: 0 }, duration, null, bind(this, function () {
       this.hide();
@@ -818,7 +709,6 @@ exports = class extends BaseBacking {
 };
 exports.prototype._sortIndex = '00000000';
 var ViewBacking = exports;
-
 
 var arr = [
   'x',
@@ -860,10 +750,4 @@ arr.forEach(function (prop) {
   });
 });
 
-
-
-
 export default exports;
-
-
-

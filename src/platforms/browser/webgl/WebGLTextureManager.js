@@ -8,7 +8,6 @@ import {
 import LRUCache from 'cache/LRUCache';
 import PubSub from 'lib/PubSub';
 
-
 var CACHE_SIZE = 65535;
 var CACHE_UID = 1;
 var BYTES_PER_PIXEL = 4;
@@ -21,33 +20,32 @@ var log = Math.log;
 
 var LOG_2 = log(2);
 
-
 class WebGLTextureManager extends PubSub {
-  constructor() {
+  constructor () {
     super();
 
     this.textureDataCache = new LRUCache(CACHE_SIZE);
     this.textureByteCount = 0;
     this.memoryLimit = MAX_TEXTURE_BYTES;
   }
-  initGL(ctx) {
+  initGL (ctx) {
     this.gl = ctx;
     this.reloadTextures();
   }
-  getTexture(id) {
+  getTexture (id) {
     var textureData = this.textureDataCache.get(id);
     return textureData ? textureData.texture : null;
   }
-  getTextureData(id) {
+  getTextureData (id) {
     var textureData = this.textureDataCache.get(id);
     return textureData || null;
   }
-  deleteTextureForImage(image) {
+  deleteTextureForImage (image) {
     if (image.__GL_ID !== undefined) {
       this.deleteTexture(image.__GL_ID);
     }
   }
-  deleteTexture(id) {
+  deleteTexture (id) {
     this.emit(WebGLTextureManager.TEXTURE_REMOVED);
     var textureData = this.textureDataCache.remove(id);
     if (textureData) {
@@ -56,14 +54,11 @@ class WebGLTextureManager extends PubSub {
       textureData.image.__GL_ID = undefined;
     }
   }
-  createOrUpdateTexture(image, id) {
+  createOrUpdateTexture (image, id) {
     var gl = this.gl;
     if (!gl) {
       return -1;
     }
-
-
-
 
     var width = image.width;
     var height = image.height;
@@ -74,22 +69,13 @@ class WebGLTextureManager extends PubSub {
       });
     }
 
-
-
-
     if (width === 0 || height === 0) {
       throw new Error('Image cannot have a width or height of 0.');
     }
 
-
-
-
     if (id === undefined) {
       id = image.__GL_ID !== undefined ? image.__GL_ID : CACHE_UID++;
     }
-
-
-
 
     image.__GL_ID = id;
 
@@ -118,18 +104,12 @@ class WebGLTextureManager extends PubSub {
       gl.bindTexture(gl.TEXTURE_2D, textureData.texture);
     }
 
-
-
-
     if (textureData.width !== width || textureData.height !== height) {
       this.removeFromByteCount(textureData.width, textureData.height);
       textureData.width = width;
       textureData.height = height;
       needsAddByteCount = true;
     }
-
-
-
 
     if (textureData.image !== image) {
       textureData.image.__GL_ID = undefined;
@@ -138,28 +118,21 @@ class WebGLTextureManager extends PubSub {
       textureData.isCanvas = image instanceof HTMLCanvasElement;
     }
 
-
-
-
     if (textureData.isImg || textureData.isCanvas) {
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,
+        image);
     } else {
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+        null);
     }
-
-
-
 
     if (needsAddByteCount) {
       this.addToByteCount(width, height);
     }
 
-
-
-
     return id;
   }
-  reloadTextures() {
+  reloadTextures () {
     var imagesToLoad = [];
     this.textureDataCache.forEach(function (key, value) {
       if (value.isImg || value.isCanvas) {
@@ -172,12 +145,13 @@ class WebGLTextureManager extends PubSub {
       this.createOrUpdateTexture(imagesToLoad[i]);
     }
   }
-  addToByteCount(width, height) {
+  addToByteCount (width, height) {
     width = this.nextPowerOfTwo(width);
     height = this.nextPowerOfTwo(height);
     this.textureByteCount += width * height * BYTES_PER_PIXEL;
     var textureDumps = 0;
-    while (this.textureByteCount > MAX_TEXTURE_BYTES && textureDumps++ < MAX_TEXTURE_DUMP_ITERATIONS) {
+    while (this.textureByteCount > MAX_TEXTURE_BYTES && textureDumps++ <
+      MAX_TEXTURE_DUMP_ITERATIONS) {
       var oldestTextureEntry = this.textureDataCache.head;
       if (oldestTextureEntry) {
         if (!oldestTextureEntry.value.isImg) {
@@ -188,12 +162,12 @@ class WebGLTextureManager extends PubSub {
       }
     }
   }
-  removeFromByteCount(width, height) {
+  removeFromByteCount (width, height) {
     width = this.nextPowerOfTwo(width);
     height = this.nextPowerOfTwo(height);
     this.textureByteCount -= width * height * BYTES_PER_PIXEL;
   }
-  nextPowerOfTwo(value) {
+  nextPowerOfTwo (value) {
     return pow(2, ceil(log(value) / LOG_2));
   }
 }

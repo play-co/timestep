@@ -34,25 +34,23 @@ if (DEBUG_REFLOW || DEBUG_TIME) {
       return true;
     },
     log: function () {
-      logger.log.apply(logger, [this.space].concat(Array.prototype.slice.call(arguments, 0)));
+      logger.log.apply(logger, [this.space].concat(Array.prototype.slice.call(
+        arguments, 0)));
       return true;
     }
   };
   logger.log('===== CREATING REFLOW MANAGER');
 }
 
-
-
-
 // max reflows for any view in a given tick
 var MAX_REFLOW_THRESHOLD = 20;
 
 class Pool {
-  recycle(item) {
+  recycle (item) {
     item.view = null;
     this._pool.push(item);
   }
-  get(view) {
+  get (view) {
     var item = this._pool.pop() || {};
     item.view = view;
     item.count = 0;
@@ -63,7 +61,6 @@ class Pool {
 
 Pool.prototype._pool = [];
 var _pool = new Pool();
-
 
 /**
  * The ReflowManager is the controller for view layout.  It hooks into
@@ -84,18 +81,15 @@ var _pool = new Pool();
  * loops when reflow cycles occur.
  */
 exports = class {
-  constructor() {
+  constructor () {
     this._pending = {};
     this._iter = 0;
     this._pendingCount = 0;
   }
-  add(view) {
+  add (view) {
     if (!view.style.layout) {
       return;
     }
-
-
-
 
     var uid = view.uid;
     var item = this._pending[uid] || (this._pending[uid] = _pool.get(view));
@@ -104,31 +98,25 @@ exports = class {
       ++this._pendingCount;
       item.needsReflow = true;
 
-      DEBUG_REFLOW && _debug.log('adding ' + view + ' (' + view.uid + ')' + (' ' + view.style.layout || '') + ':', (view.style.width === undefined ? '?' : view.style.width) + 'x' + (view.style.height === undefined ? '?' : view.style.height));
+      DEBUG_REFLOW && _debug.log('adding ' + view + ' (' + view.uid + ')' +
+        (' ' + view.style.layout || '') + ':', (view.style.width ===
+          undefined ? '?' : view.style.width) + 'x' + (view.style.height ===
+          undefined ? '?' : view.style.height));
     }
-
-
-
 
     // increment count once per reflow iteration
     if (item.iter != this._iter) {
       item.iter = this._iter;
     }
   }
-  reflow(view) {
+  reflow (view) {
     if (view.style.__cachedWidth === undefined) {
       view.style.__cachedWidth = view.style.width;
     }
 
-
-
-
     if (view.style.__cachedHeight === undefined) {
       view.style.__cachedHeight = view.style.height;
     }
-
-
-
 
     var item = this._pending[view.uid];
     if (item && item.needsReflow) {
@@ -136,22 +124,17 @@ exports = class {
       --this._pendingCount;
     }
 
-
-
-
     if (view.__layout) {
       view.__layout.reflow();
     }
-
-
-
 
     view.reflow && view.reflow();
 
     // always reflow children if a layout changes sizes
     if (view.__layout) {
       var style = view.style;
-      if (style.__cachedWidth != style.width || style.__cachedHeight != style.height) {
+      if (style.__cachedWidth != style.width || style.__cachedHeight !=
+        style.height) {
         var subviews = view.getSubviews();
         for (var i = 0, n = subviews.length; i < n; ++i) {
           this.add(subviews[i]);
@@ -159,13 +142,10 @@ exports = class {
       }
     }
   }
-  reflowViews(_ctx) {
+  reflowViews (_ctx) {
     if (!this._pendingCount) {
       return;
     }
-
-
-
 
     this._iter = 0;
 
@@ -177,9 +157,6 @@ exports = class {
       var startTime = Date.now();
     }
 
-
-
-
     // outer loop manages batched resize events
     // inner loop manages recursive reflow
     while (this._pendingCount) {
@@ -190,7 +167,8 @@ exports = class {
         // what iteration are we on? only increment a view's count once per iteration
         count = 0;
         for (uid in this._pending) {
-          DEBUG_REFLOW && count == 0 && this._iter == 1 && console.log(' == beginning reflow == ');
+          DEBUG_REFLOW && count == 0 && this._iter == 1 && console.log(
+            ' == beginning reflow == ');
 
           var item = this._pending[uid];
           if (item.count > MAX_REFLOW_THRESHOLD) {
@@ -199,26 +177,19 @@ exports = class {
             break;
           }
 
-
-
-
           if (item.needsReflow) {
             ++item.count;
-            DEBUG_REFLOW && _debug.log('-- reflow view', item.view.uid, '(' + item.count + ' times)') && _debug.stepIn();
+            DEBUG_REFLOW && _debug.log('-- reflow view', item.view.uid, '(' +
+              item.count + ' times)') && _debug.stepIn();
             this.reflow(item.view);
             DEBUG_REFLOW && _debug.stepOut();
             ++count;
           }
         }
 
-
-
-
-        DEBUG_REFLOW && count && _debug.log('***** iteration', this._iter, 'reflowed', count, 'views');
+        DEBUG_REFLOW && count && _debug.log('***** iteration', this._iter,
+          'reflowed', count, 'views');
       }
-
-
-
 
       for (uid in this._pending) {
         var view = this._pending[uid].view;
@@ -227,7 +198,9 @@ exports = class {
           var w = style.width;
           var h = style.height;
           if (style.__cachedWidth != w || style.__cachedHeight != h) {
-            DEBUG_REFLOW && _debug.log('view', view.uid, 'resize event firing', w + 'x' + h, '(prev: ' + style.__cachedWidth + 'x' + style.__cachedHeight + ')');
+            DEBUG_REFLOW && _debug.log('view', view.uid,
+              'resize event firing', w + 'x' + h, '(prev: ' + style.__cachedWidth +
+              'x' + style.__cachedHeight + ')');
             style.__cachedWidth = w;
             style.__cachedHeight = h;
             view.emit('resize');
@@ -236,32 +209,23 @@ exports = class {
       }
     }
 
-
-
-
     this.cleanUp();
 
     if (DEBUG_REFLOW) {
       _debug.stepOut();
     }
 
-
-
-
     if (DEBUG_TIME && this._iter) {
       var now = Date.now();
       _debug.log('total reflow time:', now - startTime);
     }
   }
-  cleanUp() {
+  cleanUp () {
     // recyle items
     for (var uid in this._pending) {
       _pool.recycle(this._pending[uid]);
       delete this._pending[uid];
     }
-
-
-
 
     this._pendingCount = 0;
   }

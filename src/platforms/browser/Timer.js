@@ -20,17 +20,18 @@ let exports = {};
  *
  * System timer exposed to the device.
  */
-var _onTick = null, disableRequestAnimFrame = false, disablePostMessage = true, asFastAsPossible = false, MIN_DT = 16;
+var _onTick = null,
+  disableRequestAnimFrame = false,
+  disablePostMessage = true,
+  asFastAsPossible = false,
+  MIN_DT = 16;
 
 if (window.postMessage) {
-  function postMessageCb(evt) {
+  function postMessageCb (evt) {
     if (evt.data == 'timestep.TICK') {
       onFrame();
     }
   }
-
-
-
 
   if (window.addEventListener) {
     window.addEventListener('message', postMessageCb, false);
@@ -42,23 +43,21 @@ if (window.postMessage) {
   tickNow = sendTimeoutNow;
 }
 
-
-
-
-function sendPostMessage() {
+function sendPostMessage () {
   window.postMessage('timestep.TICK', '*');
 }
-function sendTimeout() {
+
+function sendTimeout () {
   setTimeout(onFrame, MIN_DT);
 }
-function sendTimeoutNow() {
+
+function sendTimeoutNow () {
   setTimeout(onFrame, 0);
 }
 
-
-
-
-var fastDriver = sendTimeoutNow, mainDriver = sendTimeout, cancelDriver, driverId;
+var fastDriver = sendTimeoutNow,
+  mainDriver = sendTimeout,
+  cancelDriver, driverId;
 
 if (asFastAsPossible) {
   if (!disablePostMessage) {
@@ -80,12 +79,10 @@ if (asFastAsPossible) {
   if (!disableRequestAnimFrame) {
     for (var i = 0; i < prefixes.length && !reqAnim; ++i) {
       reqAnim = window[prefixes[i] + 'RequestAnimationFrame'];
-      cancelAnim = window[prefixes[i] + 'CancelAnimationFrame'] || window[prefixes[i] + 'CancelRequestAnimationFrame'];
+      cancelAnim = window[prefixes[i] + 'CancelAnimationFrame'] || window[
+        prefixes[i] + 'CancelRequestAnimationFrame'];
     }
   }
-
-
-
 
   if (reqAnim) {
     fastDriver = mainDriver = reqAnim;
@@ -95,13 +92,6 @@ if (asFastAsPossible) {
   }
 }
 
-
-
-
-
-
-
-
 /*
 var frameDts = [];
 var print = false, frames = 0, lastPrint = 0;
@@ -109,17 +99,17 @@ setInterval(function () { print = true; }, 1000)
 
 var slow = 0, fast = 0;
 */
-function onFrame() {
+function onFrame () {
   if (_onTick) {
-    var now = Date.now(), dt = now - (exports.last || now);
+    var now = Date.now(),
+      dt = now - (exports.last || now);
 
     exports.last = now;
 
-    //try {
+    // try {
     _onTick(dt);
 
-
-    /*} catch (e) {
+    /* } catch (e) {
       if (window.DEV_MODE) {
         var err = '.dev_error';
         jsio('import ' + err).render(e);
@@ -149,9 +139,6 @@ function onFrame() {
     }
   }
 }
-
-
-
 
 exports.last = null;
 

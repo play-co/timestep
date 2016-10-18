@@ -57,7 +57,7 @@ var TOLERANCE = 1;
  * @extends ui.View
  */
 exports = class extends View {
-  constructor(opts) {
+  constructor (opts) {
     super(merge(opts, defaults));
 
     var el = this._textNode = document.createElement('div');
@@ -66,7 +66,7 @@ exports = class extends View {
     // el.style.position = 'relative';
     this.__view.getElement().appendChild(el);
   }
-  updateOpts(opts) {
+  updateOpts (opts) {
     opts = super.updateOpts(...arguments);
 
     var s = this.__view.getElement().style;
@@ -81,9 +81,6 @@ exports = class extends View {
       }
     }
 
-
-
-
     if (opts.verticalPadding) {
       if (isArray(opts.verticalPadding)) {
         s.paddingTop = opts.verticalPadding[0] + 'px';
@@ -93,9 +90,6 @@ exports = class extends View {
         s.paddingBottom = opts.verticalPadding + 'px';
       }
     }
-
-
-
 
     if (opts.color) {
       s.color = opts.color;
@@ -128,20 +122,13 @@ exports = class extends View {
       s.whiteSpace = 'nowrap';
     }
 
-
-
-
-
-
-
-
     // s.display = 'table';
     this.setText(opts.text || '');
   }
-  getText() {
+  getText () {
     return this._text;
   }
-  reflow() {
+  reflow () {
     var opts = this._opts;
     var node = this._textNode;
     if (node) {
@@ -151,9 +138,6 @@ exports = class extends View {
           this.style.height = idealHeight;
         }
       }
-
-
-
 
       // use binary-search to fit text into dom node
       if (opts.autoFontSize) {
@@ -173,9 +157,6 @@ exports = class extends View {
           } while (false);
         }
 
-
-
-
         // fit height
         do {
           var currentHeight = node.scrollHeight;
@@ -191,9 +172,6 @@ exports = class extends View {
         node.style.lineHeight = opts.lineHeight * size + 'px';
       }
 
-
-
-
       this._computeVerticalAlign();
 
       if (this._strokeNode) {
@@ -201,13 +179,10 @@ exports = class extends View {
       }
     }
   }
-  setText(text) {
+  setText (text) {
     if (typeof text == 'function') {
       return text(this);
     }
-
-
-
 
     text = text != undefined ? text.toString() : '';
 
@@ -221,14 +196,11 @@ exports = class extends View {
         this._textNode.innerText = text;
       }
 
-
-
-
       this._textNode.style.fontSize = this._fontSize + 'px';
       this.needsReflow();
     }
   }
-  _computeVerticalAlign() {
+  _computeVerticalAlign () {
     var s = this._textNode.style;
     var opts = this._opts;
     var fontSize = this._computedFontSize || this._fontSize;
@@ -238,28 +210,25 @@ exports = class extends View {
     var padding = this.style.padding;
     var offset = padding.top;
     if (opts.verticalAlign == 'middle') {
-      offset += (this.style.height - padding.top - padding.bottom - (numLines > 1 ? opts.lineHeight * numLines : 1) * fontSize) / 2;
+      offset += (this.style.height - padding.top - padding.bottom - (
+        numLines > 1 ? opts.lineHeight * numLines : 1) * fontSize) / 2;
     }
-
-
-
 
     this._textNode.style.marginTop = offset + 'px';
   }
-  _updateStroke() {
+  _updateStroke () {
     var opts = this._opts;
     if (opts.strokeColor && opts.strokeWidth) {
       if (!this._strokeNode) {
-        this._textNode.innerHTML = '<span style="position:relative"><span></span><span style="position:absolute;left:0;top:1px;right:0px;z-index:-1"></span></span>';
+        this._textNode.innerHTML =
+          '<span style="position:relative"><span></span><span style="position:absolute;left:0;top:1px;right:0px;z-index:-1"></span></span>';
         this._fillNode = this._textNode.childNodes[0].childNodes[0];
         this._strokeNode = this._textNode.childNodes[0].childNodes[1];
       }
 
-
-
-
       // this._strokeNode.style.left = -opts.strokeWidth / 2 + 'px';
-      this._strokeNode.style.webkitTextStroke = opts.strokeWidth * 1 + 'px ' + opts.strokeColor;
+      this._strokeNode.style.webkitTextStroke = opts.strokeWidth * 1 +
+        'px ' + opts.strokeColor;
       this.needsReflow();
     } else if (this._strokeNode) {
       this._strokeNode = null;

@@ -26,37 +26,31 @@ import dispatch from 'event/input/dispatch';
 import InputEvent from 'event/input/InputEvent';
 
 exports = class {
-  constructor(view, opts) {
+  constructor (view, opts) {
     this.view = view;
     this.view.subscribe('InputStart', this, 'onInputStart');
     this.update(opts);
   }
-  update(opts) {
+  update (opts) {
     if ('canHandleEvents' in opts) {
       this.canHandleEvents = opts.canHandleEvents;
     }
-
-
-
 
     if ('blockEvents' in opts) {
       this.blockEvents = opts.blockEvents;
     }
   }
-  containsEvent(evt, localPt) {
+  containsEvent (evt, localPt) {
     // block events must be false
     return !this.blockEvents && (!this.view._superview || // top-view captures all events
-    this.view.containsLocalPoint(localPt));
+      this.view.containsLocalPoint(localPt));
   }
-  onEnter(id, atTarget) {
+  onEnter (id, atTarget) {
     var view = this.view;
     var over = this._over || (this._over = {});
     if (id in over) {
       return;
     }
-
-
-
 
     over[id] = true;
     this.overCount++;
@@ -66,15 +60,12 @@ exports = class {
     }
     view.publish('InputOver', over, this.overCount, atTarget);
   }
-  onLeave(id, atTarget) {
+  onLeave (id, atTarget) {
     var view = this.view;
     var over = this._over || (this._over = {});
     if (!(id in over)) {
       return;
     }
-
-
-
 
     delete over[id];
     --this.overCount;
@@ -84,17 +75,16 @@ exports = class {
     }
     view.publish('InputOut', over, this.overCount, atTarget);
   }
-  resetOver() {
+  resetOver () {
     delete this._over;
     this.overCount = 0;
   }
 
-
-
-  startDrag(opts) {
+  startDrag (opts) {
     opts = opts || {};
     var view = this.view;
-    var inputStartEvt = opts.inputStartEvt || opts.inputStartEvent || dispatch._evtHistory[dispatch.eventTypes.START];
+    var inputStartEvt = opts.inputStartEvt || opts.inputStartEvent ||
+      dispatch._evtHistory[dispatch.eventTypes.START];
     var id = inputStartEvt.id;
 
     // dedup drags from same input ID
@@ -108,7 +98,8 @@ exports = class {
     ++this.startCount;
 
     var root = inputStartEvt.root;
-    var dragEvt = new InputEvent(inputStartEvt.id, 'input:drag', inputStartEvt.srcPt.x, inputStartEvt.srcPt.y, root, view);
+    var dragEvt = new InputEvent(inputStartEvt.id, 'input:drag',
+      inputStartEvt.srcPt.x, inputStartEvt.srcPt.y, root, view);
 
     dragEvt.didDrag = false;
     dragEvt.radius = opts.radius * opts.radius || 0;
@@ -116,19 +107,16 @@ exports = class {
     root.subscribe('InputMoveCapture', this, 'onDragStart', dragEvt);
     root.subscribe('InputSelectCapture', this, 'onDragStop', dragEvt);
   }
-  isDragging() {
+  isDragging () {
     return this.dragCount && dispatch._isDragging;
   }
-  onDragStart(dragEvt, moveEvt) {
+  onDragStart (dragEvt, moveEvt) {
     // have we exceeded the move radius?
     var dx = moveEvt.srcPt.x - dragEvt.srcPt.x;
     var dy = moveEvt.srcPt.y - dragEvt.srcPt.y;
     if (dx * dx + dy * dy <= dragEvt.radius) {
       return;
     }
-
-
-
 
     if (dragEvt.didDrag) {
       return;
@@ -142,9 +130,6 @@ exports = class {
     if (this.startCount == 0) {
       dragEvt.root.unsubscribe('InputMoveCapture', this, 'onDragStart');
     }
-
-
-
 
     // want to fire onDragStart with the current point equal to the initial point
     // even though the user has moved away by now
@@ -161,13 +146,11 @@ exports = class {
     dragEvt.root.subscribe('InputMoveCapture', this, 'onDrag', dragEvt);
     this.onDrag(dragEvt, moveEvt);
   }
-  onDrag(dragEvt, moveEvt) {
-    if (dragEvt.id != moveEvt.id || moveEvt.srcPt.x == dragEvt.currPt.x && moveEvt.srcPt.y == dragEvt.currPt.y) {
+  onDrag (dragEvt, moveEvt) {
+    if (dragEvt.id != moveEvt.id || moveEvt.srcPt.x == dragEvt.currPt.x &&
+      moveEvt.srcPt.y == dragEvt.currPt.y) {
       return;
     }
-
-
-
 
     var view = this.view;
 
@@ -185,17 +168,13 @@ exports = class {
       view.onDrag(dragEvt, moveEvt, delta);
     }
     view.publish('Drag', dragEvt, moveEvt, delta);
-
   }
-  onDragStop(dragEvt, selectEvt) {
+  onDragStop (dragEvt, selectEvt) {
     var id = dragEvt.id;
     var dragging = this._isDragging || (this._isDragging = {});
     if (!dragging[id] || dragEvt.id != selectEvt.id) {
       return;
     }
-
-
-
 
     delete dragging[id];
     --this.dragCount;
@@ -206,9 +185,6 @@ exports = class {
       dragEvt.root.unsubscribe('InputSelectCapture', this, 'onDragStop');
       dispatch._isDragging = false;
     }
-
-
-
 
     if (dragEvt.didDrag) {
       var view = this.view;
@@ -223,7 +199,7 @@ exports = class {
     }
   }
 
-  onInputStart(evt) {
+  onInputStart (evt) {
     if (this.view.listeners('InputActivate').length === 0) {
       return;
     }
@@ -231,14 +207,14 @@ exports = class {
     this.view.subscribe('InputSelect', this, 'onInputSelect');
     evt.root.subscribeOnce('InputSelect', this, 'onGlobalInputSelect');
   }
-  onInputSelect(evt, localPt) {
+  onInputSelect (evt, localPt) {
     if (this._isDown) {
       this.view.publish('InputActivate', evt, localPt);
     }
     this._isDown = false;
     this.view.unsubscribe('InputSelect', this, 'onInputSelect');
   }
-  onGlobalInputSelect(evt) {
+  onGlobalInputSelect (evt) {
     if (this._isDown) {
       this.view.unsubscribe('InputSelect', this, 'onInputSelect');
     }

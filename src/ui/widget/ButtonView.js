@@ -28,12 +28,14 @@ import Enum from 'lib/Enum';
 var states = Enum('UP', 'DOWN', 'DISABLED', 'SELECTED', 'UNSELECTED');
 var lastClicked = null;
 exports = class extends ImageScaleView {
-  constructor(opts) {
-    this._state = opts.defaultState || opts.state || (opts.toggleSelected ? states.UNSELECTED : states.UP);
+  constructor (opts) {
+    this._state = opts.defaultState || opts.state || (opts.toggleSelected ?
+      states.UNSELECTED : states.UP);
 
     super(...arguments);
 
-    this.selected = opts.toggleSelected && opts.state === states.SELECTED ? true : false;
+    this.selected = opts.toggleSelected && opts.state === states.SELECTED ?
+      true : false;
 
     var textOpts = merge(opts.text, {
       superview: this,
@@ -44,7 +46,8 @@ exports = class extends ImageScaleView {
       height: this.style.height,
       canHandleEvents: false
     });
-    this._reflowText = textOpts.width == this.style.width && textOpts.height == this.style.height;
+    this._reflowText = textOpts.width == this.style.width && textOpts.height ==
+      this.style.height;
     this._text = new TextView(textOpts);
 
     var iconOpts = merge(opts.icon, {
@@ -60,7 +63,7 @@ exports = class extends ImageScaleView {
     this.updateOpts(opts);
     this._trigger(this._state, true);
   }
-  updateOpts(opts) {
+  updateOpts (opts) {
     opts = merge(opts, this._opts);
 
     opts = super.updateOpts(opts);
@@ -73,42 +76,33 @@ exports = class extends ImageScaleView {
 
     'text' in opts && this._text && this._text.updateOpts(opts.text);
   }
-  onInputStart() {
-    //no action when disabled
+  onInputStart () {
+    // no action when disabled
     if (this._state === states.DISABLED) {
       return;
     }
-
-
-
 
     lastClicked = this.uid;
 
     this._state = states.DOWN;
     this._trigger(states.DOWN);
   }
-  onInputOver() {
-    //no action when disabled
+  onInputOver () {
+    // no action when disabled
     if (this._state === states.DISABLED || lastClicked != this.uid) {
       return;
     }
 
-
-
-
     this._state = states.DOWN;
     this._trigger(states.DOWN, true);
   }
-  onInputSelect() {
-    //no action when disabled
+  onInputSelect () {
+    // no action when disabled
     if (this._state === states.DISABLED) {
       return;
     }
 
-
-
-
-    //call the click handler
+    // call the click handler
     this._opts.onClick && this._opts.onClick.call(this);
     this.onClick && this.onClick();
 
@@ -117,18 +111,12 @@ exports = class extends ImageScaleView {
       return;
     }
 
-
-
-
     if (this._opts.clickOnce) {
       this._state = states.DISABLED;
       this._trigger(states.UP);
       this._trigger(states.DISABLED);
       return;
     }
-
-
-
 
     if (this._opts.toggleSelected) {
       if (this.selected) {
@@ -142,16 +130,16 @@ exports = class extends ImageScaleView {
       this._trigger(states.UP);
     }
   }
-  onInputOut() {
+  onInputOut () {
     if (this._state !== states.DISABLED && this._state !== states.UP) {
       this._state = states.UP;
       this._trigger(states.UP, true);
     }
   }
-  _trigger(state, dontPublish) {
+  _trigger (state, dontPublish) {
     var stateName = states[state];
     if (!stateName)
-      return;
+      { return; }
     stateName = stateName.toLowerCase();
 
     if (this._images && this._images[stateName]) {
@@ -163,9 +151,6 @@ exports = class extends ImageScaleView {
       return;
     }
 
-
-
-
     if (typeof this._onHandlers[stateName] === 'function') {
       this._onHandlers[stateName].call(this);
     }
@@ -173,48 +158,39 @@ exports = class extends ImageScaleView {
       this._audioManager && this._audioManager.play(this._sounds[stateName]);
     }
 
-
-
-
     this.emit(stateName);
   }
-  reflow() {
+  reflow () {
     if (this._reflowText) {
       this._text.style.width = this.style.width;
       this._text.style.height = this.style.height;
     }
   }
-  getText() {
+  getText () {
     return this._text;
   }
-  setTitle(title) {
+  setTitle (title) {
     this._text.setText(title);
   }
-  getIcon() {
+  getIcon () {
     return this._icon;
   }
-  setIcon(icon) {
+  setIcon (icon) {
     this._icon.setImage(icon);
   }
-  setState(state) {
+  setState (state) {
     var stateName = states[state];
     if (!stateName)
-      return;
-
-
-
+      { return; }
 
     switch (state) {
-    case states.SELECTED:
-      this.selected = true;
-      break;
+      case states.SELECTED:
+        this.selected = true;
+        break;
 
-
-
-
-    case states.UNSELECTED:
-      this.selected = false;
-      break;
+      case states.UNSELECTED:
+        this.selected = false;
+        break;
     }
 
     this._state = state;

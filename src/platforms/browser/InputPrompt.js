@@ -29,10 +29,13 @@ var TITLE_CLASS = 'title';
 var MESSAGE_CLASS = 'message';
 var BUTTONS_CLASS = 'buttons';
 var DEFAULT_STYLES = [
-  '.' + BASE_CLASS + ' { position: absolute; z-index: 9999999; font: 12px Helvetica; color: #444; background: rgba(255, 255, 255, 0.9); border-radius: 5px; text-align: left; }',
-  '.' + BASE_CLASS + ' .' + TITLE_CLASS + '{ padding: 10px; font-weight: bold; }',
+  '.' + BASE_CLASS +
+  ' { position: absolute; z-index: 9999999; font: 12px Helvetica; color: #444; background: rgba(255, 255, 255, 0.9); border-radius: 5px; text-align: left; }',
+  '.' + BASE_CLASS + ' .' + TITLE_CLASS +
+  '{ padding: 10px; font-weight: bold; }',
   '.' + BASE_CLASS + ' .' + MESSAGE_CLASS + '{ padding: 10px; color: #888; }',
-  '.' + BASE_CLASS + ' .' + BUTTONS_CLASS + '{ padding: 10px; text-align: right; }'
+  '.' + BASE_CLASS + ' .' + BUTTONS_CLASS +
+  '{ padding: 10px; text-align: right; }'
 ].join('');
 
 var addedStyles = false;
@@ -47,9 +50,6 @@ exports.show = function (controller, opts) {
       text: DEFAULT_STYLES
     });
   }
-
-
-
 
   // create buttons
   var buttons = [];
@@ -67,9 +67,6 @@ exports.show = function (controller, opts) {
     }
   }
 
-
-
-
   if (opts.cancelText) {
     cancelButton = $({
       type: 'button',
@@ -82,15 +79,13 @@ exports.show = function (controller, opts) {
     }
   }
 
-
-
-
   // create input element
   var input = $({
     tag: 'input',
     attrs: {
       noCapture: true,
-      type: opts.isPassword ? 'password' : keyboardTypes.getHTMLType('text')
+      type: opts.isPassword ? 'password' : keyboardTypes.getHTMLType(
+        'text')
     }
   });
 
@@ -98,18 +93,14 @@ exports.show = function (controller, opts) {
     $.onEvent(input, 'change', opts.onChange);
   }
 
-
-
-
   // create dialog
   var dialog = $({
     parent: document.body,
     className: addClasses && BASE_CLASS,
-    children: [
-      {
-        className: addClasses && TITLE_CLASS,
-        text: opts.title
-      },
+    children: [{
+      className: addClasses && TITLE_CLASS,
+      text: opts.title
+    },
       {
         className: addClasses && MESSAGE_CLASS,
         text: opts.message
@@ -129,9 +120,6 @@ exports.show = function (controller, opts) {
       top: (windowSize.height - dialog.offsetHeight) / 2
     });
   }
-
-
-
 
   if (opts.onShow) {
     opts.onShow(dialog);

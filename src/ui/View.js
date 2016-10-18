@@ -46,10 +46,10 @@ import animate from 'animate';
 import setProperty from 'util/setProperty';
 
 class EventScheduler {
-  constructor() {
+  constructor () {
     this._queue = [];
   }
-  add(f) {
+  add (f) {
     this._queue.push(f);
 
     if (!this._running) {
@@ -71,18 +71,15 @@ var scheduler = new EventScheduler();
  * This doesn't correspond to native and isn't being used.
  */
 var FocusMgr = new class {
-  constructor(opts) {
+  constructor (opts) {
     this._target = null;
     this._canChange = true;
   }
-  focus(target) {
+  focus (target) {
     if (this._target != target && this._canChange) {
       if (this._target && this._target.onBlur) {
         this._target.onBlur(this);
       }
-
-
-
 
       this._target = target;
       if (target && target.onFocus) {
@@ -90,11 +87,11 @@ var FocusMgr = new class {
       }
     }
   }
-  blur(target) {
+  blur (target) {
     target.onBlur && target.onBlur(this);
     this._target = false;
   }
-  get() {
+  get () {
     return this;
   }
 }();
@@ -106,8 +103,7 @@ var UID = 0;
 
 var _BackingCtor = null;
 
-
-function compareSubscription(args, sub) {
+function compareSubscription (args, sub) {
   // note that args and sub may not be the same length
   // return true if all items in args match items in sub
   // (we don't care if sub has extra arguments)
@@ -117,37 +113,18 @@ function compareSubscription(args, sub) {
     }
   }
 
-
-
-
-
-
-
-
   return true;
 }
 
-
-
-
-
-
-
-
-var DEFAULT_REFLOW = function () {
-};
-
+var DEFAULT_REFLOW = function () {};
 
 exports = class extends IView {
-  constructor(opts) {
+  constructor (opts) {
     super();
 
     if (!opts) {
       opts = {};
     }
-
-
-
 
     // TODO: remove this eventually
     // Things like TextView will fail if it is not present
@@ -172,7 +149,7 @@ exports = class extends IView {
 
     this.updateOpts(opts);
   }
-  updateOpts(opts) {
+  updateOpts (opts) {
     opts = opts || {};
     if (this._opts) {
       for (var key in opts) {
@@ -182,9 +159,6 @@ exports = class extends IView {
       this._opts = opts;
     }
 
-
-
-
     if (opts.tag) {
       this.tag = opts.tag;
     }
@@ -192,15 +166,9 @@ exports = class extends IView {
       this._filter = opts.filter;
     }
 
-
-
-
     if (opts.infinite) {
       this._infinite = opts.infinite;
     }
-
-
-
 
     this.style.update(opts);
     this.__input.update(opts);
@@ -210,161 +178,148 @@ exports = class extends IView {
       this.style.anchorY = (this.style.height || 0) / 2;
     }
 
-
-
-
     if (opts.superview) {
       opts.superview.addSubview(this);
     }
-    //opts.parent is deprecated, use opts.superview instead
+    // opts.parent is deprecated, use opts.superview instead
     if (opts.parent) {
       opts.parent.addSubview(this);
     }
 
-
-
-
     return opts;
   }
-  getFilters() {
-    logger.warn('View.getFilters() is deprecated! Use View.getFilter() instead.');
+  getFilters () {
+    logger.warn(
+      'View.getFilters() is deprecated! Use View.getFilter() instead.');
     var filters = {};
     if (this._filter) {
       filters[this._filter.getType()] = this._filter;
     }
     return filters;
   }
-  getFilter() {
+  getFilter () {
     return this._filter;
   }
-  addFilter(filter) {
-    logger.warn('View.addFilter() is deprecated! Use View.setFilter() instead.');
+  addFilter (filter) {
+    logger.warn(
+      'View.addFilter() is deprecated! Use View.setFilter() instead.');
     this.setFilter(filter);
   }
-  setFilter(filter) {
+  setFilter (filter) {
     this._filter = filter;
   }
-  removeFilter() {
+  removeFilter () {
     this._filter = null;
   }
-  getAnimation(groupID) {
+  getAnimation (groupID) {
     return animate(this, groupID);
   }
-  animate(style, duration, easing) {
+  animate (style, duration, easing) {
     return this.getAnimation().then(style, duration, easing);
   }
-  focus() {
+  focus () {
     FocusMgr.get().focus(this);
     return this;
   }
-  blur() {
+  blur () {
     FocusMgr.get().blur(this);
     return this;
   }
-  onFocus() {
+  onFocus () {
     this._isFocused = true;
   }
-  onBlur() {
+  onBlur () {
     this._isFocused = false;
   }
-  isDragging() {
+  isDragging () {
     return this.__input.isDragging();
   }
-  startDrag(opts) {
+  startDrag (opts) {
     this.__input.startDrag(opts);
   }
-  getInput() {
+  getInput () {
     return this.__input;
   }
-  isInputOver() {
+  isInputOver () {
     return !!this.__input.overCount;
   }
-  getInputOverCount() {
+  getInputOverCount () {
     return this._inputOverCount;
   }
-  canHandleEvents(handleEvents, ignoreSubviews) {
+  canHandleEvents (handleEvents, ignoreSubviews) {
     this.__input.canHandleEvents = handleEvents;
 
     if (typeof ignoreSubviews === 'boolean') {
       this.__input.blockEvents = ignoreSubviews;
     }
   }
-  setIsHandlingEvents(canHandleEvents) {
+  setIsHandlingEvents (canHandleEvents) {
     this.__input.canHandleEvents = canHandleEvents;
   }
-  isHandlingEvents() {
+  isHandlingEvents () {
     return this.__input.canHandleEvents;
   }
-  needsRepaint() {
+  needsRepaint () {
     this._needsRepaint = true;
   }
-  needsReflow() {
+  needsReflow () {
     if (this.reflow != DEFAULT_REFLOW || this.style.layout) {
       _reflowMgr.add(this);
       this._needsRepaint = true;
     }
   }
-  reflowSync() {
+  reflowSync () {
     _reflowMgr.reflow(this);
   }
-  _onEventPropagate(evt, pt, atTarget) {
+  _onEventPropagate (evt, pt, atTarget) {
     if (atTarget) {
       var id = evt.id;
       var lastEvt;
       var i;
 
       switch (evt.type) {
-      case dispatch.eventTypes.SELECT:
-      case dispatch.eventTypes.CLEAR:
-        dispatch._evtHistory[dispatch.eventTypes.MOVE] = null;
-        lastEvt = dispatch._activeInputOver[id];
-        if (lastEvt) {
-          dispatch.clearOverState(id);
-        }
-        break;
+        case dispatch.eventTypes.SELECT:
+        case dispatch.eventTypes.CLEAR:
+          dispatch._evtHistory[dispatch.eventTypes.MOVE] = null;
+          lastEvt = dispatch._activeInputOver[id];
+          if (lastEvt) {
+            dispatch.clearOverState(id);
+          }
+          break;
 
-
-
-
-      case dispatch.eventTypes.START:
-      case dispatch.eventTypes.MOVE:
+        case dispatch.eventTypes.START:
+        case dispatch.eventTypes.MOVE:
         // translate input:move events into two higher-level events:
         //   input:over and input:out
-        var target = evt.trace[0];
-        var view = null;
+          var target = evt.trace[0];
+          var view = null;
 
         // fire input:out events first, start with deepest node and work out
-        lastEvt = dispatch._activeInputOver[id];
-        if (lastEvt && target != lastEvt.trace[0]) {
-          var trace = lastEvt.trace;
-          for (i = 0, view; view = trace[i]; ++i) {
-            if (!(view.uid in evt.pt)) {
-              view.__input.onLeave(id, target == view);
+          lastEvt = dispatch._activeInputOver[id];
+          if (lastEvt && target != lastEvt.trace[0]) {
+            var trace = lastEvt.trace;
+            for (i = 0, view; view = trace[i]; ++i) {
+              if (!(view.uid in evt.pt)) {
+                view.__input.onLeave(id, target == view);
+              }
             }
           }
-        }
 
-
-
-
-        if (!lastEvt || target != lastEvt.trace[0]) {
+          if (!lastEvt || target != lastEvt.trace[0]) {
           // fire input:over events second, start with outermost node and go to target
-          var trace = evt.trace;
-          for (i = evt.depth - 1; i >= 0; --i) {
-            trace[i].__input.onEnter(id, target == view);
-          }
-
-
-
+            var trace = evt.trace;
+            for (i = evt.depth - 1; i >= 0; --i) {
+              trace[i].__input.onEnter(id, target == view);
+            }
 
           // update current mouse trace
-          dispatch._activeInputOver[id] = evt;
-        }
-        break;
+            dispatch._activeInputOver[id] = evt;
+          }
+          break;
       }
     }
   }
-  localizePoint(pt) {
+  localizePoint (pt) {
     var list = this.getParents();
     var i = 0;
     list.push(this);
@@ -373,30 +328,30 @@ exports = class extends IView {
     }
     return pt;
   }
-  getSubview(i) {
+  getSubview (i) {
     return this.__view.getSubviews()[i];
   }
-  getSubviews() {
+  getSubviews () {
     return this.__view.getSubviews();
   }
-  getSuperview() {
+  getSuperview () {
     return this.__view.getSuperview();
   }
-  connectEvent(src, name)
+  connectEvent (src, name)
     /*, args */
     {
-      if (!this.__subs) {
-        this.__subs = [];
+    if (!this.__subs) {
+      this.__subs = [];
 
-        this.on('ViewAdded', bind(this, '_connectEvents'));
-        this.on('ViewRemoved', bind(this, '_disconnectEvents'));
+      this.on('ViewAdded', bind(this, '_connectEvents'));
+      this.on('ViewRemoved', bind(this, '_disconnectEvents'));
 
-        if (this.__root) {
-          this._connectEvents();
-        }
+      if (this.__root) {
+        this._connectEvents();
       }
     }
-  disconnectEvent(src, name) {
+  }
+  disconnectEvent (src, name) {
     if (this.__subs) {
       var args = Array.prototype.slice.call(arguments, 1);
       for (var i = 0, sub; sub = this.__subs[i]; ++i) {
@@ -407,17 +362,17 @@ exports = class extends IView {
       }
     }
   }
-  _connectEvents() {
+  _connectEvents () {
     for (var i = 0, args; args = this.__subs[i]; ++i) {
       args[0].on.apply(args[0], args[1]);
     }
   }
-  _disconnectEvents() {
+  _disconnectEvents () {
     for (var i = 0, args; args = this.__subs[i]; ++i) {
       args[0].removeListener.apply(args[0], args[1]);
     }
   }
-  addSubview(view) {
+  addSubview (view) {
     if (this.__view.addSubview(view)) {
       view.needsRepaint();
 
@@ -430,14 +385,11 @@ exports = class extends IView {
       if (this.__root) {
         var root = this.__root;
         var viewCreated = view;
-        scheduler.add(bind(this, function recurse(view) {
+        scheduler.add(bind(this, function recurse (view) {
           if (!view.style.__firstRender) {
             view.style.__firstRender = true;
             view.needsReflow();
           }
-
-
-
 
           view.__root = root;
           view.emit('ViewAdded', viewCreated);
@@ -449,12 +401,9 @@ exports = class extends IView {
       }
     }
 
-
-
-
     return view;
   }
-  _linkView(view) {
+  _linkView (view) {
     // remove any current connections
     this._unlinkView(view);
 
@@ -466,25 +415,17 @@ exports = class extends IView {
     view.__rightSibling = this.__children;
     this.__children = view;
     view.__parent = this;
-
-
   }
-  _unlinkView(view) {
+  _unlinkView (view) {
     if (view.__parent) {
       // When removing a subview, remove the view from its sibling list
       if (view.__leftSibling) {
         view.__leftSibling.__rightSibling = view.__rightSibling;
       }
 
-
-
-
       if (view.__rightSibling) {
         view.__rightSibling.__leftSibling = view.__leftSibling;
       }
-
-
-
 
       // If this view is the head of the sibling list
       // then set the next sibling to be the head
@@ -492,20 +433,17 @@ exports = class extends IView {
         view.__parent.__children = view.__rightSibling;
       }
 
-
-
-
       view.__leftSibling = null;
       view.__rightSibling = null;
       view.__parent = null;
     }
   }
-  removeSubview(view) {
+  removeSubview (view) {
     if (this.__view.removeSubview(view)) {
       this._unlinkView(view);
       this.publish('SubviewRemoved', view);
       if (view.__root) {
-        scheduler.add(bind(this, function recurse(view) {
+        scheduler.add(bind(this, function recurse (view) {
           view.__root = null;
           view.emit('ViewRemoved', this);
           var subviews = view.getSubviews();
@@ -516,28 +454,25 @@ exports = class extends IView {
       }
     }
 
-
-
-
     return view;
   }
-  removeFromSuperview() {
+  removeFromSuperview () {
     var superview = this.__view.getSuperview();
     if (superview) {
       superview.removeSubview(this);
     }
   }
-  removeAllSubviews() {
+  removeAllSubviews () {
     var subviews = this.getSubviews();
     var i = subviews.length;
     while (i--) {
       this.removeSubview(subviews[i]);
     }
   }
-  getApp() {
+  getApp () {
     return this.__root;
   }
-  getSuperviews() {
+  getSuperviews () {
     var views = [];
     var next = this.getSuperview();
     while (next) {
@@ -545,23 +480,18 @@ exports = class extends IView {
       next = next.getSuperview();
     }
 
-
-
-
     return views;
   }
-  buildView() {
-  }
-  containsLocalPoint(pt) {
+  buildView () {}
+  containsLocalPoint (pt) {
     if (this._infinite) {
       return true;
     }
 
-
-
-
     // infinite plane
-    var s = this.style, w = s.width, h = s.height;
+    var s = this.style,
+      w = s.width,
+      h = s.height;
 
     if (w > 0 && h > 0) {
       return pt.x <= w && pt.y <= h && pt.x >= 0 && pt.y >= 0;
@@ -573,7 +503,7 @@ exports = class extends IView {
       return pt.x >= w && pt.y >= h && pt.x <= 0 && pt.y <= 0;
     }
   }
-  getBoundingShape(simple) {
+  getBoundingShape (simple) {
     if (this._infinite) {
       return true;
     } else {
@@ -608,25 +538,34 @@ exports = class extends IView {
       return new Rect(s.x, s.y, w * s.scale, h * s.scale);
     }
   }
-  getRelativeRegion(region, parent) {
+  getRelativeRegion (region, parent) {
     var offset = this.getPosition(parent || region.src);
-    return new Rect((region.x - offset.x) / offset.scale, (region.y - offset.y) / offset.scale, region.width / offset.scale, region.height / offset.scale);
+    return new Rect((region.x - offset.x) / offset.scale, (region.y -
+        offset.y) / offset.scale, region.width / offset.scale, region.height /
+      offset.scale);
   }
-  getPosition(relativeTo) {
-    var abs = new Point(), view = this, r = 0, s = this.style, w = s.width, h = s.height, c = 1;
+  getPosition (relativeTo) {
+    var abs = new Point(),
+      view = this,
+      r = 0,
+      s = this.style,
+      w = s.width,
+      h = s.height,
+      c = 1;
 
     while (view && view != relativeTo) {
       var scale = view.style.scale;
 
-      //translate to anchor point
+      // translate to anchor point
       abs.add(-view.style.anchorX, -view.style.anchorY);
 
-      //scale and rotate
+      // scale and rotate
       abs.rotate(view.style.r);
       abs.scale(scale);
 
-      //translate back
-      abs.add(view.style.anchorX + view.style.x + view.style.offsetX, view.style.anchorY + view.style.y + view.style.offsetY);
+      // translate back
+      abs.add(view.style.anchorX + view.style.x + view.style.offsetX, view.style
+        .anchorY + view.style.y + view.style.offsetY);
 
       r += view.style.r;
       w *= scale;
@@ -634,9 +573,6 @@ exports = class extends IView {
       c *= scale;
       view = view.__view.getSuperview();
     }
-
-
-
 
     return {
       x: abs.x,
@@ -649,18 +585,18 @@ exports = class extends IView {
       anchorY: this.style.anchorY
     };
   }
-  getBacking() {
+  getBacking () {
     return this.__view;
   }
-  show() {
+  show () {
     this.style.visible = true;
     this.needsRepaint();
   }
-  hide() {
+  hide () {
     this.style.visible = false;
     this.needsRepaint();
   }
-  getTag() {
+  getTag () {
     var cls = 'View';
 
     if (DEBUG) {
@@ -675,22 +611,13 @@ exports = class extends IView {
           cls = this.constructor.toString().match(/^function ([^(]*)/)[1];
         }
 
-
-
-
         if (cls) {
           cls = cls.substr(cls.lastIndexOf('_') + 1);
         }
 
-
-
-
         this.__tagClassName = cls || 'unknown';
       }
     }
-
-
-
 
     return cls + this.uid + (this.tag ? ':' + this.tag : '');
   }
@@ -699,12 +626,10 @@ exports.prototype.reflow = DEFAULT_REFLOW;
 exports.prototype._boundingShape = {};
 var View = exports;
 
-
 View.prototype.setHandleEvents = View.prototype.canHandleEvents;
 View.prototype.getEngine = View.prototype.getApp;
 View.prototype.getParents = View.prototype.getSuperviews;
 View.prototype.toString = View.prototype.getTag;
-
 
 // --- render/tick setters ---
 /**
@@ -730,15 +655,12 @@ setProperty(View.prototype, 'tick', {
 // legacy implementation shim
 setProperty(View.prototype, '_superview', {
   get: View.prototype.getSuperview,
-  set: function () {
-  }
+  set: function () {}
 });
 setProperty(View.prototype, '_subviews', {
   get: View.prototype.getSubviews,
-  set: function () {
-  }
+  set: function () {}
 });
-
 
 var _extensions = [];
 View.addExtension = function (ext) {

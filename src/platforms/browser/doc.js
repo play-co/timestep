@@ -31,25 +31,24 @@ import device from 'device';
 import userAgent from 'userAgent';
 
 var isIOS7 = device.iosVersion === 7;
-var isIOSSafari = device.iosVersion >= 7 && !device.isIpad && !device.isStandalone && !device.isUIWebView;
+var isIOSSafari = device.iosVersion >= 7 && !device.isIpad && !device.isStandalone &&
+  !device.isUIWebView;
 var enableLandscapeScroll = isIOSSafari && window.parent === window;
 
 var SCALING = Enum('FIXED', 'RESIZE', 'MANUAL');
-var defaultScalingMode = !device.isMobileNative || device.simulating ? SCALING.RESIZE : SCALING.FIXED;
+var defaultScalingMode = !device.isMobileNative || device.simulating ? SCALING.RESIZE :
+  SCALING.FIXED;
 
 /**
  * @extends lib.PubSub
  */
 class Document extends PubSub {
-  constructor() {
+  constructor () {
     super();
 
     if (!$) {
       return;
     }
-
-
-
 
     var doc = GLOBAL.document;
     var body = doc && doc.body;
@@ -71,23 +70,18 @@ class Document extends PubSub {
     }
     this.setScalingMode(defaultScalingMode);
   }
-  unsubscribeResize() {
+  unsubscribeResize () {
     device.screen.unsubscribe('Resize', this, 'onResize');
   }
-  setEngine(engine) {
+  setEngine (engine) {
     if (engine == this._engine) {
       return;
     }
 
-
-
-
-    if (engine.getOpt('minIOSLandscapeScroll') > device.iosVersion || engine.getOpt('disableIOSLandscapeScroll')) {
+    if (engine.getOpt('minIOSLandscapeScroll') > device.iosVersion || engine.getOpt(
+        'disableIOSLandscapeScroll')) {
       enableLandscapeScroll = false;
     }
-
-
-
 
     this._engine = engine;
     this._canvas = this._engine.getCanvas();
@@ -96,50 +90,49 @@ class Document extends PubSub {
       this._canvas.style.position = 'fixed';
     }
 
-
-
-
     this.appendChild(this._canvas);
 
     if (this._canvas.getContext) {
-      var ctx = this._canvas.getContext(window.WebGLRenderingContext ? 'webgl' : '2d');
+      var ctx = this._canvas.getContext(window.WebGLRenderingContext ?
+        'webgl' : '2d');
       if (ctx.setParentNode) {
         ctx.setParentNode(this._el);
       }
     }
   }
-  getElement() {
+  getElement () {
     return this._el;
   }
-  setScalingMode(scalingMode, opts) {
+  setScalingMode (scalingMode, opts) {
     this._scalingMode = scalingMode;
 
-    var el = this._el, s = el.style;
+    var el = this._el,
+      s = el.style;
 
     switch (scalingMode) {
-    case SCALING.FIXED:
-      opts = merge(opts, {
-        width: device.width,
-        height: device.height
-      });
-      s.width = opts.width + 'px';
-      s.height = opts.height + 'px';
-      break;
-    case SCALING.RESIZE:
-      opts = merge(opts, { resizeCanvas: true });
-    // fall through:
-    case SCALING.MANUAL:
-      s.margin = '0px';
-      s.width = '100%';
-      s.height = '100%';
-      break;
+      case SCALING.FIXED:
+        opts = merge(opts, {
+          width: device.width,
+          height: device.height
+        });
+        s.width = opts.width + 'px';
+        s.height = opts.height + 'px';
+        break;
+      case SCALING.RESIZE:
+        opts = merge(opts, { resizeCanvas: true });
+      // fall through:
+      case SCALING.MANUAL:
+        s.margin = '0px';
+        s.width = '100%';
+        s.height = '100%';
+        break;
     }
 
     this._scalingOpts = opts;
     this.onResize();
     setTimeout(bind(this, 'onResize'), 1000);
   }
-  onResize() {
+  onResize () {
     var isIOS = userAgent.OS_TYPE === 'iPhone OS';
     var el = this._el;
     var s = this._el.style;
@@ -149,14 +142,12 @@ class Document extends PubSub {
     if (enableLandscapeScroll) {
       // on phones, ios7 will only ever be 320px high max (does not change until the 6+)
       var isLandscape = orientation === 'landscape';
-      document.documentElement.style.height = isLandscape && isIOS7 ? window.innerHeight == 320 ? '320px' : '640px' : '100%';
+      document.documentElement.style.height = isLandscape && isIOS7 ? window.innerHeight ==
+        320 ? '320px' : '640px' : '100%';
       document.body.style.height = isIOS7 ? '100%' : '150%';
     } else {
       document.body.style.height = '100%';
     }
-
-
-
 
     logger.log('resize', device.width, device.height);
 
@@ -170,9 +161,6 @@ class Document extends PubSub {
       height = opts.height;
     }
 
-
-
-
     // enforce maxWidth/maxHeight
     // if maxWidth/maxHeight is met, switch a RESIZE scaling mode to FIXED (center the document on the screen)
     if (opts.maxWidth && width > opts.maxWidth) {
@@ -182,9 +170,6 @@ class Document extends PubSub {
       }
     }
 
-
-
-
     if (opts.maxHeight && height > opts.maxHeight) {
       height = opts.maxHeight;
       if (mode == SCALING.RESIZE) {
@@ -192,79 +177,64 @@ class Document extends PubSub {
       }
     }
 
-
-
-
     // We may need to pause the engine when resizing on iOS
     var needsPause = isIOS && this._engine && this._engine.isRunning;
 
     switch (mode) {
-    case SCALING.MANUAL:
-      break;
+      case SCALING.MANUAL:
+        break;
 
-
-
-
-    // do nothing
-    case SCALING.FIXED:
+      // do nothing
+      case SCALING.FIXED:
       // try to center the container
-      el.style.top = Math.round(Math.max(0, (window.innerHeight - height) / 2)) + 'px';
-      el.style.left = Math.round(Math.max(0, (window.innerWidth - width) / 2)) + 'px';
+        el.style.top = Math.round(Math.max(0, (window.innerHeight - height) / 2)) +
+        'px';
+        el.style.left = Math.round(Math.max(0, (window.innerWidth - width) / 2)) +
+        'px';
 
-      s.width = width + 'px';
-      s.height = height + 'px';
-      break;
+        s.width = width + 'px';
+        s.height = height + 'px';
+        break;
 
-
-
-
-    case SCALING.RESIZE:
-      var cs = this._canvas && this._canvas.style;
-      var dpr = device.screen.devicePixelRatio;
-      var scaledWidth = width / dpr;
-      var scaledHeight = height / dpr;
+      case SCALING.RESIZE:
+        var cs = this._canvas && this._canvas.style;
+        var dpr = device.screen.devicePixelRatio;
+        var scaledWidth = width / dpr;
+        var scaledHeight = height / dpr;
       // if we have a canvas element, scale it
-      if (opts.resizeCanvas && this._canvas && (cs.width != scaledWidth || cs.height != scaledHeight)) {
-        this._canvas.width = width;
-        this._canvas.height = height;
-        var ctx = this._canvas.getContext();
-        if (ctx.resize) {
-          ctx.resize(width, height);
-        }
+        if (opts.resizeCanvas && this._canvas && (cs.width != scaledWidth || cs
+          .height != scaledHeight)) {
+          this._canvas.width = width;
+          this._canvas.height = height;
+          var ctx = this._canvas.getContext();
+          if (ctx.resize) {
+            ctx.resize(width, height);
+          }
 
-
-
-
-        var needsPause = isIOS && this._engine && this._engine.isRunning;
-        if (isIOS) {
+          var needsPause = isIOS && this._engine && this._engine.isRunning;
+          if (isIOS) {
           // There is a mobile browser bug that causes the canvas to not properly
           // resize. This forces a reflow, with the side effect of a brief screen flash.
-          var engine = this._engine;
-          if (needsPause) {
-            engine.pause();
-          }
-          cs.display = 'none';
-          setTimeout(function () {
-            cs.display = 'block';
+            var engine = this._engine;
             if (needsPause) {
-              engine.resume();
+              engine.pause();
             }
-          }, 250);
+            cs.display = 'none';
+            setTimeout(function () {
+              cs.display = 'block';
+              if (needsPause) {
+                engine.resume();
+              }
+            }, 250);
+          }
+
+          cs.width = scaledWidth + 'px';
+          cs.height = scaledHeight + 'px';
         }
 
-
-
-
-        cs.width = scaledWidth + 'px';
-        cs.height = scaledHeight + 'px';
-      }
-
-
-
-
-      s.width = scaledWidth + 'px';
-      s.height = scaledHeight + 'px';
-      break;
+        s.width = scaledWidth + 'px';
+        s.height = scaledHeight + 'px';
+        break;
     }
 
     // make sure to force a render immediately (should we use needsRepaint instead?)
@@ -273,23 +243,24 @@ class Document extends PubSub {
       this._engine.render();
     }
   }
-  _setDim(width, height) {
+  _setDim (width, height) {
     if (this.width != width || this.height != height) {
       this.width = width;
       this.height = height;
       this.publish('Resize', width, height);
     }
   }
-  setColors(bgColor, engineColor) {
+  setColors (bgColor, engineColor) {
     if (this._el) {
       this._el.style.background = engineColor;
-      document.documentElement.style.background = document.body.style.background = bgColor;
+      document.documentElement.style.background = document.body.style.background =
+        bgColor;
     }
   }
-  appendChild(el) {
+  appendChild (el) {
     this._el.appendChild(el);
   }
-  getOffset() {
+  getOffset () {
     return {
       x: this._el.offsetLeft,
       y: this._el.offsetTop
@@ -301,7 +272,8 @@ exports = new Document();
 exports.SCALING = SCALING;
 
 exports.setDocStyle = function () {
-  var doc = GLOBAL.document, body = doc && doc.body;
+  var doc = GLOBAL.document,
+    body = doc && doc.body;
 
   if (body) {
     var docStyle = {

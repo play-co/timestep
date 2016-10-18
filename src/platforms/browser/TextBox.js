@@ -28,7 +28,6 @@ import {
 import browser from 'util/browser';
 let $ = browser.$;
 
-
 var defaultStyle = {
   padding: 0,
   lineHeight: 1.4,
@@ -46,9 +45,8 @@ var defaultStyle = {
   left: 0
 };
 
-
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     opts = merge(opts, {
       color: 'black',
       height: 20
@@ -58,9 +56,6 @@ exports = class {
     if (opts.color) {
       style.color = opts.color;
     }
-
-
-
 
     this._el = $({
       tag: opts.multiLine ? 'textarea' : 'input',
@@ -73,13 +68,12 @@ exports = class {
     $.onEvent(this._el, 'change', this, 'onChange');
     $.onEvent(this._el, 'click', this, 'onClick');
   }
-  onClick() {
-  }
-  destroy() {
+  onClick () {}
+  destroy () {
     $.remove(this._el);
     this._el = null;
   }
-  setApp(app) {
+  setApp (app) {
     if (app != this._app || !this._el.parentNode) {
       this._app = app;
       var canvas = app._ctx.canvas;
@@ -87,75 +81,73 @@ exports = class {
       canvas.parentNode.appendChild(this._el);
     }
   }
-  change() {
-  }
-  click() {
-  }
-  selectAll() {
+  change () {}
+  click () {}
+  selectAll () {
     this._el.focus();
     this._el.select();
   }
-  show() {
+  show () {
     $.show(this._el);
   }
-  hide() {
+  hide () {
     $.hide(this._el);
   }
-  setValue(value) {
+  setValue (value) {
     this._el.value = value;
     return this;
   }
-  setOpacity(o) {
+  setOpacity (o) {
     this._el.style.opacity = o;
     return this;
   }
-  setType(type) {
+  setType (type) {
     this._el.type = type;
     return this;
   }
-  setVisible(isVisible) {
+  setVisible (isVisible) {
     return this[isVisible ? 'show' : ' hide']();
   }
-  getX() {
+  getX () {
     return parseInt(this._el.style.left);
   }
-  getY() {
+  getY () {
     return parseInt(this._el.style.top);
   }
-  getWidth() {
+  getWidth () {
     return this._el.offsetWidth;
   }
-  getHeight() {
+  getHeight () {
     return this._el.offsetHeight;
   }
-  getValue() {
+  getValue () {
     return this._el.value;
   }
-  getOpacity() {
+  getOpacity () {
     return this._el.style.opacity;
   }
-  getType() {
+  getType () {
     return this._el.type;
   }
-  getVisible() {
+  getVisible () {
     return this._el.parentNode && this._el.style.display == 'block';
   }
-  setPosition(p) {
+  setPosition (p) {
     this._el.style.top = p.y + 'px';
     this._el.style.left = p.x + 'px';
   }
-  getPosition() {
+  getPosition () {
     return {
       x: this.getX(),
       y: this.getY()
     };
   }
-  setDimensions(d) {
+  setDimensions (d) {
     this._el.style.width = d.width + 'px';
     this._el.style.height = d.height + 'px';
     return this;
   }
-  getDimensions() {
+  getDimensions () {
     return {
       width: this.getWidth(),
       height: this.getHeight()

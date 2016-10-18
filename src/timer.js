@@ -42,9 +42,6 @@ exports.tick = function (dt) {
       dt = 1;
     }
 
-
-
-
     exports.now += dt;
     exports.frames++;
     exports.onTick(dt);
@@ -57,21 +54,19 @@ exports.tick = function (dt) {
 };
 
 /**
- * If our computer falls asleep, dt might be an insanely large number. 
+ * If our computer falls asleep, dt might be an insanely large number.
  * If we're running a simulation of sorts, we don't want the computer
  * to freeze while computing 1000s of simulation steps, so just drop
  * this tick.  Anyone who is interested can listen for a call to 'onLargeTick'
  */
 exports.onLargeTick = function (largeDt, threshold) {
-  logger.warn('Dropping large tick: ' + largeDt + '; Threshold is set at: ' + threshold);
+  logger.warn('Dropping large tick: ' + largeDt + '; Threshold is set at: ' +
+    threshold);
 };
 
-exports.onTick = function (dt) {
-};
+exports.onTick = function (dt) {};
 
 exports.debug = false;
-
-
 
 // TODO: <jsio>('from iOS import start as exports.start, stop as exports.stop');
 exports.start = function (minDt) {

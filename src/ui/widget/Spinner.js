@@ -22,7 +22,6 @@ import { merge } from 'base';
 
 import View from 'ui/View';
 
-
 var defaults = {
   cycles: 0.5,
   radius: 10,
@@ -34,16 +33,15 @@ var defaults = {
   layout: 'box'
 };
 
-
 exports = class extends View {
-  constructor(opts) {
+  constructor (opts) {
     var _opts = merge(opts, defaults);
     super(_opts);
 
     this._opts = _opts;
     this._step = 2 * Math.PI / this._opts.spokes;
   }
-  tick(dt) {
+  tick (dt) {
     this._t += dt;
 
     var r = this._t / 1000 % (1 / this._opts.cycles) * Math.PI;
@@ -55,20 +53,22 @@ exports = class extends View {
       this.needsRepaint();
     }
   }
-  render(ctx) {
+  render (ctx) {
     ctx.fillStyle = this._opts.backgroundColor;
     var alpha = ctx.globalAlpha;
 
-    var w = this.style.width, h = this.style.height, radius = this._opts.radius, trail = this._opts.trail, thickness = this._opts.thickness, x, y, i, j;
+    var w = this.style.width,
+      h = this.style.height,
+      radius = this._opts.radius,
+      trail = this._opts.trail,
+      thickness = this._opts.thickness,
+      x, y, i, j;
 
     for (y = 0; y < radius; ++y) {
       j = y + 1;
       x = Math.round(radius - Math.sqrt(2 * j * radius - j * j));
       ctx.fillRect(x, y, w - 2 * x, 1);
     }
-
-
-
 
     y = h - radius;
     ctx.fillRect(0, radius, w, y - radius);
@@ -78,9 +78,6 @@ exports = class extends View {
       x = Math.round(radius - Math.sqrt(2 * j * radius - j * j));
       ctx.fillRect(x, y + i, w - 2 * x, 1);
     }
-
-
-
 
     ctx.fillStyle = this._opts.color;
     ctx.translate(w / 2, h / 2);

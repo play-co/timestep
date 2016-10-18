@@ -118,7 +118,7 @@ LRUCache.prototype.get = function (key, returnEntry) {
   // First, find our cache entry
   var entry = this._keymap[key];
   if (entry === undefined)
-    return;
+    { return; }
   // Not cached. Sorry.
   // As <key> was found in the cache, register it as being requested recently
   if (entry === this.tail) {
@@ -131,24 +131,23 @@ LRUCache.prototype.get = function (key, returnEntry) {
   //   A  B  C  <D>  E
   if (entry.newer) {
     if (entry === this.head)
-      this.head = entry.newer;
+      { this.head = entry.newer; }
     entry.newer.older = entry.older;
   }
   // C <-- E.
   if (entry.older)
-    entry.older.newer = entry.newer;
+    { entry.older.newer = entry.newer; }
   // C. --> E
   entry.newer = undefined;
   // D --x
   entry.older = this.tail;
   // D. --> E
   if (this.tail)
-    this.tail.newer = entry;
+    { this.tail.newer = entry; }
   // E. <-- D
   this.tail = entry;
   return returnEntry ? entry : entry.value;
 };
-
 
 // ----------------------------------------------------------------------------
 // Following code is optional and can be removed without breaking the core
@@ -174,7 +173,7 @@ LRUCache.prototype.set = function (key, value) {
   } else {
     oldvalue = this.put(key, value);
     if (oldvalue)
-      oldvalue = oldvalue.value;
+      { oldvalue = oldvalue.value; }
   }
   return oldvalue;
 };
@@ -186,7 +185,7 @@ LRUCache.prototype.set = function (key, value) {
 LRUCache.prototype.remove = function (key) {
   var entry = this._keymap[key];
   if (!entry)
-    return;
+    { return; }
   delete this._keymap[entry.key];
   // need to do delete unfortunately
   if (entry.newer && entry.older) {
@@ -207,21 +206,6 @@ LRUCache.prototype.remove = function (key) {
     // if(entry.older === undefined && entry.newer === undefined) {
     this.head = this.tail = undefined;
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   this.size--;
   return entry.value;
@@ -247,13 +231,10 @@ if (typeof Object.keys === 'function') {
   LRUCache.prototype.keys = function () {
     var keys = [];
     for (var k in this._keymap)
-      keys.push(k);
+      { keys.push(k); }
     return keys;
   };
 }
-
-
-
 
 /**
  * Call `fun` for each entry. Starting with the newest entry if `desc` is a true
@@ -269,7 +250,7 @@ LRUCache.prototype.forEach = function (fun, context, desc) {
     desc = true;
     context = undefined;
   } else if (typeof context !== 'object')
-    context = this;
+    { context = this; }
   if (desc) {
     entry = this.tail;
     while (entry) {
@@ -287,7 +268,8 @@ LRUCache.prototype.forEach = function (fun, context, desc) {
 
 /** Returns a JSON (array) representation */
 LRUCache.prototype.toJSON = function () {
-  var s = [], entry = this.head;
+  var s = [],
+    entry = this.head;
   while (entry) {
     s.push({
       key: entry.key.toJSON(),
@@ -300,12 +282,13 @@ LRUCache.prototype.toJSON = function () {
 
 /** Returns a String representation */
 LRUCache.prototype.toString = function () {
-  var s = '', entry = this.head;
+  var s = '',
+    entry = this.head;
   while (entry) {
     s += String(entry.key) + ':' + entry.value;
     entry = entry.newer;
     if (entry)
-      s += ' < ';
+      { s += ' < '; }
   }
   return s;
 };

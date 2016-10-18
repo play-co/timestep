@@ -26,40 +26,41 @@ import device from 'device';
 var __keyboardIsOpen = false;
 
 class InputField extends squill.Widget {
-  buildWidget() {
+  buildWidget () {
     this.initKeyEvents();
     this.initFocusEvents();
   }
-  setValue(value) {
+  setValue (value) {
     this._el.value = value;
     this._prevValue = value;
   }
-  setCursor(cursorPos) {
+  setCursor (cursorPos) {
     this._el.selectionStart = this._el.selectionEnd = cursorPos;
   }
-  setPlaceholder(placeholder) {
+  setPlaceholder (placeholder) {
     this._el.placeholder = placeholder;
   }
-  setMaxLength(maxLength) {
+  setMaxLength (maxLength) {
     this._el.maxlength = maxLength;
   }
-  show() {
+  show () {
     super.show(...arguments);
 
     this._el.focus();
   }
-  onKeyUp(evt) {
+  onKeyUp (evt) {
     var el = this._el;
-    _focused && _focused.onChange(el.value, this._prevValue, el.selectionStart, el.selectionEnd);
+    _focused && _focused.onChange(el.value, this._prevValue, el.selectionStart,
+      el.selectionEnd);
     this._prevValue = el.value;
     if (evt.keyCode == 13) {
       _focused && _focused.closeEditField();
     }
   }
-  getValue() {
+  getValue () {
     return this._el.value;
   }
-  onBlur(evt) {
+  onBlur (evt) {
     this.hide();
     if (__keyboardIsOpen) {
       __keyboardIsOpen = false;
@@ -70,20 +71,20 @@ class InputField extends squill.Widget {
     _focused && _focused.closeEditField();
     _focused = null;
   }
-  setFontColor(color) {
+  setFontColor (color) {
     this._el.style.color = color;
   }
-  setHorizontalPadding(left, right) {
+  setHorizontalPadding (left, right) {
     this._el.style.paddingLeft = left + 'px';
     this._el.style.paddingRight = right + 'px';
   }
-  setFontSize(fontSize) {
+  setFontSize (fontSize) {
     this._el.style.fontSize = fontSize + 'px';
   }
-  setFontFamily(fontFamily) {
+  setFontFamily (fontFamily) {
     this._el.style.fontFamily = fontFamily;
   }
-  setPosition(x, y, width, height) {
+  setPosition (x, y, width, height) {
     var style = this._el.style;
     style.top = y - 1 + 'px';
     style.left = x + 'px';
@@ -110,7 +111,6 @@ _input.hide();
 
 var _focused = null;
 
-
 var defaults = {
   hint: '',
   inputType: 'default',
@@ -118,59 +118,43 @@ var defaults = {
   maxLength: -1
 };
 
-
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     this._opts = merge(opts, defaults);
 
     this._textEditView = opts.textEditView;
-    this.onFocusChange = opts.onFocusChange || function () {
-    };
-    this.onSubmit = opts.onSubmit || function () {
-    };
+    this.onFocusChange = opts.onFocusChange || function () {};
+    this.onSubmit = opts.onSubmit || function () {};
   }
-  onChange(value, prevValue, cursorPos, selectionEnd) {
+  onChange (value, prevValue, cursorPos, selectionEnd) {
     this._value = value;
     if (this._opts.onChange) {
       this._opts.onChange(value, prevValue, cursorPos);
     }
   }
-  getValue() {
+  getValue () {
     return this._value;
   }
-  setValue(value) {
+  setValue (value) {
     this._value = value;
     this.onChange(value);
   }
-  requestFocus(noSubmit) {
+  requestFocus (noSubmit) {
     if (_focused !== this) {
       if (_focused != null) {
         _focused.removeFocus(noSubmit);
       }
 
-
-
-
       this.onFocusChange(true);
     }
 
-
-
-
-
-
-
-
     _focused = this;
   }
-  closeEditField(noSubmit) {
+  closeEditField (noSubmit) {
     console.log('TextEditView editText removeFocus');
     if (_focused != null) {
       _focused.removeFocus(noSubmit);
     }
-
-
-
 
     this._showTextBox();
     _input.hide();
@@ -183,15 +167,15 @@ exports = class {
       window.dispatchEvent(ev);
     }
   }
-  _hideTextBox() {
+  _hideTextBox () {
     var textBox = this._textEditView._textBox;
     textBox.style.visible = false;
   }
-  _showTextBox() {
+  _showTextBox () {
     var textBox = this._textEditView._textBox;
     textBox.style.visible = true;
   }
-  refresh(value, hasBack, hasForward, cursorPos) {
+  refresh (value, hasBack, hasForward, cursorPos) {
     this._hideTextBox();
 
     var textBox = this._textEditView._textBox;
@@ -203,7 +187,8 @@ exports = class {
     _input.setPlaceholder(this._opts.hint);
     _input.setMaxLength(this._opts.maxLength);
     _input.setFontColor(this._opts.color);
-    _input.setHorizontalPadding(this._opts.paddingLeft * scale, this._opts.paddingRight * scale);
+    _input.setHorizontalPadding(this._opts.paddingLeft * scale, this._opts.paddingRight *
+      scale);
     _input.setFontSize(textBox.getOpts().size * scale);
     _input.setFontFamily(textBox.getOpts().fontFamily);
     _input.setPosition(pos.x, pos.y, pos.width, pos.height);
@@ -215,19 +200,11 @@ exports = class {
       ev.height = device.screen.height * 0.6;
       window.dispatchEvent(ev);
     }
-
-
-
-
-
-
-
-
   }
-  hasFocus() {
+  hasFocus () {
     return this == _focused;
   }
-  removeFocus(noSubmit) {
+  removeFocus (noSubmit) {
     this.onFocusChange(false);
     if (!noSubmit) {
       this.onSubmit(_input.getValue());
@@ -236,7 +213,7 @@ exports = class {
       _focused = null;
     }
   }
-  setHint(hint) {
+  setHint (hint) {
     this._opts.hint = hint;
   }
 };

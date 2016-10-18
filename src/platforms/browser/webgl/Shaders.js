@@ -3,7 +3,7 @@ let exports = {};
 var STRIDE = 24;
 
 class Shader {
-  constructor(opts) {
+  constructor (opts) {
     var gl = this._gl = opts.gl;
 
     this._vertexSrc = opts.vertexSrc || [
@@ -51,11 +51,11 @@ class Shader {
 
     this.initGL();
   }
-  initGL() {
+  initGL () {
     this.createProgram();
     this.updateLocations();
   }
-  updateLocations() {
+  updateLocations () {
     var gl = this._gl;
     for (var attrib in this.attributes) {
       if (this.attributes[attrib] !== -1) {
@@ -68,37 +68,37 @@ class Shader {
       }
     }
   }
-  enableVertexAttribArrays() {
+  enableVertexAttribArrays () {
     var gl = this._gl;
     for (var attrib in this.attributes) {
       if (this.attributes[attrib] !== -1) {
         var index = this.attributes[attrib];
         gl.enableVertexAttribArray(index);
         switch (attrib) {
-        case 'aPosition':
-          gl.vertexAttribPointer(index, 2, gl.FLOAT, false, STRIDE, 0);
-          break;
-        case 'aTextureCoord':
-          gl.vertexAttribPointer(index, 2, gl.FLOAT, false, STRIDE, 8);
-          break;
-        case 'aAlpha':
-          gl.vertexAttribPointer(index, 1, gl.FLOAT, false, STRIDE, 16);
-          break;
-        case 'aColor':
-          gl.vertexAttribPointer(index, 4, gl.UNSIGNED_BYTE, true, STRIDE, 20);
-          break;
+          case 'aPosition':
+            gl.vertexAttribPointer(index, 2, gl.FLOAT, false, STRIDE, 0);
+            break;
+          case 'aTextureCoord':
+            gl.vertexAttribPointer(index, 2, gl.FLOAT, false, STRIDE, 8);
+            break;
+          case 'aAlpha':
+            gl.vertexAttribPointer(index, 1, gl.FLOAT, false, STRIDE, 16);
+            break;
+          case 'aColor':
+            gl.vertexAttribPointer(index, 4, gl.UNSIGNED_BYTE, true, STRIDE, 20);
+            break;
         }
       }
     }
   }
-  disableVertexAttribArrays() {
+  disableVertexAttribArrays () {
     for (var attrib in this.attributes) {
       if (this.attributes[attrib] !== -1) {
         gl.disableVertexAttribArray(this.attributes[attrib]);
       }
     }
   }
-  createProgram() {
+  createProgram () {
     gl = this._gl;
 
     var vertexShader = gl.createShader(gl.VERTEX_SHADER);
@@ -118,15 +118,12 @@ class Shader {
       console.log('Could not initialize shaders');
     }
 
-
-
-
     this.program = program;
   }
 }
 
 class LinearAddShader extends Shader {
-  constructor(opts) {
+  constructor (opts) {
     super();
 
     opts.fragmentSrc = [
@@ -145,7 +142,7 @@ class LinearAddShader extends Shader {
 }
 
 class TintShader extends Shader {
-  constructor(opts) {
+  constructor (opts) {
     super();
 
     opts.fragmentSrc = [
@@ -164,7 +161,7 @@ class TintShader extends Shader {
 }
 
 class MultiplyShader extends Shader {
-  constructor(opts) {
+  constructor (opts) {
     super();
 
     opts.fragmentSrc = [
@@ -183,7 +180,7 @@ class MultiplyShader extends Shader {
 }
 
 class RectShader extends Shader {
-  constructor(opts) {
+  constructor (opts) {
     super();
 
     opts.fragmentSrc = [

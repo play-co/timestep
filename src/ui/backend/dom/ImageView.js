@@ -29,7 +29,7 @@ import Image from 'ui/resource/Image';
  * @extends timestep.View
  */
 exports = class extends View {
-  constructor(opts) {
+  constructor (opts) {
     opts = merge(opts, {
       image: null,
       autoSize: false
@@ -44,15 +44,12 @@ exports = class extends View {
       this.setImage(opts.image, opts);
     }
   }
-  updateOpts(opts) {
+  updateOpts (opts) {
     var opts = super.updateOpts(...arguments);
 
     if ('autoSize' in opts) {
       this._autoSize = !!opts.autoSize;
     }
-
-
-
 
     if (opts.image) {
       this.setImage(opts.image);
@@ -60,16 +57,9 @@ exports = class extends View {
       this.needsReflow();
     }
 
-
-
-
-
-
-
-
     return opts;
   }
-  autoSize() {
+  autoSize () {
     if (this._img) {
       this.style.width = this._img.getWidth();
       this.style.height = this._img.getHeight();
@@ -79,10 +69,10 @@ exports = class extends View {
       }
     }
   }
-  getImage() {
+  getImage () {
     return this._img;
   }
-  setImage(img, opts) {
+  setImage (img, opts) {
     if (typeof img == 'string') {
       // Cache image requests to avoid heavy performance penalties at the
       // expense of a small amount of additional JS memory usage.
@@ -93,16 +83,10 @@ exports = class extends View {
       }
     }
 
-
-
-
     if (img != this._img) {
       if (this._img) {
         this._img.unsubscribe('changeBounds', this);
       }
-
-
-
 
       this._img = img;
 
@@ -120,19 +104,16 @@ exports = class extends View {
           }
         }
 
-
-
-
         img.doOnLoad(this, 'updateImage');
       } else {
         this.updateImage();
       }
     }
   }
-  reflow() {
+  reflow () {
     this.updateImage();
   }
-  _getBackgroundNode(imageURL) {
+  _getBackgroundNode (imageURL) {
     // When a css background-image is set that has an etag and no max-age
     // (as when developing using the browser simulator in debug mode),
     // Chrome sends an HTTP request for images to check for a 304
@@ -147,21 +128,18 @@ exports = class extends View {
       this._bgNodes = {};
     }
 
-
-
-
     var el = this._bgNodes[imageURL];
     if (!el) {
       // create a background node for this URL if we don't
       // already have one
       this._bgNodes[imageURL] = el = document.createElement('div');
-      el.style.cssText = '-webkit-background-clip:content-box;' + 'background-clip:content-box;' + 'z-index:-1;' + 'position:absolute;' + 'top:0;' + 'left:0;' + 'bottom:0;' + 'right:0;' + 'background-image:' + imageURL + ';';
+      el.style.cssText = '-webkit-background-clip:content-box;' +
+        'background-clip:content-box;' + 'z-index:-1;' +
+        'position:absolute;' + 'top:0;' + 'left:0;' + 'bottom:0;' +
+        'right:0;' + 'background-image:' + imageURL + ';';
 
       this.__view._node.appendChild(el);
     }
-
-
-
 
     if (el != this._currentBgNode) {
       // hide the previous background node
@@ -169,28 +147,19 @@ exports = class extends View {
         this._currentBgNode.style.visibility = 'hidden';
       }
 
-
-
-
       // show the current background node
       this._currentBgNode = el;
       el.style.visibility = 'visible';
     }
 
-
-
-
-
-
-
-
     return el;
   }
-  _canvasRender(ctx, opts) {
+  _canvasRender (ctx, opts) {
     var canvas = this._img.getSource();
-    ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, this.style.width, this.style.height);
+    ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, this.style
+      .width, this.style.height);
   }
-  updateImage() {
+  updateImage () {
     var img = this._img;
     var multipleImageNodes = this._opts['dom:multipleImageNodes'];
 
@@ -223,24 +192,26 @@ exports = class extends View {
           }
         }
 
-
-
-
         var bounds = img.getBounds();
-        s.padding = scaleY * bounds.marginTop + 'px ' + scaleX * bounds.marginRight + 'px ' + scaleY * bounds.marginBottom + 'px ' + scaleX * bounds.marginLeft + 'px';
-        s.backgroundPositionX = scaleX * (-bounds.x + bounds.marginLeft) + 'px';
-        s.backgroundPositionY = scaleY * (-bounds.y + bounds.marginTop) + 'px';
-        s.backgroundSize = sheetWidth * scaleX + 'px ' + sheetHeight * scaleY + 'px';
+        s.padding = scaleY * bounds.marginTop + 'px ' + scaleX * bounds.marginRight +
+          'px ' + scaleY * bounds.marginBottom + 'px ' + scaleX * bounds.marginLeft +
+          'px';
+        s.backgroundPositionX = scaleX * (-bounds.x + bounds.marginLeft) +
+          'px';
+        s.backgroundPositionY = scaleY * (-bounds.y + bounds.marginTop) +
+          'px';
+        s.backgroundSize = sheetWidth * scaleX + 'px ' + sheetHeight *
+          scaleY + 'px';
       }
     }
   }
-  getOrigW() {
+  getOrigW () {
     return this._img.getOrigW();
   }
-  getOrigH() {
+  getOrigH () {
     return this._img.getOrigH();
   }
-  doOnLoad() {
+  doOnLoad () {
     if (arguments.length == 1) {
       this._img.doOnLoad(this, arguments[0]);
     } else {

@@ -20,10 +20,9 @@ import { NATIVE } from 'base';
 import device from 'device';
 
 device.registerDevice('tealeaf', 'platforms.native');
-exports.init = function () {
-};
+exports.init = function () {};
 
-//TODO do fonts in a better way and then remove this entirely
+// TODO do fonts in a better way and then remove this entirely
 if (!NATIVE.gl.initialized) {
   NATIVE.gl.initialized = true;
 
@@ -56,8 +55,8 @@ if (!NATIVE.gl.initialized) {
           return 'italic';
         }
         if (mediumRe.test(style) && data[family].some(function (item) {
-            return lightRe.test(item);
-          })) {
+          return lightRe.test(item);
+        })) {
           return 'bold';
         }
         return 'normal';
@@ -71,6 +70,5 @@ if (!NATIVE.gl.initialized) {
     NATIVE.gl.fonts = fontMap;
   }
 }
-
 
 export default exports;

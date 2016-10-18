@@ -37,21 +37,21 @@ import DEFAULT_IMAGE from 'ui/resource/Image';
 var Image;
 
 exports.Filter = class {
-  constructor(opts) {
+  constructor (opts) {
     this._color = new Color(opts);
     this._type = opts.type || '';
     this._views = [];
   }
-  get() {
+  get () {
     var opts = this._color.get();
     opts.type = this._type;
     opts.priority = 0;
     return opts;
   }
-  getType() {
+  getType () {
     return this._type;
   }
-  update(opts) {
+  update (opts) {
     opts = opts || this.get();
     this._color.update(opts);
     this._type = opts.type !== undefined ? opts.type : this._type;
@@ -63,20 +63,20 @@ exports.Filter = class {
       view.__view.filterType = Filter.TYPES[this.getType()] || 0;
     }
   }
-  setView(view) {
+  setView (view) {
     var views = this._views;
     if (views.indexOf(view) === -1) {
       views.push(view);
     }
   }
-  removeView(view) {
+  removeView (view) {
     var views = this._views;
     var i = views.indexOf(view);
     if (i !== -1) {
       views.splice(i, 1);
     }
   }
-  getColorString() {
+  getColorString () {
     return this._color.toString();
   }
 };
@@ -89,45 +89,41 @@ Filter.TYPES = {
   'Tint': 3
 };
 
-
 /**
  * Linear add (lighten) filter.
  */
 exports.LinearAddFilter = class extends Filter {
-  constructor(opts) {
+  constructor (opts) {
     super(...arguments);
     this._type = 'LinearAdd';
   }
 };
 
-
 /**
  * Tint (averaging) filter.
  */
 exports.TintFilter = class extends Filter {
-  constructor(opts) {
+  constructor (opts) {
     super(...arguments);
     this._type = 'Tint';
   }
 };
 
-
 /**
  * Multiply filter.
  */
 exports.MultiplyFilter = class extends Filter {
-  constructor(opts) {
+  constructor (opts) {
     super(...arguments);
     this._type = 'Multiply';
   }
 };
 
-
 /**
  * Positive masking.
  */
 exports.PositiveMaskFilter = class extends Filter {
-  constructor(opts) {
+  constructor (opts) {
     super(...arguments);
     this._type = 'PositiveMask';
     if (opts.image) {
@@ -135,17 +131,16 @@ exports.PositiveMaskFilter = class extends Filter {
       this._mask = new Image({ url: opts.image });
     }
   }
-  getMask() {
+  getMask () {
     return this._mask;
   }
 };
-
 
 /**
  * Negative masking.
  */
 exports.NegativeMaskFilter = class extends Filter {
-  constructor(opts) {
+  constructor (opts) {
     super(...arguments);
     this._type = 'NegativeMask';
     if (opts.image) {
@@ -153,7 +148,7 @@ exports.NegativeMaskFilter = class extends Filter {
       this._mask = new Image({ url: opts.image });
     }
   }
-  getMask() {
+  getMask () {
     return this._mask;
   }
 };

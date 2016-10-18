@@ -4,10 +4,10 @@ var sin = Math.sin;
 var cos = Math.cos;
 
 class Matrix2D {
-  constructor() {
+  constructor () {
     this.identity();
   }
-  identity() {
+  identity () {
     this.a = 1;
     this.b = 0;
     this.c = 0;
@@ -15,12 +15,12 @@ class Matrix2D {
     this.tx = 0;
     this.ty = 0;
   }
-  clone() {
+  clone () {
     var result = new Matrix2D();
     result.copy(this);
     return result;
   }
-  copy(matrix) {
+  copy (matrix) {
     this.a = matrix.a;
     this.b = matrix.b;
     this.c = matrix.c;
@@ -28,13 +28,13 @@ class Matrix2D {
     this.tx = matrix.tx;
     this.ty = matrix.ty;
   }
-  scale(x, y) {
+  scale (x, y) {
     this.a *= x;
     this.b *= x;
     this.c *= y;
     this.d *= y;
   }
-  rotate(angle) {
+  rotate (angle) {
     var a = this.a;
     var b = this.b;
     var c = this.c;
@@ -46,11 +46,11 @@ class Matrix2D {
     this.c = a * -sinA + c * cosA;
     this.d = b * -sinA + d * cosA;
   }
-  translate(x, y) {
+  translate (x, y) {
     this.tx += this.a * x + this.c * y;
     this.ty += this.b * x + this.d * y;
   }
-  transform(matrix) {
+  transform (matrix) {
     helperMatrix.copy(this);
 
     if (matrix.a !== 1 || matrix.b !== 0 || matrix.c !== 0 || matrix.d !== 1) {
@@ -60,15 +60,14 @@ class Matrix2D {
       this.d = helperMatrix.b * matrix.c + helperMatrix.d * matrix.d;
     }
 
-
-
-
-    this.tx = helperMatrix.a * matrix.tx + helperMatrix.c * matrix.ty + helperMatrix.tx;
-    this.ty = helperMatrix.b * matrix.tx + helperMatrix.d * matrix.ty + helperMatrix.ty;
+    this.tx = helperMatrix.a * matrix.tx + helperMatrix.c * matrix.ty +
+      helperMatrix.tx;
+    this.ty = helperMatrix.b * matrix.tx + helperMatrix.d * matrix.ty +
+      helperMatrix.ty;
 
     return this;
   }
-  setTo(a, b, c, d, tx, ty) {
+  setTo (a, b, c, d, tx, ty) {
     this.a = a;
     this.b = b;
     this.c = c;
@@ -76,14 +75,11 @@ class Matrix2D {
     this.tx = tx;
     this.ty = ty;
   }
-  invert() {
+  invert () {
     var dtr = this.a * this.d - this.b * this.c;
     if (dtr === 0) {
       return;
     }
-
-
-
 
     dtr = 1 / dtr;
     helperMatrix.copy(this);
@@ -92,15 +88,18 @@ class Matrix2D {
     this.b = -helperMatrix.b * dtr;
     this.c = -helperMatrix.c * dtr;
     this.d = helperMatrix.a * dtr;
-    this.tx = (helperMatrix.c * helperMatrix.ty - helperMatrix.d * helperMatrix.tx) * dtr;
-    this.ty = (helperMatrix.b * helperMatrix.tx - helperMatrix.a * helperMatrix.ty) * dtr;
+    this.tx = (helperMatrix.c * helperMatrix.ty - helperMatrix.d *
+      helperMatrix.tx) * dtr;
+    this.ty = (helperMatrix.b * helperMatrix.tx - helperMatrix.a *
+      helperMatrix.ty) * dtr;
 
     return this;
   }
-  isEqualTo(matrix) {
-    return this.a === matrix.a && this.b === matrix.b && this.c === matrix.c && this.d === matrix.d && this.tx === matrix.tx && this.ty === matrix.ty;
+  isEqualTo (matrix) {
+    return this.a === matrix.a && this.b === matrix.b && this.c === matrix.c &&
+      this.d === matrix.d && this.tx === matrix.tx && this.ty === matrix.ty;
   }
-  concat(matrix) {
+  concat (matrix) {
     helperMatrix.copy(this);
 
     if (matrix.a !== 1 || matrix.b !== 0 || matrix.c !== 0 || matrix.d !== 1) {
@@ -110,11 +109,10 @@ class Matrix2D {
       this.d = helperMatrix.b * matrix.c + helperMatrix.d * matrix.d;
     }
 
-
-
-
-    this.tx = matrix.a * helperMatrix.tx + matrix.c * helperMatrix.ty + matrix.tx;
-    this.ty = matrix.b * helperMatrix.tx + matrix.d * helperMatrix.ty + matrix.ty;
+    this.tx = matrix.a * helperMatrix.tx + matrix.c * helperMatrix.ty +
+      matrix.tx;
+    this.ty = matrix.b * helperMatrix.tx + matrix.d * helperMatrix.ty +
+      matrix.ty;
 
     return this;
   }

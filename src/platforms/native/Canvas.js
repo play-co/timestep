@@ -28,13 +28,12 @@ import setProperty from 'util/setProperty';
 
 // mock canvas object
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     opts = merge(opts, {
       width: 1,
       height: 1,
       offscreen: true
     });
-
 
     // TODO: add getters/setters to width/height to auto-resize -- we'll need to allocate
     // a new texture in OpenGL and blit the old one into the new one
@@ -46,14 +45,16 @@ exports = class {
     this._context2D = null;
     this.complete = true;
   }
-  getContext(which, unloadListener) {
+  getContext (which, unloadListener) {
     if (which.toUpperCase() == '2D') {
       this.complete = true;
       return this._context2D || (this._context2D = new Context2D({
         canvas: this,
         offscreen: this._offscreen,
         unloadListener: bind(this, function () {
-          logger.log('{canvas-registry} Canvas class reacting to canvas loss by setting context to null');
+          logger.log(
+            '{canvas-registry} Canvas class reacting to canvas loss by setting context to null'
+          );
 
           this._context2D = null;
           if (typeof unloadListener == 'function') {
@@ -63,7 +64,7 @@ exports = class {
       }));
     }
   }
-  getBoundingClientRect() {
+  getBoundingClientRect () {
     return {
       bottom: this._height,
       height: this._height,
@@ -73,15 +74,15 @@ exports = class {
       width: 0
     };
   }
-  toDataURL() {
+  toDataURL () {
     return NATIVE.gl.toDataURL(this._context2D);
   }
-  destroy() {
+  destroy () {
     if (this._context2D) {
       this._context2D.destroy();
     }
   }
-  resize(width, height) {
+  resize (width, height) {
     if (this._context2D) {
       // this will set our own _width/_height
       this._context2D.resize(width, height);
@@ -90,7 +91,6 @@ exports = class {
 };
 GLOBAL.HTMLCanvasElement = exports;
 var Canvas = GLOBAL.HTMLCanvasElement;
-
 
 setProperty(Canvas.prototype, 'width', {
   set: function (width) {
@@ -123,17 +123,14 @@ setProperty(Canvas.prototype, 'height', {
 });
 
 setProperty(Canvas.prototype, 'src', {
-  set: function (src) {
-  },
+  set: function (src) {},
   get: function () {
     return this._src;
   }
 });
 
-
 document.__registerCreateElementHandler('CANVAS', function () {
   return new Canvas();
 });
-
 
 export default exports;

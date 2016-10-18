@@ -27,7 +27,6 @@ import animate from 'animate';
 import ImageView from 'ui/ImageView';
 import TextView from 'ui/TextView';
 
-
 var defaults = {
   position: 'bottom',
   layout: 'box',
@@ -95,9 +94,8 @@ var positions = {
   }
 };
 
-
 exports = class extends ImageView {
-  constructor(opts) {
+  constructor (opts) {
     if (opts.debug) {
       opts.backgroundColor = 'red';
     }
@@ -115,24 +113,30 @@ exports = class extends ImageView {
     this.setPosition(opts.position);
     opts.txt && this.text.setText(opts.txt);
   }
-  setImages(imgs) {
+  setImages (imgs) {
     this._images = imgs || {};
     this.position && this.setImage(this._images[this.position]);
   }
-  setPosition(pos) {
+  setPosition (pos) {
     for (var k in positions[pos].style) {
       this.style[k] = positions[pos].style[k];
     }
     this.position = pos;
     this.setImage(this._images[this.position]);
   }
-  pop(text, position) {
+  pop (text, position) {
     position && this.setPosition(position);
     if (!this._images[this.position]) {
-      throw new Error('Toast ' + this.uid + ' doesn\'t have an image for position: ' + this.position);
+      throw new Error('Toast ' + this.uid +
+        ' doesn\'t have an image for position: ' + this.position);
     }
     this.text.setText(text);
-    var sv = this.getSuperview(), pos = positions[this.position], prop = pos.vertical ? 'y' : 'x', dim = pos.vertical ? 'height' : 'width', inAnim = {}, outAnim = {};
+    var sv = this.getSuperview(),
+      pos = positions[this.position],
+      prop = pos.vertical ? 'y' : 'x',
+      dim = pos.vertical ? 'height' : 'width',
+      inAnim = {},
+      outAnim = {};
     inAnim['d' + prop] = pos.negFirst ? -this.style[dim] : this.style[dim];
     outAnim['d' + prop] = pos.negFirst ? this.style[dim] : -this.style[dim];
     this.style[prop] = pos.negFirst ? sv.style[dim] : -this.style[dim];

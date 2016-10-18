@@ -48,28 +48,26 @@ var MIME = {
   '.wav': 'audio'
 };
 
-
 var globalItemsToLoad = 0;
 var globalItemsLoaded = 0;
 
 var _soundManager = null;
 var _soundLoader = null;
 
-
 class Loader extends Emitter {
-  get progress() {
+  get progress () {
     return globalItemsToLoad > 0 ? globalItemsLoaded / globalItemsToLoad : 1;
   }
-  has(src) {
+  has (src) {
     return this._map[src];
   }
-  restoreMap() {
+  restoreMap () {
     this._map = this._originalMap;
   }
-  getMap() {
+  getMap () {
     return this._map;
   }
-  setMap(language) {
+  setMap (language) {
     this.restoreMap();
     if (!language) {
       this._map = i18n.localizeResourceMap(this._map);
@@ -77,10 +75,10 @@ class Loader extends Emitter {
       this._map = i18n.applyResourceMap(this._map, language);
     }
   }
-  get(file) {
+  get (file) {
     return 'resources/images/' + file;
   }
-  addSheets(sheets) {
+  addSheets (sheets) {
     Object.keys(sheets).forEach(function (name) {
       var sheet = sheets[name];
       sheet.forEach(function (info) {
@@ -100,23 +98,16 @@ class Loader extends Emitter {
     }, this);
     this._originalMap = this._map;
   }
-  addAudioMap(map) {
+  addAudioMap (map) {
     Object.keys(map).forEach(function (name) {
       this._audioMap[name] = true;
     }, this);
   }
-  preload(pathPrefix, opts, cb) {
+  preload (pathPrefix, opts, cb) {
     if (typeof opts == 'function') {
       cb = opts;
       opts = undefined;
     }
-
-
-
-
-
-
-
 
     // process an array of items, where cb is run at completion of the final one
     if (isArray(pathPrefix)) {
@@ -142,9 +133,6 @@ class Loader extends Emitter {
         }
       }
 
-
-
-
       var audioMap = this._audioMap;
       var audioToLoad = {};
       for (var uri in audioMap) {
@@ -159,35 +147,29 @@ class Loader extends Emitter {
         files = [pathPrefix];
       }
 
-
-
-
       var callback = this._loadGroup(merge({ resources: files }, opts));
       cb && callback.run(cb);
       return callback;
     }
   }
-  getSound(src) {
+  getSound (src) {
     if (!_soundManager) {
       _soundManager = new AudioManager({ preload: true });
       _soundLoader = _soundManager.getAudioLoader();
     }
 
-
-
-
     if (GLOBAL.NATIVE && GLOBAL.NATIVE.sound && GLOBAL.NATIVE.sound.preloadSound) {
       return NATIVE.sound.preloadSound(src);
     } else {
       _soundManager.addSound(src);
-      //HACK to make the preloader continue in the browser
+      // HACK to make the preloader continue in the browser
       return {
         complete: true,
         loader: _soundLoader
       };
     }
   }
-  getImagePaths(prefix) {
+  getImagePaths (prefix) {
     prefix = prefix.replace(/^\//, '');
     // remove leading slash
     var images = [];
@@ -199,7 +181,7 @@ class Loader extends Emitter {
     }
     return images;
   }
-  getImage(src, noWarn) {
+  getImage (src, noWarn) {
     // create the image
     var img = new Image();
     img.crossOrigin = 'use-credentials';
@@ -212,9 +194,6 @@ class Loader extends Emitter {
       }
     }
 
-
-
-
     if (b64) {
       img.src = b64;
       Image.set(src, img);
@@ -225,12 +204,9 @@ class Loader extends Emitter {
       img.src = src;
     }
 
-
-
-
     return img;
   }
-  _updateImageMap(map, url, x, y, w, h) {
+  _updateImageMap (map, url, x, y, w, h) {
     x = x || 0;
     y = y || 0;
     w = w == undefined ? -1 : w;
@@ -246,9 +222,6 @@ class Loader extends Emitter {
       map.url = url;
       return;
     }
-
-
-
 
     var scale = info.scale || 1;
 
@@ -269,9 +242,6 @@ class Loader extends Emitter {
       map.height = h * scale;
     }
 
-
-
-
     // now updatea the margins to account for the new source map
     map.marginLeft = Math.max(0, info.x - map.x);
     map.marginTop = Math.max(0, info.y - map.y);
@@ -289,25 +259,25 @@ class Loader extends Emitter {
     map.url = info.sheet;
     return map;
   }
-  _getRaw(type, src, copy, noWarn) {
+  _getRaw (type, src, copy, noWarn) {
     // always return the cached copy unless specifically requested not to
     if (!copy && _cache[src]) {
       return _cache[src];
     }
     var res = null;
     switch (type) {
-    case 'audio':
-      res = this.getSound(src);
-      break;
-    case 'image':
-      res = this.getImage(src, noWarn);
-      break;
-    default:
-      logger.error('Preload Error: Unknown Type', type);
+      case 'audio':
+        res = this.getSound(src);
+        break;
+      case 'image':
+        res = this.getImage(src, noWarn);
+        break;
+      default:
+        logger.error('Preload Error: Unknown Type', type);
     }
     return _cache[src] = res;
   }
-  _loadGroup(opts, cb) {
+  _loadGroup (opts, cb) {
     var timeout = opts.timeout;
     var callback = new Callback();
     var that = this;
@@ -318,7 +288,8 @@ class Loader extends Emitter {
     var loadableResources = [];
 
     for (var i = 0; i < n; ++i) {
-      var ext = resources[i].substring(resources[i].lastIndexOf('.')).split('|')[0];
+      var ext = resources[i].substring(resources[i].lastIndexOf('.')).split('|')[
+        0];
       var type = MIME[ext];
       var found = false;
       var foundCount = 0;
@@ -337,9 +308,6 @@ class Loader extends Emitter {
         }
       }
 
-
-
-
       if (!found) {
         if (type === 'image' || type === 'audio') {
           requested = {
@@ -352,21 +320,11 @@ class Loader extends Emitter {
           this._requestedResources.push(requested);
         }
 
-
-
-
         if (type == 'image' && GLOBAL.NATIVE && NATIVE.gl) {
           NATIVE.gl.touchTexture(resources[i]);
         }
       }
     }
-
-
-
-
-
-
-
 
     // If no resources were loadable...
     if (!loadableResources.length) {
@@ -374,23 +332,14 @@ class Loader extends Emitter {
         logger.warn('Preload Fail: No Loadable Resources Found');
       }
 
-
-
-
       if (cb) {
         callback.run(cb);
       }
-
-
-
 
       callback.fire();
 
       return callback;
     }
-
-
-
 
     // do the preload asynchronously (note that base64 is synchronous, only downloads are asynchronous)
     var nextIndexToLoad = 0;
@@ -411,24 +360,17 @@ class Loader extends Emitter {
         return;
       }
 
-
-
-
       var next = function (failed) {
         // If already complete, stub this out
         if (numLoaded >= numResources) {
           return;
         }
 
-
-
-
         // Set stubs for the reload and load events so that code
         // elsewhere can blindly call these without causing problems.
         // An alternative would be to set these to null but not every
         // piece of code that uses this does the right checks.
-        res.onreload = res.onload = res.onerror = function () {
-        };
+        res.onreload = res.onload = res.onerror = function () {};
 
         // The number of loads (success or failure) has increased.
         ++numLoaded;
@@ -439,9 +381,6 @@ class Loader extends Emitter {
           globalItemsLoaded = globalItemsToLoad = 0;
         }
 
-
-
-
         // If we have loaded all of the resources,
         if (numLoaded >= numResources) {
           // Call the progress callback with isComplete == true
@@ -451,9 +390,6 @@ class Loader extends Emitter {
           if (_timeout) {
             clearTimeout(_timeout);
           }
-
-
-
 
           // Fire the completion callback chain
           logger.log('Preload Complete:', src.resource);
@@ -475,7 +411,6 @@ class Loader extends Emitter {
         // also be simultaneously preloading two groups at once.
         var prevOnLoad = res.onreload;
         var prevOnError = res.onerror;
-
 
         // When the resource completes loading, either with success
         // or failure:
@@ -513,7 +448,6 @@ class Loader extends Emitter {
         var prevOnLoad = res.onload;
         var prevOnError = res.onerror;
 
-
         // When the resource completes loading, either with success
         // or failure:
         res.onload = function () {
@@ -527,9 +461,6 @@ class Loader extends Emitter {
           if (src.type === 'image') {
             that.emit(Loader.IMAGE_LOADED, res, src);
           }
-
-
-
 
           // React to successful load of this resource
           next(false);
@@ -554,9 +485,6 @@ class Loader extends Emitter {
       for (var i = 0; i < parallel; ++i) {
         loadResource();
       }
-
-
-
 
       // register timeout call
       if (timeout) {

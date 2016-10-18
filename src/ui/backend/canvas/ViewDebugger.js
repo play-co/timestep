@@ -18,7 +18,7 @@ import { merge } from 'base';
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 exports = class {
-  constructor(target, opts) {
+  constructor (target, opts) {
     this._target = target;
     this._opts = opts = merge(opts, {
       trackClicks: false,
@@ -33,7 +33,7 @@ exports = class {
     this._flashState = 0;
     this._nextFlash = 0;
   }
-  preRender(ctx) {
+  preRender (ctx) {
     if (!this._time) {
       this._time = +new Date();
     }
@@ -51,7 +51,7 @@ exports = class {
       ctx.restore();
     }
   }
-  postRender(ctx) {
+  postRender (ctx) {
     var s = this._target.style;
 
     var t = this._target;
@@ -69,23 +69,20 @@ exports = class {
       }
     }
 
-
-
-
     if (this.flash) {
       switch (this._flashState) {
-      case 0:
-        ctx.setFillStyle('rgba(0, 0, 0, 0.5)');
-        break;
-      case 1:
-        ctx.setFillStyle('rgba(0, 0, 0, 0)');
-        break;
-      case 2:
-        ctx.setFillStyle('rgba(255, 255, 255, 0.5)');
-        break;
-      case 3:
-        ctx.setFillStyle('rgba(0, 0, 0, 0)');
-        break;
+        case 0:
+          ctx.setFillStyle('rgba(0, 0, 0, 0.5)');
+          break;
+        case 1:
+          ctx.setFillStyle('rgba(0, 0, 0, 0)');
+          break;
+        case 2:
+          ctx.setFillStyle('rgba(255, 255, 255, 0.5)');
+          break;
+        case 3:
+          ctx.setFillStyle('rgba(0, 0, 0, 0)');
+          break;
       }
 
       var now = +new Date();
@@ -93,9 +90,6 @@ exports = class {
         this._flashState = (this._flashState + 1) % 4;
         this._nextFlash = now + 300;
       }
-
-
-
 
       ctx.fillRect(0, 0, t.style.width, t.style.height);
     }

@@ -22,8 +22,9 @@ import Vec2D from 'math/geom/Vec2D';
 
 // @deprecated
 exports = class extends View {
-  constructor(opts) {
-    logger.warn('Warning: GestureView has been deprecated and is ' + 'no longer supported. Features may not work as you expect.');
+  constructor (opts) {
+    logger.warn('Warning: GestureView has been deprecated and is ' +
+      'no longer supported. Features may not work as you expect.');
 
     super(opts);
     this._swipeMagnitude = opts.swipeMagnitude || 150;
@@ -36,13 +37,13 @@ exports = class extends View {
     this._activeFingers = 0;
     this._swipeCount = 0;
   }
-  onInputStart(evt) {
+  onInputStart (evt) {
     this._activeFingers += 1;
     this._swipeCount = this._activeFingers;
     this.startDrag({ inputStartEvt: evt });
     this.emit('FingerDown', this._activeFingers);
   }
-  onDragStart(dragEvent) {
+  onDragStart (dragEvent) {
     var point = {
       x: dragEvent.srcPoint.x,
       y: dragEvent.srcPoint.y
@@ -55,7 +56,7 @@ exports = class extends View {
       this._fingerTwo = id;
     }
   }
-  onInputSelect(evt) {
+  onInputSelect (evt) {
     var id = 'p' + evt.id;
     delete this._dragPoints[id];
     this._activeFingers -= 1;
@@ -79,7 +80,7 @@ exports = class extends View {
     }
     this.emit('FingerUp', this._activeFingers);
   }
-  onDrag(dragEvent, moveEvent, delta) {
+  onDrag (dragEvent, moveEvent, delta) {
     var id = 'p' + dragEvent.id;
     this._dragPoints[id] = {
       x: moveEvent.srcPoint.x,
@@ -108,7 +109,7 @@ exports = class extends View {
       this.emit('DragSingle', delta.x, delta.y);
     }
   }
-  onDragStop(dragEvent, selectEvent) {
+  onDragStop (dragEvent, selectEvent) {
     var dy = dragEvent.srcPoint.y - selectEvent.srcPoint.y;
     var dx = dragEvent.srcPoint.x - selectEvent.srcPoint.x;
     var swipeVec = new Vec2D({
@@ -119,7 +120,9 @@ exports = class extends View {
     var dt = selectEvent.when - dragEvent.when;
     if (mag > this._swipeMagnitude && dt < this._swipeTime) {
       var degrees = swipeVec.getAngle() * (180 / Math.PI);
-      this.emit('Swipe', degrees, degrees > 60 && degrees < 120 ? 'up' : degrees < -60 && degrees > -120 ? 'down' : degrees > 120 || degrees < -120 ? 'right' : 'left', this._swipeCount);
+      this.emit('Swipe', degrees, degrees > 60 && degrees < 120 ? 'up' :
+        degrees < -60 && degrees > -120 ? 'down' : degrees > 120 ||
+        degrees < -120 ? 'right' : 'left', this._swipeCount);
     }
     this.clearInput(selectEvent);
   }

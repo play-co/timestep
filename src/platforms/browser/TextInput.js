@@ -30,7 +30,7 @@ let $ = browser.$;
  * @extends lib.PubSub
  */
 exports = class extends PubSub {
-  constructor(opts) {
+  constructor (opts) {
     super();
 
     this._el = $({
@@ -56,14 +56,16 @@ exports = class extends PubSub {
     $.onEvent(this._el, 'focus', this, 'onFocus');
     $.onEvent(this._el, 'blur', this, 'onBlur');
   }
-  onFocus() {
+  onFocus () {
     this.publish('Focus');
   }
-  onBlur() {
+  onBlur () {
     this.publish('Blur');
   }
-  checkValue(evt) {
-    var target = evt.target, start = target.selectionStart, end = target.selectionEnd;
+  checkValue (evt) {
+    var target = evt.target,
+      start = target.selectionStart,
+      end = target.selectionEnd;
 
     var value = this._el.value;
 
@@ -72,40 +74,35 @@ exports = class extends PubSub {
       this._value = value;
     }
 
-
-
-
     if (start != this._selectionStart) {
       this._selectionStart = start;
       this.publish('ChangeSelectionStart', start);
     }
-
-
-
 
     if (end != this._selectionEnd) {
       this._selectionEnd = end;
       this.publish('ChangeSelectionEnd', end);
     }
   }
-  focus() {
+  focus () {
     logger.log('focus');
     this._el.focus();
   }
-  blur() {
+  blur () {
     this._el.blur();
   }
 };
 
-
 // Set desired tab- defaults to four space softtab
-var tab = '    ', tabLength = 4;
+var tab = '    ',
+  tabLength = 4;
 
-Array.prototype.map.call(document.getElementsByTagName('textarea'), function (el) {
+Array.prototype.map.call(document.getElementsByTagName('textarea'), function (
+  el) {
   el.addEventListener('keydown', checkTab, false);
 });
 
-function checkTab(evt) {
+function checkTab (evt) {
   var t = evt.target;
   var ss = t.selectionStart;
   var se = t.selectionEnd;
@@ -125,15 +122,16 @@ function checkTab(evt) {
         }
         var pre = t.value.slice(0, i);
         var post = t.value.slice(se, t.value.length);
-        var sel = t.value.slice(i, se).replace(new RegExp('(^|\n)' + tab, 'g'), function (match) {
-          se -= tab.length;
-          if (match.charAt(0) == '\n') {
-            return '\n';
-          } else {
-            ss -= tab.length;
-            return '';
-          }
-        });
+        var sel = t.value.slice(i, se).replace(new RegExp('(^|\n)' + tab, 'g'),
+          function (match) {
+            se -= tab.length;
+            if (match.charAt(0) == '\n') {
+              return '\n';
+            } else {
+              ss -= tab.length;
+              return '';
+            }
+          });
         t.value = pre.concat(sel).concat(post);
 
         t.selectionStart = ss;
@@ -145,7 +143,8 @@ function checkTab(evt) {
           --i;
         }
         if (t.value.substring(i, i + tab.length) == tab) {
-          t.value = t.value.slice(0, i).concat(t.value.slice(i + tab.length, t.value.length));
+          t.value = t.value.slice(0, i).concat(t.value.slice(i + tab.length, t.value
+            .length));
           if (ss == se) {
             t.selectionStart = t.selectionEnd = ss - (ss == i ? 0 : tab.length);
           } else {
@@ -180,10 +179,8 @@ function checkTab(evt) {
           --i;
         }
 
-
-
-
-        t.value = t.value.slice(0, i).concat(tab).concat(t.value.slice(i, t.value.length));
+        t.value = t.value.slice(0, i).concat(tab).concat(t.value.slice(i, t.value
+          .length));
 
         if (ss == se) {
           t.selectionStart = t.selectionEnd = ss + tab.length;
@@ -199,13 +196,15 @@ function checkTab(evt) {
     // Backspace key - delete preceding tab expansion, if exists
     evt.preventDefault();
 
-    t.value = t.value.slice(0, ss - tabLength).concat(t.value.slice(ss, t.value.length));
+    t.value = t.value.slice(0, ss - tabLength).concat(t.value.slice(ss, t.value
+      .length));
     t.selectionStart = t.selectionEnd = ss - tab.length;
   } else if (evt.keyCode == 46 && t.value.slice(se, se + tabLength) == tab) {
     // Delete key - delete following tab expansion, if exists
     evt.preventDefault();
 
-    t.value = t.value.slice(0, ss).concat(t.value.slice(ss + tabLength, t.value.length));
+    t.value = t.value.slice(0, ss).concat(t.value.slice(ss + tabLength, t.value
+      .length));
     t.selectionStart = t.selectionEnd = ss;
   } else if (evt.keyCode == 37 && t.value.slice(ss - tabLength, ss) == tab) {
     // Left/right arrow keys - move across the tab in one go
@@ -216,6 +215,5 @@ function checkTab(evt) {
     t.selectionStart = t.selectionEnd = ss + tabLength;
   }
 }
-
 
 export default exports;

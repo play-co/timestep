@@ -29,37 +29,38 @@ import Cell from 'squill/models/Cell';
  * @extends ui.View
  */
 exports = class extends View {
-  constructor(opts) {
+  constructor (opts) {
     opts = merge(opts, { layout: 'box' });
     super(opts);
     this.model = new Cell({ view: this });
   }
-  remove(list) {
+  remove (list) {
     if (!list.isRecycleEnabled) {
       this.removeFromSuperview();
     } else {
       this.style.visible = false;
     }
   }
-  isSelected() {
-    return this.controller.isSelected && this._data && this.controller.isSelected(this._data);
+  isSelected () {
+    return this.controller.isSelected && this._data && this.controller.isSelected(
+      this._data);
   }
-  select() {
+  select () {
     this.controller.select && this.controller.select(this._data);
   }
-  deselect() {
+  deselect () {
     this.controller.deselect && this.controller.deselect(this._data);
   }
-  getHeight() {
+  getHeight () {
     return this.style.height;
   }
-  getWidth() {
+  getWidth () {
     return this.style.width;
   }
-  setData(data) {
+  setData (data) {
     this._data = data;
   }
-  setController(controller) {
+  setController (controller) {
     this.controller = controller;
     if (this._onSelect) {
       this._selectCB = this._selectCB || function (data) {
@@ -76,13 +77,10 @@ exports = class extends View {
       this.controller.subscribe('Deselect', this, this._deselectCB);
     }
   }
-  onInputSelect() {
+  onInputSelect () {
     if (!this.controller || !this.controller.selection) {
       return;
     }
-
-
-
 
     var type = this.controller.selection.getType();
     if (type == 'toggle' || type == 'multi') {

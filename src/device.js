@@ -46,17 +46,14 @@ import {
   importUI
 } from './platformImport';
 
-
 if (typeof navigator === 'undefined' || !navigator.userAgent) {
-  logger.warn('Timestep was unable to determine your device! Please check that navigator.userAgent is defined.');
+  logger.warn(
+    'Timestep was unable to determine your device! Please check that navigator.userAgent is defined.'
+  );
   exports = { isUnknown: true };
 }
 
-
-
-
 var ua = navigator.userAgent;
-
 
 /**
  * @namespace
@@ -66,11 +63,9 @@ exports.registerDevice = function (name, path) {
   _devices[name] = path;
 };
 
-
 // TODO: remove this indirection
 exports.get = getImport;
 exports.importUI = importUI;
-
 
 exports.isMobile = /TeaLeaf/.test(ua);
 exports.isMobileNative = exports.isMobile;
@@ -95,9 +90,6 @@ exports.setDevicePixelRatio = function (value) {
     return;
   }
 
-
-
-
   exports.devicePixelRatio = exports.screen.devicePixelRatio = value;
 
   var width = Math.floor(window.innerWidth * value);
@@ -108,8 +100,7 @@ exports.setDevicePixelRatio = function (value) {
 };
 
 // This is stubbed out unless available on the current device.
-exports.hideAddressBar = function () {
-};
+exports.hideAddressBar = function () {};
 
 setProperty(exports, 'defaultFontFamily', {
   cb: function (value) {
@@ -134,9 +125,6 @@ if ('ontouchstart' in window && !/BlackBerry/.test(ua)) {
   };
 }
 
-
-
-
 /*
  * All userAgent flags in this file are now DEPRECATED.
  * Please use "src/userAgent.js" for a more accurate description of your device.
@@ -159,9 +147,6 @@ if (exports.isSimulator) {
   exports.isIOSSimulator = false;
   exports.isNativeSimulator = false;
 }
-
-
-
 
 if (exports.isMobile) {
   exports.name = 'tealeaf';
@@ -203,8 +188,8 @@ if (exports.isMobile) {
         bottom: 32 * devicePixelRatio
       }
     };
-
-  } else if (/Mobile Safari/.test(ua) || /Android/.test(ua) || /BlackBerry/.test(ua)) {
+  } else if (/Mobile Safari/.test(ua) || /Android/.test(ua) || /BlackBerry/.test(
+      ua)) {
     exports.name = 'browser';
     exports.isMobileBrowser = true;
     exports.isAndroid = true;
@@ -231,30 +216,21 @@ if (exports.isMobile) {
     exports.canResize = false;
   }
 
-
-
-
-
-
-
-
-
   // Set up device.width and device.height for browser case
   exports.width = exports.screen.width;
   exports.height = exports.screen.height;
 }
 
-
-
-
 exports.useDOM = false;
 exports.setUseDOM = function (useDOM) {
-  console.warn('Attempting to set \'useDom\' property, which is no longer supported.');
+  console.warn(
+    'Attempting to set \'useDom\' property, which is no longer supported.');
   return;
 };
 
 exports.getDimensions = function (isLandscape) {
-  var dMin = Math.min(exports.width, exports.height), dMax = Math.max(exports.width, exports.height);
+  var dMin = Math.min(exports.width, exports.height),
+    dMax = Math.max(exports.width, exports.height);
 
   return isLandscape ? {
     height: dMin,

@@ -27,7 +27,7 @@ var _onLoadMap = {};
  * callbacks get fired regardless of success so that nothing gets held up;
  * however, does not call individual sound onload callbacks on errors
  */
-function onResponse(url, index, batch, buffer) {
+function onResponse (url, index, batch, buffer) {
   if (!buffer) {
     logger.error('Error decoding audio file data:', url);
   } else {
@@ -40,25 +40,21 @@ function onResponse(url, index, batch, buffer) {
     }
   }
 
-
-
-
   _loadingMap[url] = false;
   // batch callback for preloading, called regardless of success
   if (++batch.loadedCount === batch.fileCount) {
     batch.callback(batch.buffers);
   }
-}
-;
+};
 
 /**
  * AudioContextLoader Class designed to work with HTML5 AudioContext
  */
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     _ctx = opts.ctx;
   }
-  load(urls, callback) {
+  load (urls, callback) {
     var batch = {
       fileCount: urls.length,
       loadedCount: 0,
@@ -72,7 +68,7 @@ exports = class {
       this._loadFile(urls[i], i, batch);
     }
   }
-  _loadFile(url, index, batch) {
+  _loadFile (url, index, batch) {
     var request = new XMLHttpRequest();
     request.open('GET', url, true);
     request.responseType = 'arraybuffer';
@@ -80,7 +76,8 @@ exports = class {
       _ctx.decodeAudioData(request.response, function (buffer) {
         onResponse(url, index, batch, buffer);
       }, function (e) {
-        logger.error('Error with AudioContext decodeAudioData:', e && e.err || e);
+        logger.error('Error with AudioContext decodeAudioData:', e &&
+          e.err || e);
         onResponse(url, index, batch, null);
       });
     };
@@ -92,19 +89,19 @@ exports = class {
     _loadingMap[url] = true;
     request.send();
   }
-  getAudioContext() {
+  getAudioContext () {
     return _ctx;
   }
-  setAudioContext(ctx) {
+  setAudioContext (ctx) {
     _ctx = ctx;
   }
-  getBuffer(url) {
+  getBuffer (url) {
     return _bufferMap[url] || null;
   }
-  isLoading(url) {
+  isLoading (url) {
     return _loadingMap[url] || false;
   }
-  doOnLoad(url, cb) {
+  doOnLoad (url, cb) {
     if (this.isLoading(url)) {
       _onLoadMap[url] = cb;
     } else {

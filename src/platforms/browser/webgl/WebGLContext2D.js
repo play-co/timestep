@@ -37,11 +37,11 @@ import Matrix2D from './Matrix2D';
 import WebGLTextureManager from './WebGLTextureManager';
 
 class ContextStateStack {
-  constructor() {
+  constructor () {
     this._states = [this.getObject()];
     this._stateIndex = 0;
   }
-  save() {
+  save () {
     var lastState = this.state;
     if (++this._stateIndex >= this._states.length) {
       this._states[this._stateIndex] = this.getObject();
@@ -61,12 +61,12 @@ class ContextStateStack {
     s.clipRect.width = lastState.clipRect.width;
     s.clipRect.height = lastState.clipRect.height;
   }
-  restore() {
+  restore () {
     if (this._stateIndex > 0) {
       this._stateIndex--;
     }
   }
-  getObject() {
+  getObject () {
     return {
       globalCompositeOperation: 'source-over',
       globalAlpha: 1,
@@ -84,10 +84,10 @@ class ContextStateStack {
       strokeStyle: ''
     };
   }
-  get state() {
+  get state () {
     return this._states[this._stateIndex];
   }
-  get parentState() {
+  get parentState () {
     return this._stateIndex > 0 ? this._states[this._stateIndex - 1] : null;
   }
 }
@@ -114,28 +114,18 @@ var getColor = function (key) {
   return result;
 };
 
-
 var MAX_BATCH_SIZE = 512;
 var CACHE_UID = 0;
 
-
 class GLManager {
-  constructor() {
+  constructor () {
     var webglSupported = false;
 
     try {
       var testCanvas = document.createElement('canvas');
-      webglSupported = !!(window.WebGLRenderingContext && testCanvas.getContext('webgl'));
-    } catch (e) {
-    }
-
-
-
-
-
-
-
-
+      webglSupported = !!(window.WebGLRenderingContext && testCanvas.getContext(
+        'webgl'));
+    } catch (e) {}
 
     this.width = device.screen.width;
     this.height = device.screen.height;
@@ -145,26 +135,25 @@ class GLManager {
       return;
     }
 
-
-
-
     this.textManager = new TextManager();
     this.textureManager = new WebGLTextureManager();
 
-    this.textureManager.on(WebGLTextureManager.TEXTURE_REMOVED, bind(this, function () {
-      this.flush();
-    }));
+    this.textureManager.on(WebGLTextureManager.TEXTURE_REMOVED, bind(this,
+      function () {
+        this.flush();
+      }));
 
     this._helperTransform = new Matrix2D();
 
     this._canvas = document.createElement('canvas');
     this._canvas.width = this.width;
     this._canvas.height = this.height;
-    this._canvas.getWebGLContext = this._canvas.getContext.bind(this._canvas, 'webgl', {
-      alpha: true,
-      premultipliedAlpha: true,
-      preserveDrawingBuffer: true
-    });
+    this._canvas.getWebGLContext = this._canvas.getContext.bind(this._canvas,
+      'webgl', {
+        alpha: true,
+        premultipliedAlpha: true,
+        preserveDrawingBuffer: true
+      });
 
     this._indexCache = new Uint16Array(MAX_BATCH_SIZE * 6);
     this._vertexCache = new ArrayBuffer(MAX_BATCH_SIZE * STRIDE * 4);
@@ -180,9 +169,6 @@ class GLManager {
       this._indexCache[i + 4] = j + 3;
       this._indexCache[i + 5] = j + 1;
     }
-
-
-
 
     this._batchQueue = new Array(MAX_BATCH_SIZE);
 
@@ -202,9 +188,6 @@ class GLManager {
       };
     }
 
-
-
-
     this.contexts = [];
     this.initGL();
     this._primaryContext = new Context2D(this, this._canvas);
@@ -216,19 +199,21 @@ class GLManager {
 
     this.contextActive = true;
 
-    this._canvas.addEventListener('webglcontextlost', this.handleContextLost.bind(this), false);
-    this._canvas.addEventListener('webglcontextrestored', this.handleContextRestored.bind(this), false);
+    this._canvas.addEventListener('webglcontextlost', this.handleContextLost.bind(
+      this), false);
+    this._canvas.addEventListener('webglcontextrestored', this.handleContextRestored
+      .bind(this), false);
   }
-  handleContextLost(e) {
+  handleContextLost (e) {
     e.preventDefault();
     this.contextActive = false;
     this.gl = null;
   }
-  handleContextRestored() {
+  handleContextRestored () {
     this.initGL();
     this.contextActive = true;
   }
-  initGL() {
+  initGL () {
     var gl = this.gl = this._canvas.getWebGLContext();
 
     gl.clearColor(0, 0, 0, 0);
@@ -275,15 +260,15 @@ class GLManager {
     this.textureManager.initGL(gl);
     this.updateContexts();
   }
-  updateContexts() {
+  updateContexts () {
     for (var i = 0; i < this.contexts.length; i++) {
       this.contexts[i].createOffscreenFrameBuffer();
     }
   }
-  updateCanvasDimensions() {
+  updateCanvasDimensions () {
     this._primaryContext.resize(this._canvas.width, this._canvas.height);
   }
-  getContext(canvas, opts) {
+  getContext (canvas, opts) {
     opts = opts || {};
 
     var ctx;
@@ -296,12 +281,9 @@ class GLManager {
       this.contexts.push(ctx);
     }
 
-
-
-
     return ctx;
   }
-  setActiveRenderMode(id) {
+  setActiveRenderMode (id) {
     if (this._activeRenderMode === id || !this.gl) {
       return;
     }
@@ -313,9 +295,6 @@ class GLManager {
       this._activeShader.disableVertexAttribArrays();
     }
 
-
-
-
     this._activeShader = shader;
     gl.useProgram(shader.program);
     shader.enableVertexAttribArrays();
@@ -324,7 +303,7 @@ class GLManager {
       gl.uniform1i(shader.uniforms.uSampler, 0);
     }
   }
-  setActiveCompositeOperation(op) {
+  setActiveCompositeOperation (op) {
     op = op || 'source-over';
     if (this._activeCompositeOperation === op || !this.gl) {
       return;
@@ -336,101 +315,68 @@ class GLManager {
     var destination;
 
     switch (op) {
-    case 'source-over':
-      source = gl.ONE;
-      destination = gl.ONE_MINUS_SRC_ALPHA;
-      break;
+      case 'source-over':
+        source = gl.ONE;
+        destination = gl.ONE_MINUS_SRC_ALPHA;
+        break;
 
+      case 'source-atop':
+        source = gl.DST_ALPHA;
+        destination = gl.ONE_MINUS_SRC_ALPHA;
+        break;
 
+      case 'source-in':
+        source = gl.DST_ALPHA;
+        destination = gl.ZERO;
+        break;
 
+      case 'source-out':
+        source = gl.ONE_MINUS_DST_ALPHA;
+        destination = gl.ZERO;
+        break;
 
-    case 'source-atop':
-      source = gl.DST_ALPHA;
-      destination = gl.ONE_MINUS_SRC_ALPHA;
-      break;
+      case 'destination-atop':
+        source = gl.DST_ALPHA;
+        destination = gl.SRC_ALPHA;
+        break;
 
+      case 'destination-in':
+        source = gl.ZERO;
+        destination = gl.SRC_ALPHA;
+        break;
 
+      case 'destination-out':
+        source = gl.ONE_MINUS_SRC_ALPHA;
+        destination = gl.ONE_MINUS_SRC_ALPHA;
+        break;
 
+      case 'destination-over':
+        source = gl.DST_ALPHA;
+        destination = gl.SRC_ALPHA;
+        break;
 
-    case 'source-in':
-      source = gl.DST_ALPHA;
-      destination = gl.ZERO;
-      break;
+      case 'lighter':
+        source = gl.ONE;
+        destination = gl.ONE;
+        break;
 
+      case 'xor':
+      case 'copy':
+        source = gl.ONE;
+        destination = gl.ONE_MINUS_SRC_ALPHA;
+        break;
 
-
-
-    case 'source-out':
-      source = gl.ONE_MINUS_DST_ALPHA;
-      destination = gl.ZERO;
-      break;
-
-
-
-
-    case 'destination-atop':
-      source = gl.DST_ALPHA;
-      destination = gl.SRC_ALPHA;
-      break;
-
-
-
-
-    case 'destination-in':
-      source = gl.ZERO;
-      destination = gl.SRC_ALPHA;
-      break;
-
-
-
-
-    case 'destination-out':
-      source = gl.ONE_MINUS_SRC_ALPHA;
-      destination = gl.ONE_MINUS_SRC_ALPHA;
-      break;
-
-
-
-
-    case 'destination-over':
-      source = gl.DST_ALPHA;
-      destination = gl.SRC_ALPHA;
-      break;
-
-
-
-
-    case 'lighter':
-      source = gl.ONE;
-      destination = gl.ONE;
-      break;
-
-
-
-
-    case 'xor':
-    case 'copy':
-      source = gl.ONE;
-      destination = gl.ONE_MINUS_SRC_ALPHA;
-      break;
-
-
-
-
-    default:
-      source = gl.ONE;
-      destination = gl.ONE_MINUS_SRC_ALPHA;
-      break;
+      default:
+        source = gl.ONE;
+        destination = gl.ONE_MINUS_SRC_ALPHA;
+        break;
     }
     gl.blendFunc(source, destination);
   }
-  flush() {
+  flush () {
     if (this._batchIndex === -1 || !this.gl) {
       return;
     }
-
-
-
 
     var gl = this.gl;
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, this._vertexCache);
@@ -456,24 +402,19 @@ class GLManager {
       this.setActiveRenderMode(curQueueObj.renderMode);
       var start = curQueueObj.index;
       var next = this._batchQueue[i + 1].index;
-      gl.drawElements(gl.TRIANGLES, (next - start) * 6, gl.UNSIGNED_SHORT, start * 12);
+      gl.drawElements(gl.TRIANGLES, (next - start) * 6, gl.UNSIGNED_SHORT,
+        start * 12);
     }
-
-
-
 
     this._drawIndex = -1;
     this._batchIndex = -1;
   }
-  createOrUpdateTexture(image, id, drawImmediately) {
+  createOrUpdateTexture (image, id, drawImmediately) {
     var gl = this.gl;
 
     if (!gl) {
       return -1;
     }
-
-
-
 
     id = this.textureManager.createOrUpdateTexture(image, id);
 
@@ -486,21 +427,18 @@ class GLManager {
       this._primaryContext.globalAlpha = currentAlpha;
     }
 
-
-
-
     return id;
   }
-  getTexture(id) {
+  getTexture (id) {
     return this.textureManager.getTexture(id);
   }
-  deleteTexture(id) {
+  deleteTexture (id) {
     this.textureManager.deleteTexture(id);
   }
-  deleteTextureForImage(image) {
+  deleteTextureForImage (image) {
     this.textureManager.deleteTextureForImage(image);
   }
-  enableScissor(x, y, width, height) {
+  enableScissor (x, y, width, height) {
     if (!this.gl) {
       return;
     }
@@ -519,7 +457,7 @@ class GLManager {
       gl.scissor(x, invertedY, width, height);
     }
   }
-  disableScissor() {
+  disableScissor () {
     if (!this.gl) {
       return;
     }
@@ -529,7 +467,7 @@ class GLManager {
       gl.disable(gl.SCISSOR_TEST);
     }
   }
-  addToBatch(state, textureId) {
+  addToBatch (state, textureId) {
     if (this._drawIndex >= MAX_BATCH_SIZE - 1) {
       this.flush();
     }
@@ -539,8 +477,15 @@ class GLManager {
     var clip = state.clip;
     var clipRect = state.clipRect;
 
-    var queuedState = this._batchIndex > -1 ? this._batchQueue[this._batchIndex] : null;
-    var stateChanged = !queuedState || queuedState.textureId !== textureId || textureId === -1 && queuedState.fillStyle !== state.fillStyle || queuedState.globalCompositeOperation !== state.globalCompositeOperation || queuedState.filter !== filter || queuedState.clip !== clip || queuedState.clipRect.x !== clipRect.x || queuedState.clipRect.y !== clipRect.y || queuedState.clipRect.width !== clipRect.width || queuedState.clipRect.height !== clipRect.height;
+    var queuedState = this._batchIndex > -1 ? this._batchQueue[this._batchIndex] :
+      null;
+    var stateChanged = !queuedState || queuedState.textureId !== textureId ||
+      textureId === -1 && queuedState.fillStyle !== state.fillStyle ||
+      queuedState.globalCompositeOperation !== state.globalCompositeOperation ||
+      queuedState.filter !== filter || queuedState.clip !== clip ||
+      queuedState.clipRect.x !== clipRect.x || queuedState.clipRect.y !==
+      clipRect.y || queuedState.clipRect.width !== clipRect.width ||
+      queuedState.clipRect.height !== clipRect.height;
 
     if (stateChanged) {
       var queueObject = this._batchQueue[++this._batchIndex];
@@ -562,15 +507,13 @@ class GLManager {
       }
     }
 
-
-
-
     return this._drawIndex;
   }
-  isPowerOfTwo(width, height) {
-    return width > 0 && (width & width - 1) === 0 && height > 0 && (height & height - 1) === 0;
+  isPowerOfTwo (width, height) {
+    return width > 0 && (width & width - 1) === 0 && height > 0 && (height &
+      height - 1) === 0;
   }
-  activate(ctx, forceActivate) {
+  activate (ctx, forceActivate) {
     var gl = this.gl;
     var sameContext = ctx === this._activeCtx;
 
@@ -583,9 +526,6 @@ class GLManager {
       this._activeCtx = ctx;
     }
 
-
-
-
     gl.bindFramebuffer(gl.FRAMEBUFFER, ctx.frameBuffer);
     gl.viewport(0, 0, ctx.width, ctx.height);
     this._activeRenderMode = -1;
@@ -595,8 +535,6 @@ class GLManager {
 // Create a context to measure text
 var textCtx = document.createElement('canvas').getContext('2d');
 
-
-
 // ---------------------------------------------------------------------------
 // CONTEXT2D
 // ---------------------------------------------------------------------------
@@ -605,9 +543,8 @@ var max = Math.max;
 var floor = Math.floor;
 var ceil = Math.ceil;
 
-
 class Context2D {
-  constructor(manager, canvas) {
+  constructor (manager, canvas) {
     this._manager = manager;
     this.canvas = canvas;
     this.width = canvas.width;
@@ -617,7 +554,7 @@ class Context2D {
     this.frameBuffer = null;
     this.filter = null;
   }
-  createOffscreenFrameBuffer() {
+  createOffscreenFrameBuffer () {
     var gl = this._manager.gl;
     if (!gl) {
       return;
@@ -628,35 +565,35 @@ class Context2D {
     this.frameBuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
     gl.bindTexture(gl.TEXTURE_2D, this._texture);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._texture, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D,
+      this._texture, 0);
     this.canvas.__glFlip = true;
     this._manager.activate(activeCtx, true);
   }
-  loadIdentity() {
+  loadIdentity () {
     this.stack.state.transform.identity();
   }
-  setTransform(a, b, c, d, tx, ty) {
+  setTransform (a, b, c, d, tx, ty) {
     this.stack.state.transform.setTo(a, b, c, d, tx, ty);
   }
-  transform(a, b, c, d, tx, ty) {
+  transform (a, b, c, d, tx, ty) {
     this._helperTransform.setTo(a, b, c, d, tx, ty);
     this.stack.state.transform.transform(this._helperTransform);
   }
-  scale(x, y) {
+  scale (x, y) {
     this.stack.state.transform.scale(x, y);
   }
-  translate(x, y) {
+  translate (x, y) {
     this.stack.state.transform.translate(x, y);
   }
-  rotate(angle) {
+  rotate (angle) {
     this.stack.state.transform.rotate(angle);
   }
-  getElement() {
+  getElement () {
     return this.canvas;
   }
-  reset() {
-  }
-  clear() {
+  reset () {}
+  clear () {
     this._manager.activate(this);
     this._manager.flush();
     this._manager.disableScissor();
@@ -665,7 +602,7 @@ class Context2D {
       gl.clear(gl.COLOR_BUFFER_BIT);
     }
   }
-  resize(width, height) {
+  resize (width, height) {
     this.width = width;
     this.height = height;
     if (this.canvas instanceof HTMLCanvasElement) {
@@ -676,10 +613,11 @@ class Context2D {
     if (this._texture && this._manager.gl) {
       var gl = this._manager.gl;
       gl.bindTexture(gl.TEXTURE_2D, this._texture);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+        null);
     }
   }
-  clipRect(x, y, width, height) {
+  clipRect (x, y, width, height) {
     var m = this.stack.state.transform;
     var xW = x + width;
     var yH = y + height;
@@ -708,9 +646,6 @@ class Context2D {
       maxY = this.height;
     }
 
-
-
-
     var left = min(maxX, x0, x1, x2, x3);
     var right = max(minX, x0, x1, x2, x3);
     var top = min(maxY, y0, y1, y2, y3);
@@ -729,9 +664,6 @@ class Context2D {
       bottom = maxY;
     }
 
-
-
-
     this.stack.state.clip = true;
     var r = this.stack.state.clipRect;
     r.x = left;
@@ -739,15 +671,14 @@ class Context2D {
     r.width = right - left;
     r.height = bottom - top;
   }
-  swap() {
+  swap () {
     this._manager.flush();
   }
-  execSwap() {
-  }
-  setFilter(filter) {
+  execSwap () {}
+  setFilter (filter) {
     this.filter = this.stack.state.filter = filter;
   }
-  setFilters(filters) {
+  setFilters (filters) {
     logger.warn('ctx.setFilters is deprecated, use ctx.setFilter instead.');
     for (var filterId in filters) {
       this.setFilter(filters[filterId]);
@@ -755,26 +686,24 @@ class Context2D {
     }
     this.clearFilter();
   }
-  clearFilter() {
+  clearFilter () {
     this.filter = this.stack.state.filter = null;
   }
-  clearFilters() {
-    logger.warn('ctx.clearFilters is deprecated, use ctx.clearFilter instead.');
+  clearFilters () {
+    logger.warn(
+      'ctx.clearFilters is deprecated, use ctx.clearFilter instead.');
     this.clearFilter();
   }
-  save() {
+  save () {
     this.stack.save();
   }
-  restore() {
+  restore () {
     this.stack.restore();
   }
-  circle(x, y, radius) {
-  }
-  drawPointSprites(x1, y1, x2, y2) {
-  }
-  roundRect(x, y, width, height, radius) {
-  }
-  fillText(text, x, y) {
+  circle (x, y, radius) {}
+  drawPointSprites (x1, y1, x2, y2) {}
+  roundRect (x, y, width, height, radius) {}
+  fillText (text, x, y) {
     if (!this._manager.gl) {
       return;
     }
@@ -786,7 +715,7 @@ class Context2D {
     var h = textData.image.height;
     this.drawImage(textData.image, 0, 0, w, h, x, y, w, h);
   }
-  strokeText(text, x, y) {
+  strokeText (text, x, y) {
     if (!this._manager.gl) {
       return;
     }
@@ -796,19 +725,17 @@ class Context2D {
     }
     var w = textData.image.width;
     var h = textData.image.height;
-    this.drawImage(textData.image, 0, 0, w, h, x - this.lineWidth * 0.5, y - this.lineWidth * 0.5, w, h);
+    this.drawImage(textData.image, 0, 0, w, h, x - this.lineWidth * 0.5, y -
+      this.lineWidth * 0.5, w, h);
   }
-  measureText(text) {
+  measureText (text) {
     textCtx.font = this.font;
     return textCtx.measureText(text);
   }
-  drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
+  drawImage (image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
     if (!this._manager.gl) {
       return;
     }
-
-
-
 
     var flip = !!image.__glFlip;
     var state = this.stack.state;
@@ -816,9 +743,6 @@ class Context2D {
     if (alpha === 0) {
       return;
     }
-
-
-
 
     var manager = this._manager;
     manager.activate(this);
@@ -832,9 +756,6 @@ class Context2D {
       image.__needsUpload = false;
       glId = manager.createOrUpdateTexture(image, glId);
     }
-
-
-
 
     var drawIndex = manager.addToBatch(this.stack.state, glId);
     var width = this.width;
@@ -851,9 +772,6 @@ class Context2D {
       sy = imageHeight - sy;
       syH = sy - sHeight;
     }
-
-
-
 
     var needsTrim = sx < 0 || sxW > imageWidth || sy < 0 || syH > imageHeight;
 
@@ -877,9 +795,6 @@ class Context2D {
       sxW = newSXW;
       syH = newSYH;
     }
-
-
-
 
     // Calculate 4 vertex positions
     var x0 = dx * m.a + dy * m.c + m.tx;
@@ -947,27 +862,28 @@ class Context2D {
       cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255;
     }
   }
-  fillRect(x, y, width, height) {
+  fillRect (x, y, width, height) {
     if (this.globalAlpha === 0) {
       return;
     }
 
-
-
-
     this._fillRect(x, y, width, height, getColor(this.stack.state.fillStyle));
   }
-  strokeRect(x, y, width, height) {
+  strokeRect (x, y, width, height) {
     var lineWidth = this.stack.state.lineWidth;
     var halfWidth = lineWidth / 2;
     var strokeColor = getColor(this.stack.state.strokeStyle);
-    this._fillRect(x + halfWidth, y - halfWidth, width - lineWidth, lineWidth, strokeColor);
-    this._fillRect(x + halfWidth, y + height - halfWidth, width - lineWidth, lineWidth, strokeColor);
+    this._fillRect(x + halfWidth, y - halfWidth, width - lineWidth, lineWidth,
+      strokeColor);
+    this._fillRect(x + halfWidth, y + height - halfWidth, width - lineWidth,
+      lineWidth, strokeColor);
 
-    this._fillRect(x - halfWidth, y - halfWidth, lineWidth, height + lineWidth, strokeColor);
-    this._fillRect(x + width - halfWidth, y - halfWidth, lineWidth, height + lineWidth, strokeColor);
+    this._fillRect(x - halfWidth, y - halfWidth, lineWidth, height +
+      lineWidth, strokeColor);
+    this._fillRect(x + width - halfWidth, y - halfWidth, lineWidth, height +
+      lineWidth, strokeColor);
   }
-  _fillRect(x, y, width, height, color) {
+  _fillRect (x, y, width, height, color) {
     var m = this.stack.state.transform;
     var xW = x + width;
     var yH = y + height;
@@ -1016,11 +932,10 @@ class Context2D {
     // B
     cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255;
   }
-  deleteTextureForImage(canvas) {
+  deleteTextureForImage (canvas) {
     this._manager.deleteTextureForImage(canvas);
   }
 }
-
 
 Context2D.prototype._helperTransform = new Matrix2D();
 var createContextProperty = function (ctx, name) {
@@ -1047,21 +962,6 @@ var contextProperties = [
 for (var i = 0; i < contextProperties.length; i++) {
   createContextProperty(Context2D.prototype, contextProperties[i]);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 exports = new GLManager();
 

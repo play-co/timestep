@@ -19,16 +19,16 @@ let exports = {};
  * TextBins are used in the FragmentBuffer caching of TextViews.
  **/
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     this.width = opts.width;
     this.height = opts.height;
     this.x = opts.x;
     this.y = opts.y;
   }
-  size() {
+  size () {
     return this.width * this.height;
   }
-  split(x, y) {
+  split (x, y) {
     var newBins = [this];
     if (this.width > 10 && this.height > 10) {
       if (this.height - y > 10) {

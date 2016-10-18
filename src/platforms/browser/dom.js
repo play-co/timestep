@@ -10,7 +10,8 @@ exports.getCSSPrefix = function () {
     if (styles.OLink === '') {
       _cssPrefix = '-o-';
     } else {
-      var match = Array.prototype.join.call(styles, '').match(/-(moz|webkit|ms)-/);
+      var match = Array.prototype.join.call(styles, '').match(
+        /-(moz|webkit|ms)-/);
 
       if (match) {
         _cssPrefix = '-' + match[1] + '-';
@@ -20,27 +21,25 @@ exports.getCSSPrefix = function () {
     }
   }
 
-
-
-
   return _cssPrefix;
 };
 
 exports.Stylesheet = class {
-  constructor(base) {
+  constructor (base) {
     this._base = base ? base + ' ' : '';
     this._rules = [];
   }
-  add(selector, value) {
+  add (selector, value) {
     this._rules.push({
       selector: selector,
       value: value
     });
     return this;
   }
-  scale(scale) {
+  scale (scale) {
     this._rules.forEach(function (rule) {
-      rule.value = rule.value.replace(/([^;:]+:)(.*?)(;|$)/g, function (match, property, value, postfix) {
+      rule.value = rule.value.replace(/([^;:]+:)(.*?)(;|$)/g, function (
+        match, property, value, postfix) {
         // skip border, but not border*radius
         if (/border(?!.*?radius)/.test(property)) {
           return match;
@@ -59,26 +58,20 @@ exports.Stylesheet = class {
       this.insert();
     }
 
-
-
-
     return this;
   }
-  getValue() {
+  getValue () {
     return this._rules.map(function (rule) {
       return this._base + rule.selector + '{' + rule.value + '}';
     }, this).join('');
   }
-  insert() {
+  insert () {
     if (!this._el) {
       this._el = $({
         parent: document.getElementsByTagName('head')[0],
         tag: 'style'
       });
     }
-
-
-
 
     $.setText(this._el, this.getValue());
   }

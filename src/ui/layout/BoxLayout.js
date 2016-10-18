@@ -18,39 +18,35 @@ import { bind } from 'base';
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     this._view = opts.view;
 
     this.listenSubviewResize(opts.view);
   }
-  reflow() {
+  reflow () {
     var view = this._view;
     var sv = view.getSuperview();
     var style = view.style;
 
     // if wrapping content, listen for changes to subviews
-    if (style._layoutWidth == 'wrapContent' || style._layoutHeight == 'wrapContent') {
+    if (style._layoutWidth == 'wrapContent' || style._layoutHeight ==
+      'wrapContent') {
       this.addSubviewListener(view);
     }
 
-
-
-
     if (sv) {
-      var notInLayout = !style.inLayout || !style.flex || sv.style.layout != 'linear';
+      var notInLayout = !style.inLayout || !style.flex || sv.style.layout !=
+        'linear';
       if (notInLayout || !sv.__layout.isHorizontal()) {
         this.reflowX();
       }
-
-
-
 
       if (notInLayout || !sv.__layout.isVertical()) {
         this.reflowY();
       }
     }
   }
-  addSubviewListener(view) {
+  addSubviewListener (view) {
     if (!view.__hasSubviewListener) {
       view.__hasSubviewListener = true;
       view.subscribe('SubviewAdded', this, '_onSubviewAdded', view);
@@ -62,7 +58,7 @@ exports = class {
       }
     }
   }
-  removeSubviewListener(view) {
+  removeSubviewListener (view) {
     if (view.__hasSubviewListener) {
       view.__hasSubviewListener = false;
       view.unsubscribe('SubviewAdded', this, '_onSubviewAdded');
@@ -74,20 +70,17 @@ exports = class {
       }
     }
   }
-  _onSubviewAdded(view, subview) {
+  _onSubviewAdded (view, subview) {
     subview.style.addResizeListeners();
     view.connectEvent(subview, 'resize', bind(view, 'needsReflow'));
   }
-  _onSubviewRemoved(view, subview) {
+  _onSubviewRemoved (view, subview) {
     view.disconnectEvent(subview, 'resize');
   }
-  addResizeListener(view) {
+  addResizeListener (view) {
     if (view.style.__removeSuperviewResize) {
       view.style.__removeSuperviewResize();
     }
-
-
-
 
     // reflow on parent view resize
     var onResize = bind(view, 'needsReflow');
@@ -101,20 +94,17 @@ exports = class {
       });
     }
   }
-  listenSubviewResize(view) {
+  listenSubviewResize (view) {
     if (view.__root) {
       this.addResizeListener(view);
     }
-
-
-
 
     view.on('ViewAdded', bind(this, 'addResizeListener', view));
     view.on('ViewRemoved', bind(view.style, function () {
       this.__removeSuperviewResize && this.__removeSuperviewResize();
     }));
   }
-  reflowX(view) {
+  reflowX (view) {
     var view = this._view;
     var s = view.style;
 
@@ -123,9 +113,6 @@ exports = class {
       var inLinearLayout = sv.__layout.isHorizontal();
       var padding = sv.style.padding;
     }
-
-
-
 
     var svWidth = sv.style.width;
     var availWidth = svWidth - (padding && padding.getHorizontal() || 0);
@@ -136,7 +123,8 @@ exports = class {
       // find the maximal right edge
       w = this.getContentWidth() + s.padding.right;
     } else // 1. we're not in a layout and both right and left are defined
-    if (!inLinearLayout && svWidth && s.right != undefined && s.left != undefined) {
+    if (!inLinearLayout && svWidth && s.right != undefined && s.left !=
+      undefined) {
       w = availWidth / s.scale - (s.left || 0) - (s.right || 0);
     } else // 2. width is defined a percent
     if (svWidth && s._layoutWidthIsPercent) {
@@ -148,54 +136,29 @@ exports = class {
       w = s._width;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     // enforce center anchor on width change
     if (s.centerAnchor) {
       s.anchorX = (w || 0) / 2;
     }
-
-
-
 
     // Note that we don't trigger any resize handlers here
     s._width = w;
 
     if (!inLinearLayout && svWidth) {
       if (w !== undefined && s.centerX) {
-        s.x = Math.round((availWidth - s.scale * w) / 2 + (padding && padding.left || 0));
+        s.x = Math.round((availWidth - s.scale * w) / 2 + (padding &&
+          padding.left || 0));
       }
       if (w !== undefined && s.left == undefined && s.right != undefined) {
-        s.x = Math.round(availWidth - s.scale * w - s.right - (padding && padding.right || 0));
+        s.x = Math.round(availWidth - s.scale * w - s.right - (padding &&
+          padding.right || 0));
       }
       if (s.left != undefined) {
         s.x = Math.round(s.left + (padding && padding.left || 0));
       }
     }
   }
-  reflowY() {
+  reflowY () {
     var view = this._view;
     var s = view.style;
     var sv = view.getSuperview();
@@ -203,9 +166,6 @@ exports = class {
       var inLinearLayout = sv.__layout.isVertical();
       var padding = sv.style.padding;
     }
-
-
-
 
     var svHeight = sv.style.height;
     var availHeight = svHeight - (padding && padding.getVertical() || 0);
@@ -216,7 +176,8 @@ exports = class {
     var h;
     if (wrapContent) {
       h = this.getContentHeight() + s.padding.bottom;
-    } else if (!inLinearLayout && svHeight && s.top != undefined && s.bottom != undefined) {
+    } else if (!inLinearLayout && svHeight && s.top != undefined && s.bottom !=
+      undefined) {
       h = availHeight / s.scale - (s.top || 0) - (s.bottom || 0);
     } else if (svHeight && s._layoutHeightIsPercent) {
       h = availHeight / s.scale * s._layoutHeightValue;
@@ -226,59 +187,35 @@ exports = class {
       h = s.height;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     // enforce center anchor on height change
     if (s.centerAnchor) {
       s.anchorY = (h || 0) / 2;
     }
 
-
-
-
     s._height = h;
 
     if (!inLinearLayout && svHeight) {
       if (h !== undefined && s.centerY) {
-        s.y = Math.round((availHeight - s.scale * h) / 2 + (padding && padding.top || 0));
+        s.y = Math.round((availHeight - s.scale * h) / 2 + (padding &&
+          padding.top || 0));
       }
       if (h !== undefined && s.top == undefined && s.bottom != undefined) {
-        s.y = Math.round(availHeight - s.scale * h - s.bottom - (padding && padding.bottom || 0));
+        s.y = Math.round(availHeight - s.scale * h - s.bottom - (padding &&
+          padding.bottom || 0));
       }
       if (s.top != undefined) {
         s.y = Math.round(s.top + (padding && padding.top || 0));
       }
     }
   }
-  getContentWidth() {
+  getContentWidth () {
     // find the maximal right edge
     var w = 0;
     var views = this._view.getSubviews();
     for (var i = 0, v; v = views[i]; ++i) {
       if (!v.style._layoutWidthIsPercent && v.style.visible) {
-        var right = v.style.x + v.style.width * v.style.scale + (v.style.right || 0);
+        var right = v.style.x + v.style.width * v.style.scale + (v.style.right ||
+          0);
         if (right > w) {
           w = right;
         }
@@ -286,13 +223,14 @@ exports = class {
     }
     return w;
   }
-  getContentHeight() {
+  getContentHeight () {
     // find the maximal bottom edge
     var views = this._view.getSubviews();
     var h = 0;
     for (var i = 0, v; v = views[i]; ++i) {
       if (!v.style._layoutHeightIsPercent && v.style.visible) {
-        var bottom = v.style.y + v.style.height * v.style.scale + (v.style.bottom || 0);
+        var bottom = v.style.y + v.style.height * v.style.scale + (v.style.bottom ||
+          0);
         if (bottom > h) {
           h = bottom;
         }

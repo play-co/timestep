@@ -39,7 +39,7 @@ soundManager.useFastPolling = true;
  * @extends lib.PubSub
  */
 exports = class extends PubSub {
-  constructor(opts) {
+  constructor (opts) {
     opts = merge(opts, {
       map: {},
       background: []
@@ -66,30 +66,24 @@ exports = class extends PubSub {
         k.load();
       }
 
-
-
-
-
-
-
-
       this.publish('Ready');
     }));
   }
-  canPlay(name) {
+  canPlay (name) {
     return name in this._map;
   }
-  setVolume(volume) {
+  setVolume (volume) {
     this._soundPlaying && soundManager.setVolume(this._soundPlaying, volume);
-    this._backgroundSoundPlaying && soundManager.setVolume(this._backgroundSoundPlaying, volume);
+    this._backgroundSoundPlaying && soundManager.setVolume(this._backgroundSoundPlaying,
+      volume);
   }
-  setMuted(muted) {
+  setMuted (muted) {
     this.muted = muted;
     if (muted) {
       this.setVolume(0);
     }
   }
-  play(name, volume, channel) {
+  play (name, volume, channel) {
     if (!this.canPlay(name)) {
       return;
     }
@@ -103,11 +97,11 @@ exports = class extends PubSub {
     this._map[name].setVolume(volume * 100 | 0);
     this._map[name].play();
   }
-  pause() {
+  pause () {
     this._map[this._soundPlaying].pause();
     this._soundPlaying = null;
   }
-  playBackgroundMusic(name, volume) {
+  playBackgroundMusic (name, volume) {
     if (!this.canPlay(name)) {
       return;
     }
@@ -121,7 +115,7 @@ exports = class extends PubSub {
     this._map[name].setVolume(volume * 100 | 0);
     this._map[name].play();
   }
-  pauseBackgroundMusic() {
+  pauseBackgroundMusic () {
     if (!this._backgroundSoundPlaying) {
       return;
     }

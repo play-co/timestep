@@ -29,7 +29,7 @@ import Context2D from './Context2D';
 import WebGLContext2D from './webgl/WebGLContext2D';
 
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     opts = merge(opts, {
       width: 300,
       height: 200
@@ -47,19 +47,14 @@ exports = class {
       ctx = new Context2D(opts);
     }
 
-
-
-
     var el = this._el = ctx.getElement();
 
     el.complete = true;
 
     if (el.style) {
-      el.style.userSelect = el.style.webkitUserSelect = el.style.webkitTouchCallout = 'none';
+      el.style.userSelect = el.style.webkitUserSelect = el.style.webkitTouchCallout =
+        'none';
     }
-
-
-
 
     el.getContext = function () {
       return ctx;
@@ -67,19 +62,19 @@ exports = class {
 
     return el;
   }
-  get width() {
+  get width () {
     return this._width;
   }
-  set width(value) {
+  set width (value) {
     this._width = value;
     if (this.isWebGL) {
       this.getContext().resize(this.width, this.height);
     }
   }
-  get height() {
+  get height () {
     return this._height;
   }
-  set height(value) {
+  set height (value) {
     this._height = value;
     if (this.isWebGL) {
       this.getContext().resize(this.width, this.height);

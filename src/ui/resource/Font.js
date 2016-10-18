@@ -25,13 +25,22 @@ import { merge } from 'base';
  * @doc http://doc.gameclosure.com/api/ui-text.html#class-ui.resource.font
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/text.md
  */
-var _cache = {}, weights = 'normal|bold|bolder|lighter|[1-9]00', styles = 'normal|italic|oblique', units = 'px|pt|pc|in|cm|mm|%', name = '([\\w"\'\\- ]+(?:,|$))+', fontParser = new RegExp('^ *' + '(?:(' + weights + ') *)?' + '(?:(' + styles + ') *)?' + '([\\d\\.]+)(' + units + ')' + '(' + name + ')', 'i'), sizeParser = new RegExp('([\\d\\.]+)(' + units + ')', 'i'), TO_PT = {
+var _cache = {},
+  weights = 'normal|bold|bolder|lighter|[1-9]00',
+  styles = 'normal|italic|oblique',
+  units = 'px|pt|pc|in|cm|mm|%',
+  name = '([\\w"\'\\- ]+(?:,|$))+',
+  fontParser = new RegExp('^ *' + '(?:(' + weights + ') *)?' + '(?:(' + styles +
+    ') *)?' + '([\\d\\.]+)(' + units + ')' + '(' + name + ')', 'i'),
+  sizeParser = new RegExp('([\\d\\.]+)(' + units + ')', 'i'),
+  TO_PT = {
     'pt': 1,
     'px': 3 / 4,
     'in': 3 / 4 * 96,
     'mm': 3 / 4 * 96 / 25.4,
     'cm': 3 / 4 * 96 / 2.54
-  }, TO_PX = {
+  },
+  TO_PX = {
     'pt': 4 / 3,
     'px': 1,
     'in': 96,
@@ -39,7 +48,7 @@ var _cache = {}, weights = 'normal|bold|bolder|lighter|[1-9]00', styles = 'norma
     'cm': 96 / 2.54
   };
 
-function parseSize(sizeStr, unit) {
+function parseSize (sizeStr, unit) {
   var match = sizeStr.match(sizeParser);
   if (!match) {
     throw 'invalid font size';
@@ -50,37 +59,25 @@ function parseSize(sizeStr, unit) {
   };
 }
 
-
-
-
-function toPx(size) {
+function toPx (size) {
   return {
     value: size.value * TO_PX[size.unit],
     unit: 'px'
   };
 }
 
-
-
-
-function toPt(size) {
+function toPt (size) {
   return {
     value: size.value * TO_PT[size.unit],
     unit: 'pt'
   };
 }
 
-
-
-
-function parseFont(fontStr) {
+function parseFont (fontStr) {
   var match = fontStr.match(fontParser);
   if (!match) {
     throw 'invalid font string';
   }
-
-
-
 
   var res = {};
   res.weight = match[1] || 'normal';
@@ -93,21 +90,21 @@ function parseFont(fontStr) {
   var splitStrings = match[5].split(',');
 
   res.names = splitStrings.map(function (str) {
-    return str.replace(/[\-_]/g, ' ').replace(/\s+/g, ' ').replace(/['"]/g, '').replace(/^\s+|\s+$/g, '');
+    return str.replace(/[\-_]/g, ' ').replace(/\s+/g, ' ').replace(/['"]/g,
+      '').replace(/^\s+|\s+$/g, '');
   });
 
   res.name = res.names[0];
 
   var origNames = splitStrings.map(function (str) {
-    return str.replace(/\s+/g, ' ').replace(/['"]/g, '').replace(/^\s+|\s+$/g, '');
+    return str.replace(/\s+/g, ' ').replace(/['"]/g, '').replace(
+      /^\s+|\s+$/g, '');
   });
 
   res.origName = origNames[0];
 
   return res;
-}
-;
-
+};
 
 var _defaultFontFamily = null;
 
@@ -119,9 +116,8 @@ var defaults = {
   weight: ''
 };
 
-
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     if (typeof opts === 'string') {
       _cache[opts] = this;
       this._string = opts;
@@ -130,15 +126,9 @@ exports = class {
       opts = merge(opts, defaults);
     }
 
-
-
-
     if (typeof opts.size == 'string') {
       opts.size = parseSize(opts.size);
     }
-
-
-
 
     this._name = opts.name;
     this._origName = opts.origName;
@@ -150,16 +140,16 @@ exports = class {
 
     this._isBold = /bold/i.test(this._weight);
   }
-  getSize() {
+  getSize () {
     return this.sizePx;
   }
-  getName() {
+  getName () {
     return this._name;
   }
-  getOrigName() {
+  getOrigName () {
     return this._origName;
   }
-  getWeight() {
+  getWeight () {
     return this._weight;
   }
 };
@@ -171,9 +161,7 @@ Font.parse = function (str) {
   } else {
     return new Font(str);
   }
-}
-;
-
+};
 
 Font.prototype.constructor.setDefaultFontFamily = function (fontFamily) {
   _defaultFontFamily = fontFamily;

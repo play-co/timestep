@@ -21,10 +21,10 @@ let exports = {};
  * A simple class to express padding views.
  */
 exports = class {
-  constructor(args) {
+  constructor (args) {
     this.update(args);
   }
-  update(args) {
+  update (args) {
     if (args instanceof Padding) {
       this.top = args.top;
       this.right = args.right;
@@ -38,44 +38,38 @@ exports = class {
       });
     }
 
-
-
-
     if (!args || !args.length) {
       args = [args || 0];
     }
 
-
-
-
     switch (args.length) {
-    case 1:
-      this.left = this.right = this.top = this.bottom = args[0];
-      break;
-    case 2:
-      this.top = this.bottom = args[0];
-      this.left = this.right = args[1];
-      break;
-    case 3:
-      this.top = args[0];
-      this.left = this.right = args[1];
-      this.bottom = args[2];
-      break;
-    case 4:
-      this.top = args[0];
-      this.right = args[1];
-      this.bottom = args[2];
-      this.left = args[3];
-      break;
+      case 1:
+        this.left = this.right = this.top = this.bottom = args[0];
+        break;
+      case 2:
+        this.top = this.bottom = args[0];
+        this.left = this.right = args[1];
+        break;
+      case 3:
+        this.top = args[0];
+        this.left = this.right = args[1];
+        this.bottom = args[2];
+        break;
+      case 4:
+        this.top = args[0];
+        this.right = args[1];
+        this.bottom = args[2];
+        this.left = args[3];
+        break;
     }
   }
-  getVertical() {
+  getVertical () {
     return this.top + this.bottom;
   }
-  getHorizontal() {
+  getHorizontal () {
     return this.left + this.right;
   }
-  toString() {
+  toString () {
     return [
       this.top,
       this.right,

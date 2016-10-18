@@ -51,12 +51,10 @@ import engineInstance from './engineInstance';
 import StackView from './StackView';
 import device from 'device';
 
-
 import InputEvent from 'event/input/InputEvent';
 import { getImport } from 'platformImport';
 const KeyListener = getImport('KeyListener');
 const InputListener = getImport('Input');
-
 
 var _timers = [];
 timer.onTick = function (dt) {
@@ -72,16 +70,13 @@ var __instance = null;
  * @extends event.Emitter
  */
 exports = class extends Emitter {
-  constructor(opts) {
+  constructor (opts) {
     super();
 
     if (!__instance) {
       __instance = this;
       engineInstance.setInstance(this);
     }
-
-
-
 
     var canvas = opts && opts.canvas;
     if (typeof canvas == 'string' && GLOBAL.document && document.getElementById) {
@@ -91,9 +86,6 @@ exports = class extends Emitter {
         throw new Error('Canvas not found for ID: ' + canvasID);
       }
     }
-
-
-
 
     this._opts = opts = merge(opts, {
       keyListenerEnabled: true,
@@ -152,9 +144,6 @@ exports = class extends Emitter {
       this._keyListener = new KeyListener();
     }
 
-
-
-
     this._inputListener = new InputListener({
       rootView: this._view,
       el: this._rootElement,
@@ -180,27 +169,22 @@ exports = class extends Emitter {
       }
     }
 
-
-
-
     this.updateOpts(this._opts);
   }
-  getOpt(key) {
+  getOpt (key) {
     return this._opts[key];
   }
-  updateOpts(opts) {
+  updateOpts (opts) {
     this._opts = merge(opts, this._opts);
     if (this._keyListener) {
       this._keyListener.setEnabled(this._opts.keyListenerEnabled);
     }
 
-
-
-
     if (this._opts.scaleUI) {
       if (Array.isArray(this._opts.scaleUI)) {
         if (this._opts.scaleUI.length != 2) {
-          throw new Error('Illegal value for engine option scaleUI: ' + this._opts.scaleUI);
+          throw new Error('Illegal value for engine option scaleUI: ' +
+            this._opts.scaleUI);
         }
         this.scaleUI(this._opts.scaleUI[0], this._opts.scaleUI[1]);
       } else {
@@ -208,27 +192,19 @@ exports = class extends Emitter {
       }
     }
 
-
-
-
     if (this._opts.showFPS) {
       if (!this._applicationFPS) {
         this._applicationFPS = new FPSView({ application: this });
       }
 
-
-
-
       this._renderFPS = bind(this._applicationFPS, this._applicationFPS.render);
       this._tickFPS = bind(this._applicationFPS, this._applicationFPS.tick);
     } else {
-      this._renderFPS = function () {
-      };
-      this._tickFPS = function () {
-      };
+      this._renderFPS = function () {};
+      this._tickFPS = function () {};
     }
   }
-  scaleUI(w, h) {
+  scaleUI (w, h) {
     if (device.height > device.width) {
       this._view.baseWidth = w;
       this._view.baseHeight = device.height * (w / device.width);
@@ -240,58 +216,58 @@ exports = class extends Emitter {
     }
     this._view.style.scale = this._view.scale;
   }
-  supports(key) {
+  supports (key) {
     return this._opts[key];
   }
-  getInput() {
+  getInput () {
     return this._inputListener;
   }
-  getKeyListener() {
+  getKeyListener () {
     return this._keyListener;
   }
-  getEvents() {
+  getEvents () {
     return this._events;
   }
-  getCanvas() {
+  getCanvas () {
     return this._rootElement;
   }
-  getViewCtor() {
+  getViewCtor () {
     return View;
   }
-  getView() {
+  getView () {
     return this._view;
   }
-  setView(view) {
+  setView (view) {
     this._view = view;
     return this;
   }
-  show() {
+  show () {
     this._rootElement.style.display = 'block';
     return this;
   }
-  hide() {
+  hide () {
     this._rootElement.style.display = 'none';
     return this;
   }
-  pause() {
+  pause () {
     this.stopLoop();
     if (this._keyListener) {
       this._keyListener.setEnabled(false);
     }
   }
-  resume() {
+  resume () {
     this.startLoop();
     if (this._keyListener) {
       this._keyListener.setEnabled(true);
     }
   }
-  stepFrame(n) {
+  stepFrame (n) {
     this.pause();
     n = n || 1;
     this._countdown = n;
     this.resume();
   }
-  startLoop(dtMin) {
+  startLoop (dtMin) {
     if (this._running) {
       return;
     }
@@ -302,7 +278,7 @@ exports = class extends Emitter {
     this.emit('resume');
     return this;
   }
-  stopLoop() {
+  stopLoop () {
     if (!this._running) {
       return;
     }
@@ -311,48 +287,40 @@ exports = class extends Emitter {
     this.emit('pause');
     return this;
   }
-  isRunning() {
+  isRunning () {
     return this._running;
   }
-  doOnTick(cb) {
+  doOnTick (cb) {
     if (arguments.length > 1) {
       cb = bind.apply(this, arguments);
     }
     this._onTick.push(cb);
   }
-  _tick(dt) {
-    //if the countdown is defined
+  _tick (dt) {
+    // if the countdown is defined
     if (this._countdown !== null) {
       this._countdown--;
 
-      //if below zero, stop timer
+      // if below zero, stop timer
       if (this._countdown === -1) {
         this.pause();
         this._countdown = null;
       }
     }
 
-
-
-
     if (this._ctx) {
       var el = this._ctx.getElement();
       var s = this._view.style;
-      if (el && (s.width != el.width / s.scale || s.height != el.height / s.scale)) {
+      if (el && (s.width != el.width / s.scale || s.height != el.height / s
+          .scale)) {
         s.width = el.width / s.scale;
         s.height = el.height / s.scale;
       }
     }
 
-
-
-
     for (var i = 0, cb; cb = this._onTick[i]; ++i) {
       cb(dt);
     }
-
-
-
 
     var events = this._inputListener.getEvents();
     var n = events.length;
@@ -371,16 +339,10 @@ exports = class extends Emitter {
       }
     }
 
-
-
-
     for (var i = 0, evt; evt = events[i]; ++i) {
       evt.srcApp = this;
       dispatch.dispatchEvent(this._view, evt);
     }
-
-
-
 
     if (!device.useDOM) {
       if (i > 0) {
@@ -390,13 +352,11 @@ exports = class extends Emitter {
       } else if (this._opts.continuousInputCheck) {
         var prevMove = dispatch._evtHistory['input:move'];
         if (prevMove) {
-          dispatch.dispatchEvent(this._view, new InputEvent(prevMove.id, prevMove.type, prevMove.srcPt));
+          dispatch.dispatchEvent(this._view, new InputEvent(prevMove.id,
+            prevMove.type, prevMove.srcPt));
         }
       }
     }
-
-
-
 
     if (this._opts.dtFixed) {
       this._tickBuffer += dt;
@@ -408,9 +368,6 @@ exports = class extends Emitter {
     } else {
       this.__tick(dt);
     }
-
-
-
 
     this._reflowMgr.reflowViews(this._ctx);
 
@@ -425,23 +382,12 @@ exports = class extends Emitter {
       this.render(dt);
     }
 
-
-
-
-
-
-
-
-
     this._needsRepaint = false;
   }
-  render(dt) {
+  render (dt) {
     if (this._opts.clearEachFrame) {
       this._ctx && this._ctx.clear();
     }
-
-
-
 
     this._view.__view.constructor.absScale = 1;
     this._view.__view.wrapRender(this._ctx, {});
@@ -452,17 +398,14 @@ exports = class extends Emitter {
         this._renderFPS(this._ctx, dt);
       }
 
-
-
-
       this._ctx.swap();
     }
   }
-  needsRepaint() {
+  needsRepaint () {
     this._needsRepaint = true;
     return this;
   }
-  __tick(dt) {
+  __tick (dt) {
     this._tickFPS(dt);
     this.publish('Tick', dt);
     this._view.__view.wrapTick(dt, this);

@@ -20,10 +20,12 @@ import { bind } from 'base';
 import Enum from 'lib/Enum';
 import PubSub from 'lib/PubSub';
 
-var textFlowMode = Enum('NONE', 'WRAP', 'AUTOSIZE', 'AUTOSIZE_WRAP', 'AUTOFONTSIZE', 'AUTOFONTSIZE_WRAP', 'AUTOFONTSIZE_AUTOSIZE', 'AUTOFONTSIZE_WRAP_AUTOSIZE');
+var textFlowMode = Enum('NONE', 'WRAP', 'AUTOSIZE', 'AUTOSIZE_WRAP',
+  'AUTOFONTSIZE', 'AUTOFONTSIZE_WRAP', 'AUTOFONTSIZE_AUTOSIZE',
+  'AUTOFONTSIZE_WRAP_AUTOSIZE');
 
 exports = class extends PubSub {
-  constructor(opts) {
+  constructor (opts) {
     super(...arguments);
 
     this._target = opts.target;
@@ -46,21 +48,25 @@ exports = class extends PubSub {
       height: 0
     };
   }
-  measureText(ctx, text) {
+  measureText (ctx, text) {
     var opts = this._opts;
 
-    var emoticonData = text[0] == '(' && opts.emoticonData && opts.emoticonData.data[text];
+    var emoticonData = text[0] == '(' && opts.emoticonData && opts.emoticonData
+      .data[text];
     if (emoticonData) {
       return opts.size;
     } else {
       return ctx.measureText(text).width;
     }
   }
-  _lineSplit(ctx) {
+  _lineSplit (ctx) {
     var opts = this._opts;
     var spaceWidth = opts.wrapCharacter ? 0 : ctx.measureText(' ').width;
     var text = opts.text || '';
-    var words = opts.wrapCharacter ? text.replace(/\t/g, ' ').match(/\S[。，]?|[\n]/g) || [] : opts.wrap || opts.horizontalAlign === 'justify' ? text.replace(/\t/g, ' ').match(/\S+|[\n]| +(?= )/g) || [] : text.split('\n');
+    var words = opts.wrapCharacter ? text.replace(/\t/g, ' ').match(
+        /\S[。，]?|[\n]/g) || [] : opts.wrap || opts.horizontalAlign ===
+      'justify' ? text.replace(/\t/g, ' ').match(/\S+|[\n]| +(?= )/g) || [] :
+      text.split('\n');
 
     var splitWords = [];
     for (i in words) {
@@ -73,7 +79,8 @@ exports = class extends PubSub {
           eStart = index;
         } else if (c == ')') {
           if (eStart > -1) {
-            eStart - lastSplit > 0 && splitWords.push(word.substring(lastSplit, eStart));
+            eStart - lastSplit > 0 && splitWords.push(word.substring(
+              lastSplit, eStart));
             splitWords.push(word.substring(eStart, index + 1));
             lastSplit = index + 1;
             eStart = -1;
@@ -93,7 +100,8 @@ exports = class extends PubSub {
     this._maxWordWidth = 0;
 
     var availableWidth = this.getAvailableWidth();
-    if ((opts.hardWrap || exports.hardWrap) && words.length && this.measureText(ctx, text) > availableWidth) {
+    if ((opts.hardWrap || exports.hardWrap) && words.length && this.measureText(
+        ctx, text) > availableWidth) {
       words = [];
 
       var s = '';
@@ -114,9 +122,6 @@ exports = class extends PubSub {
       wordCount = words.length;
     }
 
-
-
-
     while (currentWord < wordCount) {
       var word = {
         word: words[currentWord],
@@ -130,7 +135,7 @@ exports = class extends PubSub {
     }
     this._lineWidth -= spaceWidth;
   }
-  _measureWords(ctx) {
+  _measureWords (ctx) {
     var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(' ').width;
     var currentWord = 0;
     var wordCount = this._line.length;
@@ -148,7 +153,7 @@ exports = class extends PubSub {
     }
     this._lineWidth -= spaceWidth;
   }
-  _wrap(ctx, width) {
+  _wrap (ctx, width) {
     var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(' ').width;
     var currentWidth = 0;
     var lines = [];
@@ -195,14 +200,14 @@ exports = class extends PubSub {
         var word = this._line[currentWord++];
         // currentWidth = ctx.measureText(s).width;
         if (word.word === '\n') {
-          //lines.push([{word: s, width: currentWidth, line: lines.length}]);
-          //s = "";
+          // lines.push([{word: s, width: currentWidth, line: lines.length}]);
+          // s = "";
           lines.push(line);
           line = [];
           currentWidth = 0;
         } else {
           var isLineEmpty = !line.length;
-          //var isLineEmpty = !s.length;
+          // var isLineEmpty = !s.length;
           var hasSpace = !isLineEmpty && !this._opts.wrapCharacter;
           var offset = hasSpace ? spaceWidth : 0;
           if (currentWidth + word.width + offset > width) {
@@ -215,7 +220,9 @@ exports = class extends PubSub {
               // split word into lines
               var wordPiece = '';
               for (var i = 0, n = current.length; i < n; ++i) {
-                if (isLineEmpty && !wordPiece || this.measureText(ctx, wordPiece + current[i]) + offset + currentWidth <= width) {
+                if (isLineEmpty && !wordPiece || this.measureText(ctx,
+                    wordPiece + current[i]) + offset + currentWidth <=
+                  width) {
                   wordPiece += current[i];
                 } else {
                   /*
@@ -233,15 +240,12 @@ exports = class extends PubSub {
                   line = [];
                   currentWidth = 0;
                   offset = 0;
-                  //s = "";
+                  // s = "";
                   isLineEmpty = true;
                   hasSpace = false;
                   wordPiece = current[i];
                 }
               }
-
-
-
 
               if (wordPiece) {
                 /*
@@ -255,40 +259,36 @@ exports = class extends PubSub {
                   width: currentWidth,
                   line: lines.length
                 });
-
               }
             } else
-              //lines.push(line);
-              {
-                //(!isLineEmpty) && lines.push([{word: s, width: currentWidth, line: lines.length}]);
-                !isLineEmpty && lines.push(line);
-                //s = word.word;
-                line = [word];
-                currentWidth = word.width;
-              }
+            // lines.push(line);
+            {
+              // (!isLineEmpty) && lines.push([{word: s, width: currentWidth, line: lines.length}]);
+              !isLineEmpty && lines.push(line);
+              // s = word.word;
+              line = [word];
+              currentWidth = word.width;
+            }
           } else {
             line.push(word);
-            //s += (hasSpace ? " " : "") + word.word;
+            // s += (hasSpace ? " " : "") + word.word;
             currentWidth += word.width + offset;
           }
         }
       }
 
-
-
-
-      //if (s !== "") {
+      // if (s !== "") {
       if (line.length > 0) {
-        //lines.push([{word: s, width: currentWidth, line: lines.length}]);
+        // lines.push([{word: s, width: currentWidth, line: lines.length}]);
         lines.push(line);
       }
     }
   }
-  _getLineSize(lineCount) {
+  _getLineSize (lineCount) {
     var opts = this._opts;
     return (lineCount <= 1 ? 1 : opts.lineHeight) * opts.size;
   }
-  _wordFlow(ctx) {
+  _wordFlow (ctx) {
     var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(' ').width;
     var lines = this._lines;
 
@@ -319,9 +319,6 @@ exports = class extends PubSub {
         x += word.width + spaceWidth;
       }
 
-
-
-
       y += lineSize;
       x -= spaceWidth;
 
@@ -329,7 +326,7 @@ exports = class extends PubSub {
       this._maxHeight = Math.max(this._maxHeight, y);
     }
   }
-  _checkWidth(ctx, width) {
+  _checkWidth (ctx, width) {
     if (this._opts.text === '') {
       return false;
     }
@@ -342,7 +339,7 @@ exports = class extends PubSub {
     }
     return false;
   }
-  _checkHeight(ctx, loSize, hiSize, cb) {
+  _checkHeight (ctx, loSize, hiSize, cb) {
     if (this._opts.text === '') {
       return;
     }
@@ -350,18 +347,12 @@ exports = class extends PubSub {
       return;
     }
 
-
-
-
     var pivot = Math.max(loSize + hiSize >> 1, 1);
     this.publish('ChangeSize', pivot, ctx);
     cb();
     if (pivot === 1) {
       return;
     }
-
-
-
 
     var opts = this._opts;
     var lineSize = this._getLineSize(this._lines.length);
@@ -372,7 +363,7 @@ exports = class extends PubSub {
       this._checkHeight(ctx, pivot, hiSize, cb);
     }
   }
-  _horizontalAlign(ctx) {
+  _horizontalAlign (ctx) {
     var words = this._words;
     if (words.length) {
       var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(' ').width;
@@ -391,9 +382,6 @@ exports = class extends PubSub {
         spaceWidth = 0;
       }
 
-
-
-
       var endWordIndex = 0;
       var wordCount = words.length;
       // for each line
@@ -407,9 +395,6 @@ exports = class extends PubSub {
           endWordIndex++;
         }
 
-
-
-
         // align words in line
         if (div === -1) {
           // left
@@ -418,7 +403,8 @@ exports = class extends PubSub {
           }
         } else if (div === 3) {
           // justify
-          var wordSpacing = line < lastLine ? (availableWidth - lineWidth) / (endWordIndex - wordIndex - 1) : lastLineSpaceWidth;
+          var wordSpacing = line < lastLine ? (availableWidth - lineWidth) /
+            (endWordIndex - wordIndex - 1) : lastLineSpaceWidth;
           var x = paddingLeft;
           while (wordIndex < endWordIndex) {
             words[wordIndex].x = x;
@@ -427,7 +413,8 @@ exports = class extends PubSub {
           }
         } else {
           // center|right
-          var offset = (availableWidth - lineWidth + spaceWidth) / div + paddingLeft;
+          var offset = (availableWidth - lineWidth + spaceWidth) / div +
+            paddingLeft;
           while (wordIndex < endWordIndex) {
             words[wordIndex++].x += offset;
           }
@@ -435,7 +422,7 @@ exports = class extends PubSub {
       }
     }
   }
-  _verticalAlign() {
+  _verticalAlign () {
     var lineCount = this._lines.length;
     var verticalAlign = this._opts.verticalAlign;
     var words = this._words;
@@ -451,20 +438,14 @@ exports = class extends PubSub {
         offset = (availableHeight - lineCount * lineSize) / div + this.getPaddingTop();
       }
 
-
-
-
       while (i) {
         words[--i].y += offset;
       }
 
-
-
-
       this._offsetRect.y += offset;
     }
   }
-  reflow(ctx, mode) {
+  reflow (ctx, mode) {
     var opts = this._opts;
     var availableWidth = this.getAvailableWidth();
     var availableHeight = this.getAvailableHeight();
@@ -472,118 +453,90 @@ exports = class extends PubSub {
     this._lineSplit(ctx);
 
     switch (mode) {
-    case textFlowMode.NONE:
-      this._lines = [this._line];
-      this._wordFlow(ctx);
-      break;
-
-
-
-
-    case textFlowMode.WRAP:
-      this._wrap(ctx, availableWidth);
-      this._wordFlow(ctx);
-      break;
-
-
-
-
-    case textFlowMode.AUTOSIZE:
-    case textFlowMode.AUTOFONTSIZE_AUTOSIZE:
-      this._lines = [this._line];
-      this._wordFlow(ctx);
-
-      if (this._opts.fitWidth || availableWidth < this._maxWidth) {
-        this.publish('ChangeWidth', this._maxWidth + this.getHorizontalPadding());
-      }
-
-
-
-
-      if (this._opts.fitHeight || availableHeight < this._maxHeight) {
-        this.publish('ChangeHeight', this._maxHeight + this.getVerticalPadding());
-      }
-      break;
-
-
-
-
-    case textFlowMode.AUTOSIZE_WRAP:
-      this._wrap(ctx, availableWidth);
-      this._wordFlow(ctx);
-
-      if (this._opts.fitWidth || availableWidth < this._maxWidth) {
-        this.publish('ChangeWidth', this._maxWidth + this.getHorizontalPadding());
-      }
-
-
-
-
-      if (this._opts.fitHeight || availableHeight < this._maxHeight) {
-        this.publish('ChangeHeight', this._maxHeight + this.getVerticalPadding());
-      }
-
-
-
-
-      break;
-
-
-
-
-    case textFlowMode.AUTOFONTSIZE:
-      this._checkWidth(ctx, this._lineWidth) && this._lineSplit(ctx);
-      this._lines = [this._line];
-      // Don't use the lineHeight here because it's a single line
-      if (opts.allowVerticalSizing && opts.size > availableHeight) {
-        var cb = bind(this, function () {
-          this._measureWords(ctx);
-          this._wordFlow(ctx);
-        });
-
-        this._checkHeight(ctx, 1, opts.size, cb);
-        this.publish('ChangeSize', this._heightFound, ctx);
-        cb();
-      } else {
+      case textFlowMode.NONE:
+        this._lines = [this._line];
         this._wordFlow(ctx);
-      }
-      break;
+        break;
 
+      case textFlowMode.WRAP:
+        this._wrap(ctx, availableWidth);
+        this._wordFlow(ctx);
+        break;
 
+      case textFlowMode.AUTOSIZE:
+      case textFlowMode.AUTOFONTSIZE_AUTOSIZE:
+        this._lines = [this._line];
+        this._wordFlow(ctx);
 
+        if (this._opts.fitWidth || availableWidth < this._maxWidth) {
+          this.publish('ChangeWidth', this._maxWidth + this.getHorizontalPadding());
+        }
 
-    case textFlowMode.AUTOFONTSIZE_WRAP:
-      this._wrap(ctx, availableWidth);
-      this._wordFlow(ctx);
+        if (this._opts.fitHeight || availableHeight < this._maxHeight) {
+          this.publish('ChangeHeight', this._maxHeight + this.getVerticalPadding());
+        }
+        break;
 
-      var lineCount = this._lines.length;
-      var lineSize = this._getLineSize(lineCount);
-      if (opts.allowVerticalSizing && lineCount * lineSize > availableHeight) {
-        var cb = bind(this, function () {
-          this._measureWords(ctx);
-          this._wrap(ctx, availableWidth);
+      case textFlowMode.AUTOSIZE_WRAP:
+        this._wrap(ctx, availableWidth);
+        this._wordFlow(ctx);
+
+        if (this._opts.fitWidth || availableWidth < this._maxWidth) {
+          this.publish('ChangeWidth', this._maxWidth + this.getHorizontalPadding());
+        }
+
+        if (this._opts.fitHeight || availableHeight < this._maxHeight) {
+          this.publish('ChangeHeight', this._maxHeight + this.getVerticalPadding());
+        }
+
+        break;
+
+      case textFlowMode.AUTOFONTSIZE:
+        this._checkWidth(ctx, this._lineWidth) && this._lineSplit(ctx);
+        this._lines = [this._line];
+      // Don't use the lineHeight here because it's a single line
+        if (opts.allowVerticalSizing && opts.size > availableHeight) {
+          var cb = bind(this, function () {
+            this._measureWords(ctx);
+            this._wordFlow(ctx);
+          });
+
+          this._checkHeight(ctx, 1, opts.size, cb);
+          this.publish('ChangeSize', this._heightFound, ctx);
+          cb();
+        } else {
           this._wordFlow(ctx);
-        });
+        }
+        break;
 
-        this._checkHeight(ctx, 1, opts.size, cb);
-        this.publish('ChangeSize', this._heightFound, ctx);
-        cb();
-      }
+      case textFlowMode.AUTOFONTSIZE_WRAP:
+        this._wrap(ctx, availableWidth);
+        this._wordFlow(ctx);
 
+        var lineCount = this._lines.length;
+        var lineSize = this._getLineSize(lineCount);
+        if (opts.allowVerticalSizing && lineCount * lineSize >
+        availableHeight) {
+          var cb = bind(this, function () {
+            this._measureWords(ctx);
+            this._wrap(ctx, availableWidth);
+            this._wordFlow(ctx);
+          });
 
+          this._checkHeight(ctx, 1, opts.size, cb);
+          this.publish('ChangeSize', this._heightFound, ctx);
+          cb();
+        }
 
+        break;
 
-      break;
+      case textFlowMode.AUTOFONTSIZE_WRAP_AUTOSIZE:
+        this._wrap(ctx, availableWidth);
+        this._wordFlow(ctx);
 
-
-
-
-    case textFlowMode.AUTOFONTSIZE_WRAP_AUTOSIZE:
-      this._wrap(ctx, availableWidth);
-      this._wordFlow(ctx);
-
-      availableHeight < this._maxHeight && this.publish('ChangeHeight', this._maxHeight + this.getVerticalPadding());
-      break;
+        availableHeight < this._maxHeight && this.publish('ChangeHeight',
+        this._maxHeight + this.getVerticalPadding());
+        break;
     }
 
     var words = this._words;
@@ -605,41 +558,38 @@ exports = class extends PubSub {
         this._offsetRect.width = lastWord.x + lastWord.width - words[0].x;
       }
 
-
-
-
       this._offsetRect.width += strokeWidth;
     }
   }
-  setOpts(opts) {
+  setOpts (opts) {
     this._opts = opts;
   }
-  getWords() {
+  getWords () {
     return this._words;
   }
-  getHorizontalPadding() {
+  getHorizontalPadding () {
     var padding = this._target.style.padding;
 
     return padding.left + padding.right;
   }
-  getPaddingLeft() {
+  getPaddingLeft () {
     return this._target.style.padding.left;
   }
-  getAvailableWidth() {
+  getAvailableWidth () {
     return this._target.style.width - this.getHorizontalPadding();
   }
-  getVerticalPadding() {
+  getVerticalPadding () {
     var padding = this._target.style.padding;
 
     return padding.top + padding.bottom;
   }
-  getPaddingTop() {
+  getPaddingTop () {
     return this._target.style.padding.top;
   }
-  getAvailableHeight() {
+  getAvailableHeight () {
     return this._target.style.height - this.getVerticalPadding();
   }
-  getOffsetRect() {
+  getOffsetRect () {
     return this._offsetRect;
   }
 };

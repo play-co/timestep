@@ -16,12 +16,12 @@ let exports = {};
 * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
 */
 /**
-* @class AudioManager;
-* Implements platform-aware Audio support.
-*
-* @doc http://doc.gameclosure.com/api/sound.html
-* @docsrc https://github.com/gameclosure/doc/blob/master/api/sound.md
-*/
+ * @class AudioManager;
+ * Implements platform-aware Audio support.
+ *
+ * @doc http://doc.gameclosure.com/api/sound.html
+ * @docsrc https://github.com/gameclosure/doc/blob/master/api/sound.md
+ */
 import {
   logger,
   bind,
@@ -32,7 +32,6 @@ import device from 'device';
 import utilPath from 'util/path';
 import Emitter from 'event/Emitter';
 import AudioLoader from 'ui/backend/sound/AudioLoader';
-
 
 // An API for playing named sounds. Sounds can be given a single file source
 // or multiple sources which will be chosen at random at play time. Sounds may
@@ -58,26 +57,20 @@ if (AudioContext) {
   logger.warn('HTML5 AudioContext not supported, falling back to Audio!');
 }
 
-
-
-
 var _muteAll = false;
 var _registeredAudioManagers = [];
 
 /**
-* RawAudio Class
-*
-* Extend the local instance of Audio objects.
-* Created and used by MultiSound Class.
-*/
+ * RawAudio Class
+ *
+ * Extend the local instance of Audio objects.
+ * Created and used by MultiSound Class.
+ */
 class RawAudio {
-  constructor() {
+  constructor () {
     if (typeof Audio === 'undefined') {
       return null;
     }
-
-
-
 
     // we can't extend an HTML5 audio object in a browser, so do our best
     var audio = new Audio();
@@ -87,9 +80,6 @@ class RawAudio {
         audio[i] = proto[i];
       }
     }
-
-
-
 
     var playTimeout = null;
     audio.oldPlay = audio.play;
@@ -111,22 +101,23 @@ class RawAudio {
 
     return audio;
   }
-  stop() {
+  stop () {
     !this.paused && this.pause();
-    if ((this.NETWORK_LOADING === undefined || this.networkState !== this.NETWORK_LOADING || this.networkState !== this.NETWORK_NO_SOURCE) && !isNaN(this.duration)) {
+    if ((this.NETWORK_LOADING === undefined || this.networkState !== this.NETWORK_LOADING ||
+        this.networkState !== this.NETWORK_NO_SOURCE) && !isNaN(this.duration)) {
       this.currentTime = 0;
     }
   }
 }
 
 /**
-* MultiSound Class
-*
-* A sound object that can play one of a collection of audio sources.
-* Created and used by exported AudioManager Class.
-*/
+ * MultiSound Class
+ *
+ * A sound object that can play one of a collection of audio sources.
+ * Created and used by exported AudioManager Class.
+ */
 class MultiSound {
-  constructor(soundManager, name, opts) {
+  constructor (soundManager, name, opts) {
     opts = typeof opts === 'string' ? { sources: [opts] } : opts || {};
 
     this._soundManager = soundManager;
@@ -170,9 +161,6 @@ class MultiSound {
       this._gainNode.gain.value = volume;
     }
 
-
-
-
     for (var i = 0, src; src = srcList[i]; ++i) {
       // file paths are relative to the base path
       var fullPath = utilPath.join(basePath, opts.path, src);
@@ -190,7 +178,8 @@ class MultiSound {
           audio.volume = volume;
           audio.isBackgroundMusic = opts.background;
           audio.src = fullPath;
-          audio.preload = audio.readyState !== 4 || soundManager._preload && !opts.background ? 'auto' : 'none';
+          audio.preload = audio.readyState !== 4 || soundManager._preload &&
+            !opts.background ? 'auto' : 'none';
 
           // If you pause or mute an html5 audio object in the browser
           // before the sound is ready, it will play anyway.  Here, we
@@ -198,9 +187,6 @@ class MultiSound {
           if (audio.addEventListener) {
             audio.addEventListener('playing', _checkPauseOnPlay);
           }
-
-
-
 
           sources.push(audio);
           if (audio.isBackgroundMusic && NATIVE && NATIVE.sound) {
@@ -210,7 +196,7 @@ class MultiSound {
       }
     }
   }
-  getVolume() {
+  getVolume () {
     if (this._useAudioContext) {
       return this._gainNode.gain.value;
     } else {
@@ -218,7 +204,7 @@ class MultiSound {
       return src && src.volume || 0;
     }
   }
-  setVolume(volume) {
+  setVolume (volume) {
     if (this._useAudioContext) {
       this._gainNode.gain.value = volume;
     } else {
@@ -227,7 +213,7 @@ class MultiSound {
       }
     }
   }
-  stop() {
+  stop () {
     if (this._useAudioContext) {
       this._lastSrc && this._lastSrc.stop(0);
       this._lastSrc = null;
@@ -237,7 +223,7 @@ class MultiSound {
       }
     }
   }
-  pause() {
+  pause () {
     this._isPaused = true;
     if (this._useAudioContext) {
       this.stop();
@@ -247,10 +233,10 @@ class MultiSound {
       }
     }
   }
-  isPaused() {
+  isPaused () {
     return this._isPaused;
   }
-  isPlaying() {
+  isPlaying () {
     var isPlaying = false;
     if (!this._useAudioContext && this._lastSrc !== null) {
       var cur = this._lastSrc.currentTime;
@@ -265,21 +251,20 @@ class MultiSound {
     }
     return isPlaying;
   }
-  getDuration() {
+  getDuration () {
     return this._lastSrc && this._lastSrc.duration || 0;
   }
-  getTime() {
+  getTime () {
     return this._lastSrc && this._lastSrc.currentTime || 0;
   }
-  setTime(t) {
+  setTime (t) {
     if (!this._useAudioContext && this._lastSrc && this.isBackgroundMusic) {
       if (this._lastSrc.duration) {
         this._lastSrc.currentTime = t;
-      } else {
-      }
+      } else {}
     }
   }
-  play(opts) {
+  play (opts) {
     opts = opts || {};
     var loop = opts.loop || this.loop;
     var time = opts.time || 0;
@@ -317,7 +302,7 @@ class MultiSound {
     }
     this._isPaused = false;
   }
-  _playFromBuffer(buffer, loop, time, duration) {
+  _playFromBuffer (buffer, loop, time, duration) {
     if (buffer) {
       var src = _ctx.createBufferSource();
       src.buffer = buffer;
@@ -331,19 +316,19 @@ class MultiSound {
       this._lastSrc = src;
     }
   }
-  _getRandom() {
+  _getRandom () {
     var index = Math.random() * this._sources.length | 0;
     return this._sources[index];
   }
 }
 
 /**
-* AudioManager Class
-*
-* @extends event.Emitter
-*/
+ * AudioManager Class
+ *
+ * @extends event.Emitter
+ */
 exports = class extends Emitter {
-  constructor(opts) {
+  constructor (opts) {
     opts = opts || {};
     super(...arguments);
 
@@ -380,25 +365,16 @@ exports = class extends Emitter {
       logger.warn('HTML5 Audio not supported!');
     }
 
-
-
-
     if (this._ext === undefined) {
       this._ext = '.mp3';
       logger.warn('Warning: sound support unclear - defaulting to .mp3');
     }
-
-
-
 
     // add sounds to the audio API's list of sounds and preload them
     for (var key in this._map) {
       var item = this._map[key];
       this.addSound(key, item);
     }
-
-
-
 
     // AudioContext preloading
     if (_ctx && this._preload) {
@@ -410,51 +386,47 @@ exports = class extends Emitter {
       this.preloadSounds(urls);
     }
   }
-  getAudioContext() {
+  getAudioContext () {
     return _ctx;
   }
-  setAudioContext() {
+  setAudioContext () {
     if (this._loader) {
       this._loader.setAudioContext(_ctx);
     } else {
       this._loader = new AudioLoader({ ctx: _ctx });
     }
   }
-  getAudioLoader() {
+  getAudioLoader () {
     return this._loader;
   }
-  preloadSounds(urls) {
+  preloadSounds (urls) {
     // used for AudioContext only
     this._loader && this._loader.load(urls);
   }
-  getExt() {
+  getExt () {
     return this._ext;
   }
-  getPath() {
+  getPath () {
     return this._path;
   }
-  setPath(path) {
+  setPath (path) {
     if (path) {
       path = path.replace(/\/$/, '');
     }
     this._path = path || '';
   }
-  addSound(name, opts) {
+  addSound (name, opts) {
     this._sounds[name] = new MultiSound(this, name, opts);
   }
-  persistState(key) {
+  persistState (key) {
     this._key = key;
 
     var value = localStorage.getItem(this._key);
     if (value) {
       try {
         value = JSON.parse(value);
-      } catch (e) {
-      }
+      } catch (e) {}
     }
-
-
-
 
     if (value) {
       logger.log('Restoring Audio API state!');
@@ -462,7 +434,7 @@ exports = class extends Emitter {
       this.setEffectsMuted(value.areEffectsMuted);
     }
   }
-  _persist() {
+  _persist () {
     if (this._key !== '') {
       localStorage.setItem(this._key, JSON.stringify({
         isMusicMuted: this._isMusicMuted,
@@ -470,20 +442,20 @@ exports = class extends Emitter {
       }));
     }
   }
-  getMuted() {
+  getMuted () {
     return this._isMusicMuted && this._areEffectsMuted;
   }
-  getMusicMuted() {
+  getMusicMuted () {
     return this._isMusicMuted;
   }
-  getEffectsMuted() {
+  getEffectsMuted () {
     return this._areEffectsMuted;
   }
-  setMuted(isMuted) {
+  setMuted (isMuted) {
     this.setMusicMuted(isMuted);
     this.setEffectsMuted(isMuted);
   }
-  setMusicMuted(isMusicMuted) {
+  setMusicMuted (isMusicMuted) {
     if (_muteAll) {
       isMusicMuted = true;
     }
@@ -497,7 +469,7 @@ exports = class extends Emitter {
       }
     }
   }
-  setEffectsMuted(areEffectsMuted) {
+  setEffectsMuted (areEffectsMuted) {
     if (_muteAll) {
       areEffectsMuted = true;
     }
@@ -512,14 +484,14 @@ exports = class extends Emitter {
       }
     }
   }
-  getSound(name) {
+  getSound (name) {
     var sound = this._sounds[name];
     if (!sound) {
       logger.warn('Warning: no sound named ' + name);
     }
     return sound;
   }
-  setVolume(name, volume) {
+  setVolume (name, volume) {
     var sound = this.getSound(name);
     if (sound) {
       sound.setVolume(volume);
@@ -527,7 +499,7 @@ exports = class extends Emitter {
     }
     return false;
   }
-  getVolume(name) {
+  getVolume (name) {
     var sound = this.getSound(name);
     if (sound) {
       return sound.getVolume();
@@ -535,7 +507,7 @@ exports = class extends Emitter {
       return null;
     }
   }
-  setTime(name, t) {
+  setTime (name, t) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
@@ -543,28 +515,25 @@ exports = class extends Emitter {
     sound.setTime(t || 0);
     return true;
   }
-  getTime(name) {
+  getTime (name) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
     }
     return sound.getTime();
   }
-  getDuration(name) {
+  getDuration (name) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
     }
     return sound.getDuration();
   }
-  play(name, opts) {
+  play (name, opts) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
     }
-
-
-
 
     opts = opts || {};
     var isBackgroundMusic = sound.isBackgroundMusic;
@@ -584,7 +553,7 @@ exports = class extends Emitter {
     }
     return true;
   }
-  pause(name) {
+  pause (name) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
@@ -596,7 +565,7 @@ exports = class extends Emitter {
     sound.pause();
     return true;
   }
-  stop(name) {
+  stop (name) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
@@ -608,21 +577,21 @@ exports = class extends Emitter {
     sound.stop();
     return true;
   }
-  isPaused(name) {
+  isPaused (name) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
     }
     return sound.isPaused();
   }
-  isPlaying(name) {
+  isPlaying (name) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
     }
     return sound.isPlaying();
   }
-  pauseBackgroundMusic() {
+  pauseBackgroundMusic () {
     this._currentMusic && this._currentMusic.pause();
   }
 };

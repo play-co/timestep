@@ -35,7 +35,6 @@ import device from 'device';
 import engineInstance from 'ui/engineInstance';
 import IView from 'ui/IView';
 
-
 var engine = null;
 var groups = {};
 var DEFAULT_GROUP_ID = '__default_group';
@@ -46,19 +45,9 @@ exports = function (subject, groupID) {
     engine = engineInstance.get();
   }
 
-
-
-
-
-
-
-
   if (device.useDOM && subject instanceof IView && !groupID) {
     return subject.getAnimation();
   }
-
-
-
 
   // create a group for this groupID if it doesn't exist
   groupID = groupID || DEFAULT_GROUP_ID;
@@ -69,13 +58,11 @@ exports = function (subject, groupID) {
   var anims = subject.__anims || (subject.__anims = {});
   var anim = anims[groupID];
   if (!anim) {
-    anim = subject instanceof IView ? new ViewAnimator(subject) : new Animator(subject);
+    anim = subject instanceof IView ? new ViewAnimator(subject) : new Animator(
+      subject);
     anim.groupID = groupID;
     anims[groupID] = anim;
   }
-
-
-
 
   return anim;
 };
@@ -165,18 +152,18 @@ exports.getGroup = function (groupID) {
  * - exposes clear, commit, pause, and resume to apply to all group animations
  */
 class Group extends Emitter {
-  constructor(groupID) {
+  constructor (groupID) {
     super();
 
     this.groupID = groupID + '';
     this.anims = [];
   }
-  add(anim) {
+  add (anim) {
     if (this.anims.indexOf(anim) === -1) {
       this.anims.push(anim);
     }
   }
-  remove(anim) {
+  remove (anim) {
     var index = this.anims.indexOf(anim);
     if (index !== -1) {
       this.anims.splice(index, 1);
@@ -187,31 +174,31 @@ class Group extends Emitter {
       }
     }
   }
-  isActive() {
+  isActive () {
     return this.anims.length > 0;
   }
-  clear() {
+  clear () {
     var anims = this.anims;
     for (var i = anims.length - 1; i >= 0; i--) {
       anims[i].clear();
     }
     return this;
   }
-  commit() {
+  commit () {
     var anims = this.anims;
     for (var i = anims.length - 1; i >= 0; i--) {
       anims[i].commit();
     }
     return this;
   }
-  pause() {
+  pause () {
     var anims = this.anims;
     for (var i = anims.length - 1; i >= 0; i--) {
       anims[i].pause();
     }
     return this;
   }
-  resume() {
+  resume () {
     var anims = this.anims;
     for (var i = anims.length - 1; i >= 0; i--) {
       anims[i].resume();
@@ -328,13 +315,12 @@ exports.easeInBounce = 32;
 exports.easeOutBounce = 33;
 exports.easeInOutBounce = 34;
 
-function getTransition(n) {
+function getTransition (n) {
   return typeof n == 'function' ? n : TRANSITIONS[n | 0];
-}
-;
+};
 
 class Frame {
-  constructor() {
+  constructor () {
     this.subject = null;
     this.target = null;
     this.duration = 0;
@@ -346,7 +332,7 @@ class Frame {
     this._poolIndex = 0;
     this._obtainedFromPool = false;
   }
-  reset(subject, target, duration, transition) {
+  reset (subject, target, duration, transition) {
     this.subject = subject;
     this.target = target;
     this.duration = duration === 0 ? 0 : duration || 500;
@@ -357,28 +343,26 @@ class Frame {
       throw new Error('Animations cannot have negative durations!');
     }
   }
-  recycle() {
+  recycle () {
     this.pool.release(this);
   }
-  exec(tt, t, debug) {
-  }
-  debugLog(tt) {
-  }
+  exec (tt, t, debug) {}
+  debugLog (tt) {}
 }
 
 class CallbackFrame extends Frame {
-  reset(subject, target, duration, transition) {
+  reset (subject, target, duration, transition) {
     super.reset(subject, target, duration, transition);
     // CallbackFrames act like tick functions when given durations
     this.duration = duration || 0;
   }
-  exec(tt, t, debug) {
+  exec (tt, t, debug) {
     this.target.call(this.subject, tt, t, debug);
   }
 }
 
 class ObjectFrame extends Frame {
-  exec(tt, t, debug) {
+  exec (tt, t, debug) {
     // set starting values on first execution
     if (!this.base) {
       this.base = {};
@@ -387,16 +371,13 @@ class ObjectFrame extends Frame {
       }
     }
 
-
-
-
     for (var key in this.target) {
       var baseValue = this.base[key];
       this.subject[key] = baseValue + tt * (this.target[key] - baseValue);
     }
     debug && this.debugLog(tt);
   }
-  debugLog(tt) {
+  debugLog (tt) {
     var changed = {};
     for (var key in this.target) {
       changed[key] = this.subject[key] + ' -> ' + this.target[key];
@@ -407,17 +388,18 @@ class ObjectFrame extends Frame {
 
 // a ViewStyleFrame updates a view's style in exec
 class ViewStyleFrame extends Frame {
-  resolveDeltas(againstStyle) {
+  resolveDeltas (againstStyle) {
     var style = this.target;
     for (var key in style) {
       var baseKey = key.substring(1);
-      if (key.charAt(0) == 'd' && !(key in againstStyle) && baseKey in againstStyle) {
+      if (key.charAt(0) == 'd' && !(key in againstStyle) && baseKey in
+        againstStyle) {
         style[baseKey] = style[key] + againstStyle[baseKey];
         delete style[key];
       }
     }
   }
-  exec(tt, t, debug) {
+  exec (tt, t, debug) {
     var oldStyle = this._baseStyle;
     var newStyle = this.target;
     var viewStyle = this.subject.style;
@@ -428,9 +410,6 @@ class ViewStyleFrame extends Frame {
       this.resolveDeltas(oldStyle);
     }
 
-
-
-
     for (var key in newStyle) {
       if (key in oldStyle) {
         var oldValue = oldStyle[key];
@@ -439,7 +418,7 @@ class ViewStyleFrame extends Frame {
     }
     debug && this.debugLog(tt);
   }
-  debugLog(tt) {
+  debugLog (tt) {
     var changed = {};
     var newStyle = this.target;
     var viewStyle = this.subject.style;
@@ -451,7 +430,7 @@ class ViewStyleFrame extends Frame {
 }
 
 exports.Animator = class extends Emitter {
-  constructor(subject) {
+  constructor (subject) {
     super();
 
     this.subject = subject;
@@ -461,7 +440,7 @@ exports.Animator = class extends Emitter {
     this._isScheduled = false;
     this._debug = false;
   }
-  clear() {
+  clear () {
     var queue = this._queue;
     var len = queue.length;
     for (var i = 0; i < len; i++) {
@@ -473,42 +452,42 @@ exports.Animator = class extends Emitter {
     this._removeFromGroup();
     return this;
   }
-  pause() {
+  pause () {
     if (!this._isPaused) {
       this._isPaused = true;
       this._unschedule();
     }
     return this;
   }
-  resume() {
+  resume () {
     if (this._isPaused) {
       this._isPaused = false;
       this._schedule();
     }
     return this;
   }
-  _schedule() {
+  _schedule () {
     if (!this._isScheduled) {
       this._isScheduled = true;
       engine.subscribe('Tick', this, 'onTick');
     }
   }
-  _unschedule() {
+  _unschedule () {
     if (this._isScheduled) {
       this._isScheduled = false;
       engine.unsubscribe('Tick', this, 'onTick');
     }
   }
-  isPaused() {
+  isPaused () {
     return this._isPaused;
   }
-  hasFrames() {
+  hasFrames () {
     return !!this._queue[0];
   }
-  wait(duration) {
+  wait (duration) {
     return this.then(undefined, duration);
   }
-  buildFrame(target, duration, transition) {
+  buildFrame (target, duration, transition) {
     var frame;
     var subject = this.subject;
     var targetType = typeof target;
@@ -525,52 +504,43 @@ exports.Animator = class extends Emitter {
     frame.reset(subject, target, duration, transition);
     return frame;
   }
-  now(target, duration, transition) {
+  now (target, duration, transition) {
     this.clear();
     return this.then(target, duration, transition);
   }
-  then(target, duration, transition) {
+  then (target, duration, transition) {
     if (!this._queue.length) {
       this._elapsed = 0;
     }
-
-
-
 
     this._queue.push(this.buildFrame(target, duration, transition));
     this._schedule();
     this._addToGroup();
     return this;
   }
-  debug() {
+  debug () {
     this._debug = true;
     return this;
   }
-  commit() {
+  commit () {
     this.resume();
     this._elapsed = 0;
     for (var i = 0, p; p = this._queue[i]; ++i) {
       this._elapsed += p.duration;
     }
 
-
-
-
     this.next();
     return this;
   }
-  onTick(dt) {
+  onTick (dt) {
     if (!this._isScheduled) {
       return;
     }
 
-
-
-
     this._elapsed += dt;
     this.next();
   }
-  next() {
+  next () {
     var p = this._queue[0];
     while (p) {
       var duration = p.duration;
@@ -582,9 +552,6 @@ exports.Animator = class extends Emitter {
         this._elapsed -= duration;
       }
 
-
-
-
       p.exec(tt, t, this._debug);
 
       // remove frame if finished and queue wasn't modified by a callback
@@ -593,32 +560,23 @@ exports.Animator = class extends Emitter {
         frame.recycle();
       }
 
-
-
-
       // if paused during a callback or frame not finished, don't continue
       if (!frameFinished || this._isPaused) {
         return;
       }
 
-
-
-
       p = this._queue[0];
     }
-
-
-
 
     // nothing left in the queue!
     this._unschedule();
     this._removeFromGroup();
   }
-  _addToGroup() {
+  _addToGroup () {
     var group = groups[this.groupID];
     group && group.add(this);
   }
-  _removeFromGroup() {
+  _removeFromGroup () {
     var group = groups[this.groupID];
     group && group.remove(this);
   }
@@ -626,7 +584,7 @@ exports.Animator = class extends Emitter {
 var Animator = exports.Animator;
 
 class ViewAnimator extends Animator {
-  buildFrame(target, duration, transition) {
+  buildFrame (target, duration, transition) {
     if (typeof target === 'object') {
       var frame = viewStyleFramePool.obtain();
       frame.pool = viewStyleFramePool;
@@ -645,8 +603,6 @@ exports.getViewAnimator = function () {
 exports.setViewAnimator = function (ctor) {
   ViewAnimator = ctor;
 };
-
-
 
 // pool frame classes to minimize mem allocation and garbage collection
 var framePool = new ObjectPool({ ctor: Frame });

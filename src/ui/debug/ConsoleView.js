@@ -31,7 +31,7 @@ var defaults = {
 };
 
 exports = class extends View {
-  constructor(opts) {
+  constructor (opts) {
     this._opts = merge(opts, defaults);
     super(this._opts);
 
@@ -43,16 +43,19 @@ exports = class extends View {
     this._count = 0;
     this._lines = [];
   }
-  buildView() {
-    //if width/height not provided, default to parent dimensions
-    this.style.width = this._opts.width ? this._opts.width : this.getSuperview().style.width;
-    this.style.height = this._opts.height ? this._opts.height : this.getSuperview().style.height;
+  buildView () {
+    // if width/height not provided, default to parent dimensions
+    this.style.width = this._opts.width ? this._opts.width : this.getSuperview()
+      .style.width;
+    this.style.height = this._opts.height ? this._opts.height : this.getSuperview()
+      .style.height;
   }
-  render(ctx) {
+  render (ctx) {
     ctx.fillStyle = this._opts.backgroundColor;
     ctx.fillRect(0, 0, this.style.width, this.style.height);
 
-    var maxLines = this._maxLines == 'auto' ? (this.style.height - 25) / this._lineHeight | 0 : this._maxLines;
+    var maxLines = this._maxLines == 'auto' ? (this.style.height - 25) /
+      this._lineHeight | 0 : this._maxLines;
     this._history = maxLines;
 
     ctx.font = this._font;
@@ -66,16 +69,16 @@ exports = class extends View {
       }
     }
   }
-  log()
-    /*args ...*/
+  log ()
+    /* args ...*/
     {
-      ++this._count;
-      this._lines.push(Array.prototype.join.call(arguments, ' '));
-      if (this._count >= this._history) {
-        this._lines.shift();
-      }
-      this.needsRepaint();
+    ++this._count;
+    this._lines.push(Array.prototype.join.call(arguments, ' '));
+    if (this._count >= this._history) {
+      this._lines.shift();
     }
+    this.needsRepaint();
+  }
 };
 
 export default exports;

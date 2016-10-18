@@ -27,7 +27,7 @@ import View from 'ui/View';
  * facilitates easy view re-use
  */
 exports = class {
-  constructor(opts) {
+  constructor (opts) {
     var initCount = opts.initCount || 0;
     this._initOpts = opts.initOpts || {};
 
@@ -41,7 +41,7 @@ exports = class {
       view.style.visible = false;
     }
   }
-  obtainView(opts) {
+  obtainView (opts) {
     var views = this._views;
     if (this._freshViewIndex < views.length) {
       // re-use an existing view if we can
@@ -59,7 +59,7 @@ exports = class {
     this._freshViewIndex++;
     return view;
   }
-  releaseView(view) {
+  releaseView (view) {
     var views = this._views;
     var released = false;
     if (view._obtainedFromPool) {
@@ -76,7 +76,7 @@ exports = class {
     }
     return released;
   }
-  releaseAllViews() {
+  releaseAllViews () {
     var views = this._views;
     for (var i = 0, len = views.length; i < len; i++) {
       var view = views[i];
@@ -85,13 +85,13 @@ exports = class {
     }
     this._freshViewIndex = 0;
   }
-  forEachActiveView(fn, ctx) {
+  forEachActiveView (fn, ctx) {
     var views = this._views;
     for (var i = this._freshViewIndex - 1; i >= 0; i--) {
       fn.call(ctx, views[i], i);
     }
   }
-  _createView(opts) {
+  _createView (opts) {
     var views = this._views;
     var view = new this._ctor(merge(opts, this._initOpts));
     view._poolIndex = views.length;

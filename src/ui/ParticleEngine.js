@@ -119,7 +119,7 @@ var PARTICLE_KEYS = Object.keys(PARTICLE_DEFAULTS);
  * @extends ui.View
  */
 exports = class extends View {
-  constructor(opts) {
+  constructor (opts) {
     opts = opts || {};
     // particle engines don't allow input events
     opts.canHandleEvents = false;
@@ -144,7 +144,7 @@ exports = class extends View {
     initCount && this._initParticlePool(initCount);
     this._logViewCreation = initCount > 0;
   }
-  _initParticlePool(count) {
+  _initParticlePool (count) {
     for (var i = 0; i < count; i++) {
       // initialize particle views
       this._freeParticles.push(new this._ctor({
@@ -213,10 +213,11 @@ exports = class extends View {
       });
     }
   }
-  obtainParticleArray(count, opts) {
+  obtainParticleArray (count, opts) {
     opts = opts || {};
 
-    count = performance.getAdjustedParticleCount(count, opts.performanceScore, opts.allowReduction);
+    count = performance.getAdjustedParticleCount(count, opts.performanceScore,
+      opts.allowReduction);
 
     for (var i = 0; i < count; i++) {
       // duplicate of default properties for optimal performance
@@ -281,7 +282,7 @@ exports = class extends View {
     // OK to use an array here
     return this._particleDataArray;
   }
-  _cleanObject(obj) {
+  _cleanObject (obj) {
     for (var i = 0, len = PARTICLE_KEYS.length; i < len; i++) {
       var key = PARTICLE_KEYS[i];
       obj[key] = PARTICLE_DEFAULTS[key];
@@ -290,7 +291,7 @@ exports = class extends View {
     // don't keep an array in the PARTICLE_DEFAULTS object
     return obj;
   }
-  _addExternalParticle(particle, data) {
+  _addExternalParticle (particle, data) {
     // kill any particles already controlling this view
     var active = this._activeParticles;
     var index = active.indexOf(particle);
@@ -304,7 +305,7 @@ exports = class extends View {
     particle.pData = data;
     active.push(particle);
   }
-  addExternalParticles(views, data) {
+  addExternalParticles (views, data) {
     var count = data.length;
     for (var i = 0; i < count; i++) {
       var obj = data.pop();
@@ -314,7 +315,7 @@ exports = class extends View {
       }
     }
   }
-  emitParticles(particleDataArray) {
+  emitParticles (particleDataArray) {
     var count = particleDataArray.length;
     var active = this._activeParticles;
     var free = this._freeParticles;
@@ -333,9 +334,6 @@ exports = class extends View {
         }
       }
 
-
-
-
       // only set particle image if necessary
       var image = data.image;
       if (particle.setImage && particle.lastImage !== image) {
@@ -346,9 +344,6 @@ exports = class extends View {
         particle.setImage(img);
         particle.lastImage = image;
       }
-
-
-
 
       // apply style properties
       var s = particle.style;
@@ -376,20 +371,10 @@ exports = class extends View {
         throw new Error('Particles cannot have negative delay values!');
       }
 
-
-
-
-
-
-
-
-
       if (data.ttl < 0) {
-        throw new Error('Particles cannot have negative time-to-live values!');
+        throw new Error(
+          'Particles cannot have negative time-to-live values!');
       }
-
-
-
 
       // and finally emit the particle
       this._prepareTriggers(data);
@@ -397,14 +382,15 @@ exports = class extends View {
       active.push(particle);
     }
   }
-  _prepareTriggers(data) {
+  _prepareTriggers (data) {
     var triggers = data.triggers;
     for (var i = 0, len = triggers.length; i < len; i++) {
       var trig = triggers[i];
-      trig.isStyle = trig.isStyle !== void 0 ? trig.isStyle : trig.property.charAt(0) !== 'd';
+      trig.isStyle = trig.isStyle !== void 0 ? trig.isStyle : trig.property
+        .charAt(0) !== 'd';
     }
   }
-  _killParticle(particle, data, index) {
+  _killParticle (particle, data, index) {
     var active = this._activeParticles;
     var s = particle.style;
     var spliced = active.splice(index, 1);
@@ -421,14 +407,14 @@ exports = class extends View {
       data && this._freeParticleObjects.push(this._cleanObject(data));
     }
   }
-  killAllParticles() {
+  killAllParticles () {
     var active = this._activeParticles;
     while (active.length) {
       var particle = active[0];
       this._killParticle(particle, particle.pData, 0);
     }
   }
-  runTick(dt) {
+  runTick (dt) {
     var i = 0;
     var active = this._activeParticles;
     var free = this._freeParticles;
@@ -444,9 +430,6 @@ exports = class extends View {
         continue;
       }
 
-
-
-
       // handle particle delays
       if (data.delay > 0) {
         data.delay -= dt;
@@ -459,18 +442,12 @@ exports = class extends View {
         }
       }
 
-
-
-
       // is it dead yet?
       data.elapsed += dt;
       if (data.elapsed >= data.ttl) {
         this._killParticle(particle, data, i);
         continue;
       }
-
-
-
 
       // calculate the percent of one second elapsed; deltas are in units / second
       var pct = dt / 1000;
@@ -480,9 +457,6 @@ exports = class extends View {
         var prgAfter = getTransitionProgress(data.elapsed / data.ttl);
         pct = (prgAfter - prgBefore) * data.ttl / 1000;
       }
-
-
-
 
       // translation
       if (data.polar) {
@@ -511,9 +485,6 @@ exports = class extends View {
         data.dx += pct * data.ddx;
         data.dy += pct * data.ddy;
       }
-
-
-
 
       // anchor translation
       var dax = pct * data.danchorX;
@@ -601,10 +572,10 @@ exports = class extends View {
       i += 1;
     }
   }
-  getActiveParticles() {
+  getActiveParticles () {
     return this._activeParticles;
   }
-  forEachActiveParticle(fn, ctx) {
+  forEachActiveParticle (fn, ctx) {
     var views = this._activeParticles;
     for (var i = views.length - 1; i >= 0; i--) {
       fn.call(ctx, views[i], i);

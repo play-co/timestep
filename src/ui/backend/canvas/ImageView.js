@@ -27,30 +27,25 @@ import View from 'ui/View';
 import Image from 'ui/resource/Image';
 import ImageViewCache from 'ui/resource/ImageViewCache';
 
-
 var _loc = window.location.toString();
 var _host = window.location.hostname;
-
 
 /**
  * @extends ui.View
  */
 exports = class extends View {
-  getImage() {
+  getImage () {
     return this._img;
   }
-  getImageFromCache(url, forceReload) {
+  getImageFromCache (url, forceReload) {
     return ImageViewCache.getImage(url, forceReload);
   }
-  updateOpts(opts) {
+  updateOpts (opts) {
     var opts = super.updateOpts(...arguments);
 
     if ('autoSize' in opts) {
       this._autoSize = !!opts.autoSize;
     }
-
-
-
 
     if (opts.image) {
       this.setImage(opts.image);
@@ -58,26 +53,15 @@ exports = class extends View {
       this.needsReflow();
     }
 
-
-
-
     return opts;
   }
-  setImage(img, opts) {
+  setImage (img, opts) {
     var forceReload = opts && opts.forceReload;
     if (typeof img == 'string') {
       img = ImageViewCache.getImage(img, forceReload);
     } else if (forceReload) {
       img.reload();
     }
-
-
-
-
-
-
-
-
 
     this._img = img;
 
@@ -95,7 +79,7 @@ exports = class extends View {
       this._img.doOnLoad(this, 'needsRepaint');
     }
   }
-  doOnLoad() {
+  doOnLoad () {
     if (arguments.length == 1) {
       this._img.doOnLoad(this, arguments[0]);
     } else {
@@ -103,7 +87,7 @@ exports = class extends View {
     }
     return this;
   }
-  autoSize() {
+  autoSize () {
     if (this._img) {
       this.style.width = this._img.getWidth();
       this.style.height = this._img.getHeight();
@@ -114,19 +98,16 @@ exports = class extends View {
     }
   }
 
-  getOrigW() {
+  getOrigW () {
     return this._img.getOrigW();
   }
-  getOrigH() {
+  getOrigH () {
     return this._img.getOrigH();
   }
-  render(ctx) {
+  render (ctx) {
     if (!this._img) {
       return;
     }
-
-
-
 
     var s = this.style;
     var w = s.width;
@@ -134,7 +115,7 @@ exports = class extends View {
     this._img.render(ctx, 0, 0, w, h);
   }
 
-  getTag() {
+  getTag () {
     var tag;
     if (this._img) {
       var url = this._img.getOriginalURL();
@@ -143,21 +124,20 @@ exports = class extends View {
       } else {
         var uri = URI.relativeTo(url, _loc);
         var host = uri.getHost();
-        tag = path.splitExt(uri.getFile()).basename + (host && host != _host ? ':' + host : '');
+        tag = path.splitExt(uri.getFile()).basename + (host && host !=
+          _host ? ':' + host : '');
 
         this._cachedTag = {
           url: url,
           tag: tag
         };
       }
-    }
-    ;
+    };
 
     return (tag || '') + ':ImageView' + this.uid;
   }
 };
 var ImageView = exports;
-
 
 ImageView.prototype.getOrigWidth = ImageView.prototype.getOrigW;
 ImageView.prototype.getOrigHeight = ImageView.prototype.getOrigH;

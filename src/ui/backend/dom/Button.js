@@ -23,7 +23,7 @@ import TextView from 'ui/backend/dom/TextView';
  * @extends ui.backend.dom.TextView
  */
 exports = class extends TextView {
-  constructor(opts) {
+  constructor (opts) {
     opts = merge(opts, {
       type: 'plain',
       text: 'CHANGE ME',
@@ -37,7 +37,7 @@ exports = class extends TextView {
     this._node.style.textShadow = 'black 2px 2px 2px';
     this.setText(opts.text);
   }
-  onInputSelect() {
+  onInputSelect () {
     this.publish('Select');
   }
 };

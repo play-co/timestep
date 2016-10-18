@@ -43,7 +43,7 @@ var FORWARD_KEYS = {
  * @extends ui.ScrollView
  */
 exports = class extends ScrollView {
-  constructor(opts) {
+  constructor (opts) {
     this._scrollBuffer = opts.scrollBuffer;
 
     opts.scrollBounds = {
@@ -56,7 +56,7 @@ exports = class extends ScrollView {
     this.model = new List({ view: this });
     super(opts);
   }
-  updateOpts() {
+  updateOpts () {
     var opts = super.updateOpts(...arguments);
 
     var listOpts = { view: this };
@@ -66,15 +66,9 @@ exports = class extends ScrollView {
       }
     }
 
-
-
-
     if ('autoSize' in opts) {
       this._autoSize = opts.autoSize;
     }
-
-
-
 
     this.model.updateOpts(listOpts);
     this.selection = this.model.selection;
@@ -85,16 +79,10 @@ exports = class extends ScrollView {
       this.model.subscribe('Deselect', this, this._onDeselect);
     }
 
-
-
-
     // make sure the height is not undefined for compatibility with the layouts
     if (this._autoSize) {
       this.style.height = 0;
     }
-
-
-
 
     this._needsModelRender = true;
 
@@ -104,9 +92,6 @@ exports = class extends ScrollView {
       this.unsubscribe('Scrolled', this, '_onScroll');
     }
 
-
-
-
     var bounds = this._scrollBounds;
     var scrollBuffer = opts.scrollBuffer;
     bounds.minX = scrollBuffer && scrollBuffer.minX || 0;
@@ -115,54 +100,44 @@ exports = class extends ScrollView {
 
     return opts;
   }
-  positionCell(cell, pos) {
+  positionCell (cell, pos) {
     if (this._headerView) {
       pos.y += this._headerView.style.height;
     }
 
-
-
-
-
-
-
-
     cell.style.update(pos);
   }
-  setDataSource(dataSource) {
+  setDataSource (dataSource) {
     this.model.setDataSource(dataSource);
   }
-  getSelections() {
+  getSelections () {
     return this.model.getSelections();
   }
-  getSelection() {
+  getSelection () {
     return this.model.selection.get();
   }
-  getSelectionCount() {
+  getSelectionCount () {
     return this.model.getSelectionCount();
   }
-  deselectAll() {
+  deselectAll () {
     this.model.deselectAll();
   }
-  _onScroll() {
+  _onScroll () {
     this._needsModelRender = true;
     this.needsRepaint();
   }
-  reflow() {
+  reflow () {
     this._needsModelRender = true;
   }
-  addCell(cellView) {
+  addCell (cellView) {
     cellView.style.visible = true;
     this.addSubview(cellView);
     this.needsRepaint(true);
   }
-  setHeaderView(headerView) {
+  setHeaderView (headerView) {
     if (this._headerView) {
       this._headerView.removeFromSuperview();
     }
-
-
-
 
     this._headerView = headerView;
     if (this._headerView) {
@@ -176,13 +151,10 @@ exports = class extends ScrollView {
       this.setMaxY();
     }
   }
-  setFooterView(footerView) {
+  setFooterView (footerView) {
     if (this._footerView) {
       this._footerView.removeFromSuperview();
     }
-
-
-
 
     this._footerView = footerView;
     if (this._footerView) {
@@ -192,18 +164,11 @@ exports = class extends ScrollView {
       this.setMaxY();
     }
   }
-  setMaxX(maxX) {
+  setMaxX (maxX) {
     if (this._autoSize && this.style.width != maxX) {
       this.style.width = maxX;
       this._needsModelRender = true;
     }
-
-
-
-
-
-
-
 
     // TODO: stop publishing WidthChanged when we move to timestep ui
     // because this is done by ScrollView
@@ -221,36 +186,24 @@ exports = class extends ScrollView {
       bounds.maxX += scrollBuffer.maxX;
     }
 
-
-
-
     if (oldMaxX != newMaxX) {
       this.publish('WidthChanged', maxX);
     }
   }
-  setMaxY(contentHeight) {
+  setMaxY (contentHeight) {
     if (!contentHeight) {
       contentHeight = 0;
     }
-
-
-
 
     var additionalHeight = 0;
     if (this._headerView) {
       additionalHeight += this._headerView.style.height || 0;
     }
 
-
-
-
     if (this._footerView) {
       this._footerView.style.y = contentHeight + additionalHeight;
       additionalHeight += this._footerView.style.height || 0;
     }
-
-
-
 
     this._contentHeight = contentHeight;
     var maxY = contentHeight + additionalHeight;
@@ -260,26 +213,20 @@ exports = class extends ScrollView {
       this._needsModelRender = true;
     }
 
-
-
-
-
-
-
-
     // TODO: stop publishing HeightChanged when we move to timestep ui
     // because this is done by ScrollView
     var scrollBuffer = this._opts.scrollBuffer;
 
     var oldMaxY = this._scrollBounds.maxY;
-    var newMaxY = Math.max(0, maxY) + (scrollBuffer && scrollBuffer.maxY || 0);
+    var newMaxY = Math.max(0, maxY) + (scrollBuffer && scrollBuffer.maxY ||
+      0);
     this.setScrollBounds({ maxY: newMaxY });
 
     if (oldMaxY != newMaxY) {
       this.publish('HeightChanged', maxY);
     }
   }
-  render(ctx, opts) {
+  render (ctx, opts) {
     var viewportChanged = super.render(...arguments);
 
     if (viewportChanged || this._needsModelRender || this.model._needsSort) {
@@ -288,7 +235,6 @@ exports = class extends ScrollView {
     }
   }
 };
-
 
 exports.prototype.tag = 'ListView';
 export default exports;
