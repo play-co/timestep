@@ -18,6 +18,12 @@
  *
  * Generates a WebGL rendering context by creating our own Canvas element.
  */
+import {
+  CONFIG,
+  bind,
+  logger
+} from 'base';
+
 import device from 'device';
 
 import loader from 'ui/resource/loader';

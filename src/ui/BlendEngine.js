@@ -19,6 +19,11 @@
  * same API as ui.ParticleEngine
  * except it blends Images together on a single canvas
  */
+import {
+  delay,
+  bind
+} from 'base';
+
 import device from 'device';
 import View from 'ui/View';
 import Image from 'ui/resource/Image';

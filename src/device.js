@@ -28,6 +28,13 @@
  * @doc http://doc.gameclosure.com/api/device.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/device.md
  */
+import {
+  logger,
+  GLOBAL,
+  CONFIG,
+  NATIVE
+} from 'base';
+
 import userAgent from 'userAgent';
 import setProperty from 'util/setProperty';
 import Emitter from 'event/Emitter';

@@ -20,6 +20,11 @@
  * @doc http://doc.gameclosure.com/api/ui-text.html#class-ui.textpromptview
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/text.md
  */
+import {
+  merge,
+  bind
+} from 'base';
+
 import TextView from 'ui/TextView';
 import device from 'device';
 

@@ -1,3 +1,5 @@
+import { NATIVE } from 'base';
+
 exports.show = function () {
   NATIVE.statusBar && NATIVE.statusBar.showStatusBar && NATIVE.statusBar.showStatusBar();
 };

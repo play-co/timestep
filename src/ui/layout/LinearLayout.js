@@ -23,6 +23,13 @@
  *
  * A class to direct the layout of its parent view, set through opts.parent.
  */
+import {
+  log,
+  logger,
+  bind,
+  isArray
+} from 'base';
+
 import Padding from 'ui/layout/Padding';
 import strPad from 'ui/backend/strPad';
 

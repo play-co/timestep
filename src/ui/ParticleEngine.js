@@ -16,6 +16,11 @@
 /**
  * @class ui.ParticleEngine;
  */
+import {
+  delay,
+  logger
+} from 'base';
+
 import View from 'ui/View';
 import Image from 'ui/resource/Image';
 import ImageView from 'ui/ImageView';

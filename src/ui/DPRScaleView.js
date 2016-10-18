@@ -1,3 +1,5 @@
+import { bind } from 'base';
+
 import device from 'device';
 import View from 'ui/View';
 

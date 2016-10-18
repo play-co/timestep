@@ -16,6 +16,8 @@
 /**
  * @class ui.debug.ConsoleView;
  */
+import { merge } from 'base';
+
 import View from 'ui/View';
 
 var defaults = {

@@ -18,6 +18,8 @@
  *
  * A textbox for inputting user data.
  */
+import { logger } from 'base';
+
 import PubSub from 'lib/PubSub';
 import browser from 'util/browser';
 let $ = browser.$;

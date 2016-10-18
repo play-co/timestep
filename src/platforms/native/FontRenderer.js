@@ -18,6 +18,8 @@
  *
  * Render fonts or custom fonts on a Canvas context.
  */
+import { CACHE } from 'base';
+
 import Color from 'ui/Color';
 import filter from 'ui/filter';
 import Font from 'ui/resource/Font';

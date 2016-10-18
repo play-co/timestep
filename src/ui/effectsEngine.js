@@ -16,6 +16,14 @@
 /**
  * @class ui.effectsEngine
  */
+import {
+  merge,
+  delay,
+  isArray,
+  bind,
+  CACHE
+} from 'base';
+
 import animate from 'animate';
 import easingFunctions from 'animate/transitions';
 import View from 'ui/View';

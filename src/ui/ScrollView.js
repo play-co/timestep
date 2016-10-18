@@ -19,6 +19,12 @@
  * @doc http://doc.gameclosure.com/api/ui-scrollview.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/scrollview.md
  */
+import {
+  logger,
+  merge,
+  bind
+} from 'base';
+
 import animate from 'animate';
 import device from 'device';
 

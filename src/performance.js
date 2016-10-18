@@ -21,6 +21,11 @@
  * pop off the worst deltas within the window for the performance score to rise back up.
  *
 **/
+import {
+  logger,
+  bind
+} from 'base';
+
 import device from 'device';
 import userAgent from 'userAgent';
 import engineInstance from 'ui/engineInstance';

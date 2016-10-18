@@ -19,6 +19,11 @@
  * @doc http://doc.gameclosure.com/api/ui-text.html#class-ui.textinputview
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/text.md
  */
+import {
+  merge,
+  bind
+} from 'base';
+
 import device from 'device';
 import View from 'ui/View';
 

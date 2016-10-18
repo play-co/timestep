@@ -22,6 +22,8 @@
  *   Animators are kept on subjects, and only get GC'd if subject does
  *   Frames are pooled and recycled internally
  */
+import { logger } from 'base';
+
 import Emitter from 'event/Emitter';
 import transitions from 'animate/transitions';
 import timer from 'timer';

@@ -20,6 +20,11 @@
  * @doc http://doc.gameclosure.com/api/ui-stackview.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/stackview.md
  */
+import {
+  merge,
+  bind
+} from 'base';
+
 import View from 'ui/View';
 import animate from 'animate';
 

@@ -18,6 +18,11 @@
  *
  * Canvas implementation for browsers. Wraps a Context2D.
  */
+import {
+  merge,
+  CONFIG
+} from 'base';
+
 import Context2D from './Context2D';
 import WebGLContext2D from './webgl/WebGLContext2D';
 

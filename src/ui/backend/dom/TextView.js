@@ -18,6 +18,11 @@
  *
  * TextView implementation for DOM.
  */
+import {
+  merge,
+  isArray
+} from 'base';
+
 import View from 'ui/View';
 import device from 'device';
 

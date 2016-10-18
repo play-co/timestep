@@ -18,6 +18,11 @@
  *
  * A textbox for inputting user data.
  */
+import {
+  merge,
+  logger
+} from 'base';
+
 import browser from 'util/browser';
 let $ = browser.$;
 

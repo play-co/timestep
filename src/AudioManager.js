@@ -20,6 +20,12 @@
 * @doc http://doc.gameclosure.com/api/sound.html
 * @docsrc https://github.com/gameclosure/doc/blob/master/api/sound.md
 */
+import {
+  logger,
+  bind,
+  NATIVE
+} from 'base';
+
 import device from 'device';
 import utilPath from 'util/path';
 import Emitter from 'event/Emitter';

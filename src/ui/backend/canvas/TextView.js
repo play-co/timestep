@@ -18,6 +18,8 @@
  *
  * canvas.TextView implementation.
  */
+import { merge } from 'base';
+
 import View from 'ui/View';
 import Image from 'ui/resource/Image';
 import device from 'device';

@@ -1,3 +1,8 @@
+import {
+  log,
+  bind
+} from 'base';
+
 import LRUCache from 'cache/LRUCache';
 import PubSub from 'lib/PubSub';
 

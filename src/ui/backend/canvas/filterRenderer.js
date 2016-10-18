@@ -17,6 +17,8 @@
  * @class ui.backend.canvas.FilterRenderer;
  * Renders filter effects to a canvas. Manages filtered canvas caching.
  */
+import { CONFIG } from 'base';
+
 import LRUCache from 'cache/LRUCache';
 import device from 'device';
 import Engine from 'ui/Engine';

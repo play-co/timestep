@@ -30,6 +30,12 @@
  * @doc http://doc.gameclosure.com/api/appengine.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/appengine.md
  */
+import {
+  GLOBAL,
+  merge,
+  bind
+} from 'base';
+
 import Emitter from 'event/Emitter';
 
 import dispatch from 'event/input/dispatch';

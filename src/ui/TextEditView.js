@@ -13,6 +13,11 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
+import {
+  merge,
+  bind
+} from 'base';
+
 import device from 'device';
 import TextView from 'ui/TextView';
 import View from 'ui/View';

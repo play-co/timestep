@@ -16,6 +16,8 @@
 /**
  * @class ui.widget.Spinner;
  */
+import { merge } from 'base';
+
 import View from 'ui/View';
 
 

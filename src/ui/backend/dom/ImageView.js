@@ -18,6 +18,8 @@
  *
  * Renders an image in a View for canvas.
  */
+import { merge } from 'base';
+
 import View from 'ui/View';
 import Image from 'ui/resource/Image';
 

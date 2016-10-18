@@ -22,6 +22,14 @@
  * @doc http://doc.gameclosure.com/api/ui-imageview.html#class-ui.resource.image
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/imageview.md
  */
+import {
+  GLOBAL,
+  bind,
+  CONFIG,
+  NATIVE,
+  logger
+} from 'base';
+
 import device from 'device';
 import PubSub from 'lib/PubSub';
 import Callback from 'event/Callback';

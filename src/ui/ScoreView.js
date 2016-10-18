@@ -19,6 +19,8 @@
  * This class is designed for high performance text rendering using images.
  * It is ideal for scores or other in-game counters that update often.
  */
+import { logger } from 'base';
+
 import View from 'ui/View';
 import ImageView from 'ui/ImageView';
 import Image from 'ui/resource/Image';

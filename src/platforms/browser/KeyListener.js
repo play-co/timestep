@@ -20,6 +20,8 @@
  * An independent KeyListener is exposed for the Application Engine and any
  * Views with a Focus Manager.
  */
+import { merge } from 'base';
+
 import PubSub from 'lib/PubSub';
 import Enum from 'lib/Enum';
 

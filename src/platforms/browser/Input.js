@@ -22,6 +22,8 @@
  * mouse over/out and start events are attached to the element. Used on the
  * canvas as well as DOM bindings.
  */
+import { bind } from 'base';
+
 import device from 'device';
 import browser from 'util/browser';
 let $ = browser.$;

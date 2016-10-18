@@ -39,6 +39,12 @@
  * @doc http://doc.gameclosure.com/api/ui-spriteview.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/spriteview.md
  */
+import {
+  delay,
+  merge,
+  isArray
+} from 'base';
+
 import device from 'device';
 import ImageView from 'ui/ImageView';
 import Image from 'ui/resource/Image';

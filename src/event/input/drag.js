@@ -1,3 +1,5 @@
+import { merge } from 'base';
+
 var dragDefaults = {
   radius: 10,
   unbound: false,

@@ -20,6 +20,11 @@
  * @doc http://doc.gameclosure.com/api/ui-view.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/view.md
  */
+import {
+  logger,
+  bind
+} from 'base';
+
 import device from 'device';
 import IView from './IView';
 

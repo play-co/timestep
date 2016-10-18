@@ -19,6 +19,8 @@
  * Implements an independent, singleton timer for use by the environment.
  * The Application Engine binds to this to generate the rendering tick.
  */
+import { logger } from 'base';
+
 import { getImport } from 'platformImport';
 
 var Timer = getImport('Timer');

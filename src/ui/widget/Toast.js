@@ -19,6 +19,8 @@
  * @doc http://doc.gameclosure.com/api/ui-widget-toast.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/widget/toast.md
  */
+import { merge } from 'base';
+
 import animate from 'animate';
 import ImageView from 'ui/ImageView';
 import TextView from 'ui/TextView';

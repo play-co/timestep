@@ -19,6 +19,8 @@
  * @doc http://doc.gameclosure.com/api/ui-widget-listview.html#class-ui.widget.cellview
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/widget/listview.md
  */
+import { merge } from 'base';
+
 import View from './View';
 import Cell from 'squill/models/Cell';
 /**

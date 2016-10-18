@@ -18,6 +18,8 @@
  *
  * Generates a rendering context by creating our own Canvas element.
  */
+import { logger } from 'base';
+
 import device from 'device';
 import FontRenderer from './FontRenderer';
 

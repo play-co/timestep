@@ -1,3 +1,5 @@
+import { logger } from 'base';
+
 /* globals DEBUG */
 exports.method = function (prototype, method, func) {
   if (DEBUG) {

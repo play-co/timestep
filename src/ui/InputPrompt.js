@@ -14,6 +14,8 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 /* globals NATIVE, DEBUG, jsio */
+import { merge } from 'base';
+
 import device from 'device';
 import deprecated from './debug/deprecated';
 import debugTypes from './debug/types';
