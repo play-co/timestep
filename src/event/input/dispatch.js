@@ -23,7 +23,6 @@
  */
 
 import math.geom.Point as Point;
-import device;
 import lib.Enum;
 
 exports.eventTypes = new lib.Enum('START', 'MOVE', 'SELECT', 'SCROLL', 'CLEAR');
@@ -135,14 +134,3 @@ exports.getEvtCbName = function (evtType) {
   var name = exports.eventTypes[evtType];
   return (exports._evtCb[evtType] = 'Input' + name.charAt(0) + name.substring(1).toLowerCase());
 }
-
-/**
- * Aliases for children of the timestep.input "package".
- */
-
-exports.InputListener = device.get('Input');
-exports.KeyListener = device.get('KeyListener');
-
-jsio('import .InputEvent');
-exports.InputEvent = InputEvent;
-

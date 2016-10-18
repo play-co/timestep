@@ -30,6 +30,8 @@ from util.browser import $;
 import event.input.dispatch as input;
 var eventTypes = input.eventTypes;
 
+import event.input.InputEvent as InputEvent;
+
 // import ...FPSCounter;
 
 var UID = -1;
@@ -299,7 +301,7 @@ exports = Class(function () {
 
     var dpr = device.screen.devicePixelRatio;
 
-    var inputEvent = new input.InputEvent(id, type, x * dpr, y * dpr);
+    var inputEvent = new InputEvent(id, type, x * dpr, y * dpr);
     if (device.useDOM) {
       while (target && !target._view) {
         target = target.parentNode;

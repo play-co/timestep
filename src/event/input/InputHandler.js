@@ -23,6 +23,7 @@
 
 import math.geom.Point as Point;
 import event.input.dispatch as dispatch;
+import event.input.InputEvent as InputEvent;
 
 var InputHandler = exports = Class(function () {
 
@@ -104,7 +105,7 @@ var InputHandler = exports = Class(function () {
     ++this.startCount;
 
     var root = inputStartEvt.root;
-    var dragEvt = new dispatch.InputEvent(inputStartEvt.id, 'input:drag', inputStartEvt.srcPt.x, inputStartEvt.srcPt.y, root, view);
+    var dragEvt = new InputEvent(inputStartEvt.id, 'input:drag', inputStartEvt.srcPt.x, inputStartEvt.srcPt.y, root, view);
 
     dragEvt.didDrag = false;
     dragEvt.radius = opts.radius * opts.radius || 0;
