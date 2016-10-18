@@ -134,6 +134,10 @@ var View = exports = Class(IView, function () {
   this.init = function (opts) {
     if (!opts) { opts = {}; }
 
+    // TODO: remove this eventually
+    // Things like TextView will fail if it is not present
+    this._opts = this._opts || {};
+
     this.uid = ++UID;
 
     // Maintain pointers to children to keep native views from being garbage collected
@@ -840,12 +844,12 @@ setProperty(View.prototype, 'tick', {
 
 // legacy implementation shim
 setProperty(View.prototype, '_superview', {
-  get: this.getSuperview,
+  get: View.prototype.getSuperview,
   set: function () {
   }
 });
 setProperty(View.prototype, '_subviews', {
-  get: this.getSubviews,
+  get: View.prototype.getSubviews,
   set: function () {
   }
 });
