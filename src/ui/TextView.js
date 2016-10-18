@@ -22,6 +22,6 @@
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/text.md
  */
 
-import device;
-
-exports = device.importUI('TextView');
+import { importUI } from 'platformImport';
+const TextView = importUI('TextView');
+exports = TextView;
