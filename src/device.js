@@ -34,23 +34,10 @@ import userAgent;
 import util.setProperty;
 import event.Emitter as Emitter;
 
-
-var backendCanvasCtx = require.context(
-  './ui/backend/canvas',
-  true,
-  /^.*\.js$/
-);
-var backendDomCtx = require.context(
-  './ui/backend/dom',
-  true,
-  /^.*\.js$/
-);
-
-var platformBrowserCtx = require.context(
-  './platforms/browser',
-  true,
-  /^.*\.js$/
-);
+import {
+  getImport,
+  importUI
+} from './platformImport';
 
 
 if (typeof navigator === 'undefined' || !navigator.userAgent) {
@@ -70,46 +57,10 @@ exports.registerDevice = function (name, path) {
 };
 
 
-var getDynamicModulePath = function (module) {
-  var moduleName = module.replace(/\./g, '/');
-  if (moduleName.indexOf('./') !== 0) {
-    moduleName = './' + moduleName;
-  }
-  if (moduleName.indexOf('.js') !== moduleName.length - 3) {
-    moduleName += '.js';
-  }
-  return moduleName;
-};
+// TODO: remove this indirection
+exports.get = getImport;
+exports.importUI = importUI;
 
-
-exports.get = function (module) {
-  // deprecated: InputPrompt used to be platform-specific
-  if (module == 'InputPrompt') {
-    jsio('import ui.InputPrompt as InputPrompt')
-    return InputPrompt;
-  }
-
-  // var path = _devices[exports.name] || 'platforms.browser';
-  // return jsio('import ' + path + '.' + module, {
-  //   dontExport: true,
-  //   suppressErrors: true
-  // });
-  platformBrowserCtx(getDynamicModulePath(module));
-};
-
-exports.importUI = function (module) {
-  // var domOrCanvas = exports.useDOM ? 'dom' : 'canvas';
-  // var importString = 'import ui.backend.' + domOrCanvas + '.' + module;
-  // var importOpts = {dontExport: true, suppressErrors: true};
-  // return jsio(importString, importOpts);
-  var req;
-  if (exports.useDOM) {
-    req = backendDomCtx;
-  } else {
-    req = backendCanvasCtx;
-  }
-  return req(getDynamicModulePath(module));
-};
 
 exports.isMobileNative = exports.isMobile = /TeaLeaf/.test(ua);
 
@@ -270,7 +221,7 @@ exports.getDimensions = function (isLandscape) {
  */
 exports.init = function () {
   jsio('import ui.init');
-  exports.get('initialize').init();
+  getImport('initialize').init();
   exports.screen.width = exports.width;
   exports.screen.height = exports.height;
 };
