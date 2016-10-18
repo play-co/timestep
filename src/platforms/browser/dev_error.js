@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @package timestep.env.browser.dev_error;
  *
@@ -21,30 +20,31 @@
  *
  * ??? TODO move to a debug package.
  */
-
 exports.render = function (e) {
-  logger.error("unhandled tick exception");
+  logger.error('unhandled tick exception');
   logger.error(e.stack);
-  
+
   var c = document.getElementsByTagName('canvas');
   for (var i = 0, el; el = c[i]; ++i) {
     render(el.getContext('2d'), e);
   }
 }
+;
 
 function render(ctx, e) {
-  ctx.fillStyle = "rgb(0, 0, 255)";
+  ctx.fillStyle = 'rgb(0, 0, 255)';
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  
+
   var x = 30, y = 40;
 
-  ctx.fillStyle = "#FFF";
-  ctx.font = "bold 12px Monaco,\"Bitstream Vera Sans Mono\",\"Lucida Console\",Terminal,monospace";
+  ctx.fillStyle = '#FFF';
+  ctx.font = 'bold 12px Monaco,"Bitstream Vera Sans Mono","Lucida Console",Terminal,monospace';
   function drawLine(msg) {
     ctx.fillText(msg, x, y);
     y += 20;
   }
-  
+
+
   drawLine(e.message);
   y += 40;
   e.stack.split('\n').map(drawLine);

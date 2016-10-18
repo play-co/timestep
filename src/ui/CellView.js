@@ -13,28 +13,22 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @package ui.widget.CellView;
  *
  * @doc http://doc.gameclosure.com/api/ui-widget-listview.html#class-ui.widget.cellview
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/widget/listview.md
  */
-
-import .View;
-import squill.models.Cell;
+jsio('import .View');
+jsio('import squill.models.Cell');
 /**
  * @extends ui.View
  */
 exports = Class(View, function (supr) {
   this.init = function (opts) {
-    opts = merge(opts, {
-      layout: 'box'
-    });
+    opts = merge(opts, { layout: 'box' });
     supr(this, 'init', [opts]);
-    this.model = new squill.models.Cell({
-      view: this
-    });
+    this.model = new squill.models.Cell({ view: this });
   };
 
   this.tag = 'CellView';
@@ -58,23 +52,30 @@ exports = Class(View, function (supr) {
     this.controller.deselect && this.controller.deselect(this._data);
   };
 
-  this.getHeight = function () { return this.style.height; }
-  this.getWidth = function () { return this.style.width; }
-  this.setData = function (data) { this._data = data; }
+  this.getHeight = function () {
+    return this.style.height;
+  };
+  this.getWidth = function () {
+    return this.style.width;
+  };
+  this.setData = function (data) {
+    this._data = data;
+  }
+;
 
   this.setController = function (controller) {
     this.controller = controller;
     if (this._onSelect) {
       this._selectCB = this._selectCB || function (data) {
-          (data === this._data) && this._onSelect();
-        };
+        data === this._data && this._onSelect();
+      };
       this.controller.unsubscribe('Select', this, this._selectCB);
       this.controller.subscribe('Select', this, this._selectCB);
     }
     if (this._onDeselect) {
       this._deselectCB = this._deselectCB || function (data) {
-          (data === this._data) && this._onDeselect();
-        };
+        data === this._data && this._onDeselect();
+      };
       this.controller.unsubscribe('Deselect', this, this._deselectCB);
       this.controller.subscribe('Deselect', this, this._deselectCB);
     }
@@ -84,6 +85,7 @@ exports = Class(View, function (supr) {
     if (!this.controller || !this.controller.selection) {
       return;
     }
+
 
     var type = this.controller.selection.getType();
     if (type == 'toggle' || type == 'multi') {

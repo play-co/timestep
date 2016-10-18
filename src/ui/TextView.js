@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class ui.TextView;
  * Import the Canvas/DOM implementation of TextView.
@@ -21,7 +20,6 @@
  * @doc http://doc.gameclosure.com/api/ui-text.html#class-ui.textview
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/text.md
  */
-
 import { importUI } from 'platformImport';
 const TextView = importUI('TextView');
 exports = TextView;

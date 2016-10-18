@@ -13,14 +13,13 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 var BoxLayout = exports = Class(function () {
-
   this.init = function (opts) {
     this._view = opts.view;
 
     this.listenSubviewResize(opts.view);
   }
+;
 
   this.reflow = function () {
     var view = this._view;
@@ -32,17 +31,20 @@ var BoxLayout = exports = Class(function () {
       this.addSubviewListener(view);
     }
 
+
     if (sv) {
       var notInLayout = !style.inLayout || !style.flex || sv.style.layout != 'linear';
       if (notInLayout || !sv.__layout.isHorizontal()) {
         this.reflowX();
       }
 
+
       if (notInLayout || !sv.__layout.isVertical()) {
         this.reflowY();
       }
     }
   }
+;
 
   this.addSubviewListener = function (view) {
     if (!view.__hasSubviewListener) {
@@ -84,6 +86,7 @@ var BoxLayout = exports = Class(function () {
       view.style.__removeSuperviewResize();
     }
 
+
     // reflow on parent view resize
     var onResize = bind(view, 'needsReflow');
     var superview = view.getSuperview();
@@ -96,15 +99,20 @@ var BoxLayout = exports = Class(function () {
       });
     }
   }
+;
 
   this.listenSubviewResize = function (view) {
-    if (view.__root) { this.addResizeListener(view); }
+    if (view.__root) {
+      this.addResizeListener(view);
+    }
+
 
     view.on('ViewAdded', bind(this, 'addResizeListener', view));
     view.on('ViewRemoved', bind(view.style, function () {
       this.__removeSuperviewResize && this.__removeSuperviewResize();
     }));
   }
+;
 
   this.reflowX = function (view) {
     var view = this._view;
@@ -116,6 +124,7 @@ var BoxLayout = exports = Class(function () {
       var padding = sv.style.padding;
     }
 
+
     var svWidth = sv.style.width;
     var availWidth = svWidth - (padding && padding.getHorizontal() || 0);
 
@@ -125,40 +134,48 @@ var BoxLayout = exports = Class(function () {
       // find the maximal right edge
       w = this.getContentWidth() + s.padding.right;
     }
-
-    // 1. we're not in a layout and both right and left are defined
-    else if (!inLinearLayout && svWidth && s.right != undefined && s.left != undefined) {
+    else // 1. we're not in a layout and both right and left are defined
+    if (!inLinearLayout && svWidth && s.right != undefined && s.left != undefined) {
       w = availWidth / s.scale - (s.left || 0) - (s.right || 0);
     }
-
-    // 2. width is defined a percent
-    else if (svWidth && s._layoutWidthIsPercent) {
+    else // 2. width is defined a percent
+    if (svWidth && s._layoutWidthIsPercent) {
       w = availWidth / s.scale * s._layoutWidthValue;
     }
-
-    // 3. width is inherited from the superview
-    else if (s.width == undefined && svWidth) {
+    else // 3. width is inherited from the superview
+    if (s.width == undefined && svWidth) {
       w = availWidth / s.scale;
     }
-
     else {
       w = s._width;
     }
+
+
+
+
 
     // enforce center anchor on width change
     if (s.centerAnchor) {
       s.anchorX = (w || 0) / 2;
     }
 
+
     // Note that we don't trigger any resize handlers here
     s._width = w;
 
     if (!inLinearLayout && svWidth) {
-      if (w !== undefined && s.centerX) { s.x = Math.round((availWidth - s.scale * w) / 2 + (padding && padding.left || 0)); }
-      if (w !== undefined && s.left == undefined && s.right != undefined) { s.x = Math.round(availWidth - s.scale * w - s.right - (padding && padding.right || 0)); }
-      if (s.left != undefined) { s.x = Math.round(s.left + (padding && padding.left || 0)); }
+      if (w !== undefined && s.centerX) {
+        s.x = Math.round((availWidth - s.scale * w) / 2 + (padding && padding.left || 0));
+      }
+      if (w !== undefined && s.left == undefined && s.right != undefined) {
+        s.x = Math.round(availWidth - s.scale * w - s.right - (padding && padding.right || 0));
+      }
+      if (s.left != undefined) {
+        s.x = Math.round(s.left + (padding && padding.left || 0));
+      }
     }
   }
+;
 
   this.reflowY = function () {
     var view = this._view;
@@ -169,10 +186,11 @@ var BoxLayout = exports = Class(function () {
       var padding = sv.style.padding;
     }
 
+
     var svHeight = sv.style.height;
     var availHeight = svHeight - (padding && padding.getVertical() || 0);
 
-    var wrapContent = (s._layoutHeight == 'wrapContent');
+    var wrapContent = s._layoutHeight == 'wrapContent';
 
     // compute the height
     var h;
@@ -188,19 +206,31 @@ var BoxLayout = exports = Class(function () {
       h = s.height;
     }
 
+
+
+
+
     // enforce center anchor on height change
     if (s.centerAnchor) {
       s.anchorY = (h || 0) / 2;
     }
 
+
     s._height = h;
 
     if (!inLinearLayout && svHeight) {
-      if (h !== undefined && s.centerY) { s.y = Math.round((availHeight - s.scale * h) / 2 + (padding && padding.top || 0)); }
-      if (h !== undefined && s.top == undefined && s.bottom != undefined) { s.y = Math.round(availHeight - s.scale * h - s.bottom - (padding && padding.bottom || 0)); }
-      if (s.top != undefined) { s.y = Math.round(s.top + (padding && padding.top || 0)); }
+      if (h !== undefined && s.centerY) {
+        s.y = Math.round((availHeight - s.scale * h) / 2 + (padding && padding.top || 0));
+      }
+      if (h !== undefined && s.top == undefined && s.bottom != undefined) {
+        s.y = Math.round(availHeight - s.scale * h - s.bottom - (padding && padding.bottom || 0));
+      }
+      if (s.top != undefined) {
+        s.y = Math.round(s.top + (padding && padding.top || 0));
+      }
     }
   }
+;
 
   this.getContentWidth = function () {
     // find the maximal right edge
@@ -216,6 +246,7 @@ var BoxLayout = exports = Class(function () {
     }
     return w;
   }
+;
 
   this.getContentHeight = function () {
     // find the maximal bottom edge
@@ -231,5 +262,6 @@ var BoxLayout = exports = Class(function () {
     }
     return h;
   }
+;
 
 });

@@ -13,15 +13,40 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 var LOCALE_CODES = navigator.language && navigator.language.split('-');
 var LANGUAGE_CODE = (LOCALE_CODES[0] || 'en').toLowerCase();
 var REGION_CODE = (LOCALE_CODES[1] || 'US').toUpperCase();
 
 var EU_REGIONS = [
-  'AD', 'AT', 'BE', 'BL', 'CY', 'DE', 'EE', 'ES', 'EU', 'FI', 'FR', 'GR',
-  'IE', 'IT', 'LU', 'LV', 'MC', 'ME', 'MT', 'MQ', 'NL', 'PM', 'PT', 'RE',
-  'SI', 'SK', 'SM', 'VA', 'YT'
+  'AD',
+  'AT',
+  'BE',
+  'BL',
+  'CY',
+  'DE',
+  'EE',
+  'ES',
+  'EU',
+  'FI',
+  'FR',
+  'GR',
+  'IE',
+  'IT',
+  'LU',
+  'LV',
+  'MC',
+  'ME',
+  'MT',
+  'MQ',
+  'NL',
+  'PM',
+  'PT',
+  'RE',
+  'SI',
+  'SK',
+  'SM',
+  'VA',
+  'YT'
 ];
 
 
@@ -37,7 +62,6 @@ var defaultOpts = {
  * The i18n Class provides localization support for string JSON files.
  */
 exports = Class(function () {
-
   this.init = function (opts) {
     opts = merge(opts, defaultOpts);
     this._languageCode = opts.languageCode;
@@ -68,11 +92,11 @@ exports = Class(function () {
       try {
         this._strings = JSON.parse(data);
       } catch (e) {
-        console.error("Error loading strings JSON:");
+        console.error('Error loading strings JSON:');
         console.error(e);
       }
     } else {
-      console.error("No JSON found for files:", locPath, langPath, defPath);
+      console.error('No JSON found for files:', locPath, langPath, defPath);
     }
   };
 

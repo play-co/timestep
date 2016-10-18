@@ -27,11 +27,12 @@ var defaults = {
 
 exports = Class(function () {
   this.init = function (opts) {
-    logger.log("in init");
+    logger.log('in init');
     opts = merge(opts, defaults);
     logger.log('making a textbox with opts', JSON.stringify(opts));
     this._id = T.create(opts.x, opts.y, opts.width, opts.height, opts.text);
   }
+;
 
   this.setPosition = function (p) {
     T.setPosition(this._id, p.x, p.y);
@@ -64,7 +65,7 @@ exports = Class(function () {
 
   this.setVisible = function (isVisible) {
     if (isVisible) {
-      T.show(this._id); 
+      T.show(this._id);
     } else {
       T.hide(this._id);
     }

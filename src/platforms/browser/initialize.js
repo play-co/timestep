@@ -13,14 +13,12 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
-import device;
-from util.browser import $;
+jsio('import device');
+jsio('from util.browser import $');
 
 device.registerDevice('browser', 'platforms.browser');
 
 exports.init = function () {
-
   var onResize = function () {
     var dpr = device.screen.devicePixelRatio;
     var doc = window.document;
@@ -42,6 +40,7 @@ exports.init = function () {
         device.screen.isLandscape = false;
         device.screen.orientation = 'portrait';
       }
+
 
       device.screen.publish('Resize', width, height);
     }

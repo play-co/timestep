@@ -13,8 +13,7 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
-import event.input.InputEvent as InputEvent;
+jsio('import event.input.InputEvent as InputEvent');
 
 exports = Class(function () {
   this.getEvents = function () {
@@ -23,7 +22,7 @@ exports = Class(function () {
     } else {
       var raw = NATIVE.input.getTouchEvents(), evts = [];
       var j = 0;
-      for(var i = 0, e; e = raw[i]; ++i) {
+      for (var i = 0, e; e = raw[i]; ++i) {
         evts[j++] = new InputEvent(e.id, e.type, e.pt);
         if (e.type == 'input:select') {
           evts[j++] = new InputEvent(e.id, 'input:clear', e.pt.x, e.pt.y);
@@ -31,13 +30,9 @@ exports = Class(function () {
       }
       return evts;
     }
-  }
+  };
 });
 
-if (
-  NATIVE.timestep &&
-  NATIVE.timestep.getEvents &&
-  !NATIVE.timestep.InputEvent
-) {
+if (NATIVE.timestep && NATIVE.timestep.getEvents && !NATIVE.timestep.InputEvent) {
   NATIVE.timestep.InputEvent = InputEvent;
 }

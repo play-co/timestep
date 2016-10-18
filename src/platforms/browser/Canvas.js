@@ -13,19 +13,20 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @package timestep.env.browser.Canvas;
  *
  * Canvas implementation for browsers. Wraps a Context2D.
  */
-
-import .Context2D;
-import .webgl.WebGLContext2D as WebGLContext2D;
+jsio('import .Context2D');
+jsio('import .webgl.WebGLContext2D as WebGLContext2D');
 
 exports = Class(function () {
   this.init = function (opts) {
-    opts = merge(opts, {width: 300, height: 200});
+    opts = merge(opts, {
+      width: 300,
+      height: 200
+    });
 
     this._width = opts.width;
     this._height = opts.height;
@@ -39,39 +40,45 @@ exports = Class(function () {
       ctx = new Context2D(opts);
     }
 
+
     var el = this._el = ctx.getElement();
 
     el.complete = true;
 
     if (el.style) {
-      el.style.userSelect =
-      el.style.webkitUserSelect =
-      el.style.webkitTouchCallout = 'none';
+      el.style.userSelect = el.style.webkitUserSelect = el.style.webkitTouchCallout = 'none';
     }
 
-    el.getContext = function () { return ctx; };
+
+    el.getContext = function () {
+      return ctx;
+    };
 
     return el;
   };
 
   Object.defineProperties(this, {
     width: {
-      get: function() { return this._width; },
-      set: function(value) {
+      get: function () {
+        return this._width;
+      },
+      set: function (value) {
         this._width = value;
         if (this.isWebGL) {
           this.getContext().resize(this.width, this.height);
         }
-      },
+      }
     },
     height: {
-      get: function() { return this._height; },
-      set: function(value) {
+      get: function () {
+        return this._height;
+      },
+      set: function (value) {
         this._height = value;
         if (this.isWebGL) {
           this.getContext().resize(this.width, this.height);
         }
-      },
+      }
     }
   });
 

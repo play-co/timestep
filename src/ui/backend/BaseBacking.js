@@ -13,56 +13,68 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
-
-import util.setProperty as setProperty;
+jsio('import util.setProperty as setProperty');
 
 
 // keys map to properties
 var BASE_STYLE_PROPS = {
-  'x': {value: 0},
-  'y': {value: 0},
-  'offsetX': {value: 0}, //translate
-  'offsetY': {value: 0},
-  'offsetXPercent': {value: undefined, cb: '_onOffsetX'}, //not implemented
-  'offsetYPercent': {value: undefined, cb: '_onOffsetY'},
-  'anchorX': {value: 0}, //rotation and scale
-  'anchorY': {value: 0},
-  'centerAnchor': {value: false},
-  'width': {cb: '_onResize'},
-  'height': {cb: '_onResize'},
-  'r': {value: 0},
-  'opacity': {value: 1},
-  'zIndex': {value: 0, cb: '_onZIndex'},
-  'scale': {value: 1},
-  'scaleX': {value: 1},
-  'scaleY': {value: 1},
-  'flipX': {value: false},
-  'flipY': {value: false},
-  'visible': {value: true},
-  'shadowColor': {value: 'black'}, //only has an effect in TextView??
-  'clip': {value: false},
-  'backgroundColor': {value: ''},
-  'compositeOperation': {value: undefined},
+  'x': { value: 0 },
+  'y': { value: 0 },
+  'offsetX': { value: 0 },
+  //translate
+  'offsetY': { value: 0 },
+  'offsetXPercent': {
+    value: undefined,
+    cb: '_onOffsetX'
+  },
+  //not implemented
+  'offsetYPercent': {
+    value: undefined,
+    cb: '_onOffsetY'
+  },
+  'anchorX': { value: 0 },
+  //rotation and scale
+  'anchorY': { value: 0 },
+  'centerAnchor': { value: false },
+  'width': { cb: '_onResize' },
+  'height': { cb: '_onResize' },
+  'r': { value: 0 },
+  'opacity': { value: 1 },
+  'zIndex': {
+    value: 0,
+    cb: '_onZIndex'
+  },
+  'scale': { value: 1 },
+  'scaleX': { value: 1 },
+  'scaleY': { value: 1 },
+  'flipX': { value: false },
+  'flipY': { value: false },
+  'visible': { value: true },
+  'shadowColor': { value: 'black' },
+  //only has an effect in TextView??
+  'clip': { value: false },
+  'backgroundColor': { value: '' },
+  'compositeOperation': { value: undefined }
 };
 
 
 var BaseBacking = exports = Class(function () {
-
   // required methods:
   //
   // this._onResize = function () {};
   // this._onZIndex = function () {};
-
   this.localizePoint = function (pt) {
     pt.x -= this.x + this.anchorX + this.offsetX;
     pt.y -= this.y + this.anchorY + this.offsetY;
-    if (this.r) { pt.rotate(-this.r); }
+    if (this.r) {
+      pt.rotate(-this.r);
+    }
     pt.scale(1 / this.scale);
     pt.x += this.anchorX;
     pt.y += this.anchorY;
     return pt;
   }
+;
 
   this.copy = function () {
     var copy = {};
@@ -70,8 +82,10 @@ var BaseBacking = exports = Class(function () {
       copy[key] = this[key];
     }
 
+
     return copy;
   }
+;
 
   this.update = function (style) {
     for (var i in style) {
@@ -80,7 +94,7 @@ var BaseBacking = exports = Class(function () {
       }
     }
     return this;
-  }
+  };
 });
 
 var styleKeys = BaseBacking.prototype.constructor.styleKeys = {};

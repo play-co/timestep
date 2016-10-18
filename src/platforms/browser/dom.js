@@ -1,4 +1,4 @@
-from util.browser import $;
+jsio('from util.browser import $');
 
 var _cssPrefix;
 exports.getCSSPrefix = function () {
@@ -7,8 +7,7 @@ exports.getCSSPrefix = function () {
     if (styles.OLink === '') {
       _cssPrefix = '-o-';
     } else {
-      var match = Array.prototype.join.call(styles, '')
-          .match(/-(moz|webkit|ms)-/);
+      var match = Array.prototype.join.call(styles, '').match(/-(moz|webkit|ms)-/);
 
       if (match) {
         _cssPrefix = '-' + match[1] + '-';
@@ -17,6 +16,7 @@ exports.getCSSPrefix = function () {
       }
     }
   }
+
 
   return _cssPrefix;
 };
@@ -39,10 +39,14 @@ exports.Stylesheet = Class(function () {
     this._rules.forEach(function (rule) {
       rule.value = rule.value.replace(/([^;:]+:)(.*?)(;|$)/g, function (match, property, value, postfix) {
         // skip border, but not border*radius
-        if (/border(?!.*?radius)/.test(property)) { return match; }
+        if (/border(?!.*?radius)/.test(property)) {
+          return match;
+        }
         return property + value.replace(/\d\S*px/g, function (match) {
           var value = parseFloat(match);
-          if (isNaN(value)) { return match; }
+          if (isNaN(value)) {
+            return match;
+          }
           return parseFloat(value) * scale + 'px';
         }) + postfix;
       });
@@ -52,14 +56,14 @@ exports.Stylesheet = Class(function () {
       this.insert();
     }
 
+
     return this;
   };
 
   this.getValue = function () {
     return this._rules.map(function (rule) {
-        return this._base + rule.selector + '{' + rule.value + '}';
-      }, this)
-      .join('');
+      return this._base + rule.selector + '{' + rule.value + '}';
+    }, this).join('');
   };
 
   this.insert = function () {
@@ -69,7 +73,8 @@ exports.Stylesheet = Class(function () {
         tag: 'style'
       });
     }
-    
+
+
     $.setText(this._el, this.getValue());
   };
 });

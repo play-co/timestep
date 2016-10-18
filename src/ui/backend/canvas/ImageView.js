@@ -13,19 +13,17 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * package ui.backend.canvas.ImageView;
  *
  * canvas.ImageView implementation.
  */
+jsio('import util.path');
+jsio('import std.uri as URI');
 
-import util.path;
-import std.uri as URI;
-
-import ui.View as View;
-import ui.resource.Image as Image;
-import ui.resource.ImageViewCache as ImageViewCache;
+jsio('import ui.View as View');
+jsio('import ui.resource.Image as Image');
+jsio('import ui.resource.ImageViewCache as ImageViewCache');
 
 
 var _loc = window.location.toString();
@@ -36,22 +34,19 @@ var _host = window.location.hostname;
  * @extends ui.View
  */
 var ImageView = exports = Class(View, function (supr) {
-
   /**
    * Options:
    *   autoSize - See .setImage()
    */
-
   /**
    * Return this view's Image object.
    */
-
   this.getImage = function () {
     return this._img;
   };
 
   // @deprecated
-  this.getImageFromCache = function(url, forceReload) {
+  this.getImageFromCache = function (url, forceReload) {
     return ImageViewCache.getImage(url, forceReload);
   };
 
@@ -62,21 +57,23 @@ var ImageView = exports = Class(View, function (supr) {
       this._autoSize = !!opts.autoSize;
     }
 
+
     if (opts.image) {
       this.setImage(opts.image);
     } else {
       this.needsReflow();
     }
 
+
     return opts;
   };
+
 
   /**
    * Set the image of the view from an Image object or string.
    * Options:
    *   autoSize - Automatically set view size from image dimensions.
    */
-
   this.setImage = function (img, opts) {
     var forceReload = opts && opts.forceReload;
     if (typeof img == 'string') {
@@ -85,10 +82,12 @@ var ImageView = exports = Class(View, function (supr) {
       img.reload();
     }
 
+
+
     this._img = img;
 
     if (this._img) {
-      this._autoSize = (opts && ('autoSize' in opts)) ? opts.autoSize : this._autoSize;
+      this._autoSize = opts && 'autoSize' in opts ? opts.autoSize : this._autoSize;
       if (this._autoSize) {
         // sprited resources will know their dimensions immediately
         if (this._img.getWidth() > 0 && this._img.getHeight() > 0) {
@@ -102,11 +101,11 @@ var ImageView = exports = Class(View, function (supr) {
     }
   };
 
+
   /**
    * Pass a function to load once the Image object is loaded, or a list of
    * arguments that call lib.Callback::run() implicitly.
    */
-
   this.doOnLoad = function () {
     if (arguments.length == 1) {
       this._img.doOnLoad(this, arguments[0]);
@@ -116,10 +115,10 @@ var ImageView = exports = Class(View, function (supr) {
     return this;
   };
 
+
   /**
    * Automatically resize the view to the size of the image.
    */
-
   this.autoSize = function () {
     if (this._img) {
       this.style.width = this._img.getWidth();
@@ -131,28 +130,33 @@ var ImageView = exports = Class(View, function (supr) {
     }
   }
 
+;
+
+
   /**
    * Get original width of the Image object.
    */
-
   this.getOrigW = function () {
     return this._img.getOrigW();
   };
 
+
   /**
    * Get original height of the Image object.
    */
-
   this.getOrigH = function () {
     return this._img.getOrigH();
   };
 
+
   /**
    * Render this image onto a canvas.
    */
-
   this.render = function (ctx) {
-    if (!this._img) { return; }
+    if (!this._img) {
+      return;
+    }
+
 
     var s = this.style;
     var w = s.width;
@@ -160,10 +164,12 @@ var ImageView = exports = Class(View, function (supr) {
     this._img.render(ctx, 0, 0, w, h);
   }
 
+;
+
+
   /**
    * Return a human-readable tag for this view.
    */
-
   this.getTag = function () {
     var tag;
     if (this._img) {
@@ -180,10 +186,11 @@ var ImageView = exports = Class(View, function (supr) {
           tag: tag
         };
       }
-    };
+    }
+    ;
 
     return (tag || '') + ':ImageView' + this.uid;
-  }
+  };
 });
 
 

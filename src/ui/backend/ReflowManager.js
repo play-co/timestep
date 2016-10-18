@@ -13,18 +13,27 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 var DEBUG_REFLOW = false;
 var DEBUG_TIME = false;
 if (DEBUG_REFLOW || DEBUG_TIME) {
   var _debug = {
     space: '',
-    stepIn: function () { this.space += ' '; return true; },
-    stepOut: function () { this.space = this.space.slice(0, this.space.length - 1); return true; },
-    log: function () { logger.log.apply(logger, [this.space].concat(Array.prototype.slice.call(arguments, 0))); return true; }
+    stepIn: function () {
+      this.space += ' ';
+      return true;
+    },
+    stepOut: function () {
+      this.space = this.space.slice(0, this.space.length - 1);
+      return true;
+    },
+    log: function () {
+      logger.log.apply(logger, [this.space].concat(Array.prototype.slice.call(arguments, 0)));
+      return true;
+    }
   };
   logger.log('===== CREATING REFLOW MANAGER');
 }
+
 
 // max reflows for any view in a given tick
 var MAX_REFLOW_THRESHOLD = 20;
@@ -45,8 +54,10 @@ var Pool = Class(function () {
     return item;
   };
 })
+;
 
 var _pool = new Pool();
+
 
 /**
  * The ReflowManager is the controller for view layout.  It hooks into
@@ -66,7 +77,6 @@ var _pool = new Pool();
  * MAX_REFLOW_THRESHOLD, reflow stops for that view, preventing infinite
  * loops when reflow cycles occur.
  */
-
 var ReflowManager = exports = Class(function () {
   this.init = function () {
     this._pending = {};
@@ -75,7 +85,10 @@ var ReflowManager = exports = Class(function () {
   };
 
   this.add = function (view) {
-    if (!view.style.layout) { return; }
+    if (!view.style.layout) {
+      return;
+    }
+
 
     var uid = view.uid;
     var item = this._pending[uid] || (this._pending[uid] = _pool.get(view));
@@ -84,11 +97,9 @@ var ReflowManager = exports = Class(function () {
       ++this._pendingCount;
       item.needsReflow = true;
 
-      DEBUG_REFLOW && _debug.log('adding ' + view + ' (' + view.uid + ')' + (' ' + view.style.layout || '') + ':',
-        (view.style.width === undefined ? '?' : view.style.width)
-          + 'x'
-          + (view.style.height === undefined ? '?' : view.style.height));
+      DEBUG_REFLOW && _debug.log('adding ' + view + ' (' + view.uid + ')' + (' ' + view.style.layout || '') + ':', (view.style.width === undefined ? '?' : view.style.width) + 'x' + (view.style.height === undefined ? '?' : view.style.height));
     }
+
 
     // increment count once per reflow iteration
     if (item.iter != this._iter) {
@@ -101,9 +112,11 @@ var ReflowManager = exports = Class(function () {
       view.style.__cachedWidth = view.style.width;
     }
 
+
     if (view.style.__cachedHeight === undefined) {
       view.style.__cachedHeight = view.style.height;
     }
+
 
     var item = this._pending[view.uid];
     if (item && item.needsReflow) {
@@ -111,9 +124,11 @@ var ReflowManager = exports = Class(function () {
       --this._pendingCount;
     }
 
+
     if (view.__layout) {
       view.__layout.reflow();
     }
+
 
     view.reflow && view.reflow();
 
@@ -130,7 +145,10 @@ var ReflowManager = exports = Class(function () {
   };
 
   this.reflowViews = function (_ctx) {
-    if (!this._pendingCount) { return; }
+    if (!this._pendingCount) {
+      return;
+    }
+
 
     this._iter = 0;
 
@@ -142,14 +160,15 @@ var ReflowManager = exports = Class(function () {
       var startTime = Date.now();
     }
 
+
     // outer loop manages batched resize events
     // inner loop manages recursive reflow
     while (this._pendingCount) {
-
       // as long as we reflowed some views, keep looping
       while (this._pendingCount) {
-        ++this._iter; // what iteration are we on? only increment a view's count once per iteration
+        ++this._iter;
 
+        // what iteration are we on? only increment a view's count once per iteration
         count = 0;
         for (uid in this._pending) {
           DEBUG_REFLOW && count == 0 && this._iter == 1 && console.log(' == beginning reflow == ');
@@ -161,6 +180,7 @@ var ReflowManager = exports = Class(function () {
             break;
           }
 
+
           if (item.needsReflow) {
             ++item.count;
             DEBUG_REFLOW && _debug.log('-- reflow view', item.view.uid, '(' + item.count + ' times)') && _debug.stepIn();
@@ -170,8 +190,10 @@ var ReflowManager = exports = Class(function () {
           }
         }
 
+
         DEBUG_REFLOW && count && _debug.log('***** iteration', this._iter, 'reflowed', count, 'views');
       }
+
 
       for (uid in this._pending) {
         var view = this._pending[uid].view;
@@ -189,11 +211,13 @@ var ReflowManager = exports = Class(function () {
       }
     }
 
+
     this.cleanUp();
 
     if (DEBUG_REFLOW) {
       _debug.stepOut();
     }
+
 
     if (DEBUG_TIME && this._iter) {
       var now = Date.now();
@@ -209,11 +233,12 @@ var ReflowManager = exports = Class(function () {
       delete this._pending[uid];
     }
 
+
     this._pendingCount = 0;
   };
 });
 
 var _instance = null;
 exports.get = function () {
-  return (_instance || (_instance = new ReflowManager()));
+  return _instance || (_instance = new ReflowManager());
 };

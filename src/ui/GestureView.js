@@ -13,16 +13,13 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
-import ui.View as View;
-import math.geom.Vec2D as Vec2D;
+jsio('import ui.View as View');
+jsio('import math.geom.Vec2D as Vec2D');
 
 // @deprecated
 exports = Class(View, function (supr) {
   this.init = function (opts) {
-
-    logger.warn("Warning: GestureView has been deprecated and is " +
-      "no longer supported. Features may not work as you expect.");
+    logger.warn('Warning: GestureView has been deprecated and is ' + 'no longer supported. Features may not work as you expect.');
 
     supr(this, 'init', [opts]);
     this._swipeMagnitude = opts.swipeMagnitude || 150;
@@ -44,7 +41,10 @@ exports = Class(View, function (supr) {
   };
 
   this.onDragStart = function (dragEvent) {
-    var point = {x: dragEvent.srcPoint.x, y: dragEvent.srcPoint.y};
+    var point = {
+      x: dragEvent.srcPoint.x,
+      y: dragEvent.srcPoint.y
+    };
     var id = 'p' + dragEvent.id;
     this._dragPoints[id] = point;
     if (this._fingerOne == null) {
@@ -65,7 +65,7 @@ exports = Class(View, function (supr) {
     } else if (this._fingerTwo == id) {
       this._fingerTwo = null;
     }
-    if (initialFingerTwo && ! this._fingerTwo) {
+    if (initialFingerTwo && !this._fingerTwo) {
       this._initialDistance = null;
       this._initialAngle = null;
       this.emit('ClearMulti');
@@ -81,14 +81,20 @@ exports = Class(View, function (supr) {
 
   this.onDrag = function (dragEvent, moveEvent, delta) {
     var id = 'p' + dragEvent.id;
-    this._dragPoints[id] = {x: moveEvent.srcPoint.x, y: moveEvent.srcPoint.y};
+    this._dragPoints[id] = {
+      x: moveEvent.srcPoint.x,
+      y: moveEvent.srcPoint.y
+    };
     if (this._fingerTwo && (this._fingerOne == id || this._fingerTwo == id)) {
       var p1 = this._dragPoints[this._fingerOne];
       var p2 = this._dragPoints[this._fingerTwo];
       var dx = p2.x - p1.x;
       var dy = p2.y - p1.y;
       var d = Math.sqrt(dx * dx + dy * dy);
-      var dragVec = new Vec2D({x: dx, y: dy});
+      var dragVec = new Vec2D({
+        x: dx,
+        y: dy
+      });
       var angle = dragVec.getAngle();
       if (this._initialDistance == null) {
         this._initialDistance = d;
@@ -106,15 +112,15 @@ exports = Class(View, function (supr) {
   this.onDragStop = function (dragEvent, selectEvent) {
     var dy = dragEvent.srcPoint.y - selectEvent.srcPoint.y;
     var dx = dragEvent.srcPoint.x - selectEvent.srcPoint.x;
-    var swipeVec = new Vec2D({x: dx, y: dy});
+    var swipeVec = new Vec2D({
+      x: dx,
+      y: dy
+    });
     var mag = swipeVec.getMagnitude();
     var dt = selectEvent.when - dragEvent.when;
-    if ((mag > this._swipeMagnitude) && (dt < this._swipeTime)) {
+    if (mag > this._swipeMagnitude && dt < this._swipeTime) {
       var degrees = swipeVec.getAngle() * (180 / Math.PI);
-      this.emit('Swipe', degrees, (degrees > 60 && degrees < 120) ? 'up'
-        : (degrees < -60 && degrees > -120) ? 'down'
-        : (degrees > 120 || degrees < -120) ? 'right' : 'left',
-        this._swipeCount);
+      this.emit('Swipe', degrees, degrees > 60 && degrees < 120 ? 'up' : degrees < -60 && degrees > -120 ? 'down' : degrees > 120 || degrees < -120 ? 'right' : 'left', this._swipeCount);
     }
     this.clearInput(selectEvent);
   };

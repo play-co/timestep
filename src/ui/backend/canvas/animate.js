@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * package ui.backend.canvas.animate;
  *
@@ -35,7 +34,7 @@ jsio('import ui.IView as IView');
 
 var engine = null;
 var groups = {};
-var DEFAULT_GROUP_ID = "__default_group";
+var DEFAULT_GROUP_ID = '__default_group';
 
 exports = function (subject, groupID) {
   // TODO: we have a circular import, so do the Engine import on first use
@@ -44,9 +43,12 @@ exports = function (subject, groupID) {
   }
 
 
+
+
   if (device.useDOM && subject instanceof IView && !groupID) {
     return subject.getAnimation();
   }
+
 
   // create a group for this groupID if it doesn't exist
   groupID = groupID || DEFAULT_GROUP_ID;
@@ -61,6 +63,7 @@ exports = function (subject, groupID) {
     anim.groupID = groupID;
     anims[groupID] = anim;
   }
+
 
   return anim;
 };
@@ -218,81 +221,117 @@ var Group = Class(Emitter, function () {
 });
 
 var TRANSITIONS = [
-  transitions.easeInOut,         // 0: default
-  transitions.linear,            // 1
-  transitions.easeIn,            // 2
-  transitions.easeOut,           // 3
-  transitions.easeInOut,         // 4
-  transitions.easeInQuad,        // 5
-  transitions.easeOutQuad,       // 6
-  transitions.easeInOutQuad,     // 7
-  transitions.easeInCubic,       // 8
-  transitions.easeOutCubic,      // 9
-  transitions.easeInOutCubic,    // 10
-  transitions.easeInQuart,       // 11
-  transitions.easeOutQuart,      // 12
-  transitions.easeInOutQuart,    // 13
-  transitions.easeInQuint,       // 14
-  transitions.easeOutQuint,      // 15
-  transitions.easeInOutQuint,    // 16
-  transitions.easeInSine,        // 17
-  transitions.easeOutSine,       // 18
-  transitions.easeInOutSine,     // 19
-  transitions.easeInExpo,        // 20
-  transitions.easeOutExpo,       // 21
-  transitions.easeInOutExpo,     // 22
-  transitions.easeInCirc,        // 23
-  transitions.easeOutCirc,       // 24
-  transitions.easeInOutCirc,     // 25
-  transitions.easeInElastic,     // 26
-  transitions.easeOutElastic,    // 27
-  transitions.easeInOutElastic,  // 28
-  transitions.easeInBack,        // 29
-  transitions.easeOutBack,       // 30
-  transitions.easeInOutBack,     // 31
-  transitions.easeInBounce,      // 32
-  transitions.easeOutBounce,     // 33
-  transitions.easeInOutBounce    // 34
+  transitions.easeInOut,
+  // 0: default
+  transitions.linear,
+  // 1
+  transitions.easeIn,
+  // 2
+  transitions.easeOut,
+  // 3
+  transitions.easeInOut,
+  // 4
+  transitions.easeInQuad,
+  // 5
+  transitions.easeOutQuad,
+  // 6
+  transitions.easeInOutQuad,
+  // 7
+  transitions.easeInCubic,
+  // 8
+  transitions.easeOutCubic,
+  // 9
+  transitions.easeInOutCubic,
+  // 10
+  transitions.easeInQuart,
+  // 11
+  transitions.easeOutQuart,
+  // 12
+  transitions.easeInOutQuart,
+  // 13
+  transitions.easeInQuint,
+  // 14
+  transitions.easeOutQuint,
+  // 15
+  transitions.easeInOutQuint,
+  // 16
+  transitions.easeInSine,
+  // 17
+  transitions.easeOutSine,
+  // 18
+  transitions.easeInOutSine,
+  // 19
+  transitions.easeInExpo,
+  // 20
+  transitions.easeOutExpo,
+  // 21
+  transitions.easeInOutExpo,
+  // 22
+  transitions.easeInCirc,
+  // 23
+  transitions.easeOutCirc,
+  // 24
+  transitions.easeInOutCirc,
+  // 25
+  transitions.easeInElastic,
+  // 26
+  transitions.easeOutElastic,
+  // 27
+  transitions.easeInOutElastic,
+  // 28
+  transitions.easeInBack,
+  // 29
+  transitions.easeOutBack,
+  // 30
+  transitions.easeInOutBack,
+  // 31
+  transitions.easeInBounce,
+  // 32
+  transitions.easeOutBounce,
+  // 33
+  transitions.easeInOutBounce
 ];
 
-exports.linear            = 1;
-exports.easeIn            = 2;
-exports.easeOut           = 3;
-exports.easeInOut         = 4;
-exports.easeInQuad        = 5;
-exports.easeOutQuad       = 6;
-exports.easeInOutQuad     = 7;
-exports.easeInCubic       = 8;
-exports.easeOutCubic      = 9;
-exports.easeInOutCubic    = 10;
-exports.easeInQuart       = 11;
-exports.easeOutQuart      = 12;
-exports.easeInOutQuart    = 13;
-exports.easeInQuint       = 14;
-exports.easeOutQuint      = 15;
-exports.easeInOutQuint    = 16;
-exports.easeInSine        = 17;
-exports.easeOutSine       = 18;
-exports.easeInOutSine     = 19;
-exports.easeInExpo        = 20;
-exports.easeOutExpo       = 21;
-exports.easeInOutExpo     = 22;
-exports.easeInCirc        = 23;
-exports.easeOutCirc       = 24;
-exports.easeInOutCirc     = 25;
-exports.easeInElastic     = 26;
-exports.easeOutElastic    = 27;
-exports.easeInOutElastic  = 28;
-exports.easeInBack        = 29;
-exports.easeOutBack       = 30;
-exports.easeInOutBack     = 31;
-exports.easeInBounce      = 32;
-exports.easeOutBounce     = 33;
-exports.easeInOutBounce   = 34;
+// 34
+exports.linear = 1;
+exports.easeIn = 2;
+exports.easeOut = 3;
+exports.easeInOut = 4;
+exports.easeInQuad = 5;
+exports.easeOutQuad = 6;
+exports.easeInOutQuad = 7;
+exports.easeInCubic = 8;
+exports.easeOutCubic = 9;
+exports.easeInOutCubic = 10;
+exports.easeInQuart = 11;
+exports.easeOutQuart = 12;
+exports.easeInOutQuart = 13;
+exports.easeInQuint = 14;
+exports.easeOutQuint = 15;
+exports.easeInOutQuint = 16;
+exports.easeInSine = 17;
+exports.easeOutSine = 18;
+exports.easeInOutSine = 19;
+exports.easeInExpo = 20;
+exports.easeOutExpo = 21;
+exports.easeInOutExpo = 22;
+exports.easeInCirc = 23;
+exports.easeOutCirc = 24;
+exports.easeInOutCirc = 25;
+exports.easeInElastic = 26;
+exports.easeOutElastic = 27;
+exports.easeInOutElastic = 28;
+exports.easeInBack = 29;
+exports.easeOutBack = 30;
+exports.easeInOutBack = 31;
+exports.easeInBounce = 32;
+exports.easeOutBounce = 33;
+exports.easeInOutBounce = 34;
 
 function getTransition(n) {
-  return (typeof n == 'function' ? n : TRANSITIONS[n | 0]);
-};
+  return typeof n == 'function' ? n : TRANSITIONS[n | 0];
+}
+;
 
 var Frame = Class(function () {
   this.init = function () {
@@ -311,12 +350,12 @@ var Frame = Class(function () {
   this.reset = function (subject, target, duration, transition) {
     this.subject = subject;
     this.target = target;
-    this.duration = duration === 0 ? 0 : (duration || 500);
+    this.duration = duration === 0 ? 0 : duration || 500;
     this.transition = getTransition(transition);
     this.base = null;
     this._baseStyle = null;
     if (this.duration < 0) {
-      throw new Error("Animations cannot have negative durations!");
+      throw new Error('Animations cannot have negative durations!');
     }
   };
 
@@ -324,13 +363,20 @@ var Frame = Class(function () {
     this.pool.release(this);
   };
 
-  this.exec = function (tt, t, debug) {};
-  this.debugLog = function (tt) {};
+  this.exec = function (tt, t, debug) {
+  };
+  this.debugLog = function (tt) {
+  };
 });
 
 var CallbackFrame = Class(Frame, function (supr) {
   this.reset = function (subject, target, duration, transition) {
-    supr(this, 'reset', [subject, target, duration, transition]);
+    supr(this, 'reset', [
+      subject,
+      target,
+      duration,
+      transition
+    ]);
     // CallbackFrames act like tick functions when given durations
     this.duration = duration || 0;
   };
@@ -349,6 +395,7 @@ var ObjectFrame = Class(Frame, function () {
         this.base[key] = this.subject[key];
       }
     }
+
 
     for (var key in this.target) {
       var baseValue = this.base[key];
@@ -372,10 +419,7 @@ var ViewStyleFrame = Class(Frame, function () {
     var style = this.target;
     for (var key in style) {
       var baseKey = key.substring(1);
-      if (key.charAt(0) == 'd'
-        && !(key in againstStyle)
-        && (baseKey in againstStyle))
-      {
+      if (key.charAt(0) == 'd' && !(key in againstStyle) && baseKey in againstStyle) {
         style[baseKey] = style[key] + againstStyle[baseKey];
         delete style[key];
       }
@@ -392,6 +436,7 @@ var ViewStyleFrame = Class(Frame, function () {
       oldStyle = this._baseStyle = viewStyle.copy();
       this.resolveDeltas(oldStyle);
     }
+
 
     for (var key in newStyle) {
       if (key in oldStyle) {
@@ -468,8 +513,12 @@ var Animator = exports.Animator = Class(Emitter, function () {
     }
   };
 
-  this.isPaused = function () { return this._isPaused; };
-  this.hasFrames = function () { return !!this._queue[0]; };
+  this.isPaused = function () {
+    return this._isPaused;
+  };
+  this.hasFrames = function () {
+    return !!this._queue[0];
+  };
 
   this.wait = function (duration) {
     return this.then(undefined, duration);
@@ -503,6 +552,7 @@ var Animator = exports.Animator = Class(Emitter, function () {
       this._elapsed = 0;
     }
 
+
     this._queue.push(this.buildFrame(target, duration, transition));
     this._schedule();
     this._addToGroup();
@@ -521,6 +571,7 @@ var Animator = exports.Animator = Class(Emitter, function () {
       this._elapsed += p.duration;
     }
 
+
     this.next();
     return this;
   };
@@ -529,6 +580,7 @@ var Animator = exports.Animator = Class(Emitter, function () {
     if (!this._isScheduled) {
       return;
     }
+
 
     this._elapsed += dt;
     this.next();
@@ -546,6 +598,7 @@ var Animator = exports.Animator = Class(Emitter, function () {
         this._elapsed -= duration;
       }
 
+
       p.exec(tt, t, this._debug);
 
       // remove frame if finished and queue wasn't modified by a callback
@@ -554,11 +607,16 @@ var Animator = exports.Animator = Class(Emitter, function () {
         frame.recycle();
       }
 
+
       // if paused during a callback or frame not finished, don't continue
-      if (!frameFinished || this._isPaused) { return; }
+      if (!frameFinished || this._isPaused) {
+        return;
+      }
+
 
       p = this._queue[0];
     }
+
 
     // nothing left in the queue!
     this._unschedule();
@@ -584,14 +642,22 @@ var ViewAnimator = Class(Animator, function (supr) {
       frame.reset(this.subject, target, duration, transition);
       return frame;
     } else {
-      return supr(this, 'buildFrame', [target, duration, transition]);
+      return supr(this, 'buildFrame', [
+        target,
+        duration,
+        transition
+      ]);
     }
   };
 });
 
 // used to get/set native or browser ViewAnimator constructors
-exports.getViewAnimator = function () { return ViewAnimator; };
-exports.setViewAnimator = function (ctor) { ViewAnimator = ctor; };
+exports.getViewAnimator = function () {
+  return ViewAnimator;
+};
+exports.setViewAnimator = function (ctor) {
+  ViewAnimator = ctor;
+};
 
 
 

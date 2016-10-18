@@ -13,23 +13,22 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * package ui.backend.canvas.TextView;
  *
  * canvas.TextView implementation.
  */
+jsio('import ui.View as View');
+jsio('import ui.resource.Image as Image');
+jsio('import device');
+jsio('import .util.FragmentBuffer as FragmentBuffer');
+jsio('import .TextFlow');
 
-import ui.View as View;
-import ui.resource.Image as Image;
-import device;
-import .util.FragmentBuffer as FragmentBuffer;
-import .TextFlow;
+jsio('import ...legacySettings as legacySettings');
 
-import ...legacySettings as legacySettings;
+var messageFont = true;
 
-var messageFont = true; // Report first font error message
-
+// Report first font error message
 var textViewID = 1;
 
 
@@ -134,10 +133,10 @@ var TextView = exports = Class(View, function (supr) {
     this._optsLast = {};
     this.updateCache();
 
-    this._textFlow = new TextFlow({target: this});
-    this._textFlow.subscribe("ChangeWidth", this, "onChangeWidth");
-    this._textFlow.subscribe("ChangeHeight", this, "onChangeHeight");
-    this._textFlow.subscribe("ChangeSize", this, "onChangeSize");
+    this._textFlow = new TextFlow({ target: this });
+    this._textFlow.subscribe('ChangeWidth', this, 'onChangeWidth');
+    this._textFlow.subscribe('ChangeHeight', this, 'onChangeHeight');
+    this._textFlow.subscribe('ChangeSize', this, 'onChangeSize');
 
     this._id = textViewID++;
 
@@ -146,17 +145,17 @@ var TextView = exports = Class(View, function (supr) {
   };
 
   this.onChangeWidth = function (width) {
-    this.updateOpts({width: width}, true);
+    this.updateOpts({ width: width }, true);
   };
 
   this.onChangeHeight = function (height) {
-    this.updateOpts({height: height}, true);
+    this.updateOpts({ height: height }, true);
   };
 
   this.onChangeSize = function (size, ctx) {
-    this.updateOpts({size: size}, true);
+    this.updateOpts({ size: size }, true);
     if (ctx) {
-      ctx.font = this._opts.fontWeight + " " + this._opts.size + "px " + this._opts.fontFamily;
+      ctx.font = this._opts.fontWeight + ' ' + this._opts.size + 'px ' + this._opts.fontFamily;
     }
   };
 
@@ -167,6 +166,7 @@ var TextView = exports = Class(View, function (supr) {
       console.warn('No _optsLast to restore');
       return;
     }
+
 
     var optsKey;
     var i = savedOpts.length;
@@ -186,6 +186,7 @@ var TextView = exports = Class(View, function (supr) {
       return;
     }
 
+
     var optsKey;
     var i = clearCacheKeys.length;
 
@@ -195,7 +196,7 @@ var TextView = exports = Class(View, function (supr) {
     }
     while (i) {
       optsKey = clearCacheKeys[--i];
-      if ((optsKey in opts) && clearCache[optsKey] && (optsLast[optsKey] !== opts[optsKey])) {
+      if (optsKey in opts && clearCache[optsKey] && optsLast[optsKey] !== opts[optsKey]) {
         this._cacheUpdate = true;
       }
       if (optsKey in opts) {
@@ -214,7 +215,7 @@ var TextView = exports = Class(View, function (supr) {
       if (k in opts) {
         var dep = DEPRECATED[k];
         if (DEBUG && !dep.hasWarned) {
-          console.warn("TextView opts." + k + " is deprecated, please use " + dep.replacement + "...");
+          console.warn('TextView opts.' + k + ' is deprecated, please use ' + dep.replacement + '...');
           dep.hasWarned = true;
         }
         opts[dep.replacement] = opts[k];
@@ -223,15 +224,15 @@ var TextView = exports = Class(View, function (supr) {
     var font = opts.font;
     if (font) {
       if (DEBUG && messageFont) {
-        console.warn("TextView opts.font is deprecated, please use fontFamily and size...");
+        console.warn('TextView opts.font is deprecated, please use fontFamily and size...');
         messageFont = false;
       }
-      while (font.length && (font[0] === " ")) {
+      while (font.length && font[0] === ' ') {
         font = font.substr(1 - font.length);
       }
       var i = font.indexOf(' ');
       if (i !== -1) {
-        opts.size = parseInt(font.substr(0, i).replace(/[pxtem\s]/gi, ""), 10);
+        opts.size = parseInt(font.substr(0, i).replace(/[pxtem\s]/gi, ''), 10);
         opts.fontFamily = font.substr(i + 1 - font.length);
       }
     }
@@ -248,15 +249,17 @@ var TextView = exports = Class(View, function (supr) {
       return;
     }
 
+
     // update emoticon data
     if (opts.emoticonData) {
       for (var key in opts.emoticonData.data) {
         var data = opts.emoticonData.data[key];
         if (!data.image) {
-          data.image = new Image({url: data.url});
+          data.image = new Image({ url: data.url });
         }
       }
     }
+
 
     if (this._opts.buffer) {
       fontBuffer.releaseBin(this.getHash());
@@ -271,14 +274,15 @@ var TextView = exports = Class(View, function (supr) {
       if (this._cacheUpdate) {
         opts.hash = false;
       } else {
-        supr(this, "updateOpts", arguments);
+        supr(this, 'updateOpts', arguments);
         return;
       }
     }
 
-    opts = supr(this, "updateOpts", arguments);
 
-    ("text" in opts) && this.setText(opts.text);
+    opts = supr(this, 'updateOpts', arguments);
+
+    'text' in opts && this.setText(opts.text);
     !dontCheck && this._textFlow.setOpts(this._opts);
 
     return opts;
@@ -287,10 +291,10 @@ var TextView = exports = Class(View, function (supr) {
   this._updateCtx = function (ctx) {
     var opts = this._opts;
 
-    ctx.textAlign = "left";
-    ctx.textBaseline = "top";
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
     ctx.fillStyle = opts.color;
-    ctx.font = opts.fontWeight + " " + opts.size + "px " + opts.fontFamily;
+    ctx.font = opts.fontWeight + ' ' + opts.size + 'px ' + opts.fontFamily;
     ctx.lineWidth = this.getStrokeWidth();
   };
 
@@ -311,6 +315,7 @@ var TextView = exports = Class(View, function (supr) {
       color = this.color;
     }
 
+
     this._updateCtx(ctx);
 
     while (i) {
@@ -320,13 +325,14 @@ var TextView = exports = Class(View, function (supr) {
       x = offsetX + item.x;
       y = offsetY + item.y;
 
-      var emoticonData = (word[0] == '(') && opts.emoticonData && opts.emoticonData.data[word];
+      var emoticonData = word[0] == '(' && opts.emoticonData && opts.emoticonData.data[word];
       if (emoticonData) {
         //ctx.fillStyle = color;
         //ctx.fillRect(x + lineOffset, y + lineOffset, opts.size, opts.size);
         if (emoticonData.image) {
           emoticonData.image.render(ctx, x + lineOffset, y + lineOffset, opts.size, opts.size);
         }
+
 
       } else {
         if (shadowColor) {
@@ -353,10 +359,12 @@ var TextView = exports = Class(View, function (supr) {
           }
         }
 
+
         if (strokeColor) {
           ctx.strokeStyle = strokeColor;
           ctx.strokeText(word, x + lineOffset, y + lineOffset, maxWidth);
         }
+
 
         ctx.fillStyle = color;
         ctx.fillText(word, x + lineOffset, y + lineOffset, maxWidth);
@@ -404,6 +412,7 @@ var TextView = exports = Class(View, function (supr) {
       this._textFlow.reflow(ctx, 1 + (opts.autoFontSize ? 4 : 0) + (opts.autoSize ? 2 : 0) + (opts.wrap ? 1 : 0));
     }
   }
+;
 
   this.render = function (ctx) {
     this.computeSize(ctx);
@@ -412,12 +421,14 @@ var TextView = exports = Class(View, function (supr) {
       return;
     }
 
+
     if (this._opts.buffer) {
       this._renderBuffer(ctx);
     } else {
-      var strokeWidthOffset = -this.getStrokeWidth()/2;
+      var strokeWidthOffset = -this.getStrokeWidth() / 2;
       this._renderToCtx(ctx, strokeWidthOffset, strokeWidthOffset);
     }
+
 
     this._cacheUpdate = false;
   };
@@ -431,7 +442,7 @@ var TextView = exports = Class(View, function (supr) {
   };
 
   this.setText = function (textData) {
-    var text = (textData != undefined) ? textData.toString() : "";
+    var text = textData != undefined ? textData.toString() : '';
 
     var emoticonData = this._opts.emoticonData;
     if (emoticonData) {
@@ -441,10 +452,12 @@ var TextView = exports = Class(View, function (supr) {
       }
     }
 
+
     if (this._opts.text !== text) {
       if (this._opts.buffer) {
         fontBuffer.releaseBin(this.getHash());
       }
+
 
       this._restoreOpts();
       this._opts.text = text;
@@ -462,7 +475,7 @@ var TextView = exports = Class(View, function (supr) {
   };
 
   this.getTag = function () {
-    return "TextView" + this.uid + ":" + (this.tag || (this._opts.text || "").substring(0, 20));
+    return 'TextView' + this.uid + ':' + (this.tag || (this._opts.text || '').substring(0, 20));
   };
 
   this.getOpts = function () {
@@ -471,7 +484,7 @@ var TextView = exports = Class(View, function (supr) {
 
   this.getHash = function () {
     if (!this._hash) {
-      this._hash = "";
+      this._hash = '';
 
       var opts = this._opts;
       var i = hashItemsKeys.length;
@@ -481,10 +494,10 @@ var TextView = exports = Class(View, function (supr) {
     }
     return this._hash;
 
-    // When we support clearing offscreen buffers we can use this instead of the code above...
-    // return 't' + this._id;
   };
 
+  // When we support clearing offscreen buffers we can use this instead of the code above...
+  // return 't' + this._id;
   this.reflow = function () {
     this._restoreOpts();
     this._cacheUpdate = true;

@@ -13,15 +13,13 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @package timestep.env.browser.Context2D;
  *
  * Generates a rendering context by creating our own Canvas element.
  */
-
-import device;
-import .FontRenderer;
+jsio('import device');
+jsio('import .FontRenderer');
 
 exports = function (opts) {
   var parentNode = opts && opts.parent;
@@ -32,9 +30,12 @@ exports = function (opts) {
 
   var ctx = el.getContext('2d');
   ctx.font = '11px ' + device.defaultFontFamily;
-  ctx.getElement = function () { return el; };
+  ctx.getElement = function () {
+    return el;
+  };
 
-  ctx.reset = function () {};
+  ctx.reset = function () {
+  };
 
   ctx.clear = function () {
     this.save();
@@ -49,8 +50,10 @@ exports = function (opts) {
     ctx.clip();
   };
 
-  ctx.swap = function () {};
-  ctx.execSwap = function () {};
+  ctx.swap = function () {
+  };
+  ctx.execSwap = function () {
+  };
 
   ctx.circle = function (x, y, radius) {
     this.beginPath();
@@ -65,7 +68,10 @@ exports = function (opts) {
 
   ctx.drawPointSprites = function (x1, y1, x2, y2) {
     var sprite = this.pointSprite;
-    if (!sprite || !sprite.complete) { return; }
+    if (!sprite || !sprite.complete) {
+      return;
+    }
+
 
     var width = sprite.width;
     var height = sprite.height;
@@ -83,11 +89,15 @@ exports = function (opts) {
       ctx.drawImage(sprite, 0, 0);
     }
 
+
     // Add points to the buffer so there are drawing points every X pixels
     var dx = x2 - x1;
     var dy = y2 - y1;
     var count = Math.ceil(Math.sqrt(dx * dx + dy * dy) / this.pointSpriteStep);
-    if (count < 1) { count = 1; }
+    if (count < 1) {
+      count = 1;
+    }
+
 
     var d = this.lineWidth;
     for (var i = 0; i < count; ++i) {
@@ -99,15 +109,15 @@ exports = function (opts) {
 
   ctx.roundRect = function (x, y, width, height, radius) {
     this.beginPath();
-    this.moveTo(x,y+radius);
-    this.lineTo(x,y+height-radius);
-    this.quadraticCurveTo(x,y+height,x+radius,y+height);
-    this.lineTo(x+width-radius,y+height);
-    this.quadraticCurveTo(x+width,y+height,x+width,y+height-radius);
-    this.lineTo(x+width,y+radius);
-    this.quadraticCurveTo(x+width,y,x+width-radius,y);
-    this.lineTo(x+radius,y);
-    this.quadraticCurveTo(x,y,x,y+radius);
+    this.moveTo(x, y + radius);
+    this.lineTo(x, y + height - radius);
+    this.quadraticCurveTo(x, y + height, x + radius, y + height);
+    this.lineTo(x + width - radius, y + height);
+    this.quadraticCurveTo(x + width, y + height, x + width, y + height - radius);
+    this.lineTo(x + width, y + radius);
+    this.quadraticCurveTo(x + width, y, x + width - radius, y);
+    this.lineTo(x + radius, y);
+    this.quadraticCurveTo(x, y, x, y + radius);
   };
 
   ctx.loadIdentity = function () {
@@ -124,7 +134,7 @@ exports = function (opts) {
   };
   // deprecated API, we only support one filter per context
   ctx.setFilters = function () {
-    logger.warn("ctx.setFilters is deprecated, use ctx.setFilter instead.");
+    logger.warn('ctx.setFilters is deprecated, use ctx.setFilter instead.');
     for (var id in filters) {
       this.setFilter(filters[id]);
       break;
@@ -136,7 +146,7 @@ exports = function (opts) {
   };
   // deprecated API, we only support one filter per context
   ctx.clearFilters = function () {
-    logger.warn("ctx.clearFilters is deprecated, use ctx.clearFilter instead.");
+    logger.warn('ctx.clearFilters is deprecated, use ctx.clearFilter instead.');
     this.clearFilter();
   };
 

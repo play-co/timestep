@@ -13,31 +13,28 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @package timestep.env.browser.WebGLContext2D;
  *
  * Generates a WebGL rendering context by creating our own Canvas element.
  */
+jsio('import device');
 
-import device;
+jsio('import ui.resource.loader as loader');
+jsio('import ui.Color as Color');
 
-import ui.resource.loader as loader;
-import ui.Color as Color;
+jsio('import .TextManager');
+jsio('import .Shaders');
+jsio('import .Matrix2D');
+jsio('import .WebGLTextureManager');
 
-import .TextManager;
-import .Shaders;
-import .Matrix2D;
-import .WebGLTextureManager;
-
-var ContextStateStack = Class(function() {
-
-  this.init = function() {
+var ContextStateStack = Class(function () {
+  this.init = function () {
     this._states = [this.getObject()];
     this._stateIndex = 0;
   };
 
-  this.save = function() {
+  this.save = function () {
     var lastState = this.state;
     if (++this._stateIndex >= this._states.length) {
       this._states[this._stateIndex] = this.getObject();
@@ -58,32 +55,41 @@ var ContextStateStack = Class(function() {
     s.clipRect.height = lastState.clipRect.height;
   };
 
-  this.restore = function() {
+  this.restore = function () {
     if (this._stateIndex > 0) {
       this._stateIndex--;
     }
   };
 
-  this.getObject = function() {
+  this.getObject = function () {
     return {
-      globalCompositeOperation: "source-over",
+      globalCompositeOperation: 'source-over',
       globalAlpha: 1,
       transform: new Matrix2D(),
       lineWidth: 1,
       filter: null,
       clip: false,
-      clipRect: { x: 0, y: 0, width: 0, height: 0 },
-      fillStyle: "",
-      strokeStyle: ""
+      clipRect: {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0
+      },
+      fillStyle: '',
+      strokeStyle: ''
     };
   };
 
   Object.defineProperty(this, 'state', {
-    get: function() { return this._states[this._stateIndex]; }
+    get: function () {
+      return this._states[this._stateIndex];
+    }
   });
 
   Object.defineProperty(this, 'parentState', {
-    get: function() { return this._stateIndex > 0 ? this._states[this._stateIndex - 1] : null; }
+    get: function () {
+      return this._stateIndex > 0 ? this._states[this._stateIndex - 1] : null;
+    }
   });
 });
 
@@ -101,7 +107,7 @@ var RENDER_MODES = {
 
 var COLOR_MAP = {};
 
-var getColor = function(key) {
+var getColor = function (key) {
   var result = COLOR_MAP[key];
   if (!result) {
     result = COLOR_MAP[key] = Color.parse(key);
@@ -114,26 +120,31 @@ var MAX_BATCH_SIZE = 512;
 var CACHE_UID = 0;
 
 
-var GLManager = Class(function() {
-
+var GLManager = Class(function () {
   this.init = function () {
     var webglSupported = false;
 
     try {
       var testCanvas = document.createElement('canvas');
       webglSupported = !!(window.WebGLRenderingContext && testCanvas.getContext('webgl'));
-    } catch(e) {}
+    } catch (e) {
+    }
+
+
 
     this.width = device.screen.width;
     this.height = device.screen.height;
     this.isSupported = webglSupported && CONFIG.useWebGL;
 
-    if (!this.isSupported) { return; }
+    if (!this.isSupported) {
+      return;
+    }
+
 
     this.textManager = new TextManager();
     this.textureManager = new WebGLTextureManager();
 
-    this.textureManager.on(WebGLTextureManager.TEXTURE_REMOVED, bind(this, function() {
+    this.textureManager.on(WebGLTextureManager.TEXTURE_REMOVED, bind(this, function () {
       this.flush();
     }));
 
@@ -163,6 +174,7 @@ var GLManager = Class(function() {
       this._indexCache[i + 5] = j + 1;
     }
 
+
     this._batchQueue = new Array(MAX_BATCH_SIZE);
 
     for (var i = 0; i <= MAX_BATCH_SIZE; i++) {
@@ -171,17 +183,23 @@ var GLManager = Class(function() {
         index: 0,
         clip: false,
         filter: null,
-        clipRect: { x: 0, y: 0, width: 0, height: 0 },
+        clipRect: {
+          x: 0,
+          y: 0,
+          width: 0,
+          height: 0
+        },
         renderMode: 0
       };
     }
+
 
     this.contexts = [];
     this.initGL();
     this._primaryContext = new Context2D(this, this._canvas);
     this.activate(this._primaryContext);
 
-    loader.on(loader.IMAGE_LOADED, function(image) {
+    loader.on(loader.IMAGE_LOADED, function (image) {
       this.createOrUpdateTexture(image, image.__GL_ID, true);
     }.bind(this));
 
@@ -191,13 +209,13 @@ var GLManager = Class(function() {
     this._canvas.addEventListener('webglcontextrestored', this.handleContextRestored.bind(this), false);
   };
 
-  this.handleContextLost = function(e) {
+  this.handleContextLost = function (e) {
     e.preventDefault();
     this.contextActive = false;
     this.gl = null;
   };
 
-  this.handleContextRestored = function() {
+  this.handleContextRestored = function () {
     this.initGL();
     this.contextActive = true;
   };
@@ -205,7 +223,7 @@ var GLManager = Class(function() {
   this.initGL = function () {
     var gl = this.gl = this._canvas.getWebGLContext();
 
-    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    gl.clearColor(0, 0, 0, 0);
     gl.disable(gl.DEPTH_TEST);
     gl.disable(gl.CULL_FACE);
     gl.enable(gl.BLEND);
@@ -213,7 +231,12 @@ var GLManager = Class(function() {
     gl.activeTexture(gl.TEXTURE0);
 
     this._scissorEnabled = false;
-    this._activeScissor = { x: 0, y: 0, width: 0, height: 0 };
+    this._activeScissor = {
+      x: 0,
+      y: 0,
+      width: 0,
+      height: 0
+    };
 
     this._activeCompositeOperation = '';
     this.setActiveCompositeOperation('source-over');
@@ -245,17 +268,17 @@ var GLManager = Class(function() {
     this.updateContexts();
   };
 
-  this.updateContexts = function() {
+  this.updateContexts = function () {
     for (var i = 0; i < this.contexts.length; i++) {
       this.contexts[i].createOffscreenFrameBuffer();
     }
   };
 
-  this.updateCanvasDimensions = function() {
+  this.updateCanvasDimensions = function () {
     this._primaryContext.resize(this._canvas.width, this._canvas.height);
   };
 
-  this.getContext = function(canvas, opts) {
+  this.getContext = function (canvas, opts) {
     opts = opts || {};
 
     var ctx;
@@ -268,11 +291,14 @@ var GLManager = Class(function() {
       this.contexts.push(ctx);
     }
 
+
     return ctx;
   };
 
-  this.setActiveRenderMode = function(id) {
-    if (this._activeRenderMode === id || !this.gl) { return; }
+  this.setActiveRenderMode = function (id) {
+    if (this._activeRenderMode === id || !this.gl) {
+      return;
+    }
     var ctx = this._activeCtx;
     this._activeRenderMode = id;
     var shader = this.shaders[id];
@@ -280,6 +306,7 @@ var GLManager = Class(function() {
     if (this._activeShader && this._activeShader !== shader) {
       this._activeShader.disableVertexAttribArrays();
     }
+
 
     this._activeShader = shader;
     gl.useProgram(shader.program);
@@ -290,78 +317,92 @@ var GLManager = Class(function() {
     }
   };
 
-  this.setActiveCompositeOperation = function(op) {
-
+  this.setActiveCompositeOperation = function (op) {
     op = op || 'source-over';
-    if (this._activeCompositeOperation === op || !this.gl) { return; }
+    if (this._activeCompositeOperation === op || !this.gl) {
+      return;
+    }
     this._activeCompositeOperation = op;
 
     var gl = this.gl;
     var source;
     var destination;
 
-    switch(op) {
-      case 'source-over':
-        source = gl.ONE;
-        destination = gl.ONE_MINUS_SRC_ALPHA;
-        break;
+    switch (op) {
+    case 'source-over':
+      source = gl.ONE;
+      destination = gl.ONE_MINUS_SRC_ALPHA;
+      break;
 
-      case 'source-atop':
-        source = gl.DST_ALPHA;
-        destination = gl.ONE_MINUS_SRC_ALPHA;
-        break;
 
-      case 'source-in':
-        source = gl.DST_ALPHA;
-        destination = gl.ZERO;
-        break;
+    case 'source-atop':
+      source = gl.DST_ALPHA;
+      destination = gl.ONE_MINUS_SRC_ALPHA;
+      break;
 
-      case 'source-out':
-        source = gl.ONE_MINUS_DST_ALPHA;
-        destination = gl.ZERO;
-        break;
 
-      case 'destination-atop':
-        source = gl.DST_ALPHA;
-        destination = gl.SRC_ALPHA;
-        break;
+    case 'source-in':
+      source = gl.DST_ALPHA;
+      destination = gl.ZERO;
+      break;
 
-      case 'destination-in':
-        source = gl.ZERO;
-        destination = gl.SRC_ALPHA;
-        break;
 
-      case 'destination-out':
-        source = gl.ONE_MINUS_SRC_ALPHA;
-        destination = gl.ONE_MINUS_SRC_ALPHA;
-        break;
+    case 'source-out':
+      source = gl.ONE_MINUS_DST_ALPHA;
+      destination = gl.ZERO;
+      break;
 
-      case 'destination-over':
-        source = gl.DST_ALPHA;
-        destination = gl.SRC_ALPHA;
-        break;
 
-      case 'lighter':
-        source = gl.ONE;
-        destination = gl.ONE;
-        break;
+    case 'destination-atop':
+      source = gl.DST_ALPHA;
+      destination = gl.SRC_ALPHA;
+      break;
 
-      case 'xor':
-      case 'copy':
-        source = gl.ONE;
-        destination = gl.ONE_MINUS_SRC_ALPHA;
-        break;
 
-      default:
-        source = gl.ONE;
-        destination = gl.ONE_MINUS_SRC_ALPHA;
-        break;
+    case 'destination-in':
+      source = gl.ZERO;
+      destination = gl.SRC_ALPHA;
+      break;
+
+
+    case 'destination-out':
+      source = gl.ONE_MINUS_SRC_ALPHA;
+      destination = gl.ONE_MINUS_SRC_ALPHA;
+      break;
+
+
+    case 'destination-over':
+      source = gl.DST_ALPHA;
+      destination = gl.SRC_ALPHA;
+      break;
+
+
+    case 'lighter':
+      source = gl.ONE;
+      destination = gl.ONE;
+      break;
+
+
+    case 'xor':
+    case 'copy':
+      source = gl.ONE;
+      destination = gl.ONE_MINUS_SRC_ALPHA;
+      break;
+
+
+    default:
+      source = gl.ONE;
+      destination = gl.ONE_MINUS_SRC_ALPHA;
+      break;
     }
     gl.blendFunc(source, destination);
   };
 
-  this.flush = function() {
-    if (this._batchIndex === -1 || !this.gl) { return; }
+  this.flush = function () {
+    if (this._batchIndex === -1 || !this.gl) {
+      return;
+    }
+
 
     var gl = this.gl;
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, this._vertexCache);
@@ -378,7 +419,9 @@ var GLManager = Class(function() {
       var textureId = curQueueObj.textureId;
       if (textureId !== -1) {
         var texture = this.textureManager.getTexture(textureId);
-        if (!texture) { continue; }
+        if (!texture) {
+          continue;
+        }
         gl.bindTexture(gl.TEXTURE_2D, texture);
       }
       this.setActiveCompositeOperation(curQueueObj.globalCompositeOperation);
@@ -388,14 +431,18 @@ var GLManager = Class(function() {
       gl.drawElements(gl.TRIANGLES, (next - start) * 6, gl.UNSIGNED_SHORT, start * 12);
     }
 
+
     this._drawIndex = -1;
     this._batchIndex = -1;
   };
 
-  this.createOrUpdateTexture = function(image, id, drawImmediately) {
+  this.createOrUpdateTexture = function (image, id, drawImmediately) {
     var gl = this.gl;
 
-    if (!gl) { return -1; }
+    if (!gl) {
+      return -1;
+    }
+
 
     id = this.textureManager.createOrUpdateTexture(image, id);
 
@@ -408,23 +455,26 @@ var GLManager = Class(function() {
       this._primaryContext.globalAlpha = currentAlpha;
     }
 
+
     return id;
   };
 
-  this.getTexture = function(id) {
+  this.getTexture = function (id) {
     return this.textureManager.getTexture(id);
   };
 
-  this.deleteTexture = function(id) {
+  this.deleteTexture = function (id) {
     this.textureManager.deleteTexture(id);
   };
 
-  this.deleteTextureForImage = function(image) {
+  this.deleteTextureForImage = function (image) {
     this.textureManager.deleteTextureForImage(image);
   };
 
-  this.enableScissor = function(x, y, width, height) {
-    if (!this.gl) { return; }
+  this.enableScissor = function (x, y, width, height) {
+    if (!this.gl) {
+      return;
+    }
     var gl = this.gl;
     if (!this._scissorEnabled) {
       gl.enable(gl.SCISSOR_TEST);
@@ -441,8 +491,10 @@ var GLManager = Class(function() {
     }
   };
 
-  this.disableScissor = function() {
-    if (!this.gl) { return; }
+  this.disableScissor = function () {
+    if (!this.gl) {
+      return;
+    }
     if (this._scissorEnabled) {
       var gl = this.gl;
       this._scissorEnabled = false;
@@ -450,8 +502,10 @@ var GLManager = Class(function() {
     }
   };
 
-  this.addToBatch = function(state, textureId) {
-    if (this._drawIndex >= MAX_BATCH_SIZE - 1) { this.flush(); }
+  this.addToBatch = function (state, textureId) {
+    if (this._drawIndex >= MAX_BATCH_SIZE - 1) {
+      this.flush();
+    }
     this._drawIndex++;
 
     var filter = state.filter;
@@ -459,16 +513,7 @@ var GLManager = Class(function() {
     var clipRect = state.clipRect;
 
     var queuedState = this._batchIndex > -1 ? this._batchQueue[this._batchIndex] : null;
-    var stateChanged = !queuedState
-        || queuedState.textureId !== textureId
-        || (textureId === -1 && queuedState.fillStyle !== state.fillStyle)
-        || queuedState.globalCompositeOperation !== state.globalCompositeOperation
-        || queuedState.filter !== filter
-        || queuedState.clip !== clip
-        || queuedState.clipRect.x !== clipRect.x
-        || queuedState.clipRect.y !== clipRect.y
-        || queuedState.clipRect.width !== clipRect.width
-        || queuedState.clipRect.height !== clipRect.height;
+    var stateChanged = !queuedState || queuedState.textureId !== textureId || textureId === -1 && queuedState.fillStyle !== state.fillStyle || queuedState.globalCompositeOperation !== state.globalCompositeOperation || queuedState.filter !== filter || queuedState.clip !== clip || queuedState.clipRect.x !== clipRect.x || queuedState.clipRect.y !== clipRect.y || queuedState.clipRect.width !== clipRect.width || queuedState.clipRect.height !== clipRect.height;
 
     if (stateChanged) {
       var queueObject = this._batchQueue[++this._batchIndex];
@@ -490,38 +535,42 @@ var GLManager = Class(function() {
       }
     }
 
+
     return this._drawIndex;
   };
 
   this.isPowerOfTwo = function (width, height) {
-    return width > 0 && (width & (width - 1)) === 0 && height > 0 && (height & (height - 1)) === 0;
+    return width > 0 && (width & width - 1) === 0 && height > 0 && (height & height - 1) === 0;
   };
 
   this.activate = function (ctx, forceActivate) {
     var gl = this.gl;
     var sameContext = ctx === this._activeCtx;
 
-    if (sameContext && !forceActivate) { return; }
+    if (sameContext && !forceActivate) {
+      return;
+    }
     if (!sameContext) {
       this.flush();
       gl.finish();
       this._activeCtx = ctx;
     }
 
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, ctx.frameBuffer);
     gl.viewport(0, 0, ctx.width, ctx.height);
     this._activeRenderMode = -1;
-  }
+  };
 });
 
 // Create a context to measure text
-var textCtx = document.createElement("canvas").getContext("2d");
+var textCtx = document.createElement('canvas').getContext('2d');
+
+
 
 // ---------------------------------------------------------------------------
 // CONTEXT2D
 // ---------------------------------------------------------------------------
-
-
 var min = Math.min;
 var max = Math.max;
 var floor = Math.floor;
@@ -529,7 +578,6 @@ var ceil = Math.ceil;
 
 
 var Context2D = Class(function () {
-
   this._helperTransform = new Matrix2D();
 
   this.init = function (manager, canvas) {
@@ -545,7 +593,9 @@ var Context2D = Class(function () {
 
   this.createOffscreenFrameBuffer = function () {
     var gl = this._manager.gl;
-    if (!gl) { return; }
+    if (!gl) {
+      return;
+    }
     var activeCtx = this._manager._activeCtx;
     var id = this._manager.createOrUpdateTexture(this.canvas);
     this._texture = this._manager.getTexture(id);
@@ -557,36 +607,39 @@ var Context2D = Class(function () {
     this._manager.activate(activeCtx, true);
   };
 
-  this.loadIdentity = function() {
+  this.loadIdentity = function () {
     this.stack.state.transform.identity();
   };
 
-  this.setTransform = function(a, b, c, d, tx, ty) {
+  this.setTransform = function (a, b, c, d, tx, ty) {
     this.stack.state.transform.setTo(a, b, c, d, tx, ty);
   };
 
-  this.transform = function(a, b, c, d, tx, ty) {
+  this.transform = function (a, b, c, d, tx, ty) {
     this._helperTransform.setTo(a, b, c, d, tx, ty);
     this.stack.state.transform.transform(this._helperTransform);
   };
 
-  this.scale = function(x, y) {
+  this.scale = function (x, y) {
     this.stack.state.transform.scale(x, y);
   };
 
-  this.translate = function(x, y) {
+  this.translate = function (x, y) {
     this.stack.state.transform.translate(x, y);
   };
 
-  this.rotate = function(angle) {
+  this.rotate = function (angle) {
     this.stack.state.transform.rotate(angle);
   };
 
-  this.getElement = function() { return this.canvas; };
+  this.getElement = function () {
+    return this.canvas;
+  };
 
-  this.reset = function() {};
+  this.reset = function () {
+  };
 
-  this.clear = function() {
+  this.clear = function () {
     this._manager.activate(this);
     this._manager.flush();
     this._manager.disableScissor();
@@ -596,7 +649,7 @@ var Context2D = Class(function () {
     }
   };
 
-  this.resize = function(width, height) {
+  this.resize = function (width, height) {
     this.width = width;
     this.height = height;
     if (this.canvas instanceof HTMLCanvasElement) {
@@ -611,7 +664,7 @@ var Context2D = Class(function () {
     }
   };
 
-  this.clipRect = function(x, y, width, height) {
+  this.clipRect = function (x, y, width, height) {
     var m = this.stack.state.transform;
     var xW = x + width;
     var yH = y + height;
@@ -640,15 +693,25 @@ var Context2D = Class(function () {
       maxY = this.height;
     }
 
+
     var left = min(maxX, x0, x1, x2, x3);
     var right = max(minX, x0, x1, x2, x3);
     var top = min(maxY, y0, y1, y2, y3);
     var bottom = max(minY, y0, y1, y2, y3);
 
-    if (left < minX) { left = minX; }
-    if (right > maxX) { right = maxX; }
-    if (top < minY) { top = minY; }
-    if (bottom > maxY) { bottom = maxY; }
+    if (left < minX) {
+      left = minX;
+    }
+    if (right > maxX) {
+      right = maxX;
+    }
+    if (top < minY) {
+      top = minY;
+    }
+    if (bottom > maxY) {
+      bottom = maxY;
+    }
+
 
     this.stack.state.clip = true;
     var r = this.stack.state.clipRect;
@@ -658,19 +721,20 @@ var Context2D = Class(function () {
     r.height = bottom - top;
   };
 
-  this.swap = function() {
+  this.swap = function () {
     this._manager.flush();
   };
 
-  this.execSwap = function() {};
+  this.execSwap = function () {
+  };
 
-  this.setFilter = function(filter) {
+  this.setFilter = function (filter) {
     this.filter = this.stack.state.filter = filter;
   };
 
   // deprecated API, we only support one filter per context
-  this.setFilters = function(filters) {
-    logger.warn("ctx.setFilters is deprecated, use ctx.setFilter instead.");
+  this.setFilters = function (filters) {
+    logger.warn('ctx.setFilters is deprecated, use ctx.setFilter instead.');
     for (var filterId in filters) {
       this.setFilter(filters[filterId]);
       return;
@@ -678,59 +742,75 @@ var Context2D = Class(function () {
     this.clearFilter();
   };
 
-  this.clearFilter = function() {
+  this.clearFilter = function () {
     this.filter = this.stack.state.filter = null;
   };
 
   // deprecated API, we only support one filter per context
-  this.clearFilters = function() {
-    logger.warn("ctx.clearFilters is deprecated, use ctx.clearFilter instead.");
+  this.clearFilters = function () {
+    logger.warn('ctx.clearFilters is deprecated, use ctx.clearFilter instead.');
     this.clearFilter();
   };
 
-  this.save = function() {
+  this.save = function () {
     this.stack.save();
   };
 
-  this.restore = function() {
+  this.restore = function () {
     this.stack.restore();
   };
 
-  this.circle = function(x, y, radius) {};
-  this.drawPointSprites = function(x1, y1, x2, y2) {};
-  this.roundRect = function (x, y, width, height, radius) {};
+  this.circle = function (x, y, radius) {
+  };
+  this.drawPointSprites = function (x1, y1, x2, y2) {
+  };
+  this.roundRect = function (x, y, width, height, radius) {
+  };
 
-  this.fillText = function(text, x, y) {
-    if (!this._manager.gl) { return; }
+  this.fillText = function (text, x, y) {
+    if (!this._manager.gl) {
+      return;
+    }
     var textData = this._manager.textManager.get(this, text, false);
-    if (!textData) { return; }
+    if (!textData) {
+      return;
+    }
     var w = textData.image.width;
     var h = textData.image.height;
     this.drawImage(textData.image, 0, 0, w, h, x, y, w, h);
   };
 
-  this.strokeText = function(text, x, y) {
-    if (!this._manager.gl) { return; }
+  this.strokeText = function (text, x, y) {
+    if (!this._manager.gl) {
+      return;
+    }
     var textData = this._manager.textManager.get(this, text, true);
-    if (!textData) { return; }
+    if (!textData) {
+      return;
+    }
     var w = textData.image.width;
     var h = textData.image.height;
     this.drawImage(textData.image, 0, 0, w, h, x - this.lineWidth * 0.5, y - this.lineWidth * 0.5, w, h);
   };
 
-  this.measureText = function(text) {
+  this.measureText = function (text) {
     textCtx.font = this.font;
     return textCtx.measureText(text);
   };
 
-  this.drawImage = function(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
+  this.drawImage = function (image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
+    if (!this._manager.gl) {
+      return;
+    }
 
-    if (!this._manager.gl) { return; }
 
     var flip = !!image.__glFlip;
     var state = this.stack.state;
     var alpha = state.globalAlpha;
-    if (alpha === 0) { return; }
+    if (alpha === 0) {
+      return;
+    }
+
 
     var manager = this._manager;
     manager.activate(this);
@@ -738,10 +818,13 @@ var Context2D = Class(function () {
     var glId = image.__GL_ID;
     if (glId === undefined || image.__needsUpload) {
       // Invalid image? Early out if so.
-      if (image.width === 0 || image.height === 0 || !image.complete) { return; }
+      if (image.width === 0 || image.height === 0 || !image.complete) {
+        return;
+      }
       image.__needsUpload = false;
       glId = manager.createOrUpdateTexture(image, glId);
     }
+
 
     var drawIndex = manager.addToBatch(this.stack.state, glId);
     var width = this.width;
@@ -758,6 +841,7 @@ var Context2D = Class(function () {
       sy = imageHeight - sy;
       syH = sy - sHeight;
     }
+
 
     var needsTrim = sx < 0 || sxW > imageWidth || sy < 0 || syH > imageHeight;
 
@@ -782,6 +866,7 @@ var Context2D = Class(function () {
       syH = newSYH;
     }
 
+
     // Calculate 4 vertex positions
     var x0 = dx * m.a + dy * m.c + m.tx;
     var y0 = dx * m.b + dy * m.d + m.ty;
@@ -805,42 +890,56 @@ var Context2D = Class(function () {
 
     vc[i + 0] = x0;
     vc[i + 1] = y0;
-    vc[i + 2] = uLeft; // u0
-    vc[i + 3] = vTop; // v0
+    vc[i + 2] = uLeft;
+    // u0
+    vc[i + 3] = vTop;
+    // v0
     vc[i + 4] = alpha;
 
     vc[i + 6] = x1;
     vc[i + 7] = y1;
-    vc[i + 8] = uRight; // u1
-    vc[i + 9] = vTop; // v1
+    vc[i + 8] = uRight;
+    // u1
+    vc[i + 9] = vTop;
+    // v1
     vc[i + 10] = alpha;
 
     vc[i + 12] = x2;
     vc[i + 13] = y2;
-    vc[i + 14] = uLeft; // u2
-    vc[i + 15] = vBottom; // v2
+    vc[i + 14] = uLeft;
+    // u2
+    vc[i + 15] = vBottom;
+    // v2
     vc[i + 16] = alpha;
 
     vc[i + 18] = x3;
     vc[i + 19] = y3;
-    vc[i + 20] = uRight; // u4
-    vc[i + 21] = vBottom; // v4
+    vc[i + 20] = uRight;
+    // u4
+    vc[i + 21] = vBottom;
+    // v4
     vc[i + 22] = alpha;
 
     if (state.filter) {
       var color = state.filter.get();
       var ci = drawIndex * 4 * STRIDE;
       var cc = manager._colors;
-      cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = color.r; // R
-      cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = color.g; // G
-      cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = color.b; // B
-      cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255; // A
+      cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = color.r;
+      // R
+      cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = color.g;
+      // G
+      cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = color.b;
+      // B
+      cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255;
     }
   };
 
-  this.fillRect = function(x, y, width, height) {
+  // A
+  this.fillRect = function (x, y, width, height) {
+    if (this.globalAlpha === 0) {
+      return;
+    }
 
-    if (this.globalAlpha === 0) { return; }
 
     this._fillRect(x, y, width, height, getColor(this.stack.state.fillStyle));
   };
@@ -897,23 +996,31 @@ var Context2D = Class(function () {
 
     var ci = drawIndex * 4 * STRIDE;
     var cc = manager._colors;
-    cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = color.r; // R
-    cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = color.g; // G
-    cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = color.b; // B
-    cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255; // A
+    cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = color.r;
+    // R
+    cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = color.g;
+    // G
+    cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = color.b;
+    // B
+    cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255;
   };
 
-  this.deleteTextureForImage = function(canvas) {
+  // A
+  this.deleteTextureForImage = function (canvas) {
     this._manager.deleteTextureForImage(canvas);
   };
 
 });
 
 
-var createContextProperty = function(ctx, name) {
+var createContextProperty = function (ctx, name) {
   Object.defineProperty(ctx, name, {
-    get: function() { return this.stack.state[name]; },
-    set: function(value) { this.stack.state[name] = value; }
+    get: function () {
+      return this.stack.state[name];
+    },
+    set: function (value) {
+      this.stack.state[name] = value;
+    }
   });
 };
 
@@ -930,6 +1037,8 @@ var contextProperties = [
 for (var i = 0; i < contextProperties.length; i++) {
   createContextProperty(Context2D.prototype, contextProperties[i]);
 }
+
+
 
 
 exports = new GLManager();

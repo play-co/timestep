@@ -13,11 +13,9 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class ui.effectsEngine
  */
-
 jsio('import animate');
 jsio('import animate.transitions as easingFunctions');
 jsio('import ui.View as View');
@@ -33,8 +31,12 @@ var min = Math.min;
 var max = Math.max;
 var floor = Math.floor;
 var random = Math.random;
-var choose = function (a) { return a[floor(random() * a.length)]; };
-var rollFloat = function (n, x) { return n + random() * (x - n); };
+var choose = function (a) {
+  return a[floor(random() * a.length)];
+};
+var rollFloat = function (n, x) {
+  return n + random() * (x - n);
+};
 
 /**
  * Constant Notes
@@ -127,8 +129,11 @@ function emitEffect(data, opts) {
   }
 
 
+
+
   effectPool.obtain().reset(data, opts);
 }
+
 
 function mergeOverrides(data, opts) {
   var mergedData = data;
@@ -139,6 +144,7 @@ function mergeOverrides(data, opts) {
   return mergedData;
 }
 
+
 function onTick(dt) {
   particlePool.forEachActive(function (particle) {
     particle.step(dt);
@@ -147,6 +153,7 @@ function onTick(dt) {
     effect.step(dt);
   });
 }
+
 
 function validateEffect(data) {
   // all image URLs should be non-empty strings
@@ -164,12 +171,16 @@ function validateEffect(data) {
   }
 
 
+
+
   // if a filter type exists, it should be one of the supported types
   if (data.filterType) {
     if (FILTER_TYPES.indexOf(data.filterType) === -1) {
       throw new Error('Invalid filter type: ' + data.filterType);
     }
   }
+
+
 
 
   var paramList = {};
@@ -180,11 +191,15 @@ function validateEffect(data) {
     }
 
 
+
+
     // check each parameter individually and guarantee no duplicates
     for (var i = 0; i < params.length; i++) {
       validateParameter.call(this, params[i], paramList, data);
     }
   }
+
+
 
 
   // validate particle delay
@@ -207,6 +222,7 @@ function validateEffect(data) {
     validateProperty.call(this, data[key], key, paramList, data);
   }
 }
+
 
 function validateNumericValue(value, paramList, data, testConstraints) {
   var valueType = typeof value;
@@ -231,6 +247,7 @@ function validateNumericValue(value, paramList, data, testConstraints) {
   }
 }
 
+
 function validateNumber(value, testConstraints, data) {
   // note: undefined is accepted and replaced by default values
   var valueType = typeof value;
@@ -240,11 +257,13 @@ function validateNumber(value, testConstraints, data) {
   testConstraints && testConstraints.call(this, value, data);
 }
 
+
 function validateImage(url, data) {
   if (!url || typeof url !== 'string') {
     throw new Error('Invalid image URL: ' + url);
   }
 }
+
 
 function validateParameter(paramData, paramList, data) {
   var paramID = paramData.id;
@@ -253,9 +272,13 @@ function validateParameter(paramData, paramList, data) {
   }
 
 
+
+
   if (paramList[paramID]) {
     throw new Error('Duplicate parameter ID defined: ' + paramID);
   }
+
+
 
 
   if (paramData.resetInterval !== void 0) {
@@ -267,10 +290,14 @@ function validateParameter(paramData, paramList, data) {
   }
 
 
+
+
   var distType = paramData.distributionType;
   if (distType && PARAMETER_TYPES.indexOf(distType) === -1) {
     throw new Error('Invalid parameter type: ' + distType + ', for param: ' + paramID);
   }
+
+
 
 
   var distFn = paramData.distributionFunction;
@@ -280,8 +307,11 @@ function validateParameter(paramData, paramList, data) {
   }
 
 
+
+
   paramList[paramID] = paramData;
 }
+
 
 function validateProperty(propData, propKey, paramList, data) {
   validateNumericValue.call(this, propData, paramList, data, null);
@@ -322,6 +352,7 @@ function validateProperty(propData, propKey, paramList, data) {
   }
 }
 
+
 /**
  * EffectsEngine Notes
  *  this engine does not replace the original ParticleEngine
@@ -336,9 +367,9 @@ function validateProperty(propData, propKey, paramList, data) {
 var EffectsEngine = Class(View, function (supr) {
   this.init = function () {
     supr(this, 'init', [{
-      canHandleEvents: false,
-      blockEvents: true
-    }]);
+        canHandleEvents: false,
+        blockEvents: true
+      }]);
 
     // wait until engine initialization completes before subscribing to tick
     setTimeout(bind(this, function () {
@@ -374,6 +405,7 @@ var EffectsEngine = Class(View, function (supr) {
       data = this.loadDataFromJSON(data);
     }
 
+
     // allow data to be an array of effects
     if (isArray(data)) {
       data.forEach(bind(this, function (effect) {
@@ -382,6 +414,7 @@ var EffectsEngine = Class(View, function (supr) {
     } else {
       emitEffect.call(this, data, opts);
     }
+
 
     return opts.id;
   };
@@ -448,6 +481,7 @@ var EffectsEngine = Class(View, function (supr) {
       data = this.loadDataFromJSON(data);
     }
 
+
     // allow data to be an array of effects
     if (isArray(data)) {
       data.forEach(validateEffect, this);
@@ -466,7 +500,9 @@ var EffectsEngine = Class(View, function (supr) {
         throw new Error('JSON file not found in your project: ' + url);
       }
       return data;
-    } catch (e) { throw e; }
+    } catch (e) {
+      throw e;
+    }
   };
 
   this.initializeEffectCount = function (count) {
@@ -525,6 +561,8 @@ function mergeParameterOpts(data, opts) {
 }
 
 
+
+
 /**
  * Effect Notes
  *  an effect is a group of particles that share the same data definition
@@ -569,6 +607,7 @@ var Effect = Class('Effect', function () {
         this.activeParameters[paramData.id] = param;
       }
     }
+
 
     var count = performance.getAdjustedParticleCount(data.count, opts.performanceScore, opts.allowReduction);
 
@@ -647,6 +686,7 @@ var Effect = Class('Effect', function () {
       return;
     }
 
+
     // step parameters each tick
     var paramKeys = Object.keys(this.activeParameters);
     var paramCount = paramKeys.length;
@@ -654,6 +694,7 @@ var Effect = Class('Effect', function () {
       var param = this.activeParameters[paramKeys[i]];
       param && param.step(dt);
     }
+
 
     if (this.isContinuous) {
       // emit particles for continuous effects each tick
@@ -675,7 +716,13 @@ var Particle = Class('Particle', function () {
   this.init = function () {
     this.view = new ImageView({ visible: false });
     this.filter = new filter.Filter({});
-    this.filterData = { type: '', r: 0, g: 0, b: 0, a: 0 };
+    this.filterData = {
+      type: '',
+      r: 0,
+      g: 0,
+      b: 0,
+      a: 0
+    };
     this.currentImageURL = '';
     this.isPolar = false;
     this.hasDeltas = false;
@@ -691,10 +738,12 @@ var Particle = Class('Particle', function () {
       prop.reset(this, key, PROPERTY_DEFAULTS[key]);
     }
 
+
     for (var i = 0; i < OTHER_KEY_COUNT; i++) {
       var key = OTHER_KEYS[i];
       this[key] = OTHER_DEFAULTS[key];
     }
+
 
     // ObjectPool book-keeping
     this._poolIndex = 0;
@@ -725,6 +774,7 @@ var Particle = Class('Particle', function () {
       }
     }
 
+
     // reset animated properties with data or to their defaults
     for (var i = 0; i < PROPERTY_KEY_COUNT; i++) {
       var key = PROPERTY_KEYS[i];
@@ -735,12 +785,14 @@ var Particle = Class('Particle', function () {
       }
     }
 
+
     // apply the proper initial color filter
     if (this.filterType) {
       this.filterData.type = this.filterType;
       this.updateFilter();
       this.view.setFilter(this.filter);
     }
+
 
     // prepare the image url for this particle
     var image = data.image;
@@ -751,15 +803,18 @@ var Particle = Class('Particle', function () {
       this.view.setImage(imageURL);
     }
 
+
     // add this particle to the view hierarchy
     opts.superview.addSubview(this.view);
 
     // determine whether this particle is in polar or cartesian coordinates
     for (var i = 0; i < POLAR_KEY_COUNT; i++) {
       if (this[POLAR_KEYS[i]].isModified) {
-        this.isPolar = true; break;
+        this.isPolar = true;
+        break;
       }
     }
+
 
     // apply initial view style properties
     for (var i = 0; i < STYLE_KEY_COUNT; i++) {
@@ -778,6 +833,7 @@ var Particle = Class('Particle', function () {
       s.offsetX = effect.x;
       s.offsetY = effect.y;
     }
+
 
     if (this.delay === 0) {
       s.visible = true;
@@ -812,6 +868,7 @@ var Particle = Class('Particle', function () {
       return;
     }
 
+
     var s = this.view.style;
     if (this.delay > 0) {
       this.delay -= dt;
@@ -822,10 +879,12 @@ var Particle = Class('Particle', function () {
       }
     }
 
+
     this.elapsed += dt;
     if (this.elapsed >= this.ttl) {
       this.recycle();
     }
+
 
     if (this.hasDeltas) {
       for (var i = 0; i < STYLE_KEY_COUNT; i++) {
@@ -837,6 +896,7 @@ var Particle = Class('Particle', function () {
         }
       }
 
+
       if (this.isPolar) {
         for (var i = 0; i < POLAR_KEY_COUNT; i++) {
           var key = POLAR_KEYS[i];
@@ -846,18 +906,15 @@ var Particle = Class('Particle', function () {
       }
     }
 
+
     if (this.isPolar) {
       s.offsetX = this.effect.x + this.radius.value * cos(this.theta.value);
       s.offsetY = this.effect.y + this.radius.value * sin(this.theta.value);
     }
 
+
     // update filter each tick if its values change over time
-    if (this.filterType
-      && (!this.filterRed.isStatic
-        || !this.filterGreen.isStatic
-        || !this.filterBlue.isStatic
-        || !this.filterAlpha.isStatic))
-    {
+    if (this.filterType && (!this.filterRed.isStatic || !this.filterGreen.isStatic || !this.filterBlue.isStatic || !this.filterAlpha.isStatic)) {
       this.updateFilter();
     }
   };
@@ -905,6 +962,7 @@ var Property = Class('Property', function () {
       this.animator.clear();
     }
 
+
     // set the initial value of the property
     var defaultValue = key !== 'delta' ? PROPERTY_DEFAULTS[key] : 0;
     this.value = getNumericValueFromData(particle.effect, data, defaultValue);
@@ -933,6 +991,7 @@ var Property = Class('Property', function () {
       }
     }
 
+
     // whether this value was or will be changed from its default
     this.isModified = this.isModified || this.value !== defaultValue;
   };
@@ -951,9 +1010,7 @@ var Property = Class('Property', function () {
     var animObj = {};
     animObj[animKey] = getNumericValueFromData(particle.effect, target, 0);
     // append the animation to the chain
-    this.animator
-      .wait(delay * particle.ttl)
-      .then(animObj, duration * particle.ttl, easingID);
+    this.animator.wait(delay * particle.ttl).then(animObj, duration * particle.ttl, easingID);
   };
 
   this.applyDelta = function (dt) {
@@ -1038,6 +1095,8 @@ var Parameter = Class('Parameter', function () {
       this.distributionFunction = distFn;
     }
 
+
+
     this.update(0, false);
   };
 
@@ -1048,44 +1107,47 @@ var Parameter = Class('Parameter', function () {
   this.update = function (value, fromEmission) {
     var type = this.distributionType;
     switch (type) {
-      // fixed and custom type parameters never update
-      case 'fixed':
-      case 'custom':
+    // fixed and custom type parameters never update
+    case 'fixed':
+    case 'custom':
+      break;
+
+
+    // random parameters are updated after each particle with a new value
+    case 'random':
+      this.value = random();
+      break;
+
+
+    // non-random parameters increment over index, time, or both
+    case 'index':
+    case 'time':
+    case 'indexOverTime':
+      // time type parameters ignore particle index updates
+      if (fromEmission && type === 'time') {
         break;
+      }
 
-      // random parameters are updated after each particle with a new value
-      case 'random':
-        this.value = random();
-        break;
 
-      // non-random parameters increment over index, time, or both
-      case 'index':
-      case 'time':
-      case 'indexOverTime':
-        // time type parameters ignore particle index updates
-        if (fromEmission && type === 'time') {
-          break;
-        }
-
-        value = this.value + this.resetDirection * value;
-        if (this.reverseReset) {
-          while (value > 1 || value < 0) {
-            // the direction the parameter should move
-            this.resetDirection *= -1;
-            // instead of simply % 1, we have to carry the remainder backwards
-            if (value > 1) {
-              value = 1 - (value - 1);
-            } else {
-              value *= -1;
-            }
+      value = this.value + this.resetDirection * value;
+      if (this.reverseReset) {
+        while (value > 1 || value < 0) {
+          // the direction the parameter should move
+          this.resetDirection *= -1;
+          // instead of simply % 1, we have to carry the remainder backwards
+          if (value > 1) {
+            value = 1 - (value - 1);
+          } else {
+            value *= -1;
           }
-          // here, value is guaranteed between 0 and 1, inclusive
-          this.value = value;
-        } else {
-          // by default, the value resets to 0 when it exceeds 1
-          this.value = value % 1;
         }
-        break;
+        // here, value is guaranteed between 0 and 1, inclusive
+        this.value = value;
+      } else {
+        // by default, the value resets to 0 when it exceeds 1
+        this.value = value % 1;
+      }
+      break;
     }
   };
 
@@ -1113,7 +1175,7 @@ var Parameter = Class('Parameter', function () {
  *        [min, max] - a random float between min and max
  *        [min, max, paramID] - a parameterized float between min and max
  */
-function getNumericValueFromData (effect, data, defaultValue) {
+function getNumericValueFromData(effect, data, defaultValue) {
   var value = defaultValue;
   var dataType = typeof data;
   if (dataType === 'object') {
@@ -1142,7 +1204,8 @@ function getNumericValueFromData (effect, data, defaultValue) {
     value = data;
   }
   return value;
-};
+}
+;
 
 
 

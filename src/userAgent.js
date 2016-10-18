@@ -13,14 +13,12 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @module userAgent
  *
  * Uses navigator.userAgent and retrieves information about app runtime, device,
  * OS version, browser version, and simulator status.
  */
-
 var ua = navigator && navigator.userAgent;
 var isNative = /TeaLeaf/.test(ua);
 var isIOS = /iPod|iPhone|iPad/i.test(ua);
@@ -49,9 +47,10 @@ if (isNative) {
   if (isIOS || isAndroid) {
     deviceType = 'mobile';
   } else {
-    deviceType= 'desktop';
+    deviceType = 'desktop';
   }
 }
+
 
 if (isAndroid) {
   osType = 'Android';
@@ -63,9 +62,12 @@ if (isAndroid) {
   osVersion = osVersionString.match(/[0-9_]+/)[0].replace(/_/g, '.');
 } else if (isMac) {
   osType = 'Mac OS X';
-  osVersionString= ua.match(/Mac OS X [0-9_]+/)[0];
+  osVersionString = ua.match(/Mac OS X [0-9_]+/)[0];
   osVersion = osVersionString.match(/[0-9_]+/)[0].replace(/_/g, '.');
 }
+
+
+
 
 if (isChrome) {
   browserType = 'Chrome';
@@ -82,9 +84,15 @@ if (isChrome) {
 }
 
 
+
+
+
+
+
+
 var UserAgent = Class(function () {
   this.USER_AGENT = ua;
-  this.OS_TYPE = osType
+  this.OS_TYPE = osType;
   this.OS_VERSION = osVersion;
   this.APP_RUNTIME = appRuntime;
   this.DEVICE_TYPE = deviceType;

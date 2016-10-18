@@ -1,5 +1,4 @@
 /* globals DEBUG */
-
 exports.method = function (prototype, method, func) {
   if (DEBUG) {
     prototype[method] = function () {
@@ -9,6 +8,7 @@ exports.method = function (prototype, method, func) {
       }
     };
   } else {
-    prototype[method] = func || function () {};
+    prototype[method] = func || function () {
+    };
   }
 };

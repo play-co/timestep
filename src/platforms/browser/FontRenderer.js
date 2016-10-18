@@ -13,18 +13,16 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @package env.browser.FontRenderer;
  *
  * Render fonts or custom fonts on a Canvas context.
  */
-
-import device;
-import ui.resource.Image as Image;
-import ui.Color as Color;
-import ui.filter as filter;
-import ui.resource.Font as Font;
+jsio('import device');
+jsio('import ui.resource.Image as Image');
+jsio('import ui.Color as Color');
+jsio('import ui.filter as filter');
+jsio('import ui.resource.Font as Font');
 
 var max = Math.max;
 
@@ -44,28 +42,38 @@ exports.init = function () {
         imagesLoaded: -1,
         imagesTotal: 0,
         loaded: false
-      }
+      };
       _customFonts[font.fontName] = customFont;
       loadingCustomFont(customFont);
     }
   }
 };
 
-var loadCustomFontImage = function(customFont, index, stroke) {
-  var img = new Image({
-    url: 'resources/fonts/' + customFont.fontName + '_' + index
-      + (stroke ? '_Stroke.png' : '.png')
-  });
+var loadCustomFontImage = function (customFont, index, stroke) {
+  var img = new Image({ url: 'resources/fonts/' + customFont.fontName + '_' + index + (stroke ? '_Stroke.png' : '.png') });
   img.doOnLoad(function () {
     customFont.imagesLoaded++;
-    customFont.loaded = (customFont.imagesLoaded === customFont.imagesTotal);
+    customFont.loaded = customFont.imagesLoaded === customFont.imagesTotal;
   });
   return img;
 };
 
-var findVerticalInfo = function(dimensions) {
+var findVerticalInfo = function (dimensions) {
   // A..Z, a..z, all
-  var ranges = [{start: 0x41, end: 0x5A}, {start: 0x61, end: 0x7A}, {start: 0x20, end: 0xFF}];
+  var ranges = [
+    {
+      start: 65,
+      end: 90
+    },
+    {
+      start: 97,
+      end: 122
+    },
+    {
+      start: 32,
+      end: 255
+    }
+  ];
   var found = false;
   var baseline = 0;
   var bottom = 0;
@@ -83,12 +91,28 @@ var findVerticalInfo = function(dimensions) {
       break;
     }
   }
-  return { baseline: baseline, bottom: bottom };
+  return {
+    baseline: baseline,
+    bottom: bottom
+  };
 };
 
-var findHorizontalInfo = function(dimensions) {
+var findHorizontalInfo = function (dimensions) {
   // a..z, A..Z
-  var ranges = [{start: 0x61, end: 0x7A}, {start: 0x41, end: 0x5A}, {start: 0x20, end: 0xFF}];
+  var ranges = [
+    {
+      start: 97,
+      end: 122
+    },
+    {
+      start: 65,
+      end: 90
+    },
+    {
+      start: 32,
+      end: 255
+    }
+  ];
   var width = 0;
   var count = 0;
   for (var i = 0, len = ranges.length; i < len; i++) {
@@ -107,10 +131,11 @@ var findHorizontalInfo = function(dimensions) {
   return { width: 0.8 * width / count };
 };
 
-var loadingCustomFont = function(customFont) {
+var loadingCustomFont = function (customFont) {
   if (customFont.imagesLoaded !== -1) {
     return !customFont.loaded;
   }
+
 
   var settings = customFont.settings;
   var fontName = settings.fontName;
@@ -132,6 +157,7 @@ var loadingCustomFont = function(customFont) {
     };
   }
 
+
   var images = customFont.images = [];
   var strokeImages = customFont.strokeImages = [];
   customFont.imagesLoaded = 0;
@@ -147,7 +173,7 @@ var loadingCustomFont = function(customFont) {
   return true;
 };
 
-var measure = function(ctx, fontInfo, text) {
+var measure = function (ctx, fontInfo, text) {
   var customFont = fontInfo.customFont;
   var dimensions = customFont.dimensions;
   var scale = fontInfo.scale;
@@ -160,9 +186,11 @@ var measure = function(ctx, fontInfo, text) {
     var prevCharCode = 0;
     for (var i = 0, len = text.length; i < len; i++) {
       var charCode = text.charCodeAt(i);
-      if (charCode === 9) { // tab ...
+      if (charCode === 9) {
+        // tab ...
         width += customFont.horizontal.width * 4 * scale;
-      } else if (charCode === 32) { // space ...
+      } else if (charCode === 32) {
+        // space ...
         width += customFont.horizontal.width * scale;
       } else {
         if (dimensions[charCode]) {
@@ -180,22 +208,30 @@ var measure = function(ctx, fontInfo, text) {
     }
   }
 
+
   if (failed) {
     var font = ctx.font;
     ctx.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (ctx.defaultFontFamily || device.defaultFontFamily);
-    var result = { failed: true, width: _origMeasureText.apply(ctx, [text]) };
+    var result = {
+      failed: true,
+      width: _origMeasureText.apply(ctx, [text])
+    };
     ctx.font = font;
     return result;
   } else {
-    return { failed: false, width: width };
+    return {
+      failed: false,
+      width: width
+    };
   }
 };
 
-var renderCustomFont = function(ctx, x, y, maxWidth, text, color, fontInfo, index) {
+var renderCustomFont = function (ctx, x, y, maxWidth, text, color, fontInfo, index) {
   var measureInfo = measure(ctx, fontInfo, text);
   if (measureInfo.failed) {
     return false;
   }
+
 
   var customFont = fontInfo.customFont;
   var srcBuffers = index === 0 ? customFont.images : customFont.strokeImages;
@@ -206,15 +242,19 @@ var renderCustomFont = function(ctx, x, y, maxWidth, text, color, fontInfo, inde
     scale *= maxWidth / width;
   }
 
+
   var spacing = (customFont.settings.spacing || 0) * scale;
 
   if (ctx.textBaseline === 'alphabetic') {
     y -= customFont.vertical.baseline * scale;
   } else if (ctx.textBaseline === 'middle') {
-    y -= (customFont.vertical.bottom / 2) * scale;
+    y -= customFont.vertical.bottom / 2 * scale;
   } else if (ctx.textBaseline === 'bottom') {
     y -= customFont.vertical.bottom * scale;
   }
+
+
+
 
   if (ctx.textAlign === 'center') {
     x -= width / 2;
@@ -222,33 +262,28 @@ var renderCustomFont = function(ctx, x, y, maxWidth, text, color, fontInfo, inde
     x -= width;
   }
 
+
+
   var prevCharCode = 0;
   for (var i = 0, len = text.length; i < len; i++) {
     var charCode = text.charCodeAt(i);
-    if (charCode === 9) { // tab ...
+    if (charCode === 9) {
+      // tab ...
       x += customFont.horizontal.width * 4 * scale;
-    } else if (charCode === 32) { // space ...
+    } else if (charCode === 32) {
+      // space ...
       x += customFont.horizontal.width * scale;
     } else {
       var character = dimensions[charCode];
       var kern = character.kerning[prevCharCode] || 0;
       x += kern;
       var img = srcBuffers[character.sheetIndex];
-      img.render(
-        ctx,
-        character.x,
-        character.y,
-        character.w,
-        character.h,
-        x + character.ox * scale,
-        y + character.oy * scale,
-        character.w * scale,
-        character.h * scale
-      );
+      img.render(ctx, character.x, character.y, character.w, character.h, x + character.ox * scale, y + character.oy * scale, character.w * scale, character.h * scale);
       x += character.xadvance * scale + spacing;
     }
     prevCharCode = charCode;
   }
+
 
   return true;
 };
@@ -277,7 +312,7 @@ exports.wrapMeasureText = function (origMeasureText) {
       return origMeasureText.apply(this, arguments);
     }
     return measureInfo;
-  }
+  };
 };
 
 exports.wrapFillText = function (origFillText) {
@@ -296,6 +331,7 @@ exports.wrapFillText = function (origFillText) {
       y = 0;
     }
 
+
     // apply color filter if necessary
     var color = Color.parse(this.fillStyle);
     if (!this.filter) {
@@ -306,13 +342,18 @@ exports.wrapFillText = function (origFillText) {
       this.filter.update(color);
     }
 
+
     if (!renderCustomFont(this, x, y, maxWidth, text + '', this.fillStyle, fontInfo, 0)) {
       var font = this.font;
       this.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (this.defaultFontFamily || device.defaultFontFamily);
-      origFillText.apply(this, [text, x, y]);
+      origFillText.apply(this, [
+        text,
+        x,
+        y
+      ]);
       this.font = font;
     }
-  }
+  };
 };
 
 exports.wrapStrokeText = function (origStrokeText) {
@@ -331,6 +372,7 @@ exports.wrapStrokeText = function (origStrokeText) {
       y = 0;
     }
 
+
     // apply color filter if necessary
     var color = Color.parse(this.strokeStyle);
     if (!this.filter) {
@@ -341,11 +383,16 @@ exports.wrapStrokeText = function (origStrokeText) {
       this.filter.update(color);
     }
 
+
     if (!renderCustomFont(this, x, y, maxWidth, text + '', this.strokeStyle, fontInfo, 1)) {
       var font = this.font;
       this.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (this.defaultFontFamily || device.defaultFontFamily);
-      origStrokeText.apply(this, [text, x, y]);
+      origStrokeText.apply(this, [
+        text,
+        x,
+        y
+      ]);
       this.font = font;
     }
-  }
+  };
 };

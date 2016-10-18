@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @package env.browser.FontBuffer;
  *
@@ -24,7 +23,7 @@ jsio('import ui.engineInstance as engineInstance');
 
 var randomColorElement = function () {
   var e = Math.floor(Math.random() * 255).toString(16);
-  return ((e.length === 1) ? '0' : '') + e;
+  return (e.length === 1 ? '0' : '') + e;
 };
 
 var randomColor = function () {
@@ -36,12 +35,20 @@ var FontBuffer = exports = Class(function () {
     // 8 * 24
     // 10 * 32
     // 8 * 64
-    var lineSizes = [{size: 24, count: 8}, {size: 32, count: 10}, {size: 64, count: 8}],
-      lineSize,
-      lines,
-      item,
-      y = 0,
-      i, j;
+    var lineSizes = [
+        {
+          size: 24,
+          count: 8
+        },
+        {
+          size: 32,
+          count: 10
+        },
+        {
+          size: 64,
+          count: 8
+        }
+      ], lineSize, lines, item, y = 0, i, j;
 
     this._canvas = document.createElement('canvas');
     this._canvas.width = 1024;
@@ -70,11 +77,13 @@ var FontBuffer = exports = Class(function () {
         y += lineSize.size;
       }
 
+
       this._list.push({
         size: lineSize.size,
         lines: lines
       });
     }
+
 
     this._hashMap = {};
 
@@ -87,13 +96,7 @@ var FontBuffer = exports = Class(function () {
   this._onTick = function (dt) {
     this._currentFrame++;
 
-    var remove,
-      currentFrame = this._currentFrame,
-      frameTimeout = this._frameTimeout,
-      list = this._list,
-      lines,
-      item,
-      i, j, k, l;
+    var remove, currentFrame = this._currentFrame, frameTimeout = this._frameTimeout, list = this._list, lines, item, i, j, k, l;
 
     for (i = 0, j = list.length; i < j; i++) {
       lines = list[i].lines;
@@ -101,7 +104,7 @@ var FontBuffer = exports = Class(function () {
         item = lines[k];
         while (item) {
           if (item.hash === null) {
-            if (item.next && (item.next.hash === null)) {
+            if (item.next && item.next.hash === null) {
               item.width += item.next.width;
               item.next = item.next.next;
             }
@@ -109,7 +112,7 @@ var FontBuffer = exports = Class(function () {
             this._ctx.fillStyle = randomColor();
             this._ctx.fillRect(item.x, item.y, item.width, item.height);
             // Remove old item...
-            delete(this._hashMap[item.hash]);
+            delete this._hashMap[item.hash];
             item.hash = null;
           }
           item = item.next;
@@ -119,18 +122,9 @@ var FontBuffer = exports = Class(function () {
   };
 
   this.alloc = function (opts) {
-    var requestHeight = opts.height,
-      requestWidth = opts.width + 3, // Add some extra pixels to allow color bleeding...
-
-      strokeStyle = opts.strokeStyle || '',
-      fillStyle = opts.fillStyle || '',
-      font = opts.font || '',
-      hash = strokeStyle + '_' + fillStyle + '_' + font + '_' + opts.text,
-
-      list = this._list,
-      lines,
-      item = this._hashMap[hash],
-      i, j, k, l;
+    var requestHeight = opts.height, requestWidth = opts.width + 3,
+      // Add some extra pixels to allow color bleeding...
+      strokeStyle = opts.strokeStyle || '', fillStyle = opts.fillStyle || '', font = opts.font || '', hash = strokeStyle + '_' + fillStyle + '_' + font + '_' + opts.text, list = this._list, lines, item = this._hashMap[hash], i, j, k, l;
 
     if (item) {
       item.frame = this._currentFrame;
@@ -138,13 +132,14 @@ var FontBuffer = exports = Class(function () {
       return item;
     }
 
+
     for (i = 0, j = list.length; i < j; i++) {
       if (requestHeight <= list[i].size) {
         lines = list[i].lines;
         for (k = 0, l = lines.length; k < l; k++) {
           item = lines[k];
           while (item) {
-            if ((requestWidth <= item.width) && (item.hash === null)) {
+            if (requestWidth <= item.width && item.hash === null) {
               if (requestWidth !== item.width) {
                 //console.log('request:', requestWidth, 'width:', item.width, 'rest:', item.width - requestWidth);
                 item.next = {
@@ -158,6 +153,7 @@ var FontBuffer = exports = Class(function () {
                   ctx: this._ctx
                 };
               }
+
 
               item.frame = this._currentFrame;
               item.hash = hash;
@@ -174,9 +170,11 @@ var FontBuffer = exports = Class(function () {
           }
         }
 
+
         break;
       }
     }
+
 
     return false;
   };

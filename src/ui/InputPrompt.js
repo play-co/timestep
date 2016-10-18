@@ -13,9 +13,7 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /* globals NATIVE, DEBUG, jsio */
-
 jsio('import device');
 jsio('import .debug.deprecated as deprecated');
 jsio('import .debug.types as debugTypes');
@@ -53,6 +51,7 @@ exports = Class(function () {
     function get(prop, defaultValue) {
       return opts[prop] !== undefined ? opts[prop] : defaultValue;
     }
+
 
     this._opts = merge({
       title: get('title', ''),

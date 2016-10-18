@@ -13,18 +13,16 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * package ui.ScoreView;
  *
  * This class is designed for high performance text rendering using images.
  * It is ideal for scores or other in-game counters that update often.
  */
-
-import ui.View as View;
-import ui.ImageView as ImageView;
-import ui.resource.Image as Image;
-import ui.filter as filter;
+jsio('import ui.View as View');
+jsio('import ui.ImageView as ImageView');
+jsio('import ui.resource.Image as Image');
+jsio('import ui.filter as filter');
 
 var min = Math.min;
 var max = Math.max;
@@ -59,7 +57,7 @@ exports = Class(View, function (supr) {
     opts.text && this.setText(opts.text);
   };
 
-  this.setCharacterData = function(data) {
+  this.setCharacterData = function (data) {
     this._characterData = data;
     var srcHeight = 0;
     for (var i in data) {
@@ -73,14 +71,14 @@ exports = Class(View, function (supr) {
         srcHeight = h;
       } else if (srcHeight !== h) {
         // all assets passed to ScoreViews should have the same height
-        logger.warn(this.getTag() + ": Art Height Mismatch!", d.image);
+        logger.warn(this.getTag() + ': Art Height Mismatch!', d.image);
       }
     }
     this._srcHeight = srcHeight || this._srcHeight;
     this._text && this.setText(this._text);
   };
 
-  this.setText = function(text) {
+  this.setText = function (text) {
     text = '' + text;
     var width = this.style.width;
     var height = this.style.height;
@@ -96,7 +94,10 @@ exports = Class(View, function (supr) {
     this._ignoreCharacters.length = 0;
     this._text = text;
 
-    if (!this._characterData) { return; }
+    if (!this._characterData) {
+      return;
+    }
+
 
     var i = 0;
     while (i < textLength) {
@@ -123,6 +124,7 @@ exports = Class(View, function (supr) {
     } else {
       this._container.style.scale = 1;
     }
+
 
     if (this._horizontalAlign === 'center') {
       offsetX = (width - textWidth) / 2;
@@ -154,13 +156,15 @@ exports = Class(View, function (supr) {
         continue;
       }
 
+
       var view = this._imageViews[i];
       var s = view.style;
       var w = data.width * scale;
       s.x = offsetX;
       s.y = offsetY;
       s.width = w;
-      s.height = height; // all characters should have the same height
+      s.height = height;
+      // all characters should have the same height
       s.visible = true;
       offsetX += w + spacing;
 
@@ -169,11 +173,13 @@ exports = Class(View, function (supr) {
         continue;
       }
 
+
       view.setImage(data.img);
 
       // update color filters
       this._updateFilter(view, fc, fcHash);
     }
+
 
     while (i < this._imageViews.length) {
       this._imageViews[i].style.visible = false;
@@ -181,16 +187,16 @@ exports = Class(View, function (supr) {
     }
   };
 
-  this.setFilterColor = function(color) {
+  this.setFilterColor = function (color) {
     this._filterColor = color;
     this._updateFilters();
   };
 
-  this.clearFilterColor = function() {
+  this.clearFilterColor = function () {
     this.setFilterColor(null);
   };
 
-  this._updateFilters = function() {
+  this._updateFilters = function () {
     var fc = this._filterColor;
     var fcHash = this._getColorHash(fc);
     for (var i = 0, len = this._activeCharacters.length; i < len; i++) {
@@ -198,7 +204,7 @@ exports = Class(View, function (supr) {
     }
   };
 
-  this._updateFilter = function(view, color, hash) {
+  this._updateFilter = function (view, color, hash) {
     if (color) {
       if (!view.colorFilter) {
         view.colorFilter = new filter.MultiplyFilter(color);
@@ -215,7 +221,7 @@ exports = Class(View, function (supr) {
     }
   };
 
-  this._getColorHash = function(color) {
+  this._getColorHash = function (color) {
     var hash = 0;
     if (color) {
       hash = 1000 * color.r + color.g + 0.001 * color.b + 0.0001 * color.a;

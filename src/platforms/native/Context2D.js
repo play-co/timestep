@@ -13,16 +13,15 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
+jsio('import std.uri');
+jsio('import lib.Enum as Enum');
+jsio('import util.setProperty');
 
-import std.uri
-import lib.Enum as Enum;
-import util.setProperty;
+jsio('import .BufferedCanvas');
+jsio('import device');
+jsio('import .FontRenderer');
 
-import .BufferedCanvas;
-import device;
-import .FontRenderer;
-
-import ui.resource.Font as Font;
+jsio('import ui.resource.Font as Font');
 
 var _createdOnscreenCanvas = false;
 
@@ -42,19 +41,13 @@ var compositeOps = new Enum({
 });
 
 
-var PixelArray = (
-  window.Uint8ClampedArray
-  || window.CanvasPixelArray
-  || window.Uint8Array
-  || window.Array
-);
+var PixelArray = window.Uint8ClampedArray || window.CanvasPixelArray || window.Uint8Array || window.Array;
 
 
 exports = Class(BufferedCanvas, function (supr) {
-
   //FIXME add globalalpha back to these
   this.updateState = function (src, dest) {
-/*
+    /*
     obj.stroke = this.stroke;
     obj.patternQuality = this.patternQuality;
     obj.fillPattern = this.fillPattern;
@@ -65,7 +58,7 @@ exports = Class(BufferedCanvas, function (supr) {
     dest.textBaseline = src.textBaseline;
     dest.fillStyle = src.fillStyle;
     dest.strokeStyle = src.strokeStyle;
-/*
+    /*
     obj.shadow = this.shadow;
     obj.shadowBlur = this.shadowBlur;
     obj.shadowOffsetX = this.shadowOffsetX;
@@ -92,6 +85,7 @@ exports = Class(BufferedCanvas, function (supr) {
       opts.offscreen = true;
     }
 
+
     this.canvas = opts.canvas || {
       width: opts.width,
       height: opts.height
@@ -101,6 +95,7 @@ exports = Class(BufferedCanvas, function (supr) {
     if (!this._isOffscreen) {
       _createdOnscreenCanvas = true;
     }
+
 
     this.resize(this.canvas.width, this.canvas.height);
 
@@ -119,6 +114,7 @@ exports = Class(BufferedCanvas, function (supr) {
       }
     }
   }
+;
 
   this.resize = function (width, height) {
     // set the internal private properties (the public ones have setters that
@@ -151,8 +147,12 @@ exports = Class(BufferedCanvas, function (supr) {
       this._ctx = new NATIVE.gl.Context2D(this.canvas, this.canvas._src, this.canvas.__gl_name);
     }
   }
+;
 
-  this.getNativeCtx = function () { return this._ctx; }
+  this.getNativeCtx = function () {
+    return this._ctx;
+  }
+;
 
   this.getElement = function () {
     return this.canvas;
@@ -166,11 +166,9 @@ exports = Class(BufferedCanvas, function (supr) {
   this.strokeStyle = 'rgb(0,0,0)';
 
   this.show = function () {
-    // TODO: NATIVE.gl.show();
   };
 
   this.hide = function () {
-    // TODO: NATIVE.gl.hide();
   };
 
   this.clear = function () {
@@ -204,7 +202,9 @@ exports = Class(BufferedCanvas, function (supr) {
   };
 
   this.drawImage = function (img, x1, y1, w1, h1, x2, y2, w2, h2) {
-    if (!img || !img.complete) { return; }
+    if (!img || !img.complete) {
+      return;
+    }
     var n = arguments.length;
     if (n == 3) {
       this._ctx.drawImage(img.__gl_name, img._src, 0, 0, img.width, img.height, x1, y1, img.width, img.height);
@@ -215,16 +215,22 @@ exports = Class(BufferedCanvas, function (supr) {
     }
   };
 
-  this.translate = function (x, y) { this._ctx.translate(x, y); };
-  this.rotate = function (r) { this._ctx.rotate(r); };
-  this.scale = function (x, y) { this._ctx.scale(x, y); };
+  this.translate = function (x, y) {
+    this._ctx.translate(x, y);
+  };
+  this.rotate = function (r) {
+    this._ctx.rotate(r);
+  };
+  this.scale = function (x, y) {
+    this._ctx.scale(x, y);
+  };
 
   this.setFilter = function (filter) {
     this._ctx.addFilter(filter.getType(), filter.get());
   };
 
   this.setFilters = function (filters) {
-    logger.warn("ctx.setFilters is deprecated, use ctx.setFilter instead.");
+    logger.warn('ctx.setFilters is deprecated, use ctx.setFilter instead.');
     for (var name in filters) {
       var filter = filters[name];
       this._ctx.addFilter(name, filter.get());
@@ -236,11 +242,11 @@ exports = Class(BufferedCanvas, function (supr) {
   };
 
   this.clearFilters = function () {
-    logger.warn("ctx.clearFilters is deprecated, use ctx.clearFilter instead.");
+    logger.warn('ctx.clearFilters is deprecated, use ctx.clearFilter instead.');
     this._ctx.clearFilters();
   };
 
-  this.setTransform = function(m11, m12, m21, m22, dx, dy) {
+  this.setTransform = function (m11, m12, m21, m22, dx, dy) {
     this._ctx.setTransform(m11, m12, m21, m22, dx, dy);
   };
 
@@ -250,38 +256,36 @@ exports = Class(BufferedCanvas, function (supr) {
 
   this.fillRect = function (x, y, width, height) {
     if (typeof this.fillStyle == 'object') {
-      var img = this.fillStyle.img,
-        w = img.width, h = img.height,
-        wMax, hMax, xx, yy;
+      var img = this.fillStyle.img, w = img.width, h = img.height, wMax, hMax, xx, yy;
 
       switch (this.fillStyle.repeatPattern) {
-        case 'repeat':
-          for (xx = 0; xx < width; xx += w) {
-            wMax = Math.min(w, width - xx);
-            for (yy = y; yy < height; yy += h) {
-              hMax = Math.min(h, height - yy);
-              this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x + xx, y + yy, wMax, hMax);
-            }
-          }
-          break;
-        case 'repeat-x':
-          for (xx = 0; xx < width; xx += w) {
-            wMax = Math.min(w, width - xx);
-            this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x + xx, y, wMax, hMax);
-          }
-          break;
-        case 'repeat-y':
-          for (yy = 0; yy < height; yy += h) {
+      case 'repeat':
+        for (xx = 0; xx < width; xx += w) {
+          wMax = Math.min(w, width - xx);
+          for (yy = y; yy < height; yy += h) {
             hMax = Math.min(h, height - yy);
-            this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x, y + yy, wMax, hMax);
+            this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x + xx, y + yy, wMax, hMax);
           }
-          break;
-        case 'no-repeat':
-        default:
-          wMax = Math.min(w, width);
-          hMax = Math.min(h, height);
-          this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x, y, wMax, hMax);
-          break;
+        }
+        break;
+      case 'repeat-x':
+        for (xx = 0; xx < width; xx += w) {
+          wMax = Math.min(w, width - xx);
+          this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x + xx, y, wMax, hMax);
+        }
+        break;
+      case 'repeat-y':
+        for (yy = 0; yy < height; yy += h) {
+          hMax = Math.min(h, height - yy);
+          this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x, y + yy, wMax, hMax);
+        }
+        break;
+      case 'no-repeat':
+      default:
+        wMax = Math.min(w, width);
+        hMax = Math.min(h, height);
+        this._ctx.drawImage(img.__gl_name, img._src, 0, 0, wMax, hMax, x, y, wMax, hMax);
+        break;
       }
     } else {
       this._ctx.fillRect(x, y, width, height, this.fillStyle);
@@ -306,7 +310,7 @@ exports = Class(BufferedCanvas, function (supr) {
     if (this._pathIndex === undefined) {
       this._pathIndex = 0;
     }
-    return (this._pathIndex > 0);
+    return this._pathIndex > 0;
   };
 
   this.beginPath = function () {
@@ -315,7 +319,10 @@ exports = Class(BufferedCanvas, function (supr) {
 
   this.lineTo = function (x, y) {
     this._checkPath();
-    this._path[this._pathIndex] = {x:x, y:y};
+    this._path[this._pathIndex] = {
+      x: x,
+      y: y
+    };
     this._pathIndex++;
   };
 
@@ -324,8 +331,10 @@ exports = Class(BufferedCanvas, function (supr) {
   this.drawPointSprites = function (x1, y1, x2, y2) {
     this._ctx.drawPointSprites(this.pointSprite.src, this.lineWidth || 5, this.pointSpriteStep || 2, this.strokeStyle, x1, y1, x2, y2);
   }
+;
 
-  this.closePath = function () {};
+  this.closePath = function () {
+  };
 
   this.fill = function () {
     if (this._checkPath()) {
@@ -339,7 +348,7 @@ exports = Class(BufferedCanvas, function (supr) {
     }
   };
 
-  this.createImageData = function(width, height) {
+  this.createImageData = function (width, height) {
     // createImageData can be passed another image data object
     // the data in the passed in image is not copied
     if (typeof width === 'object' && 'width' in width) {
@@ -347,15 +356,19 @@ exports = Class(BufferedCanvas, function (supr) {
       width = width.width;
     }
 
+
     return {
       width: width,
       height: height,
       data: new PixelArray(width * height)
     };
   }
+;
 
-  this.fill = function () {}
-  this.stroke = function () {}
+  this.fill = function () {
+  };
+  this.stroke = function () {
+  };
 });
 
 
@@ -378,42 +391,22 @@ util.setProperty(exports.prototype, 'globalCompositeOperation', {
 });
 
 
-exports.prototype.moveTo = exports.prototype.lineTo
+exports.prototype.moveTo = exports.prototype.lineTo;
 
 
 exports.prototype.fillText = FontRenderer.wrapFillText(function (str, x, y, maxWidth) {
   var font = Font.parse(this.font);
   var fontName = font.getName();
 
-  this._ctx.fillText(
-    str + '',
-    x,
-    y,
-    maxWidth || 0,
-    this.fillStyle,
-    font.getSize(),
-    /*font.getWeight() + ' ' + */fontName,
-    this.textAlign,
-    this.textBaseline
-  );
+  this._ctx.fillText(str + '', x, y, maxWidth || 0, this.fillStyle, font.getSize(), /*font.getWeight() + ' ' + */
+  fontName, this.textAlign, this.textBaseline);
 });
 
 exports.prototype.strokeText = FontRenderer.wrapStrokeText(function (str, x, y, maxWidth) {
   var font = Font.parse(this.font);
   var fontName = font.getName();
 
-  this._ctx.strokeText(
-    str + '',
-    x,
-    y,
-    maxWidth || 0,
-    this.strokeStyle,
-    font.getSize(),
-    fontName,
-    this.textAlign,
-    this.textBaseline,
-    this.lineWidth
-  );
+  this._ctx.strokeText(str + '', x, y, maxWidth || 0, this.strokeStyle, font.getSize(), fontName, this.textAlign, this.textBaseline, this.lineWidth);
 });
 
 exports.prototype.measureText = FontRenderer.wrapMeasureText(function (str) {

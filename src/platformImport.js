@@ -1,19 +1,7 @@
-var backendCanvasCtx = require.context(
-  './ui/backend/canvas',
-  true,
-  /^.*\.js$/
-);
-var backendDomCtx = require.context(
-  './ui/backend/dom',
-  true,
-  /^.*\.js$/
-);
+var backendCanvasCtx = require.context('./ui/backend/canvas', true, /^.*\.js$/);
+var backendDomCtx = require.context('./ui/backend/dom', true, /^.*\.js$/);
 
-var platformBrowserCtx = require.context(
-  './platforms/browser',
-  true,
-  /^.*\.js$/
-);
+var platformBrowserCtx = require.context('./platforms/browser', true, /^.*\.js$/);
 
 
 var getDynamicModulePath = function (module) {
@@ -34,10 +22,12 @@ var getModule = (req, modulePath) => {
     return result;
   }
 
+
   // es6 module compatibility
   if (result.__esModule && result.default) {
     return result.default;
   }
+
 
   return result;
 };
@@ -50,6 +40,7 @@ export const getImport = function (module) {
     return InputPrompt;
   }
 
+
   // var path = _devices[exports.name] || 'platforms.browser';
   // return jsio('import ' + path + '.' + module, {
   //   dontExport: true,
@@ -57,6 +48,7 @@ export const getImport = function (module) {
   // });
   return getModule(platformBrowserCtx, getDynamicModulePath(module));
 };
+
 
 export const importUI = function (module) {
   // var domOrCanvas = exports.useDOM ? 'dom' : 'canvas';

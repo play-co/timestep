@@ -13,22 +13,23 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @module timer
  *
  * Implements an independent, singleton timer for use by the environment.
  * The Application Engine binds to this to generate the rendering tick.
  */
-
 import { getImport } from 'platformImport';
 
 var Timer = getImport('Timer');
 
-var MAX_TICK = 10000; // ticks over 10 seconds will be considered too large to process
+var MAX_TICK = 10000;
+// ticks over 10 seconds will be considered too large to process
 exports.now = 0;
 exports.frames = 0;
-exports.reset = function () { this._last = null; }
+exports.reset = function () {
+  this._last = null;
+};
 exports.tick = function (dt) {
   var ok = false;
   try {
@@ -36,17 +37,19 @@ exports.tick = function (dt) {
       exports.onLargeTick(dt, MAX_TICK);
       dt = 1;
     }
-    
+
+
     exports.now += dt;
     exports.frames++;
     exports.onTick(dt);
     ok = true;
   } finally {
     if (exports.debug && !ok) {
-      app.stopLoop()
+      app.stopLoop();
     }
   }
 }
+;
 
 /**
  * If our computer falls asleep, dt might be an insanely large number. 
@@ -57,27 +60,32 @@ exports.tick = function (dt) {
 exports.onLargeTick = function (largeDt, threshold) {
   logger.warn('Dropping large tick: ' + largeDt + '; Threshold is set at: ' + threshold);
 }
+;
 
-exports.onTick = function (dt) {}
+exports.onTick = function (dt) {
+}
+;
 
 exports.debug = false;
 
 
-// TODO: <jsio>('from iOS import start as exports.start, stop as exports.stop');
 
+// TODO: <jsio>('from iOS import start as exports.start, stop as exports.stop');
 exports.start = function (minDt) {
   this.reset();
   this.isRunning = true;
   getImport('Timer').start(exports.tick, minDt);
 }
+;
 
 exports.stop = function () {
   this.reset();
   this.isRunning = false;
   getImport('Timer').stop();
 }
+;
 
 exports.getTickProgress = function () {
-  var now = +new Date;
-  return (-(Timer.last || now) + now);
-}
+  var now = +new Date();
+  return -(Timer.last || now) + now;
+};

@@ -11,8 +11,7 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
- /**
+/**
  * @module performance
  *
  * Calculates device performance score by maintaining a window history of the
@@ -61,7 +60,7 @@ var _averageScore = START_AVERAGE_SCORE;
 var _averageDPR = device.screen.defaultDevicePixelRatio;
 
 
-function _mapFPSToPerformanceScore (fps) {
+function _mapFPSToPerformanceScore(fps) {
   var fpsRange = _maxFPS - _minFPS;
   var scoreRange = MAX_SCORE - MIN_SCORE;
   var fpsPosition = fps - _minFPS;
@@ -70,18 +69,23 @@ function _mapFPSToPerformanceScore (fps) {
     valuePercentage = 1;
   }
   return MIN_SCORE + scoreRange * valuePercentage;
-};
+}
+;
 
-function _calculatePerformanceScore () {
+function _calculatePerformanceScore() {
   var ticksPerSecond = 1000 / _averageDelta;
   var adjustedTicksPerSecond = Math.min(ticksPerSecond, DEFAULT_FPS_UPPER_BOUND);
   var mappedScore = _mapFPSToPerformanceScore(adjustedTicksPerSecond);
 
   return Math.max(0, mappedScore);
-};
+}
+;
 
-function onRender (dt) {
-  if (!_canMeasure) { return; }
+function onRender(dt) {
+  if (!_canMeasure) {
+    return;
+  }
+
 
   var now = Date.now();
   var delta = now - _lastTick;
@@ -95,20 +99,23 @@ function onRender (dt) {
     _averageScore = _averageScore * SCORE_AVERAGE_WEIGHT + currentScore * SCORE_WEIGHT;
   }
 
+
   if (_dprScalingEnabled && ++_ticksSinceLastDPRUpdate >= TICKS_TIL_ADJUST_DPR) {
     _ticksSinceLastDPRUpdate = 0;
 
     if (_averageScore < MIN_SCORE_FOR_DPR && _averageDPR > MIN_DPR) {
       _averageDPR -= DPR_DECREASE_VALUE;
       device.setDevicePixelRatio(_averageDPR);
-      logger.log("PERFORMANCE SCORE OF " + _averageScore, " DETECTED, SETTING DPR TO " + _averageDPR);
+      logger.log('PERFORMANCE SCORE OF ' + _averageScore, ' DETECTED, SETTING DPR TO ' + _averageDPR);
     }
   }
+
 
   if (_debug) {
     logger.log('score ', _averageScore);
   }
-};
+}
+;
 
 
 var Performance = Class(function () {
@@ -196,31 +203,29 @@ var Performance = Class(function () {
     var currCount = count;
     var mR = this.getPerformanceScore();
     var pR = performanceScore || DEFAULT_RANK;
-    var aR = (typeof allowReduction !== 'undefined')
-      ? allowReduction
-      : DEFAULT_ALLOW_REDUCTION;
+    var aR = typeof allowReduction !== 'undefined' ? allowReduction : DEFAULT_ALLOW_REDUCTION;
 
     if (mR < pR) {
-      currCount = (aR)
-        ? count * mR / pR
-        : 0;
+      currCount = aR ? count * mR / pR : 0;
     }
+
 
     return currCount;
   };
 
   this.setDPRScalingEnabled = function (value) {
-
     if (userAgent.APP_RUNTIME !== 'browser') {
-      logger.warn("Auto DPR scaling only supported in browsers!");
+      logger.warn('Auto DPR scaling only supported in browsers!');
       return;
     }
+
 
     // Due to a browser bug, don't enable auto DPR scaling for iOS
     if (userAgent.OS_TYPE === 'iPhone OS') {
-      logger.warn("Auto DPR not currently supported on iOS.");
+      logger.warn('Auto DPR not currently supported on iOS.');
       return;
     }
+
 
     _dprScalingEnabled = value;
 

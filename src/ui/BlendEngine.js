@@ -13,20 +13,18 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class ui.BlendEngine;
  *
  * same API as ui.ParticleEngine
  * except it blends Images together on a single canvas
  */
-
-import device;
-import ui.View as View;
-import ui.resource.Image as Image;
-import performance;
-import userAgent;
-var Canvas = device.get("Canvas");
+jsio('import device');
+jsio('import ui.View as View');
+jsio('import ui.resource.Image as Image');
+jsio('import performance');
+jsio('import userAgent');
+var Canvas = device.get('Canvas');
 
 // Math references
 var sin = Math.sin;
@@ -40,12 +38,20 @@ var MAX_VALUE = Number.MAX_VALUE;
 var imageCache = {};
 
 // animation transtion functions borrowed from animate
-var TRANSITION_LINEAR = "linear";
+var TRANSITION_LINEAR = 'linear';
 var TRANSITIONS = {
-  linear: function (n) { return n; },
-  easeIn: function (n) { return n * n; },
-  easeInOut: function (n) { return (n *= 2) < 1 ? 0.5 * n * n * n : 0.5 * ((n -= 2) * n * n + 2); },
-  easeOut: function (n) { return n * (2 - n); }
+  linear: function (n) {
+    return n;
+  },
+  easeIn: function (n) {
+    return n * n;
+  },
+  easeInOut: function (n) {
+    return (n *= 2) < 1 ? 0.5 * n * n * n : 0.5 * ((n -= 2) * n * n + 2);
+  },
+  easeOut: function (n) {
+    return n * (2 - n);
+  }
 };
 
 var PARTICLE_DEFAULTS = {
@@ -95,12 +101,13 @@ var PARTICLE_DEFAULTS = {
   ddtheta: 0,
   ddradius: 0,
   elapsed: 0,
-  image: "",
-  compositeOperation: "lighter",
+  image: '',
+  compositeOperation: 'lighter',
   transition: TRANSITION_LINEAR,
   onStart: null,
   onDeath: null,
-  triggers: null, // NOT ok to use array here, assign later
+  triggers: null,
+  // NOT ok to use array here, assign later
   absX: 0,
   absY: 0,
   absW: 1,
@@ -140,20 +147,22 @@ exports = Class(View, function (supr) {
     this._canvY = 0;
     this._canvW = 1;
     this._canvH = 1;
-    this._canvas = new Canvas({ width: MAX_TEX_WIDTH, height: MAX_TEX_HEIGHT, useWebGL: true });
+    this._canvas = new Canvas({
+      width: MAX_TEX_WIDTH,
+      height: MAX_TEX_HEIGHT,
+      useWebGL: true
+    });
   };
 
   this.obtainParticleArray = function (count, opts) {
-    var isBrowser = (userAgent.APP_RUNTIME === 'browser');
-    var isMobile = (userAgent.DEVICE_TYPE === 'mobile');
+    var isBrowser = userAgent.APP_RUNTIME === 'browser';
+    var isMobile = userAgent.DEVICE_TYPE === 'mobile';
     var isSimulator = userAgent.SIMULATED;
-   
+
     opts = opts || {};
 
     // TODO: disable blend engine on mobile browsers until the performance is improved
-    count = (opts.performanceScore && isBrowser && isMobile && !isSimulator)
-      ? 0
-      : performance.getAdjustedParticleCount(count, opts.performanceScore, opts.allowReduction);
+    count = opts.performanceScore && isBrowser && isMobile && !isSimulator ? 0 : performance.getAdjustedParticleCount(count, opts.performanceScore, opts.allowReduction);
 
     for (var i = 0; i < count; i++) {
       // duplicate copy of default properties for optimal performance
@@ -204,12 +213,13 @@ exports = Class(View, function (supr) {
         ddtheta: 0,
         ddradius: 0,
         elapsed: 0,
-        image: "",
-        compositeOperation: "lighter",
+        image: '',
+        compositeOperation: 'lighter',
         transition: TRANSITION_LINEAR,
         onStart: null,
         onDeath: null,
-        triggers: [], // OK to use an array here
+        triggers: [],
+        // OK to use an array here
         absX: 0,
         absY: 0,
         absW: 1,
@@ -224,7 +234,8 @@ exports = Class(View, function (supr) {
       var key = PARTICLE_KEYS[i];
       obj[key] = PARTICLE_DEFAULTS[key];
     }
-    obj.triggers = []; // don't keep an array in the PARTICLE_DEFAULTS object
+    obj.triggers = [];
+    // don't keep an array in the PARTICLE_DEFAULTS object
     return obj;
   };
 
@@ -238,24 +249,28 @@ exports = Class(View, function (supr) {
         img = imageCache[data.image] = new Image({ url: data.image });
       }
 
+
       // Inverse scale will be calculated incorrectly for non-sprited images that haven't previously
       // been loaded.  We detect those here and redo the calculation.
-      var needsInverseScale = ((img._invScaleX === undefined) || (img._invScaleY === undefined) ||
-        (img._invScaleX < 0) || (img._invScaleY < 0));
+      var needsInverseScale = img._invScaleX === undefined || img._invScaleY === undefined || img._invScaleX < 0 || img._invScaleY < 0;
       if (needsInverseScale) {
         img._invScaleX = 1 / (img._map.marginLeft + img._map.width + img._map.marginRight);
         img._invScaleY = 1 / (img._map.marginTop + img._map.height + img._map.marginBottom);
       }
 
+
       if (!data.delay) {
         data.onStart && data.onStart(data);
       } else if (data.delay < 0) {
-        throw new Error("Particles cannot have negative delay values!");
+        throw new Error('Particles cannot have negative delay values!');
       }
 
+
+
       if (data.ttl < 0) {
-        throw new Error("Particles cannot have negative time-to-live values!");
+        throw new Error('Particles cannot have negative time-to-live values!');
       }
+
 
       active.push(data);
     }
@@ -278,7 +293,7 @@ exports = Class(View, function (supr) {
       this._canvY = 0;
       this._canvW = 1;
       this._canvH = 1;
-      this._canvas.getContext("2D").clear();
+      this._canvas.getContext('2D').clear();
     }
   };
 
@@ -306,12 +321,14 @@ exports = Class(View, function (supr) {
         }
       }
 
+
       // is it dead yet?
       data.elapsed += dt;
       if (data.elapsed >= data.ttl) {
         this._killParticle(i);
         continue;
       }
+
 
       // calculate the percent of one second elapsed; deltas are in units / second
       var pct = dt / 1000;
@@ -321,6 +338,7 @@ exports = Class(View, function (supr) {
         var prgAfter = getTransitionProgress(data.elapsed / data.ttl);
         pct = (prgAfter - prgBefore) * data.ttl / 1000;
       }
+
 
       // translation
       if (data.polar) {
@@ -343,6 +361,7 @@ exports = Class(View, function (supr) {
         data.dx += pct * data.ddx;
         data.dy += pct * data.ddy;
       }
+
 
       // anchor translation
       data.anchorX += pct * data.danchorX;
@@ -399,17 +418,27 @@ exports = Class(View, function (supr) {
         index += 1;
       }
 
+
       // establish absolute bounds
       var absX = data.absX = data.x + data.anchorX * (1 - data.scale * data.scaleX);
       var absY = data.absY = data.y + data.anchorY * (1 - data.scale * data.scaleY);
       var absW = data.absW = data.width * data.scale * data.scaleX;
       var absH = data.absH = data.height * data.scale * data.scaleY;
-      if (absX < minX) { minX = absX; }
-      if (absY < minY) { minY = absY; }
-      if (absX + absW > maxX) { maxX = absX + absW; }
-      if (absY + absH > maxY) { maxY = absY + absH; }
+      if (absX < minX) {
+        minX = absX;
+      }
+      if (absY < minY) {
+        minY = absY;
+      }
+      if (absX + absW > maxX) {
+        maxX = absX + absW;
+      }
+      if (absY + absH > maxY) {
+        maxY = absY + absH;
+      }
       i += 1;
     }
+
 
     // establish canvas size and position, bounded by max texture size
     if (shouldUpdate) {
@@ -436,8 +465,9 @@ exports = Class(View, function (supr) {
         canvH = MAX_TEX_HEIGHT;
       }
 
+
       // render our particle images to the canvas's context
-      var ctx = this._canvas.getContext("2D");
+      var ctx = this._canvas.getContext('2D');
       ctx.clear();
 
       var _ctx = ctx._ctx || ctx;
@@ -452,10 +482,12 @@ exports = Class(View, function (supr) {
           ctx.translate(-data.x - data.anchorX + canvX, -data.y - data.anchorY + canvY);
         }
 
+
         // context opacity
         if (data.opacity !== 1) {
           ctx.globalAlpha *= data.opacity;
         }
+
 
         ctx.globalCompositeOperation = data.compositeOperation;
 
@@ -468,16 +500,13 @@ exports = Class(View, function (supr) {
         var scaleX = destW * img._invScaleX;
         var scaleY = destH * img._invScaleY;
         if (map.width > 0 && map.height > 0) {
-          ctx.drawImage(img._srcImg,
-            map.x, map.y, map.width, map.height,
-            destX + scaleX * map.marginLeft,
-            destY + scaleY * map.marginTop,
-            scaleX * map.width,
-            scaleY * map.height);
+          ctx.drawImage(img._srcImg, map.x, map.y, map.width, map.height, destX + scaleX * map.marginLeft, destY + scaleY * map.marginTop, scaleX * map.width, scaleY * map.height);
         }
+
 
         _ctx.restore();
       }
+
 
       // update our current canvas rendering size and position
       this._canvX = canvX;

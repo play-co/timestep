@@ -13,17 +13,22 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @package ui.backend.canvas.ViewStyle;
  *
  * Models the style object of the canvas View.
  */
+jsio('import ..strPad');
+jsio('import ..BaseBacking');
 
-import ..strPad;
-import ..BaseBacking;
-
-var IDENTITY_MATRIX = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
+var IDENTITY_MATRIX = {
+  a: 1,
+  b: 0,
+  c: 0,
+  d: 1,
+  tx: 0,
+  ty: 0
+};
 var sin = Math.sin;
 var cos = Math.cos;
 
@@ -31,7 +36,14 @@ var ADD_COUNTER = 900000;
 
 var ViewBacking = exports = Class(BaseBacking, function () {
   this.init = function (view) {
-    this._globalTransform = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
+    this._globalTransform = {
+      a: 1,
+      b: 0,
+      c: 0,
+      d: 1,
+      tx: 0,
+      ty: 0
+    };
     this._cachedRotation = 0;
     this._cachedSin = 0;
     this._cachedCos = 1;
@@ -42,9 +54,14 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     this._childCount = 0;
   };
 
-  this.getSuperview = function () { return this._superview; };
+  this.getSuperview = function () {
+    return this._superview;
+  };
   this.getSubviews = function () {
-    if (this._needsSort) { this._needsSort = false; this._subviews.sort(); }
+    if (this._needsSort) {
+      this._needsSort = false;
+      this._subviews.sort();
+    }
     var subviews = [];
     var backings = this._subviews;
     var n = backings.length;
@@ -52,14 +69,20 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       subviews[i] = backings[i]._view;
     }
 
+
     return subviews;
   };
 
   this.addSubview = function (view) {
     var backing = view.__view;
     var superview = backing._superview;
-    if (superview == this._view || this == backing) { return false; }
-    if (superview) { superview.__view.removeSubview(view); }
+    if (superview == this._view || this == backing) {
+      return false;
+    }
+    if (superview) {
+      superview.__view.removeSubview(view);
+    }
+
 
     var n = this._subviews.length;
     this._subviews[n] = backing;
@@ -72,6 +95,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       this._needsSort = true;
     }
 
+
     return true;
   };
 
@@ -80,11 +104,12 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     if (index != -1) {
       this._subviews.splice(index, 1);
       this._childCount--;
-      // this._view.needsRepaint();
 
+      // this._view.needsRepaint();
       targetView.__view._superview = null;
       return true;
     }
+
 
     return false;
   };
@@ -112,6 +137,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       this._globalOpacity = this.opacity;
     }
 
+
     var gt = this._globalTransform;
     var sx = this.scaleX * this.scale * flipX;
     var sy = this.scaleY * this.scale * flipY;
@@ -135,15 +161,16 @@ var ViewBacking = exports = Class(BaseBacking, function () {
         this._cachedSin = sin(this.r);
         this._cachedCos = cos(this.r);
       }
-      var a  =  this._cachedCos * sx;
-      var b  =  this._cachedSin * sx;
-      var c  = -this._cachedSin * sy;
-      var d  =  this._cachedCos * sy;
+      var a = this._cachedCos * sx;
+      var b = this._cachedSin * sx;
+      var c = -this._cachedSin * sy;
+      var d = this._cachedCos * sy;
 
       if (ax || ay) {
         tx -= a * ax + c * ay;
         ty -= b * ax + d * ay;
       }
+
 
       gt.a = a * pgt.a + b * pgt.c;
       gt.b = a * pgt.b + b * pgt.d;
@@ -155,26 +182,39 @@ var ViewBacking = exports = Class(BaseBacking, function () {
   };
 
   this.wrapRender = function (ctx, opts) {
-    if (!this.visible) { return; }
+    if (!this.visible) {
+      return;
+    }
+
 
     if (this._needsSort) {
       this._needsSort = false;
       this._subviews.sort();
     }
 
+
     var width = this._width;
     var height = this._height;
-    if (width < 0 || height < 0) { return; }
+    if (width < 0 || height < 0) {
+      return;
+    }
+
 
     var saveContext = this.clip || this.compositeOperation || !this._view.__parent;
-    if (saveContext) { ctx.save(); }
+    if (saveContext) {
+      ctx.save();
+    }
+
 
     this.updateGlobalTransform();
     var gt = this._globalTransform;
     ctx.setTransform(gt.a, gt.b, gt.c, gt.d, gt.tx, gt.ty);
     ctx.globalAlpha = this._globalOpacity;
 
-    if (this.clip) { ctx.clipRect(0, 0, width, height); }
+    if (this.clip) {
+      ctx.clipRect(0, 0, width, height);
+    }
+
 
     var filter = this._view.getFilter();
     if (filter) {
@@ -183,14 +223,17 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       ctx.clearFilter();
     }
 
+
     if (this.compositeOperation) {
       ctx.globalCompositeOperation = this.compositeOperation;
     }
+
 
     if (this.backgroundColor) {
       ctx.fillStyle = this.backgroundColor;
       ctx.fillRect(0, 0, width, height);
     }
+
 
     var viewport = opts.viewport;
     this._view._render && this._view._render(ctx, opts);
@@ -198,7 +241,9 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     opts.viewport = viewport;
     ctx.clearFilter();
 
-    if (saveContext) { ctx.restore(); }
+    if (saveContext) {
+      ctx.restore();
+    }
   };
 
   this._renderSubviews = function (ctx, opts) {
@@ -228,7 +273,9 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     this._view.needsRepaint();
 
     var superview = this._view.getSuperview();
-    if (superview) { superview.__view._needsSort = true; }
+    if (superview) {
+      superview.__view._needsSort = true;
+    }
   };
 
   this._setAddedAt = function (addedAt) {
@@ -250,5 +297,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     this.offsetY = n * this.height / 100;
   };
 
-  this.toString = function () { return this.__sortKey; };
+  this.toString = function () {
+    return this.__sortKey;
+  };
 });

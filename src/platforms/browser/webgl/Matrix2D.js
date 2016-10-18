@@ -1,13 +1,12 @@
 var sin = Math.sin;
 var cos = Math.cos;
 
-var Matrix2D = Class(function() {
-
-  this.init = function() {
+var Matrix2D = Class(function () {
+  this.init = function () {
     this.identity();
   };
 
-  this.identity = function() {
+  this.identity = function () {
     this.a = 1;
     this.b = 0;
     this.c = 0;
@@ -16,13 +15,13 @@ var Matrix2D = Class(function() {
     this.ty = 0;
   };
 
-  this.clone = function() {
+  this.clone = function () {
     var result = new Matrix2D();
     result.copy(this);
     return result;
   };
 
-  this.copy = function(matrix) {
+  this.copy = function (matrix) {
     this.a = matrix.a;
     this.b = matrix.b;
     this.c = matrix.c;
@@ -31,7 +30,7 @@ var Matrix2D = Class(function() {
     this.ty = matrix.ty;
   };
 
-  this.scale = function(x, y) {
+  this.scale = function (x, y) {
     this.a *= x;
     this.b *= x;
     this.c *= y;
@@ -51,12 +50,12 @@ var Matrix2D = Class(function() {
     this.d = b * -sinA + d * cosA;
   };
 
-  this.translate = function(x, y) {
+  this.translate = function (x, y) {
     this.tx += this.a * x + this.c * y;
     this.ty += this.b * x + this.d * y;
   };
 
-  this.transform = function(matrix) {
+  this.transform = function (matrix) {
     helperMatrix.copy(this);
 
     if (matrix.a !== 1 || matrix.b !== 0 || matrix.c !== 0 || matrix.d !== 1) {
@@ -66,13 +65,14 @@ var Matrix2D = Class(function() {
       this.d = helperMatrix.b * matrix.c + helperMatrix.d * matrix.d;
     }
 
+
     this.tx = helperMatrix.a * matrix.tx + helperMatrix.c * matrix.ty + helperMatrix.tx;
     this.ty = helperMatrix.b * matrix.tx + helperMatrix.d * matrix.ty + helperMatrix.ty;
 
     return this;
   };
 
-  this.setTo = function(a, b, c, d, tx, ty) {
+  this.setTo = function (a, b, c, d, tx, ty) {
     this.a = a;
     this.b = b;
     this.c = c;
@@ -81,9 +81,12 @@ var Matrix2D = Class(function() {
     this.ty = ty;
   };
 
-  this.invert = function() {
+  this.invert = function () {
     var dtr = this.a * this.d - this.b * this.c;
-    if (dtr === 0) { return; }
+    if (dtr === 0) {
+      return;
+    }
+
 
     dtr = 1 / dtr;
     helperMatrix.copy(this);
@@ -98,12 +101,11 @@ var Matrix2D = Class(function() {
     return this;
   };
 
-  this.isEqualTo = function(matrix) {
-    return this.a === matrix.a && this.b === matrix.b && this.c === matrix.c && this.d === matrix.d &&
-      this.tx === matrix.tx && this.ty === matrix.ty;
+  this.isEqualTo = function (matrix) {
+    return this.a === matrix.a && this.b === matrix.b && this.c === matrix.c && this.d === matrix.d && this.tx === matrix.tx && this.ty === matrix.ty;
   };
 
-  this.concat = function(matrix) {
+  this.concat = function (matrix) {
     helperMatrix.copy(this);
 
     if (matrix.a !== 1 || matrix.b !== 0 || matrix.c !== 0 || matrix.d !== 1) {
@@ -112,6 +114,7 @@ var Matrix2D = Class(function() {
       this.c = helperMatrix.a * matrix.c + helperMatrix.c * matrix.d;
       this.d = helperMatrix.b * matrix.c + helperMatrix.d * matrix.d;
     }
+
 
     this.tx = matrix.a * helperMatrix.tx + matrix.c * helperMatrix.ty + matrix.tx;
     this.ty = matrix.b * helperMatrix.tx + matrix.d * helperMatrix.ty + matrix.ty;

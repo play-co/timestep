@@ -13,12 +13,10 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class event.input.KeyListener
  * Implements a simple Key listener.
  */
-
 jsio('from util.browser import $');
 
 var listener = null;
@@ -28,10 +26,10 @@ exports = Class(function () {
     if (!listener) {
       listener = new Listener();
     }
-  }
+  };
   this.getKeys = function () {
     return listener.getKeys();
-  }
+  };
 });
 
 var Listener = Class(function () {
@@ -51,7 +49,7 @@ var Listener = Class(function () {
     delete this._keys[e.keyCode];
     $.stopEvent(e);
   };
-  
+
   this.onKeyDown = function (e) {
     this._keys[e.keyCode] = true;
     $.stopEvent(e);

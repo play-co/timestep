@@ -13,30 +13,28 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @package timestep.env.browser.Audio;
  *
  * Audio implementation using the <audio> element for browsers.
  */
-
 exports = function (opts) {
   var defaults = {
     autoplay: false,
     preload: 'auto',
-    volume: 1.0,
+    volume: 1,
     loop: 0,
     src: ''
   };
-  
+
   opts = merge(opts, defaults);
   var el = document.createElement('Audio');
-  
+
   el.autoplay = opts.autoplay;
   el.preload = opts.preload;
   el.volume = opts.volume;
   el.loop = opts.loop;
   el.src = opts.src;
-  
+
   return el;
 };

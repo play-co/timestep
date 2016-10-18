@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * package timestep.env.browser.Input;
  *
@@ -23,17 +22,16 @@
  * mouse over/out and start events are attached to the element. Used on the
  * canvas as well as DOM bindings.
  */
+jsio('import device');
+jsio('from util.browser import $');
 
-import device;
-from util.browser import $;
-
-import event.input.dispatch as input;
+jsio('import event.input.dispatch as input');
 var eventTypes = input.eventTypes;
 
-import event.input.InputEvent as InputEvent;
+jsio('import event.input.InputEvent as InputEvent');
+
 
 // import ...FPSCounter;
-
 var UID = -1;
 
 var isIOS7 = device.iosVersion === 7;
@@ -41,20 +39,22 @@ var isIOSSafari = device.iosVersion >= 7 && !device.isIpad && !device.isStandalo
 var enableLandscapeScroll = isIOSSafari;
 
 exports = Class(function () {
-
   this.init = function (opts) {
+    if (device.simulatingMobileNative || device.simulatingMobileBrowser) {
+      this._simulateMobile = true;
+    }
 
-    if (device.simulatingMobileNative || device.simulatingMobileBrowser) { this._simulateMobile = true; }
 
     this._evtQueue = [];
     this._rootView = opts.rootView;
 
     if (opts.el) {
       if (device.isMobileBrowser) {
-        this._toggleNode = $({parent:document.body});
+        this._toggleNode = $({ parent: document.body });
       }
       this.setElement(opts.el);
     }
+
 
     // Mouseover/out events do not fire for mobile browsers
     // that are driven solely by touch events, so in mobile
@@ -70,17 +70,18 @@ exports = Class(function () {
       $.onEvent(document, device.events.start, this, 'handleMouse', eventTypes.START);
     }
 
+
     if (opts.engine) {
-      if (opts.engine.getOpt('minIOSLandscapeScroll') > device.iosVersion
-          || opts.engine.getOpt('disableIOSLandscapeScroll')) {
+      if (opts.engine.getOpt('minIOSLandscapeScroll') > device.iosVersion || opts.engine.getOpt('disableIOSLandscapeScroll')) {
         enableLandscapeScroll = false;
       }
     }
 
+
     this.enable();
 
-    // this._evtFps = new FPSCounter({name: "mouse events"});
 
+    // this._evtFps = new FPSCounter({name: "mouse events"});
     this._hasFocus = false;
     if (document.addEventListener) {
       document.addEventListener('focus', bind(this, 'onFocusCapture'), true);
@@ -89,19 +90,25 @@ exports = Class(function () {
   };
 
   this.enable = function () {
-    if (this._isEnabled) { return; }
+    if (this._isEnabled) {
+      return;
+    }
     this._isEnabled = true;
 
     this._handleMove = $.onEvent(document, device.events.move, this, 'handleMouse', eventTypes.MOVE);
     this._handleSelect = $.onEvent(document, device.events.end, this, 'handleMouse', eventTypes.SELECT);
-    this._handleScroll = $.onEvent(window, 'DOMMouseScroll', this, 'handleMouse', eventTypes.SCROLL); // FF
-    this._handleWheel = $.onEvent(window, 'mousewheel', this, 'handleMouse', eventTypes.SCROLL); // webkit
+    this._handleScroll = $.onEvent(window, 'DOMMouseScroll', this, 'handleMouse', eventTypes.SCROLL);
+    // FF
+    this._handleWheel = $.onEvent(window, 'mousewheel', this, 'handleMouse', eventTypes.SCROLL);
 
+    // webkit
     this._addElEvents();
   };
 
   this.disable = function () {
-    if (!this._isEnabled) { return; }
+    if (!this._isEnabled) {
+      return;
+    }
     this._isEnabled = false;
 
     if (this._handleMove) {
@@ -120,6 +127,7 @@ exports = Class(function () {
       this._handleWheel();
       this._handleWheel = false;
     }
+
 
     this._removeElEvents();
   };
@@ -141,25 +149,29 @@ exports = Class(function () {
 
   this._removeElEvents = function () {
     if (this._elEvents) {
-      for(var i = 0, detach; detach = this._elEvents[i]; ++i) {
+      for (var i = 0, detach; detach = this._elEvents[i]; ++i) {
         detach();
       }
     }
   };
 
   this._addElEvents = function () {
-
     this._removeElEvents();
 
     var el = this._el;
-    el.ondragstart = function () { return false; };
-    el.onselectstart = function () { return false; };
+    el.ondragstart = function () {
+      return false;
+    };
+    el.onselectstart = function () {
+      return false;
+    };
 
     this._elEvents = [];
 
     if (!device.useDOM) {
       this._elEvents.push($.onEvent(el, device.events.start, this, 'handleMouse', eventTypes.START));
     }
+
 
     if (!device.isMobileBrowser && !device.isNative) {
       this._elEvents.push($.onEvent(el, 'mouseover', this, 'onMouseOver'));
@@ -173,19 +185,34 @@ exports = Class(function () {
     this._addElEvents();
   };
 
-  this.onMouseOver = function () { this._isOver = true; };
-  this.onMouseOut = function () { this._isOver = false; };
-  this.onMouseDown = function () { this._isMouseDown = true; };
-  this.onMouseUp = function () { this._isMouseUp = true; };
+  this.onMouseOver = function () {
+    this._isOver = true;
+  };
+  this.onMouseOut = function () {
+    this._isOver = false;
+  };
+  this.onMouseDown = function () {
+    this._isMouseDown = true;
+  };
+  this.onMouseUp = function () {
+    this._isMouseUp = true;
+  };
 
   // for native-compatibility, always returns an empty array in the browser
-  this.getEvents = function () { return this._evtQueue; };
+  this.getEvents = function () {
+    return this._evtQueue;
+  };
 
-  this.allowScrollEvents = function (allowScrollEvents) { this._allowScrollEvents = allowScrollEvents; };
+  this.allowScrollEvents = function (allowScrollEvents) {
+    this._allowScrollEvents = allowScrollEvents;
+  };
 
   this.handleMouse = function (type, evt) {
     var target = evt.target;
-    if (!device.useDOM && !this._isDown && this._el && evt.target != this._el) { return; }
+    if (!device.useDOM && !this._isDown && this._el && evt.target != this._el) {
+      return;
+    }
+
 
     var isMobileBrowser = device.isMobileBrowser;
 
@@ -206,25 +233,32 @@ exports = Class(function () {
         }
       }
 
-     if (allowIOSScroll && type === eventTypes.SCROLL) {
+
+      if (allowIOSScroll && type === eventTypes.SCROLL) {
         return;
       }
+
 
       if (!allowIOSScroll) {
         $.stopEvent(evt);
         evt.returnValue = false;
       }
 
+
       if (type === eventTypes.SELECT && enableLandscapeScroll && isLandscape && window.scrollY) {
         window.scrollTo(0, 0);
       }
     } else if (this._isOver && (!this._allowScrollEvents || type != eventTypes.SCROLL)) {
-      if (evt.stopPropagation) { evt.stopPropagation(); }
+      if (evt.stopPropagation) {
+        evt.stopPropagation();
+      }
       if (type != eventTypes.START) {
         $.stopEvent(evt);
         evt.returnValue = false;
       }
     }
+
+
 
     // On ios devices, this event could correspond to multiple touches.  We recall
     // ourselves with each changed touch independently.
@@ -234,6 +268,7 @@ exports = Class(function () {
       }
       return;
     }
+
 
     var x, y;
     // Figure out where in the canvas the event fired.
@@ -268,25 +303,31 @@ exports = Class(function () {
         parent = parent.parentNode;
       }
 
+
       x = evt.pageX - offsetX;
       y = evt.pageY - offsetY;
     }
+
+
 
     var id = evt.identifier || UID;
 
     if (this._simulateMobile) {
       switch (type) {
-        case eventTypes.START:
-          this._moveOK = true;
-          break;
-        case eventTypes.MOVE:
-          if (!this._moveOK) { return; }
-          break;
-        case eventTypes.SELECT:
-          this._moveOK = false;
-          break;
+      case eventTypes.START:
+        this._moveOK = true;
+        break;
+      case eventTypes.MOVE:
+        if (!this._moveOK) {
+          return;
+        }
+        break;
+      case eventTypes.SELECT:
+        this._moveOK = false;
+        break;
       }
     }
+
 
     if (type == eventTypes.START) {
       this._isDown = true;
@@ -299,6 +340,8 @@ exports = Class(function () {
       }
     }
 
+
+
     var dpr = device.screen.devicePixelRatio;
 
     var inputEvent = new InputEvent(id, type, x * dpr, y * dpr);
@@ -306,13 +349,15 @@ exports = Class(function () {
       while (target && !target._view) {
         target = target.parentNode;
       }
-      if (!target) { return; }
+      if (!target) {
+        return;
+      }
       inputEvent.target = target._view;
     }
 
+
     if (type == eventTypes.SCROLL) {
       // try to normalize scroll events! :-(
-
       // some browsers send both horizontal and vertical offsets in one event! nice!
       // other browsers don't. This is awful, since this is the least common denominator!
       // so we have to send two events even if the browser only sends one.
@@ -334,14 +379,18 @@ exports = Class(function () {
           inputEvent.scrollAxis = input.HORIZONTAL_AXIS;
         }
 
+
+
       } else if (evt.detail) {
         inputEvent.scrollDelta = -evt.detail;
         inputEvent.scrollAxis = 'axis' in evt ? evt.axis == evt.VERTICAL_AXIS ? input.VERTICAL_AXIS : input.HORIZONTAL_AXIS : input.VERTICAL_AXIS;
-      } else if (evt.wheelDelta) { // IE/Opera
+      } else if (evt.wheelDelta) {
+        // IE/Opera
         inputEvent.scrollDelta = (window.opera ? 1 : -1) * evt.wheelDelta / 120;
         inputEvent.scrollAxis = input.VERTICAL_AXIS;
       }
     }
+
 
     input.dispatchEvent(this._rootView, inputEvent);
   };

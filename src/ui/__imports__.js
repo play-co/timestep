@@ -13,13 +13,11 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * package timestep;
  *
  * Resolve what packages to import with timestep.
  */
-
 exports.getDeviceImports = function (device) {
   // runtime*/device/__imports__.js in will handle the remaining imports
   if (device == 'browser') {
@@ -30,8 +28,12 @@ exports.getDeviceImports = function (device) {
     return ['platforms.native.initialize'];
   }
 
+
+
   return [];
 }
+
+;
 
 
 exports.getBackendImports = function (backend) {
@@ -45,6 +47,7 @@ exports.getBackendImports = function (backend) {
     ];
   }
 
+
   if (backend == 'canvas') {
     return [
       '.backend.canvas.animate',
@@ -55,12 +58,16 @@ exports.getBackendImports = function (backend) {
     ];
   }
 
+
   return [];
 }
+;
 
 exports.resolve = function (env, opts) {
   var imports = [];
-  var add = function (list) { imports = imports.concat(list); };
+  var add = function (list) {
+    imports = imports.concat(list);
+  };
 
   add(exports.getDeviceImports(env));
 
@@ -74,7 +81,10 @@ exports.resolve = function (env, opts) {
   } else {
     add(exports.getBackendImports('canvas'));
   }
-  
+
+
+
   return imports;
 }
+;
 

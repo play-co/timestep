@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class ui.TextPromptView;
  * Implements a view that can accept input using the environment's InputPrompt.
@@ -21,9 +20,8 @@
  * @doc http://doc.gameclosure.com/api/ui-text.html#class-ui.textpromptview
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/text.md
  */
-
-import ui.TextView as TextView;
-import device;
+jsio('import ui.TextView as TextView');
+jsio('import device');
 
 var InputPrompt = device.get('InputPrompt');
 
@@ -35,7 +33,7 @@ var defaults = {
 
 exports = Class(TextView, function (supr) {
   this.init = function (opts) {
-    this._opts = merge(opts, defaults)
+    this._opts = merge(opts, defaults);
 
     supr(this, 'init', [this._opts]);
 
@@ -56,6 +54,7 @@ exports = Class(TextView, function (supr) {
   this.onSubmit = function (value) {
     this.publish('Submit', value);
   }
+;
 
   this.onChange = function (changeValue) {
     if (changeValue === null) {
@@ -73,11 +72,13 @@ exports = Class(TextView, function (supr) {
     this._prompt.setOkButton(value);
     return this;
   }
+;
 
   this.setCancelButton = function (value) {
     this._prompt.setCancelButton(value);
     return this;
   }
+;
 
   this.setPrompt = function (prompt) {
     this._prompt.setMessage(prompt);
@@ -88,7 +89,7 @@ exports = Class(TextView, function (supr) {
     this._prompt.show();
   };
 
-  this.setKeyboardType = function(keyboardType) {
+  this.setKeyboardType = function (keyboardType) {
     this._prompt.setKeyboardType(keyboardType);
     return this;
   };

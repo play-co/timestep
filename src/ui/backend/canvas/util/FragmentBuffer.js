@@ -13,10 +13,9 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
-import device;
-import .FragmentBin;
-import .SortedLinkedList as SortedList;
+jsio('import device');
+jsio('import .FragmentBin');
+jsio('import .SortedLinkedList as SortedList');
 
 
 var debug = false;
@@ -26,11 +25,7 @@ var sort = function (a, b) {
 };
 
 var randomColor = function () {
-  var color = 'rgba(' +
-        (Math.random()*255).toFixed() + ',' +
-        (Math.random()*255).toFixed() + ',' +
-        (Math.random()*255).toFixed() + ',' +
-        '1)';
+  var color = 'rgba(' + (Math.random() * 255).toFixed() + ',' + (Math.random() * 255).toFixed() + ',' + (Math.random() * 255).toFixed() + ',' + '1)';
   return color;
 };
 
@@ -47,7 +42,9 @@ var rectIntersectsRect = function (r1, r2) {
 };
 
 var debugCheck = function (bin, list) {
-  if (!bin) { return;}
+  if (!bin) {
+    return;
+  }
   var iter = list.iterator();
   var ok = true;
   while (iter.hasNext() && ok) {
@@ -70,10 +67,13 @@ var FragmentBuffer = exports = Class(function () {
   };
 
   this._build = function () {
-      var Canvas = device.get('Canvas');
-        this._canvas = new Canvas({width: 1024, height: 1024});
-        this._ctx = this.getCanvas().getContext('2d', bind(this, function() {
-      logger.log("{fragment-buffer} Reacting to lost canvas by clearing text buffer");
+    var Canvas = device.get('Canvas');
+    this._canvas = new Canvas({
+      width: 1024,
+      height: 1024
+    });
+    this._ctx = this.getCanvas().getContext('2d', bind(this, function () {
+      logger.log('{fragment-buffer} Reacting to lost canvas by clearing text buffer');
       // On canvas loss:
       this._canvas = null;
       this.clearBuffer();
@@ -133,17 +133,18 @@ var FragmentBuffer = exports = Class(function () {
       }
     } else {
       logger.log('buffer full, further TextViews will not be cached');
-      // When we support clearing buffers then this should be enabled again...
-      // this.clearBuffer();
     }
 
+
+    // When we support clearing buffers then this should be enabled again...
+    // this.clearBuffer();
     return bin;
   };
+
 
   /**
   * debugging code to verify overlapping bins aren't created.
   */
-
   this.getPositionForText = function (description) {
     var hash = this.onGetHash(description);
     var width = Math.ceil(description.width) + 1;
@@ -160,9 +161,6 @@ var FragmentBuffer = exports = Class(function () {
 
   this.releaseBin = function (hash) {
     if (this._cache[hash]) {
-      // When we support clearin buffers then this should be enabled again...
-      // this._cache[hash].filled = false;
-      // delete this._cache[hash];
     }
   };
 

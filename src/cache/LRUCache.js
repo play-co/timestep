@@ -34,7 +34,7 @@
  *
  *  removed  <--  <--  <--  <--  <--  <--  <--  <--  <--  <--  <--  added
  */
-var LRUCache = function(limit) {
+var LRUCache = function (limit) {
   // Current size of the cache. (Read-only).
   this.size = 0;
   // Maximum number of items this cache can hold.
@@ -42,13 +42,18 @@ var LRUCache = function(limit) {
   this._keymap = {};
 }
 
+;
+
 /**
  * Put <value> into the cache associated with <key>. Returns the entry which was
  * removed to make room for the new entry. Otherwise undefined is returned
  * (i.e. if there was enough room already).
  */
-LRUCache.prototype.put = function(key, value) {
-  var entry = {key:key, value:value};
+LRUCache.prototype.put = function (key, value) {
+  var entry = {
+    key: key,
+    value: value
+  };
   // Note: No protection agains replacing, and thus orphan entries. By design.
   this._keymap[key] = entry;
   if (this.tail) {
@@ -84,7 +89,7 @@ LRUCache.prototype.put = function(key, value) {
  *     return entry;
  *   }
  */
-LRUCache.prototype.shift = function() {
+LRUCache.prototype.shift = function () {
   // todo: handle special case when limit == 1
   var entry = this.head;
   if (entry) {
@@ -107,10 +112,12 @@ LRUCache.prototype.shift = function() {
  * Get and register recent use of <key>. Returns the value associated with <key>
  * or undefined if not in cache.
  */
-LRUCache.prototype.get = function(key, returnEntry) {
+LRUCache.prototype.get = function (key, returnEntry) {
   // First, find our cache entry
   var entry = this._keymap[key];
-  if (entry === undefined) return; // Not cached. Sorry.
+  if (entry === undefined)
+    return;
+  // Not cached. Sorry.
   // As <key> was found in the cache, register it as being requested recently
   if (entry === this.tail) {
     // Already the most recenlty used entry, so no need to update the list
@@ -123,28 +130,33 @@ LRUCache.prototype.get = function(key, returnEntry) {
   if (entry.newer) {
     if (entry === this.head)
       this.head = entry.newer;
-    entry.newer.older = entry.older; // C <-- E.
+    entry.newer.older = entry.older;
   }
+  // C <-- E.
   if (entry.older)
-    entry.older.newer = entry.newer; // C. --> E
-  entry.newer = undefined; // D --x
-  entry.older = this.tail; // D. --> E
+    entry.older.newer = entry.newer;
+  // C. --> E
+  entry.newer = undefined;
+  // D --x
+  entry.older = this.tail;
+  // D. --> E
   if (this.tail)
-    this.tail.newer = entry; // E. <-- D
+    this.tail.newer = entry;
+  // E. <-- D
   this.tail = entry;
   return returnEntry ? entry : entry.value;
 };
 
+
 // ----------------------------------------------------------------------------
 // Following code is optional and can be removed without breaking the core
 // functionality.
-
 /**
  * Check if <key> is in the cache without registering recent use. Feasible if
  * you do not want to chage the state of the cache, but only "peek" at it.
  * Returns the entry associated with <key> if found, or undefined if not found.
  */
-LRUCache.prototype.find = function(key) {
+LRUCache.prototype.find = function (key) {
   return this._keymap[key];
 };
 
@@ -152,14 +164,15 @@ LRUCache.prototype.find = function(key) {
  * Update the value of entry with <key>. Returns the old value, or undefined if
  * entry was not in the cache.
  */
-LRUCache.prototype.set = function(key, value) {
+LRUCache.prototype.set = function (key, value) {
   var oldvalue, entry = this.get(key, true);
   if (entry) {
     oldvalue = entry.value;
     entry.value = value;
   } else {
     oldvalue = this.put(key, value);
-    if (oldvalue) oldvalue = oldvalue.value;
+    if (oldvalue)
+      oldvalue = oldvalue.value;
   }
   return oldvalue;
 };
@@ -168,10 +181,12 @@ LRUCache.prototype.set = function(key, value) {
  * Remove entry <key> from cache and return its value. Returns undefined if not
  * found.
  */
-LRUCache.prototype.remove = function(key) {
+LRUCache.prototype.remove = function (key) {
   var entry = this._keymap[key];
-  if (!entry) return;
-  delete this._keymap[entry.key]; // need to do delete unfortunately
+  if (!entry)
+    return;
+  delete this._keymap[entry.key];
+  // need to do delete unfortunately
   if (entry.newer && entry.older) {
     // relink the older entry with the newer entry
     entry.older.newer = entry.newer;
@@ -186,16 +201,20 @@ LRUCache.prototype.remove = function(key) {
     entry.older.newer = undefined;
     // link the newer entry to head
     this.tail = entry.older;
-  } else {// if(entry.older === undefined && entry.newer === undefined) {
+  } else {
+    // if(entry.older === undefined && entry.newer === undefined) {
     this.head = this.tail = undefined;
   }
+
+
+
 
   this.size--;
   return entry.value;
 };
 
 /** Removes all entries */
-LRUCache.prototype.removeAll = function() {
+LRUCache.prototype.removeAll = function () {
   // This should be safe, as we never expose strong refrences to the outside
   this.head = this.tail = undefined;
   this.size = 0;
@@ -207,14 +226,18 @@ LRUCache.prototype.removeAll = function() {
  * arbitrary order.
  */
 if (typeof Object.keys === 'function') {
-  LRUCache.prototype.keys = function() { return Object.keys(this._keymap); };
+  LRUCache.prototype.keys = function () {
+    return Object.keys(this._keymap);
+  };
 } else {
-  LRUCache.prototype.keys = function() {
+  LRUCache.prototype.keys = function () {
     var keys = [];
-    for (var k in this._keymap) keys.push(k);
+    for (var k in this._keymap)
+      keys.push(k);
     return keys;
   };
 }
+
 
 /**
  * Call `fun` for each entry. Starting with the newest entry if `desc` is a true
@@ -224,10 +247,13 @@ if (typeof Object.keys === 'function') {
  * `fun` is called with 3 arguments in the context `context`:
  *   `fun.call(context, Object key, Object value, LRUCache self)`
  */
-LRUCache.prototype.forEach = function(fun, context, desc) {
+LRUCache.prototype.forEach = function (fun, context, desc) {
   var entry;
-  if (context === true) { desc = true; context = undefined; }
-  else if (typeof context !== 'object') context = this;
+  if (context === true) {
+    desc = true;
+    context = undefined;
+  } else if (typeof context !== 'object')
+    context = this;
   if (desc) {
     entry = this.tail;
     while (entry) {
@@ -244,20 +270,23 @@ LRUCache.prototype.forEach = function(fun, context, desc) {
 };
 
 /** Returns a JSON (array) representation */
-LRUCache.prototype.toJSON = function() {
+LRUCache.prototype.toJSON = function () {
   var s = [], entry = this.head;
   while (entry) {
-    s.push({key:entry.key.toJSON(), value:entry.value.toJSON()});
+    s.push({
+      key: entry.key.toJSON(),
+      value: entry.value.toJSON()
+    });
     entry = entry.newer;
   }
   return s;
 };
 
 /** Returns a String representation */
-LRUCache.prototype.toString = function() {
+LRUCache.prototype.toString = function () {
   var s = '', entry = this.head;
   while (entry) {
-    s += String(entry.key)+':'+entry.value;
+    s += String(entry.key) + ':' + entry.value;
     entry = entry.newer;
     if (entry)
       s += ' < ';

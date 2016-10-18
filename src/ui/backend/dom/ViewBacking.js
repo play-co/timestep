@@ -13,15 +13,14 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
+jsio('import device');
+jsio('import event.Callback as Callback');
+jsio('import animate');
+jsio('import event.input.InputEvent as InputEvent');
+jsio('import math.geom.Point as Point');
+jsio('from util.browser import $');
 
-import device;
-import event.Callback as Callback;
-import animate;
-import event.input.InputEvent as InputEvent;
-import math.geom.Point as Point;
-from util.browser import $;
-
-import ..BaseBacking;
+jsio('import ..BaseBacking');
 
 var Canvas = device.get('Canvas');
 
@@ -29,50 +28,62 @@ var AVOID_CSS_ANIM = device.isAndroid;
 
 var TRANSFORM_PREFIX = 'transform';
 function CHECK_TRANSLATE3D() {
-    var el = document.createElement('p'),
-        has3d,
-        transforms = {
-            'webkitTransform':'-webkit-transform',
-            'OTransform':'-o-transform',
-            'msTransform':'-ms-transform',
-            'MozTransform':'-moz-transform',
-            'transform':'transform'
-        };
+  var el = document.createElement('p'), has3d, transforms = {
+      'webkitTransform': '-webkit-transform',
+      'OTransform': '-o-transform',
+      'msTransform': '-ms-transform',
+      'MozTransform': '-moz-transform',
+      'transform': 'transform'
+    };
 
-    // Add it to the body to get the computed style.
-    document.body.insertBefore(el, null);
+  // Add it to the body to get the computed style.
+  document.body.insertBefore(el, null);
 
-    for (var t in transforms) {
-        if (el.style[t] !== undefined) {
-            el.style[t] = "translate3d(1px,1px,1px)";
-            has3d = window.getComputedStyle(el).getPropertyValue(transforms[t]);
-            TRANSFORM_PREFIX = t;
-        }
+  for (var t in transforms) {
+    if (el.style[t] !== undefined) {
+      el.style[t] = 'translate3d(1px,1px,1px)';
+      has3d = window.getComputedStyle(el).getPropertyValue(transforms[t]);
+      TRANSFORM_PREFIX = t;
     }
+  }
 
-    document.body.removeChild(el);
 
-    return (has3d !== undefined && has3d.length > 0 && has3d !== "none");
+  document.body.removeChild(el);
+
+  return has3d !== undefined && has3d.length > 0 && has3d !== 'none';
 }
 
-var SUPPORTS_TRANSLATE3D = false;//CHECK_TRANSLATE3D();
+
+var SUPPORTS_TRANSLATE3D = false;
 
 
+//CHECK_TRANSLATE3D();
 var ADD_COUNTER = 900000;
 
 function getEasing(fn) {
-  if (typeof fn == 'string') { return fn; }
-  if (fn == animate.easeIn) { return 'ease-in'; }
-  if (fn == animate.easeOut) { return 'ease-out'; }
-  if (fn == animate.easeInOut) { return 'ease-in-out'; }
-  if (fn == animate.linear) { return 'linear'; }
+  if (typeof fn == 'string') {
+    return fn;
+  }
+  if (fn == animate.easeIn) {
+    return 'ease-in';
+  }
+  if (fn == animate.easeOut) {
+    return 'ease-out';
+  }
+  if (fn == animate.easeInOut) {
+    return 'ease-in-out';
+  }
+  if (fn == animate.linear) {
+    return 'linear';
+  }
   return 'ease';
-};
+}
+;
 
 var LEN_Z = 8;
 var MAX_Z = 99999999;
 var MIN_Z = -99999999;
-var PAD = "00000000";
+var PAD = '00000000';
 
 var DURATION = 600;
 
@@ -87,16 +98,18 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 
     // used to identify dom nodes
     n._view = view;
-    n.addEventListener("webkitTransitionEnd", bind(this, "_transitionEnd"), false);
+    n.addEventListener('webkitTransitionEnd', bind(this, '_transitionEnd'), false);
     n.className = 'view';
     if (opts['dom:className']) {
       n.className += ' ' + opts['dom:className'];
     }
 
+
     var cssText = 'fontSize:1px;position:absolute;top:0px;left:0px;-webkit-transform-origin:0px 0px;';
     if (!device.isAndroid) {
       cssText += '-webkit-backface-visibility:hidden;';
     }
+
 
     var s = n.style;
     s.cssText = cssText;
@@ -109,6 +122,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     for (var name in domStyles) {
       s[name] = domStyles[name];
     }
+
 
     // store for the computed styles
     this._computed = {
@@ -128,18 +142,24 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     };
 
     // animation
-    this._view.getAnimation = function () { return this.__view; }
+    this._view.getAnimation = function () {
+      return this.__view;
+    };
     this._animating = false;
     this._animationQueue = [];
     this._animationCallback = null;
 
     // put the initial view tag into the view tree for easier debugging
     if (DEBUG) {
-      n.setAttribute("TAG:", view.getTag());
+      n.setAttribute('TAG:', view.getTag());
     }
   }
+;
 
-  this.getElement = function () { return this._node; }
+  this.getElement = function () {
+    return this._node;
+  }
+;
 
   this.addSubview = function (view) {
     var backing = view.__view;
@@ -148,7 +168,9 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     if (superview == this._view) {
       return false;
     } else {
-      if (superview) { superview.__view.removeSubview(view); }
+      if (superview) {
+        superview.__view.removeSubview(view);
+      }
       var n = this._subviews.length;
       this._subviews[n] = backing;
       this._node.appendChild(node);
@@ -158,9 +180,11 @@ var ViewBacking = exports = Class(BaseBacking, function () {
         this._needsSort = true;
       }
 
+
       return true;
     }
   }
+;
 
   this.removeSubview = function (targetView) {
     var index = this._subviews.indexOf(targetView.__view);
@@ -170,8 +194,10 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       return true;
     }
 
+
     return false;
   }
+;
 
   this.getSuperview = function () {
     var p = this._node.parentNode;
@@ -179,11 +205,16 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       return null;
     }
 
+
     return p._view;
   }
+;
 
   this.getSubviews = function () {
-    if (this._needsSort) { this._needsSort = false; this._subviews.sort(); }
+    if (this._needsSort) {
+      this._needsSort = false;
+      this._subviews.sort();
+    }
     var subviews = [];
     var n = this._subviews.length;
     for (var i = 0; i < n; ++i) {
@@ -191,6 +222,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     }
     return subviews;
   }
+;
 
   this.wrapTick = function (dt, app) {
     this._view.tick && this._view.tick(dt, app);
@@ -199,14 +231,24 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       view.wrapTick(dt, app);
     }
   }
+;
 
   this.wrapRender = function (ctx, opts) {
-    if (!this.visible) { return; }
-    if (this._needsSort) { this._needsSort = false; this._subviews.sort(); }
+    if (!this.visible) {
+      return;
+    }
+    if (this._needsSort) {
+      this._needsSort = false;
+      this._subviews.sort();
+    }
+
 
     var width = this._computed.width;
     var height = this._computed.height;
-    if (width < 0 || height < 0) { return; }
+    if (width < 0 || height < 0) {
+      return;
+    }
+
 
     try {
       var render = this._view.render;
@@ -214,11 +256,13 @@ var ViewBacking = exports = Class(BaseBacking, function () {
         this._render(render, width, height, opts);
       }
 
+
       this._renderSubviews(ctx, opts);
-    } catch(e) {
+    } catch (e) {
       logger.error(this, e.message, e.stack);
     }
   }
+;
 
   this._render = function (render, width, height, opts) {
     if (this._noCanvas) {
@@ -231,6 +275,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
         this.ctx = this._canvas.getContext('2d');
       }
 
+
       var needsRepaint = this._view._needsRepaint;
 
       // clear the canvas
@@ -239,6 +284,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
         this._canvas.width = width;
         this._canvas.height = height;
       }
+
 
       if (needsRepaint) {
         this._view._needsRepaint = false;
@@ -253,6 +299,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       }
     }
   }
+;
 
   this._renderSubviews = function (ctx, opts) {
     var i = 0;
@@ -262,52 +309,60 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       view.wrapRender(ctx, opts);
     }
   }
+;
 
   this.localizePoint = function (pt) {
     var s = this._computed;
     pt.x -= s.x + s.anchorX + s.offsetX;
     pt.y -= s.y + s.anchorY + s.offsetY;
-    if (s.r) { pt.rotate(-s.r); }
+    if (s.r) {
+      pt.rotate(-s.r);
+    }
     pt.scale(1 / s.scale);
     pt.x += s.anchorX;
     pt.y += s.anchorY;
     return pt;
   }
+;
 
   // exports the current style object
   this.copy = function () {
     return merge({}, this._computed);
   }
+;
 
-  this.update = function (style) { this._setProps(style); }
+  this.update = function (style) {
+    this._setProps(style);
+  }
+;
 
   this.position = function (x, y) {
     var s = this._node.style;
 
     if (SUPPORTS_TRANSLATE3D) {
-      var translate = 'translate3d(' + (x) + 'px,' + (y) + 'px,0)';
+      var translate = 'translate3d(' + x + 'px,' + y + 'px,0)';
 
       // Check for differences and other properties like scale, rotate, translate, etc
       if (s[TRANSFORM_PREFIX] != '' && s[TRANSFORM_PREFIX] != translate) {
         s[TRANSFORM_PREFIX] += translate;
-      }
-      else {
+      } else {
         s[TRANSFORM_PREFIX] = translate;
       }
 
-    }
-    else {
+
+    } else {
       s.left = x + 'px';
       s.top = y + 'px';
     }
   };
 
+
   //****************************************************************
   // ANIMATION
-
   this._updateOrigin = function () {
     this._node.style.webkitTransformOrigin = (this._computed.anchorX || 0) + 'px ' + (this._computed.anchorY || 0) + 'px';
   }
+;
 
   this._setProps = function (props, anim) {
     var setMatrix = false;
@@ -317,65 +372,68 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     var previous = {};
     for (var key in props) {
       var value = props[key];
-      if (key == "dx" || key == "dy") {
+      if (key == 'dx' || key == 'dy') {
         key = key.substr(1);
         value = this._computed[key] + value;
       }
       switch (key) {
-        case "anchorX":
-        case "anchorY":
+      case 'anchorX':
+      case 'anchorY':
+        this._computed[key] = value;
+        this._updateOrigin();
+        break;
+      case 'clip':
+        this._computed.clip = value;
+        s.overflow = value ? 'hidden' : 'visible';
+        break;
+      case 'zIndex':
+        if (this._computed.zIndex != value) {
+          this._computed.zIndex = value;
+          s.zIndex = value;
+          this._onZIndex(value);
+        }
+        break;
+      case 'offsetX':
+      case 'offsetY':
+      case 'x':
+      case 'y':
+      case 'r':
+      case 'scale':
+        if (this._computed[key] != value) {
+          previous[key] = this._computed[key];
           this._computed[key] = value;
-          this._updateOrigin();
-          break;
-        case "clip":
-          this._computed.clip = value;
-          s.overflow = value ? 'hidden' : 'visible';
-          break;
-        case "zIndex":
-          if (this._computed.zIndex != value) {
-            this._computed.zIndex = value;
-            s.zIndex = value;
-            this._onZIndex(value);
-          }
-          break;
-        case "offsetX":
-        case "offsetY":
-        case "x":
-        case "y":
-        case "r":
-        case "scale":
-          if (this._computed[key] != value) {
-            previous[key] = this._computed[key];
-            this._computed[key] = value;
-            setMatrix = true;
-          }
-          break;
-        default:
-          if (this._computed[key] != value) {
-            ++animCount;
-              this._computed[key] = value;
-            if (key == 'width' || key == 'height') {
-              s[key] = value + 'px';
-              resized = true;
-            } else if (key == 'visible') {
-              s.display = (value ? this._displayStyle || 'block' : 'none');
-              //s.visibility = (value ? 'visible' : 'hidden');
-              // chrome has an obscure rendering bug where visibility:hidden won't
-              // hide the canvas element child nodes sometimes. If you set opacity to zero, it will.
-              //s.opacity = (value ? this._computed['opacity'] : 0);
+          setMatrix = true;
+        }
+        break;
+      default:
+        if (this._computed[key] != value) {
+          ++animCount;
+          this._computed[key] = value;
+          if (key == 'width' || key == 'height') {
+            s[key] = value + 'px';
+            resized = true;
+          } else if (key == 'visible') {
+            s.display = value ? this._displayStyle || 'block' : 'none';
 
-            } else if (key == 'opacity') {
-              s[key] = value;
-            } else {
-              s[key] = value;
+          } else //s.visibility = (value ? 'visible' : 'hidden');
+          // chrome has an obscure rendering bug where visibility:hidden won't
+          // hide the canvas element child nodes sometimes. If you set opacity to zero, it will.
+          //s.opacity = (value ? this._computed['opacity'] : 0);
+          if (key == 'opacity') {
+            s[key] = value;
+          } else {
+            s[key] = value;
 
-              if (!CUSTOM_KEYS[key]) {
-                this[key] = value;
-              }
+            if (!CUSTOM_KEYS[key]) {
+              this[key] = value;
             }
-
           }
-          break;
+
+
+
+
+        }
+        break;
       }
     }
     if (setMatrix) {
@@ -395,29 +453,23 @@ var ViewBacking = exports = Class(BaseBacking, function () {
         // we must never animate -webkit-transform.
         // http://code.google.com/p/android/issues/detail?id=12451
         // TODO: is this fixed in Android > 2.2? Chrome?
-        if (anim && ((obj.scale != c.scale) ||
-               (obj.r != c.r))) {
+        if (anim && (obj.scale != c.scale || obj.r != c.r)) {
           // logger.log('set transform animated', obj.scale, c.scale, obj.r, c.r);
           animate(obj).now({
             scale: c.scale,
             r: c.r
           }, anim.duration, anim.easing, bind(this, function () {
-            s.WebkitTransform = ('scale(' + (c.flipX ? obj.scale * -1 : obj.scale) +
-                       ',' + (c.flipY ? obj.scale * -1 : obj.scale) + ') ' +
-                       'rotate(' + obj.r + 'rad)');
+            s.WebkitTransform = 'scale(' + (c.flipX ? obj.scale * -1 : obj.scale) + ',' + (c.flipY ? obj.scale * -1 : obj.scale) + ') ' + 'rotate(' + obj.r + 'rad)';
           })).then(bind(this, function () {
-            s.WebkitTransform = ('scale(' + (c.flipX ? obj.scale * -1 : obj.scale) +
-                       ',' + (c.flipY ? obj.scale * -1 : obj.scale) + ') '  +
-                       'rotate(' + c.r + 'rad)');
+            s.WebkitTransform = 'scale(' + (c.flipX ? obj.scale * -1 : obj.scale) + ',' + (c.flipY ? obj.scale * -1 : obj.scale) + ') ' + 'rotate(' + c.r + 'rad)';
           }));
 
-        } else if ((obj.scale != c.scale) ||
-               (obj.r != c.r)) {
+        } else if (obj.scale != c.scale || obj.r != c.r) {
           // logger.log('set transform', c.scale, c.r);
-          s.WebkitTransform = ('scale(' + (c.flipX ? c.scale * -1 : c.scale) +
-                      ',' + (c.flipY ? c.scale * -1 : c.scale) + ') ' +
-                     'rotate(' + c.r + 'rad)');
+          s.WebkitTransform = 'scale(' + (c.flipX ? c.scale * -1 : c.scale) + ',' + (c.flipY ? c.scale * -1 : c.scale) + ') ' + 'rotate(' + c.r + 'rad)';
         }
+
+
 
         // use CSS animations for left and top though, since
         // those can still be taken out of javascript.
@@ -429,19 +481,11 @@ var ViewBacking = exports = Class(BaseBacking, function () {
         matrix = matrix.scale(c.scale);
 
         if (c.flipX || c.flipY) {
-          matrix = matrix.translate(
-            c.flipX ? -c.width : 0,
-            c.flipY ? c.height / 2 : 0
-          );
-          matrix = matrix.scale(
-            c.flipX ? -1 : 1,
-            c.flipY ? -1 : 1
-          );
-          matrix = matrix.translate(
-            c.flipX ? c.width : 0,
-            c.flipY ? -c.height / 2 : 0
-          );
+          matrix = matrix.translate(c.flipX ? -c.width : 0, c.flipY ? c.height / 2 : 0);
+          matrix = matrix.scale(c.flipX ? -1 : 1, c.flipY ? -1 : 1);
+          matrix = matrix.translate(c.flipX ? c.width : 0, c.flipY ? -c.height / 2 : 0);
         }
+
 
         // on iOS, forcing a 3D matrix provides huge performance gains.
         // Rotate it about the y axis 360 degrees to achieve this.
@@ -450,22 +494,28 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       }
     }
 
+
     if (resized) {
       this._view.needsReflow();
     }
 
+
     return animCount;
   };
 
-  // ----- zIndex -----
 
-  this._sortIndex = "00000000";
+  // ----- zIndex -----
+  this._sortIndex = '00000000';
 
   this._onZIndex = function (zIndex) {
     zIndex = ~~zIndex;
 
-    if (zIndex < MIN_Z) { zIndex = this._zIndex = MIN_Z; }
-    if (zIndex > MAX_Z) { zIndex = this._zIndex = MAX_Z; }
+    if (zIndex < MIN_Z) {
+      zIndex = this._zIndex = MIN_Z;
+    }
+    if (zIndex > MAX_Z) {
+      zIndex = this._zIndex = MAX_Z;
+    }
     if (zIndex < 0) {
       zIndex *= -1;
       this._sortIndex = '-' + PAD.substring(0, LEN_Z - ('' + zIndex).length) + zIndex;
@@ -473,24 +523,34 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       this._sortIndex = PAD.substring(0, LEN_Z - ('' + zIndex).length) + zIndex;
     }
 
+
     this._setSortKey();
   }
+;
 
   this._setAddedAt = function (addedAt) {
     this._addedAt = addedAt;
     this._setSortKey();
   }
+;
 
-  this._setSortKey = function () { this.__sortKey = this._sortIndex + this._addedAt; }
-  this.toString = function () { return this.__sortKey; }
+  this._setSortKey = function () {
+    this.__sortKey = this._sortIndex + this._addedAt;
+  };
+  this.toString = function () {
+    return this.__sortKey;
+  }
+
+;
+
 
   // ----- ANIMATION -----
-
   this._transitionEnd = function (evt) {
     $.stopEvent(evt);
     if (this.transitionCallback.fired()) {
       return;
     }
+
 
     this.transitionCallback.fire();
     this.transitionCallback.reset();
@@ -501,7 +561,9 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       this._transitionEndTimeout = null;
     }
 
-    this._node.style.webkitTransition = "none";
+
+
+    this._node.style.webkitTransition = 'none';
 
     this._animating = false;
     if (this._animationCallback) {
@@ -509,6 +571,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       this._animationCallback = null;
       callback();
     }
+
 
     this._processAnimation();
   };
@@ -519,8 +582,8 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       return;
     }
     if (doNow) {
-        clearTimeout(this._queuedTimeout);
-        this._queuedTimeout = null;
+      clearTimeout(this._queuedTimeout);
+      this._queuedTimeout = null;
     }
     if (this._queuedTimeout) {
       return;
@@ -535,34 +598,35 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       return;
     }
 
+
     var anim = this._animationQueue.shift();
     switch (anim.type) {
-    case "animate":
+    case 'animate':
       var s = this._node.style;
       if (AVOID_CSS_ANIM) {
-        s.webkitTransitionProperty = "left, top, opacity, width, height";
+        s.webkitTransitionProperty = 'left, top, opacity, width, height';
       } else {
-        s.webkitTransitionProperty = "-webkit-transform, opacity, width, height";
+        s.webkitTransitionProperty = '-webkit-transform, opacity, width, height';
       }
-      s.webkitTransitionDuration = (anim.duration|0) + "ms";
+      s.webkitTransitionDuration = (anim.duration | 0) + 'ms';
       s.webkitTransitionTimingFunction = getEasing(anim.easing);
       this._setProps(anim.props, anim);
 
-      // fall through
-    case "wait":
+
+    // fall through
+    case 'wait':
       this._animating = true;
       this._animationCallback = anim.callback || null;
 
       this.transitionCallback = new Callback();
 
       this.transitionCallback.runOrTimeout(function () {
-        // if webkitTransitionEnd fires, do nothing
       }, bind(this, function (evt) {
         // webkitTransitionEnd is too late, baby, it's too late
         this._transitionEnd(evt);
       }), anim.duration);
       break;
-    case "callback":
+    case 'callback':
       //logger.log('doing callback', anim.callback, doNow);
       anim.callback();
       if (!this._animating) {
@@ -575,10 +639,11 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 
   this.getQueue = function () {
     return [];
-  }
+  };
   this.getAnimation = function () {
     return this;
   }
+;
 
   this.animate = function () {
     if (!arguments[0]) {
@@ -586,6 +651,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     }
     return this.next.apply(this, arguments);
   }
+;
 
   this.clear = function () {
     this.transitionCallback && this.transitionCallback.fire();
@@ -606,27 +672,30 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     for (var i = 0; i < n; ++i) {
       var anim = queue[i];
       switch (anim.type) {
-        case "animate":
-          this._setProps(anim.props);
-          break;
-        case "wait":
-          break;
-        case "callback":
-          anim.callback();
-          break;
+      case 'animate':
+        this._setProps(anim.props);
+        break;
+      case 'wait':
+        break;
+      case 'callback':
+        anim.callback();
+        break;
       }
     }
     return this;
   }
+;
 
   this.pause = function () {
     this._isPaused = true;
   }
+;
 
   this.resume = function () {
     this._isPaused = false;
     this._processAnimation();
   }
+;
 
   this.animate = function (props, duration, easing, callback) {
     //this.clear();
@@ -637,13 +706,14 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     this.clear();
     return this.then(props, duration, easing, callback);
   }
+;
 
   this.then = function (props, duration, easing, callback) {
     if (arguments.length == 1 && typeof props === 'function') {
       return this.callback(props);
     }
     this._animationQueue.push({
-      type: "animate",
+      type: 'animate',
       props: props,
       duration: duration || DURATION,
       callback: callback && bind(this, callback),
@@ -657,7 +727,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 
   this.callback = function (fn) {
     this._animationQueue.push({
-      type: "callback",
+      type: 'callback',
       duration: 0,
       callback: fn && bind(this, fn)
     });
@@ -666,10 +736,11 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     }
     return this;
   }
+;
 
   this.wait = function (duration, callback) {
     this._animationQueue.push({
-      type: "wait",
+      type: 'wait',
       duration: duration,
       callback: callback
     });
@@ -689,9 +760,8 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       return;
     }
 
-    this.then({
-      opacity: 1
-    }, duration, null, callback);
+
+    this.then({ opacity: 1 }, duration, null, callback);
     return this;
   };
 
@@ -704,9 +774,8 @@ var ViewBacking = exports = Class(BaseBacking, function () {
       return;
     }
 
-    this.then({
-      opacity: 0
-    }, duration, null, bind(this, function () {
+
+    this.then({ opacity: 0 }, duration, null, bind(this, function () {
       this.hide();
       if (callback) {
         callback();
@@ -719,8 +788,25 @@ var ViewBacking = exports = Class(BaseBacking, function () {
 });
 
 
-var arr = ['x', 'y', 'r', 'width', 'height', 'visible', 'anchorX', 'anchorY', 'offsetX', 'offsetY',
-         'opacity', 'scale', 'zIndex', 'scrollLeft', 'scrollTop', 'flipX', 'flipY'];
+var arr = [
+  'x',
+  'y',
+  'r',
+  'width',
+  'height',
+  'visible',
+  'anchorX',
+  'anchorY',
+  'offsetX',
+  'offsetY',
+  'opacity',
+  'scale',
+  'zIndex',
+  'scrollLeft',
+  'scrollTop',
+  'flipX',
+  'flipY'
+];
 
 var CUSTOM_KEYS = {};
 
@@ -741,5 +827,6 @@ arr.forEach(function (prop) {
     return val;
   });
 });
+
 
 

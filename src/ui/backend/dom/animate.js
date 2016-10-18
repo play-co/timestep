@@ -13,14 +13,12 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @package ui.backend.dom.animate;
  *
  * For now, this package simply forwards to Canvas' implementation.
  */
-
-import ui.backend.canvas.animate as canvasAnimate;
+jsio('import ui.backend.canvas.animate as canvasAnimate');
 
 exports = function (view) {
   // For DOM nodes, return only one singleton animation class.
@@ -29,7 +27,7 @@ exports = function (view) {
   } else {
     return canvasAnimate(view);
   }
-}
+};
 exports.linear = canvasAnimate.linear;
 exports.easeIn = canvasAnimate.easeIn;
 exports.easeInOut = canvasAnimate.easeInOut;

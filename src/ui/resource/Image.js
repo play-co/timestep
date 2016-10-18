@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class ui.resource.Image;
  * Model an Image for rendering. Supports taking a subset of images, to support
@@ -23,22 +22,21 @@
  * @doc http://doc.gameclosure.com/api/ui-imageview.html#class-ui.resource.image
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/imageview.md
  */
-
-import device;
-import lib.PubSub;
-import event.Callback as Callback;
-import ui.resource.loader as resourceLoader;
-import ui.backend.canvas.filterRenderer as filterRenderer;
+jsio('import device');
+jsio('import lib.PubSub');
+jsio('import event.Callback as Callback');
+jsio('import ui.resource.loader as resourceLoader');
+jsio('import ui.backend.canvas.filterRenderer as filterRenderer');
 
 var ImageCache = {};
 
-var GET_IMAGE_DATA_NOT_SUPPORTED = (!GLOBAL.document || !document.createElement);
+var GET_IMAGE_DATA_NOT_SUPPORTED = !GLOBAL.document || !document.createElement;
+
+
 /**
  * Callback when images are loaded. This has a failsafe that runs up to a certain
  * threshold asynchronously, attempting to read the image size, before dying.
  */
-
-
 // `imageOnLoad` is called when a DOM image object fires a `load` or `error`
 // event.  Fire the internal `cb` with the error status.
 function imageOnLoad(success, evt, failCount) {
@@ -56,19 +54,19 @@ function imageOnLoad(success, evt, failCount) {
   }
 }
 
+
 // Listen for preloaded images and add them to cache
-resourceLoader.on(resourceLoader.IMAGE_LOADED, function(image, src) {
+resourceLoader.on(resourceLoader.IMAGE_LOADED, function (image, src) {
   ImageCache[src.resource] = image;
   image.__cb = new Callback();
   imageOnLoad.call(image, true);
 });
 
+
 /**
  * This class models the region of a larger image that this "Image" references.
  */
-
-var ImageMap = !CONFIG.disableNativeViews
-  && NATIVE.timestep && NATIVE.timestep.ImageMap;
+var ImageMap = !CONFIG.disableNativeViews && NATIVE.timestep && NATIVE.timestep.ImageMap;
 if (!ImageMap) {
   ImageMap = Class(function () {
     this.init = function (parentImage, x, y, width, height, marginTop, marginRight, marginBottom, marginLeft, url) {
@@ -86,6 +84,8 @@ if (!ImageMap) {
 }
 
 
+
+
 var isNative = GLOBAL.NATIVE && !device.isNativeSimulator;
 var Canvas = device.get('Canvas');
 
@@ -95,11 +95,11 @@ var _imgDataCtx = null;
 
 
 exports = Class(lib.PubSub, function () {
-
   this.init = function (opts) {
     if (!opts) {
       opts = {};
     }
+
 
     this._cb = new Callback();
     this._map = new ImageMap(this, 0, 0, -1, -1, 0, 0, 0, 0, opts.url || '');
@@ -123,6 +123,7 @@ exports = Class(lib.PubSub, function () {
       img = ImageCache[url];
     }
 
+
     // look up the base64 cache -- if it's been preloaded, we'll get back an image that's already loaded
     // if it has not been preloaded, we'll get back raw base64 in the b64 variable
     if (!img && !forceReload && Image.get) {
@@ -134,11 +135,13 @@ exports = Class(lib.PubSub, function () {
       }
     }
 
+
     if (forceReload) {
       // clear native texture in an image object
       if (img && img.destroy) {
         img.destroy();
       }
+
 
       // clear native textures by URL
       if (url && NATIVE.gl && NATIVE.gl.deleteTexture) {
@@ -146,40 +149,46 @@ exports = Class(lib.PubSub, function () {
       }
     }
 
+
     // create an image if we don't have one
     if (!img) {
       img = new Image();
       img.crossOrigin = 'use-credentials';
     }
 
+
     this._srcImg = img;
 
     if (img instanceof HTMLCanvasElement || img instanceof Canvas) {
-      this._onLoad(false, img); // no error
-    } else {
-      // if it's already loaded, we call _onLoad immediately. Note that
-      // we don't use `.complete` here intentionally since web browsers
-      // set `.complete = true` before firing on the load/error
-      // callbacks, so we can't actually detect whether there's an error
-      // in some cases.
-      if (!img.__cb) {
-        img.__cb = new Callback();
-        img.addEventListener('load', bind(img, imageOnLoad, true), false);
-        img.addEventListener('error', bind(img, imageOnLoad, false), false);
+      this._onLoad(false, img);
+    } else
+      // no error
+      {
+        // if it's already loaded, we call _onLoad immediately. Note that
+        // we don't use `.complete` here intentionally since web browsers
+        // set `.complete = true` before firing on the load/error
+        // callbacks, so we can't actually detect whether there's an error
+        // in some cases.
+        if (!img.__cb) {
+          img.__cb = new Callback();
+          img.addEventListener('load', bind(img, imageOnLoad, true), false);
+          img.addEventListener('error', bind(img, imageOnLoad, false), false);
 
-        if (url) {
-          ImageCache[url] = img;
+          if (url) {
+            ImageCache[url] = img;
+          }
+
+
+          if (!img.src && url) {
+            img.src = this._map.url = url;
+          }
         }
 
-        if (!img.src && url) {
-          img.src = this._map.url = url;
-        }
+
+        img.__cb.run(this, function (err) {
+          this._onLoad(err, img);
+        });
       }
-
-      img.__cb.run(this, function (err) {
-        this._onLoad(err, img);
-      });
-    }
   };
 
   this.getSrcImg = function () {
@@ -197,6 +206,7 @@ exports = Class(lib.PubSub, function () {
       if (cb && cb.chain) {
         cb = cb.chain();
       }
+
 
       var hasFired = this._cb.fired();
 
@@ -297,14 +307,12 @@ exports = Class(lib.PubSub, function () {
 
   this.getWidth = function () {
     var map = this._map;
-    return (map.width == -1 ? 0
-      : map.width + map.marginLeft + map.marginRight) / map.scale;
+    return (map.width == -1 ? 0 : map.width + map.marginLeft + map.marginRight) / map.scale;
   };
 
   this.getHeight = function () {
     var map = this._map;
-    return (map.height === -1 ? 0
-      : map.height + map.marginTop + map.marginBottom) / map.scale;
+    return (map.height === -1 ? 0 : map.height + map.marginTop + map.marginBottom) / map.scale;
   };
 
   this.getBounds = function () {
@@ -341,6 +349,7 @@ exports = Class(lib.PubSub, function () {
       return;
     }
 
+
     if (err) {
       // TODO: something better?
       logger.error('Image failed to load:', map.url);
@@ -349,11 +358,13 @@ exports = Class(lib.PubSub, function () {
       return;
     }
 
+
     this._isError = false;
 
     if (srcImg.width === 0) {
       logger.warn('Image has no width', this._url);
     }
+
 
     if (this._scale !== 1 && (map.width !== -1 || map.height !== -1)) {
       // requested scale & provided a width or height
@@ -362,10 +373,12 @@ exports = Class(lib.PubSub, function () {
         map.width = srcImg.width * map.height / srcImg.height;
       }
 
+
       if (map.height === -1) {
         // this._sourceW was initialized above
         map.height = srcImg.height * map.width / srcImg.width;
       }
+
 
       // TODO: sourceImage might be shared so we can't actually modify width/height. This is a bug.
       srcImg.width = map.width;
@@ -378,6 +391,7 @@ exports = Class(lib.PubSub, function () {
         map.height = srcImg.height;
       }
     }
+
 
     map.url = srcImg.src;
     this._cb.fire(null, this);
@@ -397,6 +411,7 @@ exports = Class(lib.PubSub, function () {
     if (!this._cb.fired() || this._isError) {
       return;
     }
+
 
     var argumentCount = arguments.length;
     var map = this._map;
@@ -424,6 +439,7 @@ exports = Class(lib.PubSub, function () {
       srcH = arguments[4];
     }
 
+
     if (!isNative && ctx.filter) {
       var filterImg = filterRenderer.renderFilter(ctx, this, srcX, srcY, srcW, srcH);
       if (filterImg) {
@@ -432,6 +448,7 @@ exports = Class(lib.PubSub, function () {
         srcY = 0;
       }
     }
+
 
     ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
   };
@@ -443,9 +460,15 @@ exports = Class(lib.PubSub, function () {
       _imgDataCtx = _imgDataCanvas.getContext('2d');
     }
 
+
     var map = this._map;
-    if (GET_IMAGE_DATA_NOT_SUPPORTED) { throw 'Not supported'; }
-    if (!map.width || !map.height) { throw 'Not loaded'; }
+    if (GET_IMAGE_DATA_NOT_SUPPORTED) {
+      throw 'Not supported';
+    }
+    if (!map.width || !map.height) {
+      throw 'Not loaded';
+    }
+
 
     x = x || 0;
     y = y || 0;
@@ -459,7 +482,8 @@ exports = Class(lib.PubSub, function () {
     return _imgDataCtx.getImageData(0, 0, width, height);
   };
 
-  this.setImageData = function (data) {};
+  this.setImageData = function (data) {
+  };
 
   this.destroy = function () {
     this._srcImg.destroy && this._srcImg.destroy();

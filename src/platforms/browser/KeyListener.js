@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * package timestep.env.browser.KeyListener;
  *
@@ -21,58 +20,70 @@
  * An independent KeyListener is exposed for the Application Engine and any
  * Views with a Focus Manager.
  */
+jsio('import lib.PubSub as PubSub');
+jsio('import lib.Enum');
 
-import lib.PubSub as PubSub;
-import lib.Enum;
+jsio('import event.input.keys as keyConstants');
+jsio('import device');
+jsio('import timer');
 
-import event.input.keys as keyConstants;
-import device;
-import timer;
-
-from util.browser import $;
+jsio('from util.browser import $');
 
 var gListenerSingleton = null;
 var gCancelKeys = lib.Enum(keyConstants.SPACE, keyConstants.LEFT, keyConstants.RIGHT, keyConstants.UP, keyConstants.DOWN);
 
 exports = Class(function () {
   this.init = function (el, events) {
-    if (gListenerSingleton) { return gListenerSingleton; }
+    if (gListenerSingleton) {
+      return gListenerSingleton;
+    }
     gListenerSingleton = this;
-    
+
     this._el = el = el || document;
     this._events = [];
     this._shortcuts = [];
     this._isEnabled = true;
     this._keyMap = {};
-    
+
     $.onEvent(el, 'keydown', this, 'onKeyDown');
     $.onEvent(el, 'keypress', this, 'onKeyPress');
     $.onEvent(el, 'keyup', this, 'onKeyUp');
     $.onEvent(window, 'blur', this, 'liftAll');
   }
-  
-  this.setEnabled = function (isEnabled) { this._isEnabled = isEnabled; }
+;
+
+  this.setEnabled = function (isEnabled) {
+    this._isEnabled = isEnabled;
+  }
+;
 
   this.captureShortcut = function (shortcut) {
     this._shortcuts.push(shortcut);
   }
-  
-  this.getPressed = function () { return this._keyMap; }
+;
+
+  this.getPressed = function () {
+    return this._keyMap;
+  }
+;
 
   this.onKeyDown = function (e) {
-    
-    if (!this._isEnabled) { return; }
-    
+    if (!this._isEnabled) {
+      return;
+    }
+
+
     var evt = {
       code: e.keyCode,
       ctrl: e.ctrlKey,
       shift: e.shiftKey,
       alt: e.altKey,
-      meta: e.metaKey, // for mac keyboards
+      meta: e.metaKey,
+      // for mac keyboards
       lifted: false,
       dt: timer.getTickProgress()
     };
-    
+
     if (evt.ctrl || evt.shift || evt.alt || evt.meta) {
       var captured = false;
       for (var i = 0, s; s = this._shortcuts[i]; ++i) {
@@ -81,22 +92,30 @@ exports = Class(function () {
           captured = true;
         }
       }
-      
-      if (captured) { $.stopEvent(e); }
+
+
+      if (captured) {
+        $.stopEvent(e);
+      }
       return;
     } else {
       // MUST cancel event if we're enabled to prevent browser
       // default behaviors (e.g. scrolling)
       $.stopEvent(e);
     }
-    
+
+
     // We already know that key is down; ignore repeat events.
-    if (e.keyCode in this._keyMap) { return; }
-    
+    if (e.keyCode in this._keyMap) {
+      return;
+    }
+
+
     this._events.push(evt);
     this._keyMap[e.keyCode] = +new Date();
   }
-  
+;
+
   this.liftAll = function () {
     var progressDt = timer.getTickProgress();
     for (var code in this._keyMap) {
@@ -108,7 +127,8 @@ exports = Class(function () {
     }
     this._keyMap = {};
   }
-  
+;
+
   this.onKeyUp = function (e) {
     var progressDt = timer.getTickProgress();
     delete this._keyMap[e.keyCode];
@@ -119,16 +139,24 @@ exports = Class(function () {
     });
     $.stopEvent(e);
   }
-  
+;
+
   this.onKeyPress = function (e) {
-    if (!this._isEnabled) { return; }
+    if (!this._isEnabled) {
+      return;
+    }
     if (e.keyCode in gCancelKeys) {
       $.stopEvent(e);
     }
   }
-  
-  this.peekEvents = function () { return this._events; }
-  this.popEvents = function () { return this._events.splice(0, this._events.length); }
+;
+
+  this.peekEvents = function () {
+    return this._events;
+  };
+  this.popEvents = function () {
+    return this._events.splice(0, this._events.length);
+  };
 });
 
 // TODO: for maximum compatibility, especially with foreign keyboards, this needs to be inferred from the browser.  I think we can rely on a single DOM key event to get the constants in most browsers.
@@ -142,12 +170,9 @@ exports.Shortcut = Class(PubSub, function () {
     this.meta = !!meta;
     this.code = !!keyCode;
   }
-  
+;
+
   this.compare = function (shortcut) {
-    return this.ctrl == shortcut.ctrl 
-      && this.alt == shortcut.alt
-      && this.meta == shortcut.meta
-      && this.shift == shortcut.shift
-      && this.code == shortcut.code;
-  }
+    return this.ctrl == shortcut.ctrl && this.alt == shortcut.alt && this.meta == shortcut.meta && this.shift == shortcut.shift && this.code == shortcut.code;
+  };
 });

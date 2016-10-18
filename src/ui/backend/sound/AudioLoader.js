@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 var _ctx = null;
 var _bufferMap = {};
 var _loadingMap = {};
@@ -24,9 +23,9 @@ var _onLoadMap = {};
  * callbacks get fired regardless of success so that nothing gets held up;
  * however, does not call individual sound onload callbacks on errors
  */
-function onResponse (url, index, batch, buffer) {
+function onResponse(url, index, batch, buffer) {
   if (!buffer) {
-    logger.error("Error decoding audio file data:", url);
+    logger.error('Error decoding audio file data:', url);
   } else {
     batch.buffers[index] = _bufferMap[url] = buffer;
     // on load callbacks for individual sounds
@@ -37,12 +36,14 @@ function onResponse (url, index, batch, buffer) {
     }
   }
 
+
   _loadingMap[url] = false;
   // batch callback for preloading, called regardless of success
   if (++batch.loadedCount === batch.fileCount) {
     batch.callback(batch.buffers);
   }
-};
+}
+;
 
 /**
  * AudioContextLoader Class designed to work with HTML5 AudioContext
@@ -64,7 +65,7 @@ exports = Class(function () {
       loadedCount: 0,
       buffers: [],
       callback: callback || function () {
-        logger.log("Finished loading audio files:", urls);
+        logger.log('Finished loading audio files:', urls);
       }
     };
 
@@ -78,22 +79,18 @@ exports = Class(function () {
    */
   this._loadFile = function (url, index, batch) {
     var request = new XMLHttpRequest();
-    request.open("GET", url, true);
-    request.responseType = "arraybuffer";
+    request.open('GET', url, true);
+    request.responseType = 'arraybuffer';
     request.onload = function () {
-      _ctx.decodeAudioData(
-        request.response,
-        function (buffer) {
-          onResponse(url, index, batch, buffer);
-        },
-        function (e) {
-          logger.error("Error with AudioContext decodeAudioData:", (e && e.err) || e);
-          onResponse(url, index, batch, null);
-        }
-      );
+      _ctx.decodeAudioData(request.response, function (buffer) {
+        onResponse(url, index, batch, buffer);
+      }, function (e) {
+        logger.error('Error with AudioContext decodeAudioData:', e && e.err || e);
+        onResponse(url, index, batch, null);
+      });
     };
     request.onerror = function () {
-      logger.error("Error with audio XHR on URL:", url);
+      logger.error('Error with audio XHR on URL:', url);
       onResponse(url, index, batch, null);
     };
 

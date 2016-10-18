@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class ui.Engine
  *
@@ -31,10 +30,9 @@
  * @doc http://doc.gameclosure.com/api/appengine.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/appengine.md
  */
+jsio('import event.Emitter as Emitter');
 
-import event.Emitter as Emitter;
-
-import event.input.dispatch as dispatch;
+jsio('import event.input.dispatch as dispatch');
 
 jsio('import timer');
 jsio('import ui.backend.ReflowManager as ReflowManager');
@@ -59,6 +57,7 @@ timer.onTick = function (dt) {
     _timers[i](dt);
   }
 }
+;
 
 var __instance = null;
 
@@ -72,6 +71,7 @@ exports = Class(Emitter, function (supr) {
       engineInstance.setInstance(this);
     }
 
+
     var canvas = opts && opts.canvas;
     if (typeof canvas == 'string' && GLOBAL.document && document.getElementById) {
       const canvasID = canvas;
@@ -80,6 +80,7 @@ exports = Class(Emitter, function (supr) {
         throw new Error('Canvas not found for ID: ' + canvasID);
       }
     }
+
 
     this._opts = opts = merge(opts, {
       keyListenerEnabled: true,
@@ -103,8 +104,10 @@ exports = Class(Emitter, function (supr) {
 
     var Canvas = device.get('Canvas');
     this._rootElement = new Canvas({
-      el: canvas, // use an existing canvas if one was provided, but wrap the 2D context
-      useWebGL: true, // use WebGL if supported
+      el: canvas,
+      // use an existing canvas if one was provided, but wrap the 2D context
+      useWebGL: true,
+      // use WebGL if supported
       width: opts.width,
       height: opts.height,
       offscreen: false
@@ -113,9 +116,9 @@ exports = Class(Emitter, function (supr) {
     canvas = this._rootElement;
 
     var dpr = device.screen.devicePixelRatio;
-    this._rootElement.style.width = (opts.width / dpr) + 'px';
-    this._rootElement.style.height = (opts.height / dpr) + 'px';
-    this._rootElement.id = "timestep_onscreen_canvas";
+    this._rootElement.style.width = opts.width / dpr + 'px';
+    this._rootElement.style.height = opts.height / dpr + 'px';
+    this._rootElement.id = 'timestep_onscreen_canvas';
     this._ctx = this._rootElement.getContext('2d');
     this._ctx.font = '11px ' + device.defaultFontFamily;
 
@@ -135,6 +138,7 @@ exports = Class(Emitter, function (supr) {
     if (KeyListener) {
       this._keyListener = new KeyListener();
     }
+
 
     this._inputListener = new InputListener({
       rootView: this._view,
@@ -161,6 +165,7 @@ exports = Class(Emitter, function (supr) {
       }
     }
 
+
     this.updateOpts(this._opts);
   };
 
@@ -174,10 +179,11 @@ exports = Class(Emitter, function (supr) {
       this._keyListener.setEnabled(this._opts.keyListenerEnabled);
     }
 
+
     if (this._opts.scaleUI) {
       if (Array.isArray(this._opts.scaleUI)) {
         if (this._opts.scaleUI.length != 2) {
-          throw new Error("Illegal value for engine option scaleUI: " + this._opts.scaleUI);
+          throw new Error('Illegal value for engine option scaleUI: ' + this._opts.scaleUI);
         }
         this.scaleUI(this._opts.scaleUI[0], this._opts.scaleUI[1]);
       } else {
@@ -185,16 +191,20 @@ exports = Class(Emitter, function (supr) {
       }
     }
 
+
     if (this._opts.showFPS) {
       if (!this._applicationFPS) {
         this._applicationFPS = new FPSView({ application: this });
       }
 
+
       this._renderFPS = bind(this._applicationFPS, this._applicationFPS.render);
       this._tickFPS = bind(this._applicationFPS, this._applicationFPS.tick);
     } else {
-      this._renderFPS = function () {};
-      this._tickFPS = function () {};
+      this._renderFPS = function () {
+      };
+      this._tickFPS = function () {
+      };
     }
   };
 
@@ -242,7 +252,8 @@ exports = Class(Emitter, function (supr) {
   };
 
   this.setView = function (view) {
-    this._view = view; return this;
+    this._view = view;
+    return this;
   };
 
   this.show = function () {
@@ -277,7 +288,9 @@ exports = Class(Emitter, function (supr) {
   };
 
   this.startLoop = function (dtMin) {
-    if (this._running) { return; }
+    if (this._running) {
+      return;
+    }
     this._running = true;
 
     this.now = 0;
@@ -287,7 +300,9 @@ exports = Class(Emitter, function (supr) {
   };
 
   this.stopLoop = function () {
-    if (!this._running) { return; }
+    if (!this._running) {
+      return;
+    }
     this._running = false;
     timer.stop();
     this.emit('pause');
@@ -299,7 +314,9 @@ exports = Class(Emitter, function (supr) {
   };
 
   this.doOnTick = function (cb) {
-    if (arguments.length > 1) { cb = bind.apply(this, arguments); }
+    if (arguments.length > 1) {
+      cb = bind.apply(this, arguments);
+    }
     this._onTick.push(cb);
   };
 
@@ -315,6 +332,7 @@ exports = Class(Emitter, function (supr) {
       }
     }
 
+
     if (this._ctx) {
       var el = this._ctx.getElement();
       var s = this._view.style;
@@ -324,7 +342,11 @@ exports = Class(Emitter, function (supr) {
       }
     }
 
-    for (var i = 0, cb; cb = this._onTick[i]; ++i) { cb(dt); }
+
+    for (var i = 0, cb; cb = this._onTick[i]; ++i) {
+      cb(dt);
+    }
+
 
     var events = this._inputListener.getEvents();
     var n = events.length;
@@ -343,14 +365,18 @@ exports = Class(Emitter, function (supr) {
       }
     }
 
+
     for (var i = 0, evt; evt = events[i]; ++i) {
       evt.srcApp = this;
       dispatch.dispatchEvent(this._view, evt);
     }
 
+
     if (!device.useDOM) {
       if (i > 0) {
-        if (this._opts.repaintOnEvent) { this.needsRepaint(); }
+        if (this._opts.repaintOnEvent) {
+          this.needsRepaint();
+        }
       } else if (this._opts.continuousInputCheck) {
         var prevMove = dispatch._evtHistory['input:move'];
         if (prevMove) {
@@ -358,6 +384,7 @@ exports = Class(Emitter, function (supr) {
         }
       }
     }
+
 
     if (this._opts.dtFixed) {
       this._tickBuffer += dt;
@@ -369,6 +396,7 @@ exports = Class(Emitter, function (supr) {
     } else {
       this.__tick(dt);
     }
+
 
     this._reflowMgr.reflowViews(this._ctx);
 
@@ -383,6 +411,8 @@ exports = Class(Emitter, function (supr) {
       this.render(dt);
     }
 
+
+
     this._needsRepaint = false;
   };
 
@@ -390,6 +420,7 @@ exports = Class(Emitter, function (supr) {
     if (this._opts.clearEachFrame) {
       this._ctx && this._ctx.clear();
     }
+
 
     this._view.__view.constructor.absScale = 1;
     this._view.__view.wrapRender(this._ctx, {});
@@ -399,6 +430,7 @@ exports = Class(Emitter, function (supr) {
       if (DEBUG) {
         this._renderFPS(this._ctx, dt);
       }
+
 
       this._ctx.swap();
     }

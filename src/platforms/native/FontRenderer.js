@@ -13,16 +13,14 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @package env.browser.FontRenderer;
  *
  * Render fonts or custom fonts on a Canvas context.
  */
-
-import ui.Color as Color;
-import ui.filter as filter;
-import ui.resource.Font as Font;
+jsio('import ui.Color as Color');
+jsio('import ui.filter as filter');
+jsio('import ui.resource.Font as Font');
 
 var max = Math.max;
 
@@ -41,29 +39,42 @@ exports.init = function () {
         imagesLoaded: -1,
         imagesTotal: 0,
         loaded: false
-      }
+      };
       _customFonts[font.fontName] = customFont;
       loadingCustomFont(customFont);
     }
   }
 };
 
-var loadCustomFontImage = function(customFont, index, stroke) {
+var loadCustomFontImage = function (customFont, index, stroke) {
   var img = new Image();
   var url = 'resources/fonts/' + customFont.fontName + '_' + index + (stroke ? '_Stroke.png' : '.png');
   img.onload = function () {
     img.onload = null;
     customFont.imagesLoaded++;
-    customFont.loaded = (customFont.imagesLoaded === customFont.imagesTotal);
+    customFont.loaded = customFont.imagesLoaded === customFont.imagesTotal;
   };
   img._src = url;
   img.src = url;
   return img;
 };
 
-var findVerticalInfo = function(dimensions) {
+var findVerticalInfo = function (dimensions) {
   // A..Z, a..z, all
-  var ranges = [{start: 0x41, end: 0x5A}, {start: 0x61, end: 0x7A}, {start: 0x20, end: 0xFF}];
+  var ranges = [
+    {
+      start: 65,
+      end: 90
+    },
+    {
+      start: 97,
+      end: 122
+    },
+    {
+      start: 32,
+      end: 255
+    }
+  ];
   var found = false;
   var baseline = 0;
   var bottom = 0;
@@ -81,12 +92,28 @@ var findVerticalInfo = function(dimensions) {
       break;
     }
   }
-  return { baseline: baseline, bottom: bottom };
+  return {
+    baseline: baseline,
+    bottom: bottom
+  };
 };
 
-var findHorizontalInfo = function(dimensions) {
+var findHorizontalInfo = function (dimensions) {
   // a..z, A..Z
-  var ranges = [{start: 0x61, end: 0x7A}, {start: 0x41, end: 0x5A}, {start: 0x20, end: 0xFF}];
+  var ranges = [
+    {
+      start: 97,
+      end: 122
+    },
+    {
+      start: 65,
+      end: 90
+    },
+    {
+      start: 32,
+      end: 255
+    }
+  ];
   var width = 0;
   var count = 0;
   for (var i = 0, len = ranges.length; i < len; i++) {
@@ -105,10 +132,11 @@ var findHorizontalInfo = function(dimensions) {
   return { width: 0.8 * width / count };
 };
 
-var loadingCustomFont = function(customFont) {
+var loadingCustomFont = function (customFont) {
   if (customFont.imagesLoaded !== -1) {
     return !customFont.loaded;
   }
+
 
   var settings = customFont.settings;
   var fontName = settings.fontName;
@@ -129,6 +157,7 @@ var loadingCustomFont = function(customFont) {
       vertical: customFont.vertical
     };
   }
+
 
   var images = customFont.images = [];
   var strokeImages = customFont.strokeImages = [];
@@ -170,7 +199,7 @@ exports.wrapMeasureText = function (origMeasureText) {
       return origMeasureText.apply(this, arguments);
     }
     return measureInfo;
-  }
+  };
 };
 
 exports.wrapFillText = function (origFillText) {
@@ -182,6 +211,7 @@ exports.wrapFillText = function (origFillText) {
     if (loadingCustomFont(fontInfo.customFont)) {
       return;
     }
+
 
     var color = Color.parse(this.fillStyle);
     if (this.__compositeColor !== color) {
@@ -196,7 +226,7 @@ exports.wrapFillText = function (origFillText) {
     if (!this._ctx.fillTextBitmap(this, x, y, text + '', maxWidth, this.fillStyle, fontInfo, 0)) {
       return origFillText.apply(this, arguments);
     }
-  }
+  };
 };
 
 exports.wrapStrokeText = function (origStrokeText) {
@@ -209,6 +239,7 @@ exports.wrapStrokeText = function (origStrokeText) {
     if (loadingCustomFont(fontInfo.customFont)) {
       return;
     }
+
 
     var color = Color.parse(this.strokeStyle);
     if (this.__compositeStrokeColor !== color) {
@@ -223,5 +254,5 @@ exports.wrapStrokeText = function (origStrokeText) {
     if (!this._ctx.fillTextBitmap(this, x, y, text + '', maxWidth, this.strokeStyle, fontInfo, 1)) {
       return origStrokeText.apply(this, arguments);
     }
-  }
+  };
 };

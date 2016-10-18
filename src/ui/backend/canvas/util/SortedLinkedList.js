@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 var Iterator = Class(function (supr) {
   this.init = function (list) {
     this.update(list);
@@ -37,12 +36,12 @@ var Iterator = Class(function (supr) {
   };
 
   this.insertBefore = function (data) {
-    this._current.insertBefore(data); 
+    this._current.insertBefore(data);
     this._list.count++;
   };
 
   this.insertAfter = function (data) {
-    this._current.insertAfter(data);  
+    this._current.insertAfter(data);
     this._list.count++;
   };
 
@@ -66,7 +65,7 @@ var Iterator = Class(function (supr) {
 var Item = Class(function (supr) {
   this.init = function (data, prev, next) {
     this.data = data;
-    this.prev = prev || this; 
+    this.prev = prev || this;
     this.next = next || this;
   };
 
@@ -75,7 +74,7 @@ var Item = Class(function (supr) {
     this.prev.next = item;
     this.prev = item;
   };
-  
+
   this.insertAfter = function (data) {
     var item = new Item(data, this, this.next);
     this.next.prev = item;
@@ -106,18 +105,18 @@ exports = Class(function (supr) {
       this.count++;
     } else {
       var i = this.iterator();
-      var d = i.current();  
+      var d = i.current();
       var found = false;
       while (i.hasNext() && !found) {
         found = !this._comparator(data, d);
         if (!found) {
-          i.next(); 
+          i.next();
           d = i.current();
         }
       }
       i.insertBefore(data);
       if (found && i.atHead()) {
-        this.head = this.head.prev; 
+        this.head = this.head.prev;
       }
     }
   };

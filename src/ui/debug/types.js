@@ -1,5 +1,4 @@
 /* globals DEBUG */
-
 /*
  * opts:
  *  - value: value to check
@@ -8,19 +7,27 @@
  *  - required: if true, error if value is undefined/null (see allowNull)
  */
 if (DEBUG) {
-  var isNumber = function (val) { return typeof val == 'number' && !isNaN(val); };
+  var isNumber = function (val) {
+    return typeof val == 'number' && !isNaN(val);
+  };
   var VALIDATORS = {
-    'string': function (val) { return typeof val == 'string'; },
-    'integer': function (val) { return isNumber(val) && Math.floor(val) == val; },
+    'string': function (val) {
+      return typeof val == 'string';
+    },
+    'integer': function (val) {
+      return isNumber(val) && Math.floor(val) == val;
+    },
     'number': isNumber,
     'float': isNumber,
     'array': Array.isArray,
-    'object': function (val) { return typeof val == 'object'; },
+    'object': function (val) {
+      return typeof val == 'object';
+    },
     'key': function (key, opts) {
       if (opts.toLowerCase) {
         return (key.toLowerCase && key.toLowerCase()) in lowerCaseKeys(opts.dictionary);
       } else {
-        return opts.dictionary && (key in opts.dictionary);
+        return opts.dictionary && key in opts.dictionary;
       }
     }
   };
@@ -30,12 +37,7 @@ if (DEBUG) {
       return scope + ' "' + name + '" should be a ' + opts.type;
     },
     'key': function (scope, name, opts) {
-      return scope + ' "' + name + '" should be a key from the set: '
-        + Object
-            .keys(opts.toLowerCase
-              ? lowerCaseKeys(opts.dictionary)
-              : opts.dictionary)
-            .join(', ');
+      return scope + ' "' + name + '" should be a key from the set: ' + Object.keys(opts.toLowerCase ? lowerCaseKeys(opts.dictionary) : opts.dictionary).join(', ');
     }
   };
 
@@ -70,5 +72,6 @@ if (DEBUG) {
   };
 } else {
   // production, no checking
-  exports.check = function () {};
+  exports.check = function () {
+  };
 }

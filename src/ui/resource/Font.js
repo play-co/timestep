@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class ui.resource.Font;
  * Font string parser, a la CSS Font strings. Exports a Font object class.
@@ -22,29 +21,13 @@
  * @doc http://doc.gameclosure.com/api/ui-text.html#class-ui.resource.font
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/text.md
  */
-
-var _cache = {},
-  weights = 'normal|bold|bolder|lighter|[1-9]00',
-  styles = 'normal|italic|oblique',
-  units = 'px|pt|pc|in|cm|mm|%',
-  name = '([\\w\"\'\\- ]+(?:,|$))+',
-  fontParser = new RegExp(
-    '^ *'
-      + '(?:(' + weights + ') *)?'
-      + '(?:(' + styles + ') *)?'
-      + '([\\d\\.]+)(' + units + ')'
-      + '('+ name + ')',
-      'i'
-  ),
-  sizeParser = new RegExp('([\\d\\.]+)(' + units + ')', 'i'),
-  TO_PT = {
+var _cache = {}, weights = 'normal|bold|bolder|lighter|[1-9]00', styles = 'normal|italic|oblique', units = 'px|pt|pc|in|cm|mm|%', name = '([\\w"\'\\- ]+(?:,|$))+', fontParser = new RegExp('^ *' + '(?:(' + weights + ') *)?' + '(?:(' + styles + ') *)?' + '([\\d\\.]+)(' + units + ')' + '(' + name + ')', 'i'), sizeParser = new RegExp('([\\d\\.]+)(' + units + ')', 'i'), TO_PT = {
     'pt': 1,
     'px': 3 / 4,
     'in': 3 / 4 * 96,
     'mm': 3 / 4 * 96 / 25.4,
     'cm': 3 / 4 * 96 / 2.54
-  },
-  TO_PX = {
+  }, TO_PX = {
     'pt': 4 / 3,
     'px': 1,
     'in': 96,
@@ -54,12 +37,15 @@ var _cache = {},
 
 function parseSize(sizeStr, unit) {
   var match = sizeStr.match(sizeParser);
-  if (!match) { throw 'invalid font size'; }
+  if (!match) {
+    throw 'invalid font size';
+  }
   return {
     value: parseFloat(match[1]),
     unit: match[2]
   };
 }
+
 
 function toPx(size) {
   return {
@@ -68,6 +54,7 @@ function toPx(size) {
   };
 }
 
+
 function toPt(size) {
   return {
     value: size.value * TO_PT[size.unit],
@@ -75,10 +62,14 @@ function toPt(size) {
   };
 }
 
+
 function parseFont(fontStr) {
   var match = fontStr.match(fontParser);
-  if (!match) { throw 'invalid font string'; }
-  
+  if (!match) {
+    throw 'invalid font string';
+  }
+
+
   var res = {};
   res.weight = match[1] || 'normal';
   res.style = match[2] || 'normal';
@@ -90,24 +81,20 @@ function parseFont(fontStr) {
   var splitStrings = match[5].split(',');
 
   res.names = splitStrings.map(function (str) {
-    return str.replace(/[\-_]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .replace(/['"]/g, '')
-      .replace(/^\s+|\s+$/g, '');
+    return str.replace(/[\-_]/g, ' ').replace(/\s+/g, ' ').replace(/['"]/g, '').replace(/^\s+|\s+$/g, '');
   });
 
   res.name = res.names[0];
 
   var origNames = splitStrings.map(function (str) {
-    return str.replace(/\s+/g, ' ')
-      .replace(/['"]/g, '')
-      .replace(/^\s+|\s+$/g, '');
+    return str.replace(/\s+/g, ' ').replace(/['"]/g, '').replace(/^\s+|\s+$/g, '');
   });
 
   res.origName = origNames[0];
 
   return res;
-};
+}
+;
 
 
 var _defaultFontFamily = null;
@@ -130,11 +117,13 @@ var Font = exports = Class(function () {
     } else {
       opts = merge(opts, defaults);
     }
-    
+
+
     if (typeof opts.size == 'string') {
       opts.size = parseSize(opts.size);
     }
-    
+
+
     this._name = opts.name;
     this._origName = opts.origName;
     this._style = opts.style;
@@ -145,12 +134,21 @@ var Font = exports = Class(function () {
 
     this._isBold = /bold/i.test(this._weight);
   };
-  
-  this.getSize = function () { return this.sizePx; }
 
-  this.getName = function () { return this._name; }
-  this.getOrigName = function () { return this._origName; }
-  this.getWeight = function () { return this._weight; }
+  this.getSize = function () {
+    return this.sizePx;
+  }
+;
+
+  this.getName = function () {
+    return this._name;
+  };
+  this.getOrigName = function () {
+    return this._origName;
+  };
+  this.getWeight = function () {
+    return this._weight;
+  };
 });
 
 Font.parse = function (str) {
@@ -161,7 +159,9 @@ Font.parse = function (str) {
   }
 }
 
+;
+
 
 Font.prototype.constructor.setDefaultFontFamily = function (fontFamily) {
   _defaultFontFamily = fontFamily;
-}
+};

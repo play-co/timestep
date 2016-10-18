@@ -46,7 +46,6 @@ var _soundLoader = null;
 
 
 var Loader = Class(Emitter, function () {
-
   this._map = {};
 
   // save original map
@@ -54,9 +53,9 @@ var Loader = Class(Emitter, function () {
 
   this._audioMap = {};
 
-  Object.defineProperty(this, "progress", {
-    get: function() {
-      return globalItemsToLoad > 0 ? globalItemsLoaded / globalItemsToLoad : 1
+  Object.defineProperty(this, 'progress', {
+    get: function () {
+      return globalItemsToLoad > 0 ? globalItemsLoaded / globalItemsToLoad : 1;
     }
   });
 
@@ -161,6 +160,7 @@ var Loader = Class(Emitter, function () {
       opts = undefined;
     }
 
+
     // process an array of items, where cb is run at completion of the final one
     if (isArray(pathPrefix)) {
       var chainCb = new lib.Callback();
@@ -172,7 +172,8 @@ var Loader = Class(Emitter, function () {
       cb && chainCb.run(cb);
       return chainCb;
     } else {
-      pathPrefix = pathPrefix.replace(/^\//, ''); // remove leading slash
+      pathPrefix = pathPrefix.replace(/^\//, '');
+      // remove leading slash
       // if an item is found in the map, add that item's sheet to the group.
       // If there is no sheet in the map (i.e. for sounds), load that file directly.
       var preloadSheets = {};
@@ -183,6 +184,7 @@ var Loader = Class(Emitter, function () {
           preloadSheets[map[uri] && map[uri].sheet || uri] = true;
         }
       }
+
 
       var audioMap = this._audioMap;
       var audioToLoad = {};
@@ -198,7 +200,8 @@ var Loader = Class(Emitter, function () {
         files = [pathPrefix];
       }
 
-      var callback = this._loadGroup(merge({resources: files}, opts));
+
+      var callback = this._loadGroup(merge({ resources: files }, opts));
       cb && callback.run(cb);
       return callback;
     }
@@ -210,17 +213,22 @@ var Loader = Class(Emitter, function () {
       _soundLoader = _soundManager.getAudioLoader();
     }
 
+
     if (GLOBAL.NATIVE && GLOBAL.NATIVE.sound && GLOBAL.NATIVE.sound.preloadSound) {
       return NATIVE.sound.preloadSound(src);
     } else {
       _soundManager.addSound(src);
       //HACK to make the preloader continue in the browser
-      return { complete: true, loader: _soundLoader };
+      return {
+        complete: true,
+        loader: _soundLoader
+      };
     }
   };
 
   this.getImagePaths = function (prefix) {
-    prefix = prefix.replace(/^\//, ''); // remove leading slash
+    prefix = prefix.replace(/^\//, '');
+    // remove leading slash
     var images = [];
     var map = this._map;
     for (var uri in map) {
@@ -244,15 +252,17 @@ var Loader = Class(Emitter, function () {
       }
     }
 
+
     if (b64) {
       img.src = b64;
       Image.set(src, img);
     } else {
       if (!noWarn) {
-        logger.warn("Preload Warning:", src, "not properly cached!");
+        logger.warn('Preload Warning:', src, 'not properly cached!');
       }
       img.src = src;
     }
+
 
     return img;
   };
@@ -279,6 +289,7 @@ var Loader = Class(Emitter, function () {
       return;
     }
 
+
     var scale = info.scale || 1;
 
     // calculate the source rectangle, with margins added to the edges
@@ -298,17 +309,18 @@ var Loader = Class(Emitter, function () {
       map.height = h * scale;
     }
 
+
     // now updatea the margins to account for the new source map
     map.marginLeft = Math.max(0, info.x - map.x);
     map.marginTop = Math.max(0, info.y - map.y);
-    map.marginRight = Math.max(0, (map.x + map.width) - (info.x + info.w));
-    map.marginBottom = Math.max(0, (map.y + map.height) - (info.y + info.h));
+    map.marginRight = Math.max(0, map.x + map.width - (info.x + info.w));
+    map.marginBottom = Math.max(0, map.y + map.height - (info.y + info.h));
 
     // and re-offset the source map to exclude margins
     map.x += map.marginLeft;
     map.y += map.marginTop;
-    map.width -= (map.marginLeft + map.marginRight);
-    map.height -= (map.marginTop + map.marginBottom);
+    map.width -= map.marginLeft + map.marginRight;
+    map.height -= map.marginTop + map.marginBottom;
 
     // the scale of the source image, if scaled in a spritesheet
     map.scale = scale;
@@ -318,27 +330,29 @@ var Loader = Class(Emitter, function () {
 
   this._getRaw = function (type, src, copy, noWarn) {
     // always return the cached copy unless specifically requested not to
-    if (!copy && _cache[src]) { return _cache[src]; }
+    if (!copy && _cache[src]) {
+      return _cache[src];
+    }
     var res = null;
     switch (type) {
-      case 'audio':
-        res = this.getSound(src);
-        break;
-      case 'image':
-        res = this.getImage(src, noWarn);
-        break;
-      default:
-        logger.error("Preload Error: Unknown Type", type);
+    case 'audio':
+      res = this.getSound(src);
+      break;
+    case 'image':
+      res = this.getImage(src, noWarn);
+      break;
+    default:
+      logger.error('Preload Error: Unknown Type', type);
     }
-    return (_cache[src] = res);
+    return _cache[src] = res;
   };
+
 
   // The callback is called for each image in the group with the image
   // source that loaded and whether there was an error.
   //
   // function callback(lastSrc, error, isComplete, numCompleted, numTotal)
   //    where error is true or false and isComplete is true when numCompleted == numTotal
-
   this._requestedResources = [];
 
   this._loadGroup = function (opts, cb) {
@@ -371,14 +385,19 @@ var Loader = Class(Emitter, function () {
         }
       }
 
+
       if (!found) {
         if (type === 'image' || type === 'audio') {
-          requested = { type: type, resource: resources[i] };
+          requested = {
+            type: type,
+            resource: resources[i]
+          };
 
           loadableResources.push(requested);
 
           this._requestedResources.push(requested);
         }
+
 
         if (type == 'image' && GLOBAL.NATIVE && NATIVE.gl) {
           NATIVE.gl.touchTexture(resources[i]);
@@ -386,27 +405,33 @@ var Loader = Class(Emitter, function () {
       }
     }
 
-    // If no resources were loadable...
 
+
+
+    // If no resources were loadable...
     if (!loadableResources.length) {
       if (!foundCount) {
-        logger.warn("Preload Fail: No Loadable Resources Found");
+        logger.warn('Preload Fail: No Loadable Resources Found');
       }
+
 
       if (cb) {
         callback.run(cb);
       }
+
 
       callback.fire();
 
       return callback;
     }
 
+
     // do the preload asynchronously (note that base64 is synchronous, only downloads are asynchronous)
     var nextIndexToLoad = 0;
     var numResources = loadableResources.length;
     globalItemsToLoad += numResources;
-    var parallel = Math.min(numResources, opts.parallel || 5); // how many should we try to download at a time?
+    var parallel = Math.min(numResources, opts.parallel || 5);
+    // how many should we try to download at a time?
     var numLoaded = 0;
 
     var loadResource = bind(this, function () {
@@ -420,22 +445,30 @@ var Loader = Class(Emitter, function () {
         return;
       }
 
+
       var next = function (failed) {
         // If already complete, stub this out
-        if (numLoaded >= numResources) { return; }
+        if (numLoaded >= numResources) {
+          return;
+        }
+
 
         // Set stubs for the reload and load events so that code
         // elsewhere can blindly call these without causing problems.
         // An alternative would be to set these to null but not every
         // piece of code that uses this does the right checks.
-        res.onreload = res.onload = res.onerror = function() {};
+        res.onreload = res.onload = res.onerror = function () {
+        };
 
         // The number of loads (success or failure) has increased.
         ++numLoaded;
         ++globalItemsLoaded;
 
         // REALLY hacky progress tracker
-        if (globalItemsLoaded === globalItemsToLoad) { globalItemsLoaded = globalItemsToLoad = 0; }
+        if (globalItemsLoaded === globalItemsToLoad) {
+          globalItemsLoaded = globalItemsToLoad = 0;
+        }
+
 
         // If we have loaded all of the resources,
         if (numLoaded >= numResources) {
@@ -447,8 +480,9 @@ var Loader = Class(Emitter, function () {
             clearTimeout(_timeout);
           }
 
+
           // Fire the completion callback chain
-          logger.log("Preload Complete:", src.resource);
+          logger.log('Preload Complete:', src.resource);
           callback.fire();
         } else {
           // Call the progress callback with the current progress
@@ -468,9 +502,9 @@ var Loader = Class(Emitter, function () {
         var prevOnLoad = res.onreload;
         var prevOnError = res.onerror;
 
+
         // When the resource completes loading, either with success
         // or failure:
-
         res.onreload = function () {
           // If previous callback exists, run it first in a chain
           prevOnLoad && prevOnLoad();
@@ -505,9 +539,9 @@ var Loader = Class(Emitter, function () {
         var prevOnLoad = res.onload;
         var prevOnError = res.onerror;
 
+
         // When the resource completes loading, either with success
         // or failure:
-
         res.onload = function () {
           // If previous callback exists, run it first in a chain
           prevOnLoad && prevOnLoad();
@@ -516,9 +550,10 @@ var Loader = Class(Emitter, function () {
           res.failed = false;
 
           // Let subscribers know an image was loaded
-          if (src.type === "image") {
+          if (src.type === 'image') {
             that.emit(Loader.IMAGE_LOADED, res, src);
           }
+
 
           // React to successful load of this resource
           next(false);
@@ -540,12 +575,15 @@ var Loader = Class(Emitter, function () {
     var _timeout = null;
     setTimeout(function () {
       // spin up n simultaneous loaders!
-      for (var i = 0; i < parallel; ++i) { loadResource(); }
+      for (var i = 0; i < parallel; ++i) {
+        loadResource();
+      }
+
 
       // register timeout call
       if (timeout) {
         _timeout = setTimeout(function () {
-          logger.warn("Preload Timeout: Something Failed to Load");
+          logger.warn('Preload Timeout: Something Failed to Load');
           callback.fire();
           numLoaded = numResources;
         }, timeout);
@@ -556,7 +594,7 @@ var Loader = Class(Emitter, function () {
 
 });
 
-Loader.IMAGE_LOADED = "imageLoaded";
+Loader.IMAGE_LOADED = 'imageLoaded';
 
 exports = new Loader();
 

@@ -13,60 +13,44 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
+jsio('import ui.View as View');
+jsio('import ui.ImageView as ImageView');
+jsio('import ui.ImageScaleView as ImageScaleView');
+jsio('import ui.TextView as TextView');
 
-import ui.View as View;
-import ui.ImageView as ImageView;
-import ui.ImageScaleView as ImageScaleView;
-import ui.TextView as TextView;
+jsio('import AudioManager');
+jsio('import lib.Enum as Enum');
 
-import AudioManager;
-import lib.Enum as Enum;
-
-var states = Enum(
-  "UP",
-  "DOWN",
-  "DISABLED",
-  "SELECTED",
-  "UNSELECTED"
-);
+var states = Enum('UP', 'DOWN', 'DISABLED', 'SELECTED', 'UNSELECTED');
 var lastClicked = null;
 var ButtonView = exports = Class(ImageScaleView, function (supr) {
-
   this.init = function (opts) {
-    this._state = opts.defaultState || opts.state ||
-      (opts.toggleSelected ? states.UNSELECTED : states.UP);
+    this._state = opts.defaultState || opts.state || (opts.toggleSelected ? states.UNSELECTED : states.UP);
 
-    supr(this, "init", arguments);
+    supr(this, 'init', arguments);
 
-    this.selected = (opts.toggleSelected && 
-      opts.state === states.SELECTED) ? true: false;
+    this.selected = opts.toggleSelected && opts.state === states.SELECTED ? true : false;
 
-    var textOpts = merge(
-      opts.text,
-      {
-        superview: this,
-        text: opts.title || "",
-        x: 0,
-        y: 0,
-        width: this.style.width,
-        height: this.style.height,
-        canHandleEvents: false
-      }
-    );
-    this._reflowText = (textOpts.width == this.style.width) && (textOpts.height == this.style.height);
+    var textOpts = merge(opts.text, {
+      superview: this,
+      text: opts.title || '',
+      x: 0,
+      y: 0,
+      width: this.style.width,
+      height: this.style.height,
+      canHandleEvents: false
+    });
+    this._reflowText = textOpts.width == this.style.width && textOpts.height == this.style.height;
     this._text = new TextView(textOpts);
 
-    var iconOpts = merge(
-      opts.icon,
-      {
-        superview: this,
-        x: 0,
-        y: 0,
-        width: this.style.width,
-        height: this.style.height,
-        canHandleEvents: false
-      }
-    );
+    var iconOpts = merge(opts.icon, {
+      superview: this,
+      x: 0,
+      y: 0,
+      width: this.style.width,
+      height: this.style.height,
+      canHandleEvents: false
+    });
     this._icon = new ImageView(iconOpts);
 
     this.updateOpts(opts);
@@ -76,7 +60,7 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
   this.updateOpts = function (opts) {
     opts = merge(opts, this._opts);
 
-    opts = supr(this, "updateOpts", [opts]);
+    opts = supr(this, 'updateOpts', [opts]);
 
     this._opts = opts;
     this._images = opts.images;
@@ -84,7 +68,7 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
     this._audioManager = opts.audioManager;
     this._sounds = opts.sounds;
 
-    ("text" in opts) && this._text && this._text.updateOpts(opts.text);
+    'text' in opts && this._text && this._text.updateOpts(opts.text);
   };
 
   this.onInputStart = function () {
@@ -92,6 +76,7 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
     if (this._state === states.DISABLED) {
       return;
     }
+
 
     lastClicked = this.uid;
 
@@ -105,6 +90,7 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
       return;
     }
 
+
     this._state = states.DOWN;
     this._trigger(states.DOWN, true);
   };
@@ -115,6 +101,7 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
       return;
     }
 
+
     //call the click handler
     this._opts.onClick && this._opts.onClick.call(this);
     this.onClick && this.onClick();
@@ -124,12 +111,14 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
       return;
     }
 
+
     if (this._opts.clickOnce) {
       this._state = states.DISABLED;
       this._trigger(states.UP);
       this._trigger(states.DISABLED);
       return;
     }
+
 
     if (this._opts.toggleSelected) {
       if (this.selected) {
@@ -154,11 +143,12 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
   //when this function is called from the constructor the dontPublish parameter to prevent publishing events on create...
   this._trigger = function (state, dontPublish) {
     var stateName = states[state];
-    if (!stateName) return;
+    if (!stateName)
+      return;
     stateName = stateName.toLowerCase();
 
     if (this._images && this._images[stateName]) {
-      if (!(this._opts.toggleSelected && (state === states.UP))) {
+      if (!(this._opts.toggleSelected && state === states.UP)) {
         this.setImage(this._images[stateName]);
       }
     }
@@ -166,12 +156,14 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
       return;
     }
 
-    if (typeof this._onHandlers[stateName] === "function") {
+
+    if (typeof this._onHandlers[stateName] === 'function') {
       this._onHandlers[stateName].call(this);
     }
     if (this._sounds && this._sounds[stateName]) {
       this._audioManager && this._audioManager.play(this._sounds[stateName]);
     }
+
 
     this.emit(stateName);
   };
@@ -201,16 +193,19 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
 
   this.setState = function (state) {
     var stateName = states[state];
-    if (!stateName) return;
+    if (!stateName)
+      return;
+
 
     switch (state) {
-      case states.SELECTED:
-        this.selected = true;
-        break;
+    case states.SELECTED:
+      this.selected = true;
+      break;
 
-      case states.UNSELECTED:
-        this.selected = false;
-        break;
+
+    case states.UNSELECTED:
+      this.selected = false;
+      break;
     }
 
     this._state = state;

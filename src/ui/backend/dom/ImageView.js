@@ -13,28 +13,25 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @package ui.backend.dom.ImageView;
  *
  * Renders an image in a View for canvas.
  */
-
-import ui.View as View;
-import ui.resource.Image as Image;
+jsio('import ui.View as View');
+jsio('import ui.resource.Image as Image');
 
 /**
  * @extends timestep.View
  */
 exports = Class(View, function (supr) {
-
   this.init = function (opts) {
     opts = merge(opts, {
       image: null,
       autoSize: false
     });
 
-    supr(this, "init", [opts]);
+    supr(this, 'init', [opts]);
 
     var s = this.__view._node.style;
     s.webkitBackgroundClip = s.backgroundClip = 'content-box';
@@ -51,14 +48,17 @@ exports = Class(View, function (supr) {
       this._autoSize = !!opts.autoSize;
     }
 
+
     if (opts.image) {
       this.setImage(opts.image);
     } else {
       this.needsReflow();
     }
 
+
     return opts;
   }
+;
 
   this.autoSize = function () {
     if (this._img) {
@@ -70,10 +70,13 @@ exports = Class(View, function (supr) {
       }
     }
   }
+;
 
   this._imgCache = {};
 
-  this.getImage = function () { return this._img; }
+  this.getImage = function () {
+    return this._img;
+  };
   this.setImage = function (img, opts) {
     if (typeof img == 'string') {
       // Cache image requests to avoid heavy performance penalties at the
@@ -81,21 +84,23 @@ exports = Class(View, function (supr) {
       var name = img;
       img = this._imgCache[name];
       if (!img) {
-        this._imgCache[name] = img = new Image({url: name});
+        this._imgCache[name] = img = new Image({ url: name });
       }
     }
+
 
     if (img != this._img) {
       if (this._img) {
         this._img.unsubscribe('changeBounds', this);
       }
 
+
       this._img = img;
 
       if (img) {
         // use subscribe/unsubscribe to avoid warnings about 'possible memory leak detected' in EventEmitter API
         img.subscribe('changeBounds', this, 'updateImage');
-        this._autoSize = (opts && ('autoSize' in opts)) ? opts.autoSize : this._autoSize;
+        this._autoSize = opts && 'autoSize' in opts ? opts.autoSize : this._autoSize;
         if (this._autoSize) {
           // sprited resources will know their dimensions immediately
           if (img.getWidth() > 0 && img.getHeight() > 0) {
@@ -106,16 +111,19 @@ exports = Class(View, function (supr) {
           }
         }
 
+
         img.doOnLoad(this, 'updateImage');
       } else {
         this.updateImage();
       }
     }
   }
+;
 
   this.reflow = function () {
     this.updateImage();
   }
+;
 
   this._getBackgroundNode = function (imageURL) {
     // When a css background-image is set that has an etag and no max-age
@@ -132,24 +140,17 @@ exports = Class(View, function (supr) {
       this._bgNodes = {};
     }
 
+
     var el = this._bgNodes[imageURL];
     if (!el) {
       // create a background node for this URL if we don't
       // already have one
       this._bgNodes[imageURL] = el = document.createElement('div');
-      el.style.cssText =
-          '-webkit-background-clip:content-box;'
-        + 'background-clip:content-box;'
-        + 'z-index:-1;'
-        + 'position:absolute;'
-        + 'top:0;'
-        + 'left:0;'
-        + 'bottom:0;'
-        + 'right:0;'
-        + 'background-image:' + imageURL + ';';
+      el.style.cssText = '-webkit-background-clip:content-box;' + 'background-clip:content-box;' + 'z-index:-1;' + 'position:absolute;' + 'top:0;' + 'left:0;' + 'bottom:0;' + 'right:0;' + 'background-image:' + imageURL + ';';
 
       this.__view._node.appendChild(el);
     }
+
 
     if (el != this._currentBgNode) {
       // hide the previous background node
@@ -157,20 +158,22 @@ exports = Class(View, function (supr) {
         this._currentBgNode.style.visibility = 'hidden';
       }
 
+
       // show the current background node
       this._currentBgNode = el;
       el.style.visibility = 'visible';
     }
 
+
     return el;
   }
+;
 
   this._canvasRender = function (ctx, opts) {
     var canvas = this._img.getSource();
-    ctx.drawImage(canvas,
-        0, 0, canvas.width, canvas.height,
-        0, 0, this.style.width, this.style.height);
+    ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, this.style.width, this.style.height);
   }
+;
 
   // sets the CSS background-image for this node
   this.updateImage = function () {
@@ -206,20 +209,24 @@ exports = Class(View, function (supr) {
           }
         }
 
+
         var bounds = img.getBounds();
-        s.padding = scaleY * bounds.marginTop + 'px '
-          + scaleX * bounds.marginRight + 'px '
-          + scaleY * bounds.marginBottom + 'px '
-          + scaleX * bounds.marginLeft + 'px';
+        s.padding = scaleY * bounds.marginTop + 'px ' + scaleX * bounds.marginRight + 'px ' + scaleY * bounds.marginBottom + 'px ' + scaleX * bounds.marginLeft + 'px';
         s.backgroundPositionX = scaleX * (-bounds.x + bounds.marginLeft) + 'px';
         s.backgroundPositionY = scaleY * (-bounds.y + bounds.marginTop) + 'px';
         s.backgroundSize = sheetWidth * scaleX + 'px ' + sheetHeight * scaleY + 'px';
       }
     }
   }
+;
 
-  this.getOrigW = function () { return this._img.getOrigW(); }
-  this.getOrigH = function () { return this._img.getOrigH(); }
+  this.getOrigW = function () {
+    return this._img.getOrigW();
+  };
+  this.getOrigH = function () {
+    return this._img.getOrigH();
+  }
+;
 
   this.doOnLoad = function () {
     if (arguments.length == 1) {
@@ -228,7 +235,7 @@ exports = Class(View, function (supr) {
       this._img.doOnLoad.apply(this._img, arguments);
     }
     return this;
-  }
+  };
 });
 
 exports.prototype.getOrigWidth = exports.prototype.getOrigW;

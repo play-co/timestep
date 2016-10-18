@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class ui.StackView;
  * Implements a view which can switch out one of several child views to display at the front.
@@ -21,26 +20,27 @@
  * @doc http://doc.gameclosure.com/api/ui-stackview.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/stackview.md
  */
-
-import ui.View as View;
-import animate;
+jsio('import ui.View as View');
+jsio('import animate');
 
 /**
  * @extends ui.View
  */
 exports = Class(View, function (supr) {
   this.init = function (opts) {
-    opts = merge(opts, {
-      layout: 'box'
-    });
+    opts = merge(opts, { layout: 'box' });
     supr(this, 'init', [opts]);
     this.stack = [];
   };
 
-  this.getStack = function () { return this.stack; };
+  this.getStack = function () {
+    return this.stack;
+  };
 
   this.getCurrentView = function () {
-    if (!this.stack.length) { return null; }
+    if (!this.stack.length) {
+      return null;
+    }
     return this.stack[this.stack.length - 1];
   };
 
@@ -50,8 +50,11 @@ exports = Class(View, function (supr) {
       dontAnimate = true;
     }
 
+
     var current = this.getCurrentView();
-    if (current) { this._hide(current, dontAnimate); }
+    if (current) {
+      this._hide(current, dontAnimate);
+    }
     view.style.y = 0;
     view.style.width = this.style.width / view.style.scale;
     view.style.height = this.style.height / view.style.scale;
@@ -64,13 +67,11 @@ exports = Class(View, function (supr) {
     view.publish('ViewWillDisappear');
     if (!dontAnimate) {
       this.getInput().blockEvents = true;
-      animate(view)
-        .then({x: (reverse ? 1 : -1) * this.style.width})
-        .then(bind(this, function () {
-          this.removeSubview(view);
-          view.publish('ViewDidDisappear');
-          this.getInput().blockEvents = false;
-        }));
+      animate(view).then({ x: (reverse ? 1 : -1) * this.style.width }).then(bind(this, function () {
+        this.removeSubview(view);
+        view.publish('ViewDidDisappear');
+        this.getInput().blockEvents = false;
+      }));
     } else {
       this.removeSubview(view);
       view.publish('ViewDidDisappear');
@@ -83,9 +84,7 @@ exports = Class(View, function (supr) {
     if (!dontAnimate) {
       view.style.x = (reverse ? -1 : 1) * this.style.width;
       this.addSubview(view);
-      animate(view)
-        .then({x: 0})
-        .then(bind(view, 'publish', 'ViewDidAppear'));
+      animate(view).then({ x: 0 }).then(bind(view, 'publish', 'ViewDidAppear'));
     } else {
       this.addSubview(view);
       view.style.x = 0;
@@ -103,16 +102,20 @@ exports = Class(View, function (supr) {
       this.stack.splice(i, 1);
     }
   }
+;
 
   this.pop = function (dontAnimate, reverse) {
-    if (!this.stack.length) { return false; }
+    if (!this.stack.length) {
+      return false;
+    }
     var view = this.stack.pop();
     //reverse by default
-    this._hide(view, dontAnimate, (reverse === false) ? false : true);
+    this._hide(view, dontAnimate, reverse === false ? false : true);
 
     if (this.stack.length) {
       this._show(this.stack[this.stack.length - 1], dontAnimate, true);
     }
+
 
     return view;
   };

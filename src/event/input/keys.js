@@ -13,12 +13,10 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @module event.input.keys
  * Map browser keycodes to corresponding keys.
  */
-
 exports = {
   BACKSPACE: 8,
   TAB: 9,

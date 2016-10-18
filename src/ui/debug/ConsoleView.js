@@ -13,12 +13,10 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class ui.debug.ConsoleView;
  */
-
-import ui.View as View;
+jsio('import ui.View as View');
 
 var defaults = {
   font: '12px Consolas, Monaco',
@@ -29,7 +27,6 @@ var defaults = {
 };
 
 exports = Class(View, function (supr) {
-
   this.init = function (opts) {
     this._opts = merge(opts, defaults);
     supr(this, 'init', [this._opts]);
@@ -38,43 +35,47 @@ exports = Class(View, function (supr) {
     this._lineHeight = this._opts.lineHeight;
     this._maxLines = this._opts.maxLines;
     this._history = this._opts.maxLines;
-    
+
     this._count = 0;
     this._lines = [];
   };
 
   this.buildView = function () {
     //if width/height not provided, default to parent dimensions
-    this.style.width = (this._opts.width) ? this._opts.width : this.getSuperview().style.width;
-    this.style.height = (this._opts.height) ? this._opts.height : this.getSuperview().style.height;
+    this.style.width = this._opts.width ? this._opts.width : this.getSuperview().style.width;
+    this.style.height = this._opts.height ? this._opts.height : this.getSuperview().style.height;
   };
-  
+
   this.render = function (ctx) {
     ctx.fillStyle = this._opts.backgroundColor;
     ctx.fillRect(0, 0, this.style.width, this.style.height);
-    
+
     var maxLines = this._maxLines == 'auto' ? (this.style.height - 25) / this._lineHeight | 0 : this._maxLines;
     this._history = maxLines;
-    
+
     ctx.font = this._font;
     ctx.fillStyle = this._opts.color;
-    
+
     var n = this._lines.length;
     for (var i = 0; i < maxLines; ++i) {
       var line = this._lines[n - maxLines + i];
-      if (line) { ctx.fillText(line, 25, 25 + i * this._lineHeight); }
+      if (line) {
+        ctx.fillText(line, 25, 25 + i * this._lineHeight);
+      }
     }
   };
 
   /*
    * @param {*...} args Argument(s) to print to the view.
    */
-  this.log = function (/*args ...*/) {
-    ++this._count;
-    this._lines.push(Array.prototype.join.call(arguments, ' '));
-    if (this._count >= this._history) {
-      this._lines.shift();
-    }
-    this.needsRepaint();
-  };
+  this.log = function ()
+    /*args ...*/
+    {
+      ++this._count;
+      this._lines.push(Array.prototype.join.call(arguments, ' '));
+      if (this._count >= this._history) {
+        this._lines.shift();
+      }
+      this.needsRepaint();
+    };
 });

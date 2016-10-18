@@ -13,8 +13,7 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
-import ui.View as View;
+jsio('import ui.View as View');
 
 /**
  * @class ui.ViewPool;
@@ -60,7 +59,7 @@ exports = Class('ViewPool', function () {
       // create a new view, ideally this never happens during gameplay
       var view = this._createView(opts);
       if (this._logViewCreation) {
-        logger.warn("ViewPool created View:", view.getTag());
+        logger.warn('ViewPool created View:', view.getTag());
       }
     }
     view._obtainedFromPool = true;
@@ -112,7 +111,7 @@ exports = Class('ViewPool', function () {
    *
    * like Array.forEach, call a function for each obtained view
    */
-  this.forEachActiveView = function(fn, ctx) {
+  this.forEachActiveView = function (fn, ctx) {
     var views = this._views;
     for (var i = this._freshViewIndex - 1; i >= 0; i--) {
       fn.call(ctx, views[i], i);

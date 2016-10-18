@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 logger.warn('The Sound class is deprecated, use AudioManager instead.');
 jsio('import AudioManager');
 exports = AudioManager;

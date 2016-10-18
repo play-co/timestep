@@ -1,8 +1,8 @@
-from util.browser import $;
-import timer;
+jsio('from util.browser import $');
+jsio('import timer');
 
-import .FontLoader;
-import ui.resource.Font as Font;
+jsio('import .FontLoader');
+jsio('import ui.resource.Font as Font');
 
 
 var MAX_BUFFERS = 500;
@@ -17,12 +17,12 @@ exports = Class(function () {
   this.get = function (ctx, text, stroked) {
     var font = ctx.font;
     var fontData = Font.parse(font);
-    if (!isFontLoaded(fontData.getOrigName())) { return; }
+    if (!isFontLoaded(fontData.getOrigName())) {
+      return;
+    }
 
-    var bufferKey = (stroked
-          ? ctx.lineWidth + '|' + ctx.strokeStyle + '|'
-          : '-|' + ctx.fillStyle)
-      + '|' + font + '|' + text;
+
+    var bufferKey = (stroked ? ctx.lineWidth + '|' + ctx.strokeStyle + '|' : '-|' + ctx.fillStyle) + '|' + font + '|' + text;
 
     if (!this._buffers[bufferKey]) {
       if (this._numBuffers > MAX_BUFFERS) {
@@ -36,11 +36,13 @@ exports = Class(function () {
           }
         }
 
+
         ctx.deleteTextureForImage(this._buffers[oldestKey].image);
         delete this._buffers[oldestKey];
       } else {
         ++this._numBuffers;
       }
+
 
       var canvas = document.createElement('canvas');
       canvas.complete = true;
@@ -50,6 +52,7 @@ exports = Class(function () {
         metrics: this._render(canvas, text, font, stroked, ctx.fillStyle, ctx.strokeStyle, ctx.lineWidth)
       };
     }
+
 
     this._buffers[bufferKey].lastUsed = timer.now;
     return this._buffers[bufferKey];
@@ -75,6 +78,7 @@ exports = Class(function () {
       ctx.fillText(text, 0, 0);
     }
 
+
     return metrics;
   };
 });
@@ -89,7 +93,7 @@ bottomDiv.style.cssText = 'display: inline-block; width: 1px; height: 0px; verti
 heightMeasure.style.cssText = 'position: absolute; top: 0px; left: -1000px; visibility: hidden; pointer-events: none';
 
 var _fontHeightCache = {};
-function getTextHeight (font) {
+function getTextHeight(font) {
   if (!_fontHeightCache[font]) {
     heightMeasure.style.font = font;
     var metrics = {
@@ -102,10 +106,12 @@ function getTextHeight (font) {
     _fontHeightCache[font] = metrics;
   }
 
+
   return _fontHeightCache[font];
 }
 
-var isFontLoaded = (function () {
+
+var isFontLoaded = function () {
   var FONT_LOADER_TIMEOUT = 30 * 1000;
   var _loaded = {};
   var _loading = {};
@@ -125,11 +131,13 @@ var isFontLoaded = (function () {
     }, FONT_LOADER_TIMEOUT).loadFonts();
   }
 
+
   return function isFontLoaded(font) {
     if (!_loading[font]) {
       _checkFont(font);
     }
 
+
     return _loaded[font];
   };
-})();
+}();

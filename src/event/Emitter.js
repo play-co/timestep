@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class event.Emitter;
  * Namespace shim to bring in PubSub from jsio.
@@ -21,7 +20,6 @@
  * @doc http://doc.gameclosure.com/api/event.html#class-event.emitter
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/event.md
  */
-
 // FIXME: remove this file
 jsio('import lib.PubSub as libPubSub');
 exports = libPubSub;

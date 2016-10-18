@@ -13,13 +13,12 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
+jsio('import lib.PubSub');
+jsio('import lib.Enum as Enum');
+jsio('from util.browser import $');
 
-import lib.PubSub;
-import lib.Enum as Enum;
-from util.browser import $;
-
-import device;
-import userAgent;
+jsio('import device');
+jsio('import userAgent');
 
 var isIOS7 = device.iosVersion === 7;
 var isIOSSafari = device.iosVersion >= 7 && !device.isIpad && !device.isStandalone && !device.isUIWebView;
@@ -37,6 +36,7 @@ var Document = Class(lib.PubSub, function () {
       return;
     }
 
+
     var doc = GLOBAL.document;
     var body = doc && doc.body;
 
@@ -52,7 +52,9 @@ var Document = Class(lib.PubSub, function () {
     });
 
     device.screen.subscribe('Resize', this, 'onResize');
-    if (exports.postCreateHook) { exports.postCreateHook(this); }
+    if (exports.postCreateHook) {
+      exports.postCreateHook(this);
+    }
     this.setScalingMode(defaultScalingMode);
   };
 
@@ -61,12 +63,15 @@ var Document = Class(lib.PubSub, function () {
   };
 
   this.setEngine = function (engine) {
-    if (engine == this._engine) { return; }
+    if (engine == this._engine) {
+      return;
+    }
 
-    if (engine.getOpt('minIOSLandscapeScroll') > device.iosVersion
-        || engine.getOpt('disableIOSLandscapeScroll')) {
+
+    if (engine.getOpt('minIOSLandscapeScroll') > device.iosVersion || engine.getOpt('disableIOSLandscapeScroll')) {
       enableLandscapeScroll = false;
     }
+
 
     this._engine = engine;
     this._canvas = this._engine.getCanvas();
@@ -74,6 +79,7 @@ var Document = Class(lib.PubSub, function () {
     if (enableLandscapeScroll) {
       this._canvas.style.position = 'fixed';
     }
+
 
     this.appendChild(this._canvas);
 
@@ -92,28 +98,25 @@ var Document = Class(lib.PubSub, function () {
   this.setScalingMode = function (scalingMode, opts) {
     this._scalingMode = scalingMode;
 
-    var el = this._el,
-      s = el.style;
+    var el = this._el, s = el.style;
 
     switch (scalingMode) {
-      case SCALING.FIXED:
-        opts = merge(opts, {
-            width: device.width,
-            height: device.height
-          });
-        s.width = opts.width + 'px';
-        s.height = opts.height + 'px';
-        break;
-      case SCALING.RESIZE:
-        opts = merge(opts, {
-            resizeCanvas: true
-          });
-        // fall through:
-      case SCALING.MANUAL:
-        s.margin = '0px';
-        s.width = '100%';
-        s.height = '100%';
-        break;
+    case SCALING.FIXED:
+      opts = merge(opts, {
+        width: device.width,
+        height: device.height
+      });
+      s.width = opts.width + 'px';
+      s.height = opts.height + 'px';
+      break;
+    case SCALING.RESIZE:
+      opts = merge(opts, { resizeCanvas: true });
+    // fall through:
+    case SCALING.MANUAL:
+      s.margin = '0px';
+      s.width = '100%';
+      s.height = '100%';
+      break;
     }
 
     this._scalingOpts = opts;
@@ -137,6 +140,7 @@ var Document = Class(lib.PubSub, function () {
       document.body.style.height = '100%';
     }
 
+
     logger.log('resize', device.width, device.height);
 
     var width = device.width;
@@ -149,74 +153,92 @@ var Document = Class(lib.PubSub, function () {
       height = opts.height;
     }
 
+
     // enforce maxWidth/maxHeight
     // if maxWidth/maxHeight is met, switch a RESIZE scaling mode to FIXED (center the document on the screen)
     if (opts.maxWidth && width > opts.maxWidth) {
       width = opts.maxWidth;
-      if (mode == SCALING.RESIZE) { mode = SCALING.FIXED; }
+      if (mode == SCALING.RESIZE) {
+        mode = SCALING.FIXED;
+      }
     }
+
 
     if (opts.maxHeight && height > opts.maxHeight) {
       height = opts.maxHeight;
-      if (mode == SCALING.RESIZE) { mode = SCALING.FIXED; }
+      if (mode == SCALING.RESIZE) {
+        mode = SCALING.FIXED;
+      }
     }
+
 
     // We may need to pause the engine when resizing on iOS
     var needsPause = isIOS && this._engine && this._engine.isRunning;
 
     switch (mode) {
-      case SCALING.MANUAL:
-        break; // do nothing
+    case SCALING.MANUAL:
+      break;
 
-      case SCALING.FIXED:
-        // try to center the container
-        el.style.top = Math.round(Math.max(0, (window.innerHeight - height) / 2)) + 'px';
-        el.style.left = Math.round(Math.max(0, (window.innerWidth - width) / 2)) + 'px';
 
-        s.width = width + 'px';
-        s.height = height + 'px';
-        break;
+    // do nothing
+    case SCALING.FIXED:
+      // try to center the container
+      el.style.top = Math.round(Math.max(0, (window.innerHeight - height) / 2)) + 'px';
+      el.style.left = Math.round(Math.max(0, (window.innerWidth - width) / 2)) + 'px';
 
-      case SCALING.RESIZE:
-        var cs = this._canvas && this._canvas.style;
-        var dpr = device.screen.devicePixelRatio;
-        var scaledWidth = width / dpr;
-        var scaledHeight = height / dpr;
-        // if we have a canvas element, scale it
-        if (opts.resizeCanvas && this._canvas
-            && (cs.width != scaledWidth|| cs.height != scaledHeight)) {
-          this._canvas.width = width;
-          this._canvas.height = height;
-          var ctx = this._canvas.getContext();
-          if (ctx.resize) {
-            ctx.resize(width, height);
-          }
+      s.width = width + 'px';
+      s.height = height + 'px';
+      break;
 
-          var needsPause = isIOS && this._engine && this._engine.isRunning;
-          if (isIOS) {
-            // There is a mobile browser bug that causes the canvas to not properly
-            // resize. This forces a reflow, with the side effect of a brief screen flash.
-            var engine = this._engine;
-            if (needsPause) { engine.pause(); }
-            cs.display = 'none';
-            setTimeout(function() {
-              cs.display = 'block';
-              if (needsPause) { engine.resume(); }
-            }, 250);
-          }
 
-          cs.width = scaledWidth + 'px';
-          cs.height = scaledHeight + 'px';
+    case SCALING.RESIZE:
+      var cs = this._canvas && this._canvas.style;
+      var dpr = device.screen.devicePixelRatio;
+      var scaledWidth = width / dpr;
+      var scaledHeight = height / dpr;
+      // if we have a canvas element, scale it
+      if (opts.resizeCanvas && this._canvas && (cs.width != scaledWidth || cs.height != scaledHeight)) {
+        this._canvas.width = width;
+        this._canvas.height = height;
+        var ctx = this._canvas.getContext();
+        if (ctx.resize) {
+          ctx.resize(width, height);
         }
 
-        s.width = scaledWidth + 'px';
-        s.height = scaledHeight + 'px';
-        break;
+
+        var needsPause = isIOS && this._engine && this._engine.isRunning;
+        if (isIOS) {
+          // There is a mobile browser bug that causes the canvas to not properly
+          // resize. This forces a reflow, with the side effect of a brief screen flash.
+          var engine = this._engine;
+          if (needsPause) {
+            engine.pause();
+          }
+          cs.display = 'none';
+          setTimeout(function () {
+            cs.display = 'block';
+            if (needsPause) {
+              engine.resume();
+            }
+          }, 250);
+        }
+
+
+        cs.width = scaledWidth + 'px';
+        cs.height = scaledHeight + 'px';
+      }
+
+
+      s.width = scaledWidth + 'px';
+      s.height = scaledHeight + 'px';
+      break;
     }
 
     // make sure to force a render immediately (should we use needsRepaint instead?)
     this._setDim(width, height);
-    if (this._engine && !needsPause) { this._engine.render(); }
+    if (this._engine && !needsPause) {
+      this._engine.render();
+    }
   };
 
   this._setDim = function (width, height) {
@@ -250,8 +272,7 @@ exports = new Document();
 exports.SCALING = SCALING;
 
 exports.setDocStyle = function () {
-  var doc = GLOBAL.document,
-    body = doc && doc.body;
+  var doc = GLOBAL.document, body = doc && doc.body;
 
   if (body) {
     var docStyle = {

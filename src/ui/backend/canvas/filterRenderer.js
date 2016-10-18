@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class ui.backend.canvas.FilterRenderer;
  * Renders filter effects to a canvas. Manages filtered canvas caching.
@@ -39,10 +38,9 @@ var needsInitialization = true;
 
 
 var FilterRenderer = Class(function () {
-
   this.cache = new LRUCache(CACHE_SIZE);
 
-  this.initialize = function() {
+  this.initialize = function () {
     Canvas = device.get('Canvas');
     noCacheCanvas = new Canvas({ useWebGL: CONFIG.useWebGL });
     needsInitialization = false;
@@ -54,27 +52,35 @@ var FilterRenderer = Class(function () {
     }
   };
 
-  this.onTick = function(dt) {
+  this.onTick = function (dt) {
     currentFrame++;
     activeChecks = pendingChecks;
     pendingChecks = {};
   };
 
   this.renderFilter = function (ctx, srcImg, srcX, srcY, srcW, srcH) {
-    if (needsInitialization) { this.initialize(); }
+    if (needsInitialization) {
+      this.initialize();
+    }
     var filter = ctx.filter;
     var filterName = filter && filter.getType && filter.getType();
 
     // Ugly hack, but WebGL still needs this class, for now, for masking.
     // The other filters are handled by the WebGL context itself.
-    var filterNotSupported = this.useWebGL && filterName !== "NegativeMask" && filterName !== "PositiveMask";
-    if (!filter || filterNotSupported || !filter.getType) { return null; }
+    var filterNotSupported = this.useWebGL && filterName !== 'NegativeMask' && filterName !== 'PositiveMask';
+    if (!filter || filterNotSupported || !filter.getType) {
+      return null;
+    }
+
 
     if (this.useCache) {
       var cacheKey = this.getCacheKey(srcImg.getURL(), srcX, srcY, srcW, srcH, filter);
       var resultImg = this.cache.get(cacheKey);
-      if (resultImg) { return resultImg; }
+      if (resultImg) {
+        return resultImg;
+      }
     }
+
 
     var shouldCache = this.useCache && this.testShouldCache(cacheKey);
     if (shouldCache) {
@@ -85,26 +91,31 @@ var FilterRenderer = Class(function () {
       resultImg.height = srcH;
     }
 
+
     switch (filterName) {
-      case "LinearAdd":
-        this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter, 'lighter', resultImg);
-        break;
+    case 'LinearAdd':
+      this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter, 'lighter', resultImg);
+      break;
 
-      case "Tint":
-        this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter, 'source-over', resultImg);
-        break;
 
-      case "Multiply":
-        this.renderMultiply(ctx, srcImg, srcX, srcY, srcW, srcH, filter, resultImg);
-        break;
+    case 'Tint':
+      this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter, 'source-over', resultImg);
+      break;
 
-      case "NegativeMask":
-        this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(), 'source-in', resultImg);
-        break;
 
-      case "PositiveMask":
-        this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(), 'source-out', resultImg);
-        break;
+    case 'Multiply':
+      this.renderMultiply(ctx, srcImg, srcX, srcY, srcW, srcH, filter, resultImg);
+      break;
+
+
+    case 'NegativeMask':
+      this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(), 'source-in', resultImg);
+      break;
+
+
+    case 'PositiveMask':
+      this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(), 'source-out', resultImg);
+      break;
     }
 
     if (shouldCache) {
@@ -112,12 +123,13 @@ var FilterRenderer = Class(function () {
       unusedCanvas = removedEntry ? removedEntry.value : null;
     }
 
+
     return resultImg;
   };
 
-  this.testShouldCache = function(key) {
+  this.testShouldCache = function (key) {
     var checkFrame = pendingChecks[key] = activeChecks[key] || currentFrame;
-    return (currentFrame - checkFrame) > CACHE_FRAME_THRESHOLD;
+    return currentFrame - checkFrame > CACHE_FRAME_THRESHOLD;
   };
 
 
@@ -137,7 +149,7 @@ var FilterRenderer = Class(function () {
     return result;
   };
 
-  this.renderMultiply = function(ctx, srcImg, srcX, srcY, srcW, srcH, filter, destCanvas) {
+  this.renderMultiply = function (ctx, srcImg, srcX, srcY, srcW, srcH, filter, destCanvas) {
     var color = filter.get();
     var result = destCanvas;
     var resultCtx = result.getContext('2d');
@@ -145,9 +157,9 @@ var FilterRenderer = Class(function () {
     var data = imgData.data;
     // simplified multiply math outside of the massive for loop
     var a = color.a;
-    var mr = 1 + a * ((color.r / 255) - 1);
-    var mg = 1 + a * ((color.g / 255) - 1);
-    var mb = 1 + a * ((color.b / 255) - 1);
+    var mr = 1 + a * (color.r / 255 - 1);
+    var mg = 1 + a * (color.g / 255 - 1);
+    var mb = 1 + a * (color.b / 255 - 1);
     for (var i = 0, len = data.length; i < len; i += 4) {
       data[i] *= mr;
       data[i + 1] *= mg;
@@ -178,21 +190,21 @@ var FilterRenderer = Class(function () {
     this.cache.removeAll();
   };
 
-  this.getCacheKey = function(url, srcX, srcY, srcW, srcH, filter) {
+  this.getCacheKey = function (url, srcX, srcY, srcW, srcH, filter) {
     var filterType = filter && filter.getType && filter.getType();
     var suffix;
     if (filterType === 'NegativeMask' || filterType === 'PositiveMask') {
       suffix = filter.getMask().getURL();
     } else {
       var color = filter.get();
-      var alpha = (color.a * 255) & 0xff;
-      suffix = "" + alpha + "|" + color.r + "|" + color.g + "|" + color.b;
+      var alpha = color.a * 255 & 255;
+      suffix = '' + alpha + '|' + color.r + '|' + color.g + '|' + color.b;
     }
-    var cacheKey = filterType + "|" + url + "|" + srcX + "|" + srcY + "|" + srcW + "|" + srcH + "|" + suffix;
+    var cacheKey = filterType + '|' + url + '|' + srcX + '|' + srcY + '|' + srcW + '|' + srcH + '|' + suffix;
     return cacheKey;
   };
 
-  this.getCanvas = function(width, height) {
+  this.getCanvas = function (width, height) {
     var result;
     if (unusedCanvas) {
       result = unusedCanvas;
@@ -200,7 +212,10 @@ var FilterRenderer = Class(function () {
       result.height = height;
       unusedCanvas = null;
     } else {
-      result = new Canvas({ width: width, height: height });
+      result = new Canvas({
+        width: width,
+        height: height
+      });
     }
     return result;
   };

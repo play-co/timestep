@@ -13,15 +13,13 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class ui.ParticleEngine;
  */
-
-import ui.View as View;
-import ui.resource.Image as Image;
-import ui.ImageView as ImageView;
-import performance;
+jsio('import ui.View as View');
+jsio('import ui.resource.Image as Image');
+jsio('import ui.ImageView as ImageView');
+jsio('import performance');
 
 // Math references
 var sin = Math.sin;
@@ -33,12 +31,20 @@ var max = Math.max;
 var imageCache = {};
 
 // animation transtion functions borrowed from animate
-var TRANSITION_LINEAR = "linear";
+var TRANSITION_LINEAR = 'linear';
 var TRANSITIONS = {
-  linear: function (n) { return n; },
-  easeIn: function (n) { return n * n; },
-  easeInOut: function (n) { return (n *= 2) < 1 ? 0.5 * n * n * n : 0.5 * ((n -= 2) * n * n + 2); },
-  easeOut: function (n) { return n * (2 - n); }
+  linear: function (n) {
+    return n;
+  },
+  easeIn: function (n) {
+    return n * n;
+  },
+  easeInOut: function (n) {
+    return (n *= 2) < 1 ? 0.5 * n * n * n : 0.5 * ((n -= 2) * n * n + 2);
+  },
+  easeOut: function (n) {
+    return n * (2 - n);
+  }
 };
 
 var PARTICLE_DEFAULTS = {
@@ -90,15 +96,16 @@ var PARTICLE_DEFAULTS = {
   ddtheta: 0,
   ddradius: 0,
   elapsed: 0,
-  image: "",
+  image: '',
   compositeOperation: null,
   transition: TRANSITION_LINEAR,
   onStart: null,
   onDeath: null,
   external: false,
-  triggers: null // NOT ok to use array here, assign later
+  triggers: null
 };
 
+// NOT ok to use array here, assign later
 var PARTICLE_KEYS = Object.keys(PARTICLE_DEFAULTS);
 
 /**
@@ -199,24 +206,25 @@ exports = Class(View, function (supr) {
         ddtheta: 0,
         ddradius: 0,
         elapsed: 0,
-        image: "",
+        image: '',
         compositeOperation: null,
         transition: TRANSITION_LINEAR,
         onStart: null,
         onDeath: null,
         external: false,
-        triggers: [] // OK to use an array here
+        triggers: []
       });
     }
   };
 
+  // OK to use an array here
   /**
    * returns an array populated with n particle objects
    * modify each particle object, then pass the array in via this.emitParticles
    */
   this.obtainParticleArray = function (count, opts) {
     opts = opts || {};
-    
+
     count = performance.getAdjustedParticleCount(count, opts.performanceScore, opts.allowReduction);
 
     for (var i = 0; i < count; i++) {
@@ -270,15 +278,16 @@ exports = Class(View, function (supr) {
         ddtheta: 0,
         ddradius: 0,
         elapsed: 0,
-        image: "",
+        image: '',
         compositeOperation: null,
         transition: TRANSITION_LINEAR,
         onStart: null,
         onDeath: null,
         external: false,
-        triggers: [] // OK to use an array here
+        triggers: []
       });
     }
+    // OK to use an array here
     return this._particleDataArray;
   };
 
@@ -290,7 +299,8 @@ exports = Class(View, function (supr) {
       var key = PARTICLE_KEYS[i];
       obj[key] = PARTICLE_DEFAULTS[key];
     }
-    obj.triggers = []; // don't keep an array in the PARTICLE_DEFAULTS object
+    obj.triggers = [];
+    // don't keep an array in the PARTICLE_DEFAULTS object
     return obj;
   };
 
@@ -347,9 +357,10 @@ exports = Class(View, function (supr) {
           canHandleEvents: false
         });
         if (this._logViewCreation) {
-          logger.warn(this.getTag(), "created View:", particle.getTag());
+          logger.warn(this.getTag(), 'created View:', particle.getTag());
         }
       }
+
 
       // only set particle image if necessary
       var image = data.image;
@@ -361,6 +372,7 @@ exports = Class(View, function (supr) {
         particle.setImage(img);
         particle.lastImage = image;
       }
+
 
       // apply style properties
       var s = particle.style;
@@ -385,12 +397,15 @@ exports = Class(View, function (supr) {
         s.visible = true;
         data.onStart && data.onStart(particle);
       } else if (data.delay < 0) {
-        throw new Error("Particles cannot have negative delay values!");
+        throw new Error('Particles cannot have negative delay values!');
       }
 
+
+
       if (data.ttl < 0) {
-        throw new Error("Particles cannot have negative time-to-live values!");
+        throw new Error('Particles cannot have negative time-to-live values!');
       }
+
 
       // and finally emit the particle
       this._prepareTriggers(data);
@@ -409,9 +424,7 @@ exports = Class(View, function (supr) {
     var triggers = data.triggers;
     for (var i = 0, len = triggers.length; i < len; i++) {
       var trig = triggers[i];
-      trig.isStyle = trig.isStyle !== void 0
-        ? trig.isStyle
-        : trig.property.charAt(0) !== 'd';
+      trig.isStyle = trig.isStyle !== void 0 ? trig.isStyle : trig.property.charAt(0) !== 'd';
     }
   };
 
@@ -472,6 +485,7 @@ exports = Class(View, function (supr) {
         continue;
       }
 
+
       // handle particle delays
       if (data.delay > 0) {
         data.delay -= dt;
@@ -484,12 +498,14 @@ exports = Class(View, function (supr) {
         }
       }
 
+
       // is it dead yet?
       data.elapsed += dt;
       if (data.elapsed >= data.ttl) {
         this._killParticle(particle, data, i);
         continue;
       }
+
 
       // calculate the percent of one second elapsed; deltas are in units / second
       var pct = dt / 1000;
@@ -499,6 +515,7 @@ exports = Class(View, function (supr) {
         var prgAfter = getTransitionProgress(data.elapsed / data.ttl);
         pct = (prgAfter - prgBefore) * data.ttl / 1000;
       }
+
 
       // translation
       if (data.polar) {
@@ -517,48 +534,71 @@ exports = Class(View, function (supr) {
       } else {
         // cartesian by default
         var dx = pct * data.dx;
-        if (dx !== 0) { s.x = data.x += dx; }
+        if (dx !== 0) {
+          s.x = data.x += dx;
+        }
         var dy = pct * data.dy;
-        if (dy !== 0) { s.y = data.y += dy; }
+        if (dy !== 0) {
+          s.y = data.y += dy;
+        }
         data.dx += pct * data.ddx;
         data.dy += pct * data.ddy;
       }
 
+
       // anchor translation
       var dax = pct * data.danchorX;
-      if (dax !== 0) { s.anchorX = data.anchorX += dax; }
+      if (dax !== 0) {
+        s.anchorX = data.anchorX += dax;
+      }
       var day = pct * data.danchorY;
-      if (day !== 0) { s.anchorY = data.anchorY += day; }
+      if (day !== 0) {
+        s.anchorY = data.anchorY += day;
+      }
       data.danchorX += pct * data.ddanchorX;
       data.danchorY += pct * data.ddanchorY;
 
       // stretching
       var dw = pct * data.dwidth;
-      if (dw !== 0) { s.width = data.width += dw; }
+      if (dw !== 0) {
+        s.width = data.width += dw;
+      }
       var dh = pct * data.dheight;
-      if (dh !== 0) { s.height = data.height += dh; }
+      if (dh !== 0) {
+        s.height = data.height += dh;
+      }
       data.dwidth += pct * data.ddwidth;
       data.dheight += pct * data.ddheight;
 
       // rotation
       var dr = pct * data.dr;
-      if (dr !== 0) { s.r = data.r += dr; }
+      if (dr !== 0) {
+        s.r = data.r += dr;
+      }
       data.dr += pct * data.ddr;
 
       // scaling
       var ds = pct * data.dscale;
-      if (ds !== 0) { s.scale = data.scale = max(0, data.scale + ds); }
+      if (ds !== 0) {
+        s.scale = data.scale = max(0, data.scale + ds);
+      }
       var dsx = pct * data.dscaleX;
-      if (dsx !== 0) { s.scaleX = data.scaleX = max(0, data.scaleX + dsx); }
+      if (dsx !== 0) {
+        s.scaleX = data.scaleX = max(0, data.scaleX + dsx);
+      }
       var dsy = pct * data.dscaleY;
-      if (dsy !== 0) { s.scaleY = data.scaleY = max(0, data.scaleY + dsy); }
+      if (dsy !== 0) {
+        s.scaleY = data.scaleY = max(0, data.scaleY + dsy);
+      }
       data.dscale += pct * data.ddscale;
       data.dscaleX += pct * data.ddscaleX;
       data.dscaleY += pct * data.ddscaleY;
 
       // opacity
       var dop = pct * data.dopacity;
-      if (dop !== 0) { s.opacity = data.opacity = max(0, min(1, data.opacity + dop)); }
+      if (dop !== 0) {
+        s.opacity = data.opacity = max(0, min(1, data.opacity + dop));
+      }
       data.dopacity += pct * data.ddopacity;
 
       // triggers

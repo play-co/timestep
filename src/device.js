@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @module device;
  *
@@ -29,10 +28,9 @@
  * @doc http://doc.gameclosure.com/api/device.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/device.md
  */
-
-import userAgent;
-import util.setProperty;
-import event.Emitter as Emitter;
+jsio('import userAgent');
+jsio('import util.setProperty');
+jsio('import event.Emitter as Emitter');
 
 import {
   getImport,
@@ -45,12 +43,13 @@ if (typeof navigator === 'undefined' || !navigator.userAgent) {
   exports = { isUnknown: true };
 }
 
+
 var ua = navigator.userAgent;
+
 
 /**
  * @namespace
  */
-
 var _devices = {};
 exports.registerDevice = function (name, path) {
   _devices[name] = path;
@@ -84,6 +83,7 @@ exports.setDevicePixelRatio = function (value) {
     return;
   }
 
+
   exports.devicePixelRatio = exports.screen.devicePixelRatio = value;
 
   var width = Math.floor(window.innerWidth * value);
@@ -94,7 +94,8 @@ exports.setDevicePixelRatio = function (value) {
 };
 
 // This is stubbed out unless available on the current device.
-exports.hideAddressBar = function () {};
+exports.hideAddressBar = function () {
+};
 
 util.setProperty(exports, 'defaultFontFamily', {
   cb: function (value) {
@@ -103,9 +104,9 @@ util.setProperty(exports, 'defaultFontFamily', {
   },
   value: 'Helvetica'
 });
-exports.defaultFontWeight = "";
+exports.defaultFontWeight = '';
 
-if ('ontouchstart' in window && (!/BlackBerry/.test(ua))) {
+if ('ontouchstart' in window && !/BlackBerry/.test(ua)) {
   exports.events = {
     start: 'touchstart',
     move: 'touchmove',
@@ -118,6 +119,7 @@ if ('ontouchstart' in window && (!/BlackBerry/.test(ua))) {
     end: 'mouseup'
   };
 }
+
 
 /*
  * All userAgent flags in this file are now DEPRECATED.
@@ -142,13 +144,14 @@ if (exports.isSimulator) {
   exports.isNativeSimulator = false;
 }
 
+
 if (exports.isMobile) {
   exports.name = 'tealeaf';
   exports.width = navigator.width;
   exports.height = navigator.height;
   exports.isAndroid = /Android/.test(ua);
   if (exports.isAndroid) {
-    exports.isTablet = navigator.width/devicePixelRatio >= 600;
+    exports.isTablet = navigator.width / devicePixelRatio >= 600;
   } else {
     exports.isIPad = exports.isTablet = /iPad/.test(ua);
     exports.isIPhone = /iPhone/.test(ua);
@@ -163,16 +166,23 @@ if (exports.isMobile) {
     exports.isMobileBrowser = true;
     exports.isIOS = true;
     exports.isIpad = /iPad/i.test(ua);
-    exports.isStandalone = !!window.navigator.standalone; // full-screen
+    exports.isStandalone = !!window.navigator.standalone;
 
+    // full-screen
     var match = ua.match(/iPhone OS ([0-9]+)/);
     exports.iosVersion = match && parseInt(match[1]);
     exports.isUIWebView = !exports.isSafari;
 
     exports.screen.defaultOrientation = 'portrait';
     exports.screen.browserChrome = {
-      portrait: {top: 20 * devicePixelRatio, bottom: 44 * devicePixelRatio},
-      landscape: {top: 20 * devicePixelRatio, bottom: 32 * devicePixelRatio}
+      portrait: {
+        top: 20 * devicePixelRatio,
+        bottom: 44 * devicePixelRatio
+      },
+      landscape: {
+        top: 20 * devicePixelRatio,
+        bottom: 32 * devicePixelRatio
+      }
     };
 
   } else if (/Mobile Safari/.test(ua) || /Android/.test(ua) || /BlackBerry/.test(ua)) {
@@ -185,8 +195,14 @@ if (exports.isMobile) {
 
     exports.screen.defaultOrientation = 'portrait';
     exports.screen.browserChrome = {
-      portrait: {top: 0, bottom: 0},
-      landscape: {top: 0, bottom: 0}
+      portrait: {
+        top: 0,
+        bottom: 0
+      },
+      landscape: {
+        top: 0,
+        bottom: 0
+      }
     };
   } else {
     // All other browsers
@@ -196,24 +212,30 @@ if (exports.isMobile) {
     exports.canResize = false;
   }
 
+
+
   // Set up device.width and device.height for browser case
   exports.width = exports.screen.width;
   exports.height = exports.screen.height;
 }
 
+
 exports.useDOM = false;
 exports.setUseDOM = function (useDOM) {
-  console.warn("Attempting to set 'useDom' property, which is no longer supported.")
+  console.warn('Attempting to set \'useDom\' property, which is no longer supported.');
   return;
 };
 
 exports.getDimensions = function (isLandscape) {
-  var dMin = Math.min(exports.width, exports.height),
-    dMax = Math.max(exports.width, exports.height);
+  var dMin = Math.min(exports.width, exports.height), dMax = Math.max(exports.width, exports.height);
 
-  return isLandscape
-    ? {height: dMin, width: dMax}
-    : {height: dMax, width: dMin};
+  return isLandscape ? {
+    height: dMin,
+    width: dMax
+  } : {
+    height: dMax,
+    width: dMin
+  };
 };
 
 /**

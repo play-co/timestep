@@ -13,17 +13,15 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class ui.widget.Toast
  *
  * @doc http://doc.gameclosure.com/api/ui-widget-toast.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/widget/toast.md
  */
-
-import animate;
-import ui.ImageView as ImageView;
-import ui.TextView as TextView;
+jsio('import animate');
+jsio('import ui.ImageView as ImageView');
+jsio('import ui.TextView as TextView');
 
 
 var defaults = {
@@ -95,7 +93,6 @@ var positions = {
 
 
 exports = Class(ImageView, function (supr) {
-
   this.init = function (opts) {
     if (opts.debug) {
       opts.backgroundColor = 'red';
@@ -115,7 +112,7 @@ exports = Class(ImageView, function (supr) {
     opts.txt && this.text.setText(opts.txt);
   };
 
-  this.setImages = function(imgs) {
+  this.setImages = function (imgs) {
     this._images = imgs || {};
     this.position && this.setImage(this._images[this.position]);
   };
@@ -131,16 +128,12 @@ exports = Class(ImageView, function (supr) {
   this.pop = function (text, position) {
     position && this.setPosition(position);
     if (!this._images[this.position]) {
-      throw new Error("Toast " + this.uid + " doesn't have an image for position: " + this.position);
+      throw new Error('Toast ' + this.uid + ' doesn\'t have an image for position: ' + this.position);
     }
     this.text.setText(text);
-    var sv = this.getSuperview(),
-      pos = positions[this.position],
-      prop = pos.vertical ? 'y': 'x',
-      dim = pos.vertical ? 'height' : 'width',
-      inAnim = {}, outAnim = {};
-    inAnim['d'+prop] = pos.negFirst ? -this.style[dim] : this.style[dim];
-    outAnim['d'+prop] = pos.negFirst ? this.style[dim] : -this.style[dim];
+    var sv = this.getSuperview(), pos = positions[this.position], prop = pos.vertical ? 'y' : 'x', dim = pos.vertical ? 'height' : 'width', inAnim = {}, outAnim = {};
+    inAnim['d' + prop] = pos.negFirst ? -this.style[dim] : this.style[dim];
+    outAnim['d' + prop] = pos.negFirst ? this.style[dim] : -this.style[dim];
     this.style[prop] = pos.negFirst ? sv.style[dim] : -this.style[dim];
     this.style.visible = true;
     animate(this).now(inAnim).wait(1000).then(outAnim);

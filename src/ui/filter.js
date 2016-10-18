@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @module ui.filter;
  *
@@ -29,15 +28,13 @@
  * @doc http://doc.gameclosure.com/api/ui-filter.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/filter.md
  */
+jsio('import ui.Color as Color');
 
-import ui.Color as Color;
-
-import ui.resource.Image as DEFAULT_IMAGE;
+jsio('import ui.resource.Image as DEFAULT_IMAGE');
 
 var Image;
 
 var Filter = exports.Filter = Class(function () {
-
   this.init = function (opts) {
     this._color = new Color(opts);
     this._type = opts.type || '';
@@ -90,16 +87,16 @@ var Filter = exports.Filter = Class(function () {
 });
 
 Filter.TYPES = {
-  "None": 0,
-  "LinearAdd": 1,
-  "Multiply": 2,
-  "Tint": 3
+  'None': 0,
+  'LinearAdd': 1,
+  'Multiply': 2,
+  'Tint': 3
 };
+
 
 /**
  * Linear add (lighten) filter.
  */
-
 exports.LinearAddFilter = Class(Filter, function (supr) {
   this.init = function (opts) {
     supr(this, 'init', arguments);
@@ -107,10 +104,10 @@ exports.LinearAddFilter = Class(Filter, function (supr) {
   };
 });
 
+
 /**
  * Tint (averaging) filter.
  */
-
 exports.TintFilter = Class(Filter, function (supr) {
   this.init = function (opts) {
     supr(this, 'init', arguments);
@@ -118,10 +115,10 @@ exports.TintFilter = Class(Filter, function (supr) {
   };
 });
 
+
 /**
  * Multiply filter.
  */
-
 exports.MultiplyFilter = Class(Filter, function (supr) {
   this.init = function (opts) {
     supr(this, 'init', arguments);
@@ -129,10 +126,10 @@ exports.MultiplyFilter = Class(Filter, function (supr) {
   };
 });
 
+
 /**
  * Positive masking.
  */
-
 exports.PositiveMaskFilter = Class(Filter, function (supr) {
   this.init = function (opts) {
     supr(this, 'init', arguments);
@@ -148,10 +145,10 @@ exports.PositiveMaskFilter = Class(Filter, function (supr) {
   };
 });
 
+
 /**
  * Negative masking.
  */
-
 exports.NegativeMaskFilter = Class(Filter, function (supr) {
   this.init = function (opts) {
     supr(this, 'init', arguments);

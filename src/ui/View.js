@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class ui.View;
  * The View base class.
@@ -21,40 +20,41 @@
  * @doc http://doc.gameclosure.com/api/ui-view.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/view.md
  */
-import device;
+jsio('import device');
 jsio('import .IView');
 
-import math.geom.Point as Point;
-import math.geom.Rect as Rect;
+jsio('import math.geom.Point as Point');
+jsio('import math.geom.Rect as Rect');
 
-import .backend.canvas.ViewBacking;
+jsio('import .backend.canvas.ViewBacking');
 
-import ui.backend.ReflowManager as ReflowManager;
+jsio('import ui.backend.ReflowManager as ReflowManager');
 var _reflowMgr = ReflowManager.get();
 
-import event.input.dispatch as dispatch;
-import event.input.InputHandler as InputHandler;
+jsio('import event.input.dispatch as dispatch');
+jsio('import event.input.InputHandler as InputHandler');
 
-import animate;
+jsio('import animate');
 
-import util.setProperty as setProperty;
+jsio('import util.setProperty as setProperty');
 
 var EventScheduler = Class(function () {
   this.init = function () {
     this._queue = [];
   }
+;
 
   this.add = function (f) {
     this._queue.push(f);
 
     if (!this._running) {
       this._running = true;
-      while ((f = this._queue.shift())) {
+      while (f = this._queue.shift()) {
         f();
       }
       this._running = false;
     }
-  }
+  };
 });
 
 var scheduler = new EventScheduler();
@@ -80,6 +80,7 @@ var FocusMgr = new (Class(function () {
         this._target.onBlur(this);
       }
 
+
       this._target = target;
       if (target && target.onFocus) {
         this._target.onFocus(this);
@@ -95,7 +96,7 @@ var FocusMgr = new (Class(function () {
   this.get = function () {
     return this;
   };
-}));
+}))();
 
 /**
  * Unique ID counter for all views.
@@ -116,8 +117,12 @@ function compareSubscription(args, sub) {
   }
 
 
+
+
   return true;
 }
+
+
 
 
 var DEFAULT_REFLOW = function () {
@@ -132,7 +137,10 @@ var View = exports = Class(IView, function () {
    * parent: object, if provided, sets the initial superview
    */
   this.init = function (opts) {
-    if (!opts) { opts = {}; }
+    if (!opts) {
+      opts = {};
+    }
+
 
     // TODO: remove this eventually
     // Things like TextView will fail if it is not present
@@ -168,12 +176,19 @@ var View = exports = Class(IView, function () {
       this._opts = opts;
     }
 
-    if (opts.tag) { this.tag = opts.tag; }
-    if (opts.filter) { this._filter = opts.filter; }
+
+    if (opts.tag) {
+      this.tag = opts.tag;
+    }
+    if (opts.filter) {
+      this._filter = opts.filter;
+    }
+
 
     if (opts.infinite) {
       this._infinite = opts.infinite;
     }
+
 
     this.style.update(opts);
     this.__input.update(opts);
@@ -183,6 +198,7 @@ var View = exports = Class(IView, function () {
       this.style.anchorY = (this.style.height || 0) / 2;
     }
 
+
     if (opts.superview) {
       opts.superview.addSubview(this);
     }
@@ -191,18 +207,19 @@ var View = exports = Class(IView, function () {
       opts.parent.addSubview(this);
     }
 
+
     return opts;
   };
+
 
   // --- filters ---
   // each filter can have multiple views
   // but no view can have more than one filter
-
   /**
    * Returns the filters attached to this view -- DEPRECATED
    */
   this.getFilters = function () {
-    logger.warn("View.getFilters() is deprecated! Use View.getFilter() instead.");
+    logger.warn('View.getFilters() is deprecated! Use View.getFilter() instead.');
     var filters = {};
     if (this._filter) {
       filters[this._filter.getType()] = this._filter;
@@ -221,7 +238,7 @@ var View = exports = Class(IView, function () {
    * Sets the filter on this view -- DEPRECATED
    */
   this.addFilter = function (filter) {
-    logger.warn("View.addFilter() is deprecated! Use View.setFilter() instead.");
+    logger.warn('View.addFilter() is deprecated! Use View.setFilter() instead.');
     this.setFilter(filter);
   };
 
@@ -239,8 +256,8 @@ var View = exports = Class(IView, function () {
     this._filter = null;
   };
 
-  // --- animation component ---
 
+  // --- animation component ---
   /**
    * Get an animation group from this view.
    */
@@ -256,13 +273,14 @@ var View = exports = Class(IView, function () {
     return this.getAnimation().then(style, duration, easing);
   };
 
-  // --- ui focus/blur component ---
 
+  // --- ui focus/blur component ---
   /**
    * Indicate to the focus manager singleton this element is focused.
    */
   this.focus = function () {
-    FocusMgr.get().focus(this); return this;
+    FocusMgr.get().focus(this);
+    return this;
   };
 
   /**
@@ -287,8 +305,8 @@ var View = exports = Class(IView, function () {
     this._isFocused = false;
   };
 
-  // --- input component ---
 
+  // --- input component ---
   /**
    * Returns a boolean indicating we are currently dragging this view.
    */
@@ -357,7 +375,9 @@ var View = exports = Class(IView, function () {
     }
   };
 
-  this.reflowSync = function () { _reflowMgr.reflow(this); };
+  this.reflowSync = function () {
+    _reflowMgr.reflow(this);
+  };
 
   /**
    * Consumes an event targeting this view.
@@ -369,46 +389,48 @@ var View = exports = Class(IView, function () {
       var lastEvt;
       var i;
 
-      switch(evt.type) {
-        case dispatch.eventTypes.SELECT:
-        case dispatch.eventTypes.CLEAR:
-          dispatch._evtHistory[dispatch.eventTypes.MOVE] = null;
-          lastEvt = dispatch._activeInputOver[id];
-          if (lastEvt) {
-            dispatch.clearOverState(id);
-          }
-          break;
+      switch (evt.type) {
+      case dispatch.eventTypes.SELECT:
+      case dispatch.eventTypes.CLEAR:
+        dispatch._evtHistory[dispatch.eventTypes.MOVE] = null;
+        lastEvt = dispatch._activeInputOver[id];
+        if (lastEvt) {
+          dispatch.clearOverState(id);
+        }
+        break;
 
-        case dispatch.eventTypes.START:
-        case dispatch.eventTypes.MOVE:
-          // translate input:move events into two higher-level events:
-          //   input:over and input:out
 
-          var target = evt.trace[0];
-          var view = null;
+      case dispatch.eventTypes.START:
+      case dispatch.eventTypes.MOVE:
+        // translate input:move events into two higher-level events:
+        //   input:over and input:out
+        var target = evt.trace[0];
+        var view = null;
 
-          // fire input:out events first, start with deepest node and work out
-          lastEvt = dispatch._activeInputOver[id];
-          if (lastEvt && target != lastEvt.trace[0]) {
-            var trace = lastEvt.trace;
-            for (i = 0, view; view = trace[i]; ++i) {
-              if (!(view.uid in evt.pt)) {
-                view.__input.onLeave(id, target == view);
-              }
+        // fire input:out events first, start with deepest node and work out
+        lastEvt = dispatch._activeInputOver[id];
+        if (lastEvt && target != lastEvt.trace[0]) {
+          var trace = lastEvt.trace;
+          for (i = 0, view; view = trace[i]; ++i) {
+            if (!(view.uid in evt.pt)) {
+              view.__input.onLeave(id, target == view);
             }
           }
+        }
 
-          if (!lastEvt || target != lastEvt.trace[0]) {
-            // fire input:over events second, start with outermost node and go to target
-            var trace = evt.trace;
-            for (i = evt.depth - 1; i >= 0; --i) {
-              trace[i].__input.onEnter(id, target == view);
-            }
 
-            // update current mouse trace
-            dispatch._activeInputOver[id] = evt;
+        if (!lastEvt || target != lastEvt.trace[0]) {
+          // fire input:over events second, start with outermost node and go to target
+          var trace = evt.trace;
+          for (i = evt.depth - 1; i >= 0; --i) {
+            trace[i].__input.onEnter(id, target == view);
           }
-          break;
+
+
+          // update current mouse trace
+          dispatch._activeInputOver[id] = evt;
+        }
+        break;
       }
     }
   };
@@ -423,8 +445,8 @@ var View = exports = Class(IView, function () {
     return pt;
   };
 
-  // --- view hierarchy component ---
 
+  // --- view hierarchy component ---
   /**
    * Return the subview at the given index.
    */
@@ -446,18 +468,20 @@ var View = exports = Class(IView, function () {
     return this.__view.getSuperview();
   };
 
-  this.connectEvent = function (src, name /*, args */) {
-    if (!this.__subs) {
-      this.__subs = [];
+  this.connectEvent = function (src, name)
+    /*, args */
+    {
+      if (!this.__subs) {
+        this.__subs = [];
 
-      this.on('ViewAdded', bind(this, '_connectEvents'));
-      this.on('ViewRemoved', bind(this, '_disconnectEvents'));
+        this.on('ViewAdded', bind(this, '_connectEvents'));
+        this.on('ViewRemoved', bind(this, '_disconnectEvents'));
 
-      if (this.__root) {
-        this._connectEvents();
+        if (this.__root) {
+          this._connectEvents();
+        }
       }
-    }
-  };
+    };
 
   this.disconnectEvent = function (src, name) {
     if (this.__subs) {
@@ -499,11 +523,12 @@ var View = exports = Class(IView, function () {
       if (this.__root) {
         var root = this.__root;
         var viewCreated = view;
-        scheduler.add(bind(this, function recurse (view) {
+        scheduler.add(bind(this, function recurse(view) {
           if (!view.style.__firstRender) {
             view.style.__firstRender = true;
             view.needsReflow();
           }
+
 
           view.__root = root;
           view.emit('ViewAdded', viewCreated);
@@ -514,6 +539,7 @@ var View = exports = Class(IView, function () {
         }, view));
       }
     }
+
 
     return view;
   };
@@ -543,15 +569,18 @@ var View = exports = Class(IView, function () {
         view.__leftSibling.__rightSibling = view.__rightSibling;
       }
 
+
       if (view.__rightSibling) {
         view.__rightSibling.__leftSibling = view.__leftSibling;
       }
+
 
       // If this view is the head of the sibling list
       // then set the next sibling to be the head
       if (view.__parent.__children == view) {
         view.__parent.__children = view.__rightSibling;
       }
+
 
       view.__leftSibling = null;
       view.__rightSibling = null;
@@ -578,6 +607,7 @@ var View = exports = Class(IView, function () {
       }
     }
 
+
     return view;
   };
 
@@ -602,12 +632,12 @@ var View = exports = Class(IView, function () {
     }
   };
 
-  // --- onResize callbacks ---
 
+  // --- onResize callbacks ---
   this.reflow = DEFAULT_REFLOW;
 
-  // ---
 
+  // ---
   /**
    * Get the root application for this view.
    */
@@ -619,7 +649,6 @@ var View = exports = Class(IView, function () {
    * Returns an array of all ancestors of the current view.
    */
   this.getSuperviews = function () {
-
     var views = [];
     var next = this.getSuperview();
     while (next) {
@@ -627,23 +656,27 @@ var View = exports = Class(IView, function () {
       next = next.getSuperview();
     }
 
+
     return views;
   };
 
   /**
    * @interface
    */
-  this.buildView = function () {};
+  this.buildView = function () {
+  };
 
   /**
    * Determine if this view contains a point.
    */
   this.containsLocalPoint = function (pt) {
-    if (this._infinite) { return true; }  // infinite plane
+    if (this._infinite) {
+      return true;
+    }
 
-    var s = this.style,
-      w = s.width,
-      h = s.height;
+
+    // infinite plane
+    var s = this.style, w = s.width, h = s.height;
 
     if (w > 0 && h > 0) {
       return pt.x <= w && pt.y <= h && pt.x >= 0 && pt.y >= 0;
@@ -705,42 +738,27 @@ var View = exports = Class(IView, function () {
    */
   this.getRelativeRegion = function (region, parent) {
     var offset = this.getPosition(parent || region.src);
-    return new Rect((region.x - offset.x) / offset.scale,
-            (region.y - offset.y)  / offset.scale,
-            region.width / offset.scale,
-            region.height / offset.scale);
+    return new Rect((region.x - offset.x) / offset.scale, (region.y - offset.y) / offset.scale, region.width / offset.scale, region.height / offset.scale);
   };
 
   /**
    * Return a fully defined position, rotation, size, and scale for this view.
    */
-  this.getPosition = function (/* optional */ relativeTo) {
-    var abs = new Point(),
-      view = this,
-      r = 0,
-      s = this.style,
-      w = s.width,
-      h = s.height,
-      c = 1;
+  this.getPosition = function (relativeTo) {
+    var abs = new Point(), view = this, r = 0, s = this.style, w = s.width, h = s.height, c = 1;
 
     while (view && view != relativeTo) {
       var scale = view.style.scale;
 
       //translate to anchor point
-      abs.add(
-        -(view.style.anchorX),
-        -(view.style.anchorY)
-      );
+      abs.add(-view.style.anchorX, -view.style.anchorY);
 
       //scale and rotate
       abs.rotate(view.style.r);
       abs.scale(scale);
 
       //translate back
-      abs.add(
-        view.style.anchorX + view.style.x + view.style.offsetX,
-        view.style.anchorY + view.style.y + view.style.offsetY
-      );
+      abs.add(view.style.anchorX + view.style.x + view.style.offsetX, view.style.anchorY + view.style.y + view.style.offsetY);
 
       r += view.style.r;
       w *= scale;
@@ -748,6 +766,7 @@ var View = exports = Class(IView, function () {
       c *= scale;
       view = view.__view.getSuperview();
     }
+
 
     return {
       x: abs.x,
@@ -802,13 +821,16 @@ var View = exports = Class(IView, function () {
           cls = this.constructor.toString().match(/^function ([^(]*)/)[1];
         }
 
+
         if (cls) {
-          cls = cls.substr(cls.lastIndexOf("_") + 1);
+          cls = cls.substr(cls.lastIndexOf('_') + 1);
         }
+
 
         this.__tagClassName = cls || 'unknown';
       }
     }
+
 
     return cls + this.uid + (this.tag ? ':' + this.tag : '');
   };
@@ -863,7 +885,9 @@ View.addExtension = function (ext) {
 
 View.setDefaultViewBacking = function (ViewBackingCtor) {
   _BackingCtor = View.BackingCtor = ViewBackingCtor;
-  _extensions.forEach(function (ext) { ext.extend(_BackingCtor); });
+  _extensions.forEach(function (ext) {
+    ext.extend(_BackingCtor);
+  });
 };
 
 // default view backing is canvas

@@ -13,67 +13,124 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
+jsio('import ..View');
+jsio('import ..backend.strPad as strPad');
+jsio('import ..backend.BaseBacking');
+jsio('import .BoxLayout');
+jsio('import .LinearLayout');
+jsio('import .Padding');
 
-import ..View;
-import ..backend.strPad as strPad;
-import ..backend.BaseBacking;
-import .BoxLayout;
-import .LinearLayout;
-import .Padding;
-
-import util.setProperty;
+jsio('import util.setProperty');
 
 var layoutProps = {
-    'layout': {value: false, cb: '_onSetLayout'},
-    'inLayout': {value: true, cb: '_onInLayout'},
-    'order': {value: 0, cb: '_onOrder'},
-    'direction': {value: 'vertical', cb: '_onLayoutChange'},
-    'flex': {value: 0, cb: '_onLayoutChange'},
-    'justifyContent': {value: 'start', cb: '_onLayoutChange'},
-
-    'centerX': {value: false, cb: '_onLayoutChange'},
-    'centerY': {value: false, cb: '_onLayoutChange'},
-
-    'top': {value: undefined, cb: '_onLayoutChange'},
-    'right': {value: undefined, cb: '_onLayoutChange'},
-    'bottom': {value: undefined, cb: '_onLayoutChange'},
-    'left': {value: undefined, cb: '_onLayoutChange'},
-
-    'minWidth': {value: undefined, cb: '_onBoundsChange'},
-    'minHeight': {value: undefined, cb: '_onBoundsChange'},
-    'maxWidth': {value: undefined, cb: '_onBoundsChange'},
-    'maxHeight': {value: undefined, cb: '_onBoundsChange'},
-
-    'layoutWidth': {value: undefined, cb: '_onLayoutWidth'},
-    'layoutHeight': {value: undefined, cb: '_onLayoutHeight'},
-
-    'fixedAspectRatio': {value: false, cb: '_onFixedAspectRatio'},
-    'aspectRatio': {value: null, cb: '_onLayoutChange'},
-
-    'margin': {value: null, cb: '_onMarginChange'},
-    'padding': {
-      get: function () {
-        return this._padding || (this._padding = new Padding());
-      },
-      set: function (value) {
-        if (this._padding) {
-          this._padding.update(value);
-        } else {
-          this._padding = new Padding(value);
-        }
-
-        this._onLayoutChange();
+  'layout': {
+    value: false,
+    cb: '_onSetLayout'
+  },
+  'inLayout': {
+    value: true,
+    cb: '_onInLayout'
+  },
+  'order': {
+    value: 0,
+    cb: '_onOrder'
+  },
+  'direction': {
+    value: 'vertical',
+    cb: '_onLayoutChange'
+  },
+  'flex': {
+    value: 0,
+    cb: '_onLayoutChange'
+  },
+  'justifyContent': {
+    value: 'start',
+    cb: '_onLayoutChange'
+  },
+  'centerX': {
+    value: false,
+    cb: '_onLayoutChange'
+  },
+  'centerY': {
+    value: false,
+    cb: '_onLayoutChange'
+  },
+  'top': {
+    value: undefined,
+    cb: '_onLayoutChange'
+  },
+  'right': {
+    value: undefined,
+    cb: '_onLayoutChange'
+  },
+  'bottom': {
+    value: undefined,
+    cb: '_onLayoutChange'
+  },
+  'left': {
+    value: undefined,
+    cb: '_onLayoutChange'
+  },
+  'minWidth': {
+    value: undefined,
+    cb: '_onBoundsChange'
+  },
+  'minHeight': {
+    value: undefined,
+    cb: '_onBoundsChange'
+  },
+  'maxWidth': {
+    value: undefined,
+    cb: '_onBoundsChange'
+  },
+  'maxHeight': {
+    value: undefined,
+    cb: '_onBoundsChange'
+  },
+  'layoutWidth': {
+    value: undefined,
+    cb: '_onLayoutWidth'
+  },
+  'layoutHeight': {
+    value: undefined,
+    cb: '_onLayoutHeight'
+  },
+  'fixedAspectRatio': {
+    value: false,
+    cb: '_onFixedAspectRatio'
+  },
+  'aspectRatio': {
+    value: null,
+    cb: '_onLayoutChange'
+  },
+  'margin': {
+    value: null,
+    cb: '_onMarginChange'
+  },
+  'padding': {
+    get: function () {
+      return this._padding || (this._padding = new Padding());
+    },
+    set: function (value) {
+      if (this._padding) {
+        this._padding.update(value);
+      } else {
+        this._padding = new Padding(value);
       }
+
+
+      this._onLayoutChange();
     }
-  };
+  }
+};
 
 for (var key in layoutProps) {
   backend.BaseBacking.addProperty(key, layoutProps[key]);
 }
 
+
 View.addExtension({
   extend: function (ViewBacking) {
-
     var proto = ViewBacking.prototype;
 
     proto._sortOrder = strPad.initialValue;
@@ -89,6 +146,7 @@ View.addExtension({
         this._cachedMargin = new Padding(value);
       }
 
+
       this.top = this._cachedMargin.top;
       this.bottom = this._cachedMargin.bottom;
       this.left = this._cachedMargin.left;
@@ -96,18 +154,21 @@ View.addExtension({
 
       this._onLayoutChange();
     }
+;
 
     proto._onFixedAspectRatio = function (key, value) {
       if (value) {
         this.updateAspectRatio();
       }
     }
+;
 
     proto.updateAspectRatio = function (width, height) {
       this.aspectRatio = (width || this.width) / (height || this.height);
     }
+;
 
-    proto.enforceAspectRatio = function(iw, ih, isTimeout) {
+    proto.enforceAspectRatio = function (iw, ih, isTimeout) {
       if (iw && ih) {
         this.updateAspectRatio(iw, ih);
       }
@@ -118,29 +179,23 @@ View.addExtension({
       if (opts.width) {
         iw = opts.width;
         ih = opts.width / this.aspectRatio;
-      }
-      else if (opts.height) {
+      } else if (opts.height) {
         ih = opts.height;
         iw = opts.height * this.aspectRatio;
-      }
-      else if (parent) {
+      } else if (parent) {
         if (this.layoutWidth && parent.style.width) {
           iw = parent.style.width * parseFloat(this.layoutWidth) / 100;
           ih = iw / this.aspectRatio;
-        }
-        else if (this.layoutHeight && parent.style.height) {
+        } else if (this.layoutHeight && parent.style.height) {
           ih = parent.style.height * parseFloat(this.layoutHeight) / 100;
           iw = ih * this.aspectRatio;
-        }
-        else if (this.flex && parent.style.direction == 'horizontal' && this.width) {
+        } else if (this.flex && parent.style.direction == 'horizontal' && this.width) {
           iw = this.width;
           ih = iw / this.aspectRatio;
-        }
-        else if (this.flex && parent.style.direction == 'vertical' && this.height) {
+        } else if (this.flex && parent.style.direction == 'vertical' && this.height) {
           ih = this.height;
           iw = ih * this.aspectRatio;
-        }
-        else if (!isTimeout) {
+        } else if (!isTimeout) {
           setTimeout(bind(this, 'enforceAspectRatio', iw, ih, true), 0);
         }
       }
@@ -157,7 +212,7 @@ View.addExtension({
       var view = this._view;
       var LayoutCtor = layouts[which];
       if (LayoutCtor) {
-        view.__layout = new LayoutCtor({view: view});
+        view.__layout = new LayoutCtor({ view: view });
         this.addResizeListeners();
       } else {
         this._layout = false;
@@ -167,48 +222,63 @@ View.addExtension({
     proto.addResizeListeners = function () {
       if (!this._hasResizeListeners) {
         this._hasResizeListeners = true;
-        util.setProperty(this, 'width', {cb: '_onWidth', value: this.width, configurable: true});
-        util.setProperty(this, 'height', {cb: '_onHeight', value: this.height, configurable: true});
+        util.setProperty(this, 'width', {
+          cb: '_onWidth',
+          value: this.width,
+          configurable: true
+        });
+        util.setProperty(this, 'height', {
+          cb: '_onHeight',
+          value: this.height,
+          configurable: true
+        });
       }
     }
+;
 
-    proto._onWidth = function(prop, value, prevValue) {
+    proto._onWidth = function (prop, value, prevValue) {
       // local properties are invalidated
       // this._cache = null;
-
       if (typeof this.maxWidth == 'number') {
         this._width = Math.min(this.maxWidth, value || 0);
       }
+
 
       if (typeof this.minWidth == 'number') {
         this._width = Math.max(this.minWidth, value || 0);
       }
 
+
       if (this._aspectRatio) {
         this._height = this._width / this._aspectRatio;
       }
 
+
       this._onLayoutChange();
     }
+;
 
-    proto._onHeight = function(prop, value, prevValue) {
+    proto._onHeight = function (prop, value, prevValue) {
       // local properties are invalidated
       // this._cache = null;
-
       if (typeof this.maxHeight == 'number') {
         this._height = Math.min(this.maxHeight, value || 0);
       }
+
 
       if (typeof this.minHeight == 'number') {
         this._height = Math.max(this.minHeight, value || 0);
       }
 
+
       if (this._aspectRatio) {
         this._width = this._height * this._aspectRatio;
       }
 
+
       this._onLayoutChange();
     }
+;
 
     proto._onInLayout = function (key, value) {
       var layout = this._superview && this._superview.__layout;
@@ -221,6 +291,7 @@ View.addExtension({
         }
       }
     }
+;
 
     proto._onLayoutWidth = function (key, value) {
       if (value.charAt(value.length - 1) == '%') {
@@ -231,8 +302,10 @@ View.addExtension({
         this._layoutWidthIsPercent = false;
       }
 
+
       this._onLayoutChange();
     }
+;
 
     proto._onLayoutHeight = function (key, value) {
       if (value.charAt(value.length - 1) == '%') {
@@ -243,13 +316,16 @@ View.addExtension({
         this._layoutHeightIsPercent = false;
       }
 
+
       this._onLayoutChange();
     }
+;
 
     proto._onBoundsChange = function () {
       this.addResizeListeners();
       this._onLayoutChange();
     }
+;
 
     // trigger a reflow, optionally of the parent if the parent has layout too
     proto._onLayoutChange = function () {
@@ -258,7 +334,8 @@ View.addExtension({
         superview.needsReflow();
       }
 
+
       this._view.needsReflow();
-    }
+    };
   }
 });

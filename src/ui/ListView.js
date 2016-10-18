@@ -13,17 +13,15 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class ui.widget.ListView;
  *
  * @doc http://doc.gameclosure.com/api/ui-widget-listview.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/widget/listview.md
  */
-
-import squill.models.List as List;
-import .ScrollView;
-import event.input.InputEvent as InputEvent;
+jsio('import squill.models.List as List');
+jsio('import .ScrollView');
+jsio('import event.input.InputEvent as InputEvent');
 
 var FORWARD_KEYS = {
   getCell: 1,
@@ -44,7 +42,6 @@ var FORWARD_KEYS = {
  */
 exports = Class(ScrollView, function (supr) {
   this.init = function (opts) {
-
     this._scrollBuffer = opts.scrollBuffer;
 
     opts.scrollBounds = {
@@ -54,7 +51,7 @@ exports = Class(ScrollView, function (supr) {
       maxY: Number.MAX_VALUE
     };
 
-    this.model = new List({view: this});
+    this.model = new List({ view: this });
     supr(this, 'init', [opts]);
   };
 
@@ -63,16 +60,18 @@ exports = Class(ScrollView, function (supr) {
   this.updateOpts = function () {
     var opts = supr(this, 'updateOpts', arguments);
 
-    var listOpts = {view: this};
+    var listOpts = { view: this };
     for (var key in FORWARD_KEYS) {
       if (key in opts) {
         listOpts[key] = opts[key];
       }
     }
 
+
     if ('autoSize' in opts) {
       this._autoSize = opts.autoSize;
     }
+
 
     this.model.updateOpts(listOpts);
     this.selection = this.model.selection;
@@ -83,8 +82,12 @@ exports = Class(ScrollView, function (supr) {
       this.model.subscribe('Deselect', this, this._onDeselect);
     }
 
+
     // make sure the height is not undefined for compatibility with the layouts
-    if (this._autoSize) { this.style.height = 0; }
+    if (this._autoSize) {
+      this.style.height = 0;
+    }
+
 
     this._needsModelRender = true;
 
@@ -94,11 +97,12 @@ exports = Class(ScrollView, function (supr) {
       this.unsubscribe('Scrolled', this, '_onScroll');
     }
 
+
     var bounds = this._scrollBounds;
     var scrollBuffer = opts.scrollBuffer;
-    bounds.minX = (scrollBuffer && scrollBuffer.minX || 0);
-    bounds.maxX = (scrollBuffer && scrollBuffer.maxX || 0);
-    bounds.minY = (scrollBuffer && scrollBuffer.minY || 0);
+    bounds.minX = scrollBuffer && scrollBuffer.minX || 0;
+    bounds.maxX = scrollBuffer && scrollBuffer.maxX || 0;
+    bounds.minY = scrollBuffer && scrollBuffer.minY || 0;
 
     return opts;
   };
@@ -108,8 +112,10 @@ exports = Class(ScrollView, function (supr) {
       pos.y += this._headerView.style.height;
     }
 
+
     cell.style.update(pos);
   }
+;
 
   this.setDataSource = function (dataSource) {
     this.model.setDataSource(dataSource);
@@ -154,6 +160,7 @@ exports = Class(ScrollView, function (supr) {
       this._headerView.removeFromSuperview();
     }
 
+
     this._headerView = headerView;
     if (this._headerView) {
       this.addSubview(headerView);
@@ -166,11 +173,13 @@ exports = Class(ScrollView, function (supr) {
       this.setMaxY();
     }
   }
+;
 
   this.setFooterView = function (footerView) {
     if (this._footerView) {
       this._footerView.removeFromSuperview();
     }
+
 
     this._footerView = footerView;
     if (this._footerView) {
@@ -180,17 +189,19 @@ exports = Class(ScrollView, function (supr) {
       this.setMaxY();
     }
   }
+;
 
   this.setMaxX = function (maxX) {
-
     if (this._autoSize && this.style.width != maxX) {
       this.style.width = maxX;
       this._needsModelRender = true;
     }
 
+
+
+
     // TODO: stop publishing WidthChanged when we move to timestep ui
     // because this is done by ScrollView
-
     var bounds = this._scrollBounds;
     var oldMaxX = bounds.maxX;
     var newMaxX = Math.max(0, maxX);
@@ -205,45 +216,51 @@ exports = Class(ScrollView, function (supr) {
       bounds.maxX += scrollBuffer.maxX;
     }
 
+
     if (oldMaxX != newMaxX) {
-      this.publish("WidthChanged", maxX);
+      this.publish('WidthChanged', maxX);
     }
   };
 
   this.setMaxY = function (contentHeight) {
+    if (!contentHeight) {
+      contentHeight = 0;
+    }
 
-    if (!contentHeight) { contentHeight = 0; }
 
     var additionalHeight = 0;
     if (this._headerView) {
       additionalHeight += this._headerView.style.height || 0;
     }
 
+
     if (this._footerView) {
       this._footerView.style.y = contentHeight + additionalHeight;
       additionalHeight += this._footerView.style.height || 0;
     }
 
+
     this._contentHeight = contentHeight;
     var maxY = contentHeight + additionalHeight;
 
     if (this._autoSize && this.style.height != maxY) {
-
       this.style.height = maxY;
       this._needsModelRender = true;
     }
 
+
+
+
     // TODO: stop publishing HeightChanged when we move to timestep ui
     // because this is done by ScrollView
-
     var scrollBuffer = this._opts.scrollBuffer;
 
     var oldMaxY = this._scrollBounds.maxY;
     var newMaxY = Math.max(0, maxY) + (scrollBuffer && scrollBuffer.maxY || 0);
-    this.setScrollBounds({maxY: newMaxY});
+    this.setScrollBounds({ maxY: newMaxY });
 
     if (oldMaxY != newMaxY) {
-      this.publish("HeightChanged", maxY);
+      this.publish('HeightChanged', maxY);
     }
   };
 

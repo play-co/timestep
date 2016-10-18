@@ -13,65 +13,85 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
-
 function getter(name) {
-  return (function () {
+  return function () {
     return this._ctxShim[name];
-  });
+  };
 }
+
 
 function setter(name) {
-  return (function (val) {
+  return function (val) {
     this._ctxShim[name] = val;
-  });
+  };
 }
 
+
 function wrap(name) {
-  return function () {};
+  return function () {
+  };
 }
+
 
 exports = Class(function () {
   this.init = function () {
     this._ctxShim = {};
   }
+;
 
   this.getViewport = function (targetView) {
     if (this._viewport) {
-      var viewport = new math2D.Rect(this._viewport),
-        src = this._viewport.src,
-        v = targetView,
-        trace = [targetView];
+      var viewport = new math2D.Rect(this._viewport), src = this._viewport.src, v = targetView, trace = [targetView];
 
-      while(v != src) {
+      while (v != src) {
         v = v._superview;
-        if (!v) { return null; }
+        if (!v) {
+          return null;
+        }
         trace.push(v);
       }
 
+
       // TODO: finish this - translate viewport to local coordinates?
       // should use a modified View::getAbsolutePos(relativeTo)
-      while((v = trace.pop())) {
-        //viewport.
+      while (v = trace.pop()) {
       }
+
 
       return viewport;
     }
   }
+;
 
-  this.swap = function () {}
+  this.swap = function () {
+  }
+;
 
   this.reset = function () {
     this._buffer = [];
   }
+;
 
-  this.hide = function () { throw 'abstract'; }
+  this.hide = function () {
+    throw 'abstract';
+  }
+;
 
   this.fillCircle = function (x, y, radius, fillStyle) {
     this._buffer.push(['beginPath']);
-    this._buffer.push(['arc', [x, y, radius, 0, 2 * Math.PI, true]]);
+    this._buffer.push([
+      'arc',
+      [
+        x,
+        y,
+        radius,
+        0,
+        2 * Math.PI,
+        true
+      ]
+    ]);
     this._buffer.push(['fill']);
-  }
+  };
 });
 
 

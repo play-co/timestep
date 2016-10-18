@@ -13,15 +13,13 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @package ui.backend.dom.TextView;
  *
  * TextView implementation for DOM.
  */
-
-import ui.View as View;
-import device;
+jsio('import ui.View as View');
+jsio('import device');
 
 var defaults = {
   // layout properties...
@@ -31,22 +29,19 @@ var defaults = {
   verticalPadding: 0,
   horizontalPadding: 0,
   lineHeight: 1.2,
-
   // font properties...
-  color: "#000000",
+  color: '#000000',
   fontFamily: device.defaultFontFamily,
-  fontWeight: "",
+  fontWeight: '',
   size: 128,
   lineWidth: 2,
-  strokeColor: "",
-  shadowColor: "",
-
+  strokeColor: '',
+  shadowColor: '',
   // alignment properties...
-  verticalAlign: "middle",
-  horizontalAlign: "center",
-
+  verticalAlign: 'middle',
+  horizontalAlign: 'center',
   // misc properties...
-  backgroundColor: ""
+  backgroundColor: ''
 };
 
 var TOLERANCE = 1;
@@ -55,61 +50,87 @@ var TOLERANCE = 1;
  * @extends ui.View
  */
 exports = Class(View, function (supr) {
-
-  this._displayStyle = "table";
+  this._displayStyle = 'table';
 
   this.init = function (opts) {
-    supr(this, "init", [merge(opts, defaults)]);
+    supr(this, 'init', [merge(opts, defaults)]);
 
-    var el = this._textNode = document.createElement("div");
+    var el = this._textNode = document.createElement('div');
     el.className = 'view text';
-    // el.style.position = 'relative';
 
+    // el.style.position = 'relative';
     this.__view.getElement().appendChild(el);
   };
 
   this.updateOpts = function (opts) {
-    opts = supr(this, "updateOpts", arguments);
+    opts = supr(this, 'updateOpts', arguments);
 
     var s = this.__view.getElement().style;
 
     if (opts.horizontalPadding) {
       if (isArray(opts.horizontalPadding)) {
-        s.paddingLeft = opts.horizontalPadding[0] + "px";
-        s.paddingRight = opts.horizontalPadding[0] + "px";
+        s.paddingLeft = opts.horizontalPadding[0] + 'px';
+        s.paddingRight = opts.horizontalPadding[0] + 'px';
       } else {
-        s.paddingLeft = opts.horizontalPadding + "px";
-        s.paddingRight = opts.horizontalPadding + "px";
+        s.paddingLeft = opts.horizontalPadding + 'px';
+        s.paddingRight = opts.horizontalPadding + 'px';
       }
     }
+
 
     if (opts.verticalPadding) {
       if (isArray(opts.verticalPadding)) {
-        s.paddingTop = opts.verticalPadding[0] + "px";
-        s.paddingBottom = opts.verticalPadding[0] + "px";
+        s.paddingTop = opts.verticalPadding[0] + 'px';
+        s.paddingBottom = opts.verticalPadding[0] + 'px';
       } else {
-        s.paddingTop = opts.verticalPadding + "px";
-        s.paddingBottom = opts.verticalPadding + "px";
+        s.paddingTop = opts.verticalPadding + 'px';
+        s.paddingBottom = opts.verticalPadding + 'px';
       }
     }
 
-    if (opts.color)           { s.color = opts.color; }
-    if (opts.size)            { this._fontSize = opts.size; }
-    if (opts.fontFamily)      { s.fontFamily = opts.fontFamily; }
-    if (opts.horizontalAlign) { s.textAlign = opts.horizontalAlign; }
-    if (opts.verticalAlign)   { this._verticalAlign = opts.verticalAlign; }
-    if (opts.fontWeight)      { s.fontWeight = opts.fontWeight; }
-    if (opts.shadowColor)     { s.textShadow = opts.shadowColor + " 2px 2px 1px"; }
-    if (opts.lineHeight)      { s.lineHeight = opts.lineHeight * opts.size + 'px'; }
-    if (opts.strokeColor)     { this._updateStroke(); }
-    if (!opts.wrap)           { s.whiteSpace = "nowrap"; }
+
+    if (opts.color) {
+      s.color = opts.color;
+    }
+    if (opts.size) {
+      this._fontSize = opts.size;
+    }
+    if (opts.fontFamily) {
+      s.fontFamily = opts.fontFamily;
+    }
+    if (opts.horizontalAlign) {
+      s.textAlign = opts.horizontalAlign;
+    }
+    if (opts.verticalAlign) {
+      this._verticalAlign = opts.verticalAlign;
+    }
+    if (opts.fontWeight) {
+      s.fontWeight = opts.fontWeight;
+    }
+    if (opts.shadowColor) {
+      s.textShadow = opts.shadowColor + ' 2px 2px 1px';
+    }
+    if (opts.lineHeight) {
+      s.lineHeight = opts.lineHeight * opts.size + 'px';
+    }
+    if (opts.strokeColor) {
+      this._updateStroke();
+    }
+    if (!opts.wrap) {
+      s.whiteSpace = 'nowrap';
+    }
+
+
+
 
     // s.display = 'table';
-
-    this.setText(opts.text || "");
+    this.setText(opts.text || '');
   };
 
-  this.getText = function () { return this._text; }
+  this.getText = function () {
+    return this._text;
+  }
+;
 
   this.reflow = function () {
     var opts = this._opts;
@@ -122,6 +143,7 @@ exports = Class(View, function (supr) {
         }
       }
 
+
       // use binary-search to fit text into dom node
       if (opts.autoFontSize) {
         var step, size;
@@ -133,19 +155,20 @@ exports = Class(View, function (supr) {
             var currentWidth = node.scrollWidth;
             var diff = currentWidth - this.style.width;
             if (diff > TOLERANCE) {
-              size -= (step /= 2);
+              size -= step /= 2;
               node.style.fontSize = size + 'px';
               continue;
             }
           } while (false);
         }
 
+
         // fit height
         do {
           var currentHeight = node.scrollHeight;
           var diff = currentHeight - this.style.height;
           if (diff > TOLERANCE) {
-            size -= (step /= 2);
+            size -= step /= 2;
             node.style.fontSize = size + 'px';
             continue;
           }
@@ -154,6 +177,7 @@ exports = Class(View, function (supr) {
         this._computedFontSize = size;
         node.style.lineHeight = opts.lineHeight * size + 'px';
       }
+
 
       this._computeVerticalAlign();
 
@@ -164,9 +188,10 @@ exports = Class(View, function (supr) {
   };
 
   this.setText = function (text) {
-    if (typeof text == "function") {
+    if (typeof text == 'function') {
       return text(this);
     }
+
 
     text = text != undefined ? text.toString() : '';
 
@@ -179,6 +204,7 @@ exports = Class(View, function (supr) {
       } else {
         this._textNode.innerText = text;
       }
+
 
       this._textNode.style.fontSize = this._fontSize + 'px';
       this.needsReflow();
@@ -195,11 +221,9 @@ exports = Class(View, function (supr) {
     var padding = this.style.padding;
     var offset = padding.top;
     if (opts.verticalAlign == 'middle') {
-      offset += (this.style.height
-            - padding.top
-            - padding.bottom
-            - (numLines > 1 ? opts.lineHeight * numLines : 1) * fontSize) / 2;
+      offset += (this.style.height - padding.top - padding.bottom - (numLines > 1 ? opts.lineHeight * numLines : 1) * fontSize) / 2;
     }
+
 
     this._textNode.style.marginTop = offset + 'px';
   };
@@ -213,13 +237,14 @@ exports = Class(View, function (supr) {
         this._strokeNode = this._textNode.childNodes[0].childNodes[1];
       }
 
+
       // this._strokeNode.style.left = -opts.strokeWidth / 2 + 'px';
-      this._strokeNode.style.webkitTextStroke = (opts.strokeWidth * 1) + "px " + opts.strokeColor;
+      this._strokeNode.style.webkitTextStroke = opts.strokeWidth * 1 + 'px ' + opts.strokeColor;
       this.needsReflow();
     } else if (this._strokeNode) {
       this._strokeNode = null;
       this._fillNode = null;
       this.setText(this._text);
     }
-  }
+  };
 });

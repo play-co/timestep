@@ -13,9 +13,8 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
-import .Context2D;
-import util.setProperty;
+jsio('import .Context2D');
+jsio('import util.setProperty');
 
 // mock canvas object
 var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
@@ -26,9 +25,9 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
       offscreen: true
     });
 
+
     // TODO: add getters/setters to width/height to auto-resize -- we'll need to allocate
     // a new texture in OpenGL and blit the old one into the new one
-
     this._width = opts.width;
     this._height = opts.height;
     this._offscreen = opts.offscreen;
@@ -37,6 +36,7 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
     this._context2D = null;
     this.complete = true;
   }
+;
 
   this.getContext = function (which, unloadListener) {
     if (which.toUpperCase() == '2D') {
@@ -44,19 +44,20 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
       return this._context2D || (this._context2D = new Context2D({
         canvas: this,
         offscreen: this._offscreen,
-        unloadListener: bind(this, function() {
-          logger.log("{canvas-registry} Canvas class reacting to canvas loss by setting context to null");
+        unloadListener: bind(this, function () {
+          logger.log('{canvas-registry} Canvas class reacting to canvas loss by setting context to null');
 
           this._context2D = null;
-          if (typeof unloadListener == "function") {
+          if (typeof unloadListener == 'function') {
             unloadListener();
           }
         })
       }));
     }
   }
+;
 
-  this.getBoundingClientRect = function() {
+  this.getBoundingClientRect = function () {
     return {
       bottom: this._height,
       height: this._height,
@@ -66,23 +67,26 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
       width: 0
     };
   }
+;
 
-  this.toDataURL = function() {
-    return NATIVE.gl.toDataURL(this._context2D)
+  this.toDataURL = function () {
+    return NATIVE.gl.toDataURL(this._context2D);
   }
+;
 
   this.destroy = function () {
     if (this._context2D) {
       this._context2D.destroy();
     }
   }
+;
 
   this.resize = function (width, height) {
     if (this._context2D) {
       // this will set our own _width/_height
       this._context2D.resize(width, height);
     }
-  }
+  };
 });
 
 
@@ -117,7 +121,8 @@ util.setProperty(Canvas.prototype, 'height', {
 });
 
 util.setProperty(Canvas.prototype, 'src', {
-  set: function (src) {},
+  set: function (src) {
+  },
   get: function () {
     return this._src;
   }

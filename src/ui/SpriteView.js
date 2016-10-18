@@ -13,7 +13,6 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class ui.SpriteView
  * SpriteView pulls out sprited images and renders them at a given FPS
@@ -40,18 +39,18 @@
  * @doc http://doc.gameclosure.com/api/ui-spriteview.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/spriteview.md
  */
-
-import device;
-import ui.ImageView as ImageView;
-import ui.resource.Image as Image;
-import ui.resource.loader;
+jsio('import device');
+jsio('import ui.ImageView as ImageView');
+jsio('import ui.resource.Image as Image');
+jsio('import ui.resource.loader');
 
 var GROUPS = {};
 
 var SpriteView = exports = Class(ImageView, function (supr) {
   this.defaults = {
-    url: null, // specified as a filename prefix, without an animation name or frame count
-    groupID: "default",
+    url: null,
+    // specified as a filename prefix, without an animation name or frame count
+    groupID: 'default',
     frameRate: 15,
     delay: 0,
     emitFrameEvents: false,
@@ -69,6 +68,7 @@ var SpriteView = exports = Class(ImageView, function (supr) {
       opts['dom:multipleImageNodes'] = true;
     }
 
+
     supr(this, 'init', [opts]);
 
     // toggle this flag manually to optimize SpriteViews
@@ -83,13 +83,14 @@ var SpriteView = exports = Class(ImageView, function (supr) {
     this._opts = opts = merge(opts, this.defaults);
 
     var animations = SpriteView.allAnimations[opts.url];
-    
+
     this.groupID = opts.groupID;
     this.frameRate = opts.frameRate;
-    
+
     if (!GROUPS[this.groupID]) {
       GROUPS[this.groupID] = new Group();
     }
+
 
     this._animations = {};
 
@@ -100,10 +101,7 @@ var SpriteView = exports = Class(ImageView, function (supr) {
         if (!this._opts.defaultAnimation) {
           this._opts.defaultAnimation = animName;
         }
-        this.loadFromSheet(animName, opts.sheetData.url, w, h,
-          opts.sheetData.offsetX || w, opts.sheetData.offsetY || h,
-          opts.sheetData.startX || 0, opts.sheetData.startY || 0,
-          opts.sheetData.anims[animName]);
+        this.loadFromSheet(animName, opts.sheetData.url, w, h, opts.sheetData.offsetX || w, opts.sheetData.offsetY || h, opts.sheetData.startX || 0, opts.sheetData.startY || 0, opts.sheetData.anims[animName]);
       }
     } else {
       for (var animName in animations) {
@@ -114,6 +112,7 @@ var SpriteView = exports = Class(ImageView, function (supr) {
       }
     }
 
+
     if (opts.autoSize && this._opts.defaultAnimation) {
       var frameImages = this._animations[this._opts.defaultAnimation].frames;
       if (frameImages[0]) {
@@ -121,6 +120,7 @@ var SpriteView = exports = Class(ImageView, function (supr) {
         this.style.height = frameImages[0].getHeight();
       }
     }
+
 
     opts.autoStart && this.startAnimation(this._opts.defaultAnimation, opts);
   };
@@ -136,13 +136,11 @@ var SpriteView = exports = Class(ImageView, function (supr) {
         sourceY: startY + frames[i][1] * offsetY
       }));
     }
-    this._animations[animName] = {
-      frames: frameImages
-    };
+    this._animations[animName] = { frames: frameImages };
   };
 
   this.addAnimation = function (animName, frameData) {
-    if ( ! isArray(frameData) ) {
+    if (!isArray(frameData)) {
       frameData = SpriteView.allAnimations[frameData][animName];
     }
     var frameImages = [];
@@ -153,11 +151,9 @@ var SpriteView = exports = Class(ImageView, function (supr) {
         frameImages.push(frame.url);
       }
     }
-    this._animations[animName] = {
-      frames: frameImages
-    };
+    this._animations[animName] = { frames: frameImages };
   };
-  
+
   /** Returns a ui.resource.Image for the given animation's frame. */
   this.getFrame = function (animName, index) {
     return this._animations[animName].frames[index];
@@ -183,11 +179,15 @@ var SpriteView = exports = Class(ImageView, function (supr) {
   this.startAnimation = function (name, opts) {
     opts = opts || {};
 
-    if ( opts.randomFrame === true && opts.frame == null ) {
+    if (opts.randomFrame === true && opts.frame == null) {
       opts.frame = Math.random() * this._animations[name].frames.length | 0;
     }
 
-    if (opts.loop === true) { opts.iterations = Infinity; }
+
+    if (opts.loop === true) {
+      opts.iterations = Infinity;
+    }
+
 
     this._iterationsLeft = opts.iterations || 1;
     this._callback = opts.callback || null;
@@ -197,8 +197,9 @@ var SpriteView = exports = Class(ImageView, function (supr) {
     this._delay = 0;
 
     if (!this._animations[name]) {
-      throw new Error("Animation " + name + " does not exist: " + this._opts.url + ".");
+      throw new Error('Animation ' + name + ' does not exist: ' + this._opts.url + '.');
     }
+
 
     if (!this.isPlaying) {
       this.tick = this._tickSprite;
@@ -206,6 +207,7 @@ var SpriteView = exports = Class(ImageView, function (supr) {
       this.isPlaying = this.running = true;
       this.style.visible = true;
     }
+
 
     // align the image for the first time
     this._tickSprite(0);
@@ -216,8 +218,10 @@ var SpriteView = exports = Class(ImageView, function (supr) {
     if (this.isPlaying) {
       this.style.visible = false;
       this.tick = null;
-      this.isPlaying = this.running = false;  //use isPlaying, this.running is deprecated
-      this.isPaused = this._isPaused = false; //use isPaused instead, _isPaused is deprecated
+      this.isPlaying = this.running = false;
+      //use isPlaying, this.running is deprecated
+      this.isPaused = this._isPaused = false;
+      //use isPaused instead, _isPaused is deprecated
       GROUPS[this.groupID].remove(this.uid);
     }
   };
@@ -258,7 +262,10 @@ var SpriteView = exports = Class(ImageView, function (supr) {
   };
 
   this._tickSprite = function (dt) {
-    if (this.isPaused) { return; }
+    if (this.isPaused) {
+      return;
+    }
+
 
     dt += this._dt;
 
@@ -270,8 +277,9 @@ var SpriteView = exports = Class(ImageView, function (supr) {
       return;
     }
 
+
     var anim = this._animations[this._currentAnimationName];
-    var stepTime = (1000 / this.frameRate);
+    var stepTime = 1000 / this.frameRate;
     var frameSteps = dt / stepTime | 0;
     var prevFrame = this._currentFrame;
     this._dt = dt - frameSteps * stepTime;
@@ -280,6 +288,7 @@ var SpriteView = exports = Class(ImageView, function (supr) {
     if (this._currentFrame < 0) {
       this._currentFrame += anim.frames.length;
     }
+
 
     if (this.onScreen && (frameSteps !== 0 || dt === 0)) {
       var image = this._animations[this._currentAnimationName].frames[this._currentFrame];
@@ -293,6 +302,7 @@ var SpriteView = exports = Class(ImageView, function (supr) {
       }
     }
 
+
     var iterationsCompleted = (prevFrame + frameSteps) / anim.frames.length | 0;
     if (iterationsCompleted) {
       this._delay = this._opts.delay;
@@ -301,7 +311,8 @@ var SpriteView = exports = Class(ImageView, function (supr) {
         this._callback = null;
 
         this.resetAnimation();
-        if (cb) cb();
+        if (cb)
+          cb();
       }
     }
   };
@@ -331,14 +342,14 @@ SpriteView.getGroup = SpriteView.prototype.getGroup;
       var animKey = match[1];
       var name = match[2];
       var frameNumber = match[3];
-      var anim = (allAnimations[animKey] || (allAnimations[animKey] = {}));
-      var frameList = (anim[name] || (anim[name] = []));
+      var anim = allAnimations[animKey] || (allAnimations[animKey] = {});
+      var frameList = anim[name] || (anim[name] = []);
       var info = resourceMap[k];
       info.url = k;
       frameList.push(info);
     }
   }
-})();
+}());
 
 
 /**

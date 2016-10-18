@@ -13,10 +13,9 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
-import lib.PubSub;
-import device;
-from util.underscore import _;
+jsio('import lib.PubSub');
+jsio('import device');
+jsio('from util.underscore import _');
 
 
 var defaults = {
@@ -29,7 +28,6 @@ var defaults = {
  * @extends lib.PubSub
  */
 var AudioAPI = exports = Class(lib.PubSub, function (supr) {
-
   this.init = function (opts) {
     opts = merge(opts, defaults);
     supr(this, 'init', [opts]);
@@ -39,24 +37,26 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
     this.oneChannelOnly = opts.oneChannelOnly;
 
     setInterval(bind(this, '_ontimeupdate'), 200);
-    
+
     if (!this.oneChannelOnly) {
       _.each(opts.background, function (name) {
-        opts.map[name] = {'name': name}
+        opts.map[name] = { 'name': name };
       }, this);
     }
 
+
+
+
     // Install the event listener right away. Set usecapture=true so that
     // nothing else will affect us from intercepting this event.
-
     this._load();
     if (this.oneChannelOnly) {
       this._boundLoadHandler = bind(this, '_playFirst');
-      document.body.addEventListener(device.events.start, 
-                       this._boundLoadHandler, true);
+      document.body.addEventListener(device.events.start, this._boundLoadHandler, true);
     }
     window.addEventListener('pagehide', bind(this, 'pause'), false);
   }
+;
 
   this._createChannel = function (name, src) {
     var audio = new Audio(src);
@@ -67,6 +67,7 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
 
     audio.load();
   }
+;
 
   this.setMuted = function (muted) {
     this.muted = muted;
@@ -74,48 +75,56 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
       this.setVolume(0);
     }
   }
-  
+;
+
   this.setVolume = function (volume) {
     _.each(this._audios, function (audio, key) {
       audio.volume = volume;
     });
   }
+;
 
   this.unload = function () {
     this.pause();
     _.each(this._audios, function (audio, key) {
       audio.src = '';
     }, this);
-    // TODO remove event listeners
   }
+;
 
+  // TODO remove event listeners
   this._load = function () {
-  
     this._audios = {};
     var path = this._opts.path.replace(/\/$/, '');
     if (this.oneChannelOnly) {
       this._createChannel('AUDIO', path + '/' + this._opts.compiledFilename + '.m4a');
     } else {
-      for (var key in this._map) if (this._map.hasOwnProperty(key)) {
-        if (key == 'SILENCE') { continue; }
-        this._createChannel(key, path + '/' + key + '.mp3');
-      }
+      for (var key in this._map)
+        if (this._map.hasOwnProperty(key)) {
+          if (key == 'SILENCE') {
+            continue;
+          }
+          this._createChannel(key, path + '/' + key + '.mp3');
+        }
     }
+
 
     logger.info('now loading', this._opts.src);
 
     if (!this._publishedReady) {
-      this.publish('Ready'); // this is as close as we'll get with multiple sounds
+      this.publish('Ready');
+      // this is as close as we'll get with multiple sounds
       this._publishedReady = true;
     }
   }
+;
 
   this._playFirst = function () {
-    document.body.removeEventListener(device.events.start, 
-                      this._boundLoadHandler, true);
-    
+    document.body.removeEventListener(device.events.start, this._boundLoadHandler, true);
+
     this._audios['AUDIO'].play();
   }
+;
 
   this._ontimeupdate = function (evt) {
     _.each(this._audios, function (audio, key) {
@@ -125,6 +134,7 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
         audio._ready = true;
       }
 
+
       if (this.oneChannelOnly) {
         if (!this._nowPlaying || audio.currentTime >= this._nowPlaying.end) {
           this.play('SILENCE');
@@ -133,20 +143,25 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
     }, this);
 
   }
-  
+;
+
   this._onerror = function (event) {
     var s = '';
     for (var key in event) {
       s += event[key] + ' ';
     }
     logger.info('ERROR', s);
-    // this.unload();
-    // this.publish('AudioError', event);
-    // this._status = 'error';
   }
+;
 
+  // this.unload();
+  // this.publish('AudioError', event);
+  // this._status = 'error';
   this.canPlay = function (name) {
-    if (!this._map[name]) { return false; }
+    if (!this._map[name]) {
+      return false;
+    }
+
 
     var requiredEnd = null;
     if (this.oneChannelOnly) {
@@ -158,6 +173,7 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
       return false;
     }
 
+
     // if (!audio._ready) {
     //  return; // try downloading the whole file...
     // }
@@ -165,31 +181,37 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
       return true;
     } else {
       try {
-        var end = audio.seekable.end()
-        return (requiredEnd <= end);
-      } catch(e) {
+        var end = audio.seekable.end();
+        return requiredEnd <= end;
+      } catch (e) {
         logger.log(e);
         return false;
       }
     }
   }
+;
 
-  this.play = function (name, volume, loop) {   
-    if (this.muted) { return; }
+  this.play = function (name, volume, loop) {
+    if (this.muted) {
+      return;
+    }
+
 
     if (volume === undefined) {
-      volume = 1.0;
+      volume = 1;
     }
     if (!this.canPlay(name)) {
       logger.info('Not ready yet');
       return;
     }
 
+
     var audio = this._audios[this.oneChannelOnly ? 'AUDIO' : name];
     try {
       if (!audio.paused) {
-        audio.pause(); // it glitches if you move currentTime while playing?
+        audio.pause();
       }
+      // it glitches if you move currentTime while playing?
       var startTime = 0;
       if (this.oneChannelOnly && this._map[name].start != null) {
         startTime = this._map[name].start;
@@ -201,31 +223,41 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
       audio.volume = volume;
       audio.play();
       this._nowPlaying = this._map[name];
-    } catch(e) {
-      
+    } catch (e) {
     }
   }
-  
+;
+
   this.pause = function () {
     _.each(this._audios, function (audio, key) {
       audio.pause();
     }, this);
   }
+;
 
   this.playBackgroundMusic = function (name, volume) {
-    if (this.muted) { return; }
-
-    if (this.oneChannelOnly) {
-      return false; // cannot play bg music here.
+    if (this.muted) {
+      return;
     }
 
+
+    if (this.oneChannelOnly) {
+      return false;
+    }
+
+
+    // cannot play bg music here.
     this._backgroundSoundPlaying = name;
     this.play(name, volume);
   }
+;
 
   this.pauseBackgroundMusic = function () {
-    if (!this._backgroundSoundPlaying) { return; }
+    if (!this._backgroundSoundPlaying) {
+      return;
+    }
     this._audios[this._backgroundSoundPlaying].pause();
   }
+;
 
 });

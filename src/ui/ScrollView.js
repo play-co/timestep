@@ -13,43 +13,43 @@
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-
 /**
  * @class ui.ScrollView;
  *
  * @doc http://doc.gameclosure.com/api/ui-scrollview.html
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/scrollview.md
  */
-import animate;
-import device;
+jsio('import animate');
+jsio('import device');
 
-import event.input.dispatch as input;
-import event.input.InputEvent as InputEvent;
+jsio('import event.input.dispatch as input');
+jsio('import event.input.InputEvent as InputEvent');
 
-import math.geom.Rect as Rect;
-import math.geom.Point as Point;
-import math.geom.Circle as Circle;
-import math.geom.intersect as intersect;
+jsio('import math.geom.Rect as Rect');
+jsio('import math.geom.Point as Point');
+jsio('import math.geom.Circle as Circle');
+jsio('import math.geom.intersect as intersect');
 
-import ui.View as View;
-import ui.backend.ReflowManager as ReflowManager;
+jsio('import ui.View as View');
+jsio('import ui.backend.ReflowManager as ReflowManager');
 
 var _reflowMgr = ReflowManager.get();
 
 var DEBUG = true;
 var USE_CLIPPING = false;
-// var USE_CLIPPING = !device.useDOM && !device.isMobile;
 
+// var USE_CLIPPING = !device.useDOM && !device.isMobile;
 if (DEBUG) {
-  var _debug = {
-    bounds: []
-  };
+  var _debug = { bounds: [] };
 }
+
 
 function getBoundingRectangle(pos) {
   if (!pos.r) {
     return;
   }
+
+
 
 
   var w = pos.width;
@@ -82,7 +82,8 @@ function getBoundingRectangle(pos) {
   pos.width = Math.max(x1, x2, x3, x4) - pos.x;
   pos.height = Math.max(y1, y2, y3, y4) - pos.y;
   pos.r = 0;
-};
+}
+;
 
 function viewportIntersect(viewport, prevViewport) {
   var pos = viewport.src.getPosition(prevViewport.src);
@@ -96,7 +97,8 @@ function viewportIntersect(viewport, prevViewport) {
   getBoundingRectangle(pos);
 
   viewport.intersectRect(pos);
-};
+}
+;
 
 
 var defaults = {
@@ -127,12 +129,14 @@ function clippedWrapRender(contentView, backing, ctx, opts) {
     backing._subviews.sort();
   }
 
+
   ctx.save();
   ctx.translate(backing.x + backing.anchorX, backing.y + backing.anchorY);
 
   if (backing.r) {
     ctx.rotate(backing.r);
   }
+
 
   // clip this render to be within its view;
   if (backing.scale != 1) {
@@ -142,6 +146,7 @@ function clippedWrapRender(contentView, backing, ctx, opts) {
     ctx.globalAlpha *= backing.opacity;
   }
 
+
   ctx.translate(-backing.anchorX, -backing.anchorY);
 
   // if (backing._circle) { ctx.translate(-backing.width / 2, -backing.height / 2); }
@@ -149,11 +154,13 @@ function clippedWrapRender(contentView, backing, ctx, opts) {
     ctx.clipRect(0, 0, backing.width, backing.height);
   }
 
+
   try {
     if (backing.backgroundColor) {
       ctx.fillStyle = backing.backgroundColor;
       ctx.fillRect(0, 0, backing.width, backing.height);
     }
+
 
     backing._view.render && backing._view.render(ctx, opts);
 
@@ -176,6 +183,8 @@ function clippedWrapRender(contentView, backing, ctx, opts) {
         }
 
 
+
+
         if (DEBUG) {
           _debug.bounds.push(pos);
         }
@@ -188,6 +197,7 @@ function clippedWrapRender(contentView, backing, ctx, opts) {
     ctx.restore();
   }
 }
+
 
 // extend the default backing ctor
 var DEFAULT_BACKING_CTOR = Class(View.prototype.BackingCtor, function () {
@@ -238,7 +248,6 @@ exports = Class(View, function (supr) {
   this.tag = 'ScrollView';
 
   this.init = function (opts) {
-
     opts = merge(opts, defaults);
 
     opts['dom:noCanvas'] = true;
@@ -276,9 +285,10 @@ exports = Class(View, function (supr) {
     supr(this, 'init', [opts]);
     supr(this, 'addSubview', [this._contentView]);
 
-    // this.__layout = this._contentView.__layout;
   }
+;
 
+  // this.__layout = this._contentView.__layout;
   this.updateOpts = function (opts) {
     supr(this, 'updateOpts', arguments);
 
@@ -293,20 +303,25 @@ exports = Class(View, function (supr) {
       }
     }
 
+
     if ('scrollBounds' in opts) {
       this.setScrollBounds(opts.scrollBounds);
     }
+
 
     if ('bounceRadius' in opts) {
       this._bounceRadius = opts.bounceRadius;
     }
 
+
     return opts;
   };
 
   this._updateContentBounds = function () {
+    if (!this._opts.useContentBounds) {
+      return;
+    }
 
-    if (!this._opts.useContentBounds) { return; }
 
     var bounds = this._scrollBounds;
     var s = this._contentView.style;
@@ -334,8 +349,12 @@ exports = Class(View, function (supr) {
     this._contentView.removeAllSubviews();
   };
 
-  this.addFixedView = function (view) { return supr(this, 'addSubview', [view]); };
-  this.removeFixedView = function (view) { return supr(this, 'removeSubview', [view]); };
+  this.addFixedView = function (view) {
+    return supr(this, 'addSubview', [view]);
+  };
+  this.removeFixedView = function (view) {
+    return supr(this, 'removeSubview', [view]);
+  };
 
   this.getStyleBounds = function () {
     var bounds = this._scrollBounds;
@@ -351,13 +370,18 @@ exports = Class(View, function (supr) {
     };
   };
 
-  this.getOffset = function () { return new Point(this._contentView.style); };
-  this.getOffsetX = function () { return this._contentView.style.x; };
-  this.getOffsetY = function () { return this._contentView.style.y; };
+  this.getOffset = function () {
+    return new Point(this._contentView.style);
+  };
+  this.getOffsetX = function () {
+    return this._contentView.style.x;
+  };
+  this.getOffsetY = function () {
+    return this._contentView.style.y;
+  };
 
   this.setOffset = function (x, y) {
-    var style = this._contentView.style,
-      delta = {
+    var style = this._contentView.style, delta = {
         x: 0,
         y: 0
       };
@@ -368,7 +392,6 @@ exports = Class(View, function (supr) {
     var BOUNCE_THRESHOLD = 1;
     if (typeof x == 'number' && this._opts.scrollX !== false) {
       if (this._isBouncing) {
-        // do nothing
       } else if (this._canBounce) {
         if (x < bounds.minX) {
           var temp = (bounds.minX - x) / this._bounceRadius;
@@ -377,7 +400,9 @@ exports = Class(View, function (supr) {
             this._endBounce();
           }
 
+
         }
+
 
         if (x > bounds.maxX) {
           var temp = (x - bounds.maxX) / this._bounceRadius;
@@ -386,11 +411,18 @@ exports = Class(View, function (supr) {
             this._endBounce();
           }
 
+
         }
       } else {
-        if (x < bounds.minX) { x = bounds.minX; }
-        if (x > bounds.maxX) { x = bounds.maxX; }
+        if (x < bounds.minX) {
+          x = bounds.minX;
+        }
+        if (x > bounds.maxX) {
+          x = bounds.maxX;
+        }
       }
+
+
 
       if (x != style.x) {
         delta.x = x - style.x;
@@ -398,9 +430,9 @@ exports = Class(View, function (supr) {
       }
     }
 
+
     if (typeof y == 'number' && this._opts.scrollY !== false) {
       if (this._isBouncing) {
-        // do nothing
       } else if (this._canBounce) {
         if (y < bounds.minY) {
           var temp = (bounds.minY - y) / this._bounceRadius;
@@ -410,6 +442,7 @@ exports = Class(View, function (supr) {
           }
         }
 
+
         if (y > bounds.maxY) {
           var temp = (y - bounds.maxY) / this._bounceRadius;
           y = bounds.maxY + Math.atan(temp) * this._bounceRadius / PI_2;
@@ -418,9 +451,15 @@ exports = Class(View, function (supr) {
           }
         }
       } else {
-        if (y < bounds.minY) { y = bounds.minY; }
-        if (y > bounds.maxY) { y = bounds.maxY; }
+        if (y < bounds.minY) {
+          y = bounds.minY;
+        }
+        if (y > bounds.maxY) {
+          y = bounds.maxY;
+        }
       }
+
+
 
       if (y != style.y) {
         delta.y = y - style.y;
@@ -428,10 +467,13 @@ exports = Class(View, function (supr) {
       }
     }
 
+
     this.publish('Scrolled', delta);
   };
 
-  this.isScrolling = function () { return this.isDragging() || this._anim && this._anim.hasFrames(); };
+  this.isScrolling = function () {
+    return this.isDragging() || this._anim && this._anim.hasFrames();
+  };
 
   this.stopScrolling = function () {
     this._anim && this._anim.now({}, 1);
@@ -439,11 +481,12 @@ exports = Class(View, function (supr) {
 
   this.onInputStart = function (evt, pt) {
     if (this._opts.drag && (this._opts.scrollX || this._opts.scrollY)) {
-      this.startDrag({radius: this._opts.dragRadius * this._snapPixels});
+      this.startDrag({ radius: this._opts.dragRadius * this._snapPixels });
 
       if (this._anim && this._anim.hasFrames()) {
         this._anim.clear();
       }
+
 
       evt.cancel();
     }
@@ -465,8 +508,13 @@ exports = Class(View, function (supr) {
     state.lastDelta = delta;
 
     this.scrollData.push(delta);
-    if (!this._opts.scrollY) { delta.y = 0; }
-    if (!this._opts.scrollX) { delta.x = 0; }
+    if (!this._opts.scrollY) {
+      delta.y = 0;
+    }
+    if (!this._opts.scrollX) {
+      delta.x = 0;
+    }
+
 
     this.setOffset(state.offset.x += delta.x, state.offset.y += delta.y);
     moveEvt.cancel();
@@ -476,35 +524,35 @@ exports = Class(View, function (supr) {
     this._contentView.getInput().blockEvents = false;
 
     if (this._opts.inertia) {
-
       //how much of the current event
       //should be favored over older events in the running
       //weighted average being computed
-      var WEIGHT = .5;
+      var WEIGHT = 0.5;
       //how much to deccelerate when
       //scrolling
-      var ACCEL = -.45;
+      var ACCEL = -0.45;
       //multiplier for mapping the calculated time to
       //a more reasonable real time for scrolling
       var TIME_MULTIPLIER = 8;
 
       var avgDelta = new Point(0, 0);
       for (var i in this.scrollData) {
-        avgDelta.x = (avgDelta.x * (1 - WEIGHT)) + (this.scrollData[i].x * WEIGHT);
-        avgDelta.y = (avgDelta.y * (1 - WEIGHT)) + (this.scrollData[i].y * WEIGHT);
+        avgDelta.x = avgDelta.x * (1 - WEIGHT) + this.scrollData[i].x * WEIGHT;
+        avgDelta.y = avgDelta.y * (1 - WEIGHT) + this.scrollData[i].y * WEIGHT;
       }
+
 
       this.scrollData = [];
 
-      var delta = new Point(avgDelta).scale(.7);
+      var delta = new Point(avgDelta).scale(0.7);
       var offset = this._animState.offset;
 
       var velocity = delta.getMagnitude();
       //calculate the travel time of the scroll
       //vf = vi + at -> t = vf - vi / a
-      var time = - velocity / ACCEL;
+      var time = -velocity / ACCEL;
       //vf^2 = vi^2 + 2ax -> x = - (vi^2) / (2 *a)
-      var distance = .5 * - (velocity * velocity) / ACCEL;
+      var distance = 0.5 * -(velocity * velocity) / ACCEL;
       var tempDelta = delta;
       tempDelta = tempDelta.normalize();
       //distance to travel from start to finish
@@ -526,11 +574,13 @@ exports = Class(View, function (supr) {
         }
       }
 
+
       if (target.y > bounds.maxY + this._bounceRadius) {
         if (offset.y > bounds.maxY) {
           animateY = false;
         }
       }
+
 
       if (target.x < bounds.minX - this._bounceRadius) {
         if (offset.x < bounds.minX) {
@@ -538,17 +588,17 @@ exports = Class(View, function (supr) {
         }
       }
 
+
       if (target.x > bounds.maxX + this._bounceRadius) {
         if (offset.x > bounds.maxX) {
           animateX = false;
         }
       }
 
+
       if (distance && (animateX || animateY)) {
         this._anim.now(bind(this, function (tt, t) {
-          this.setOffset(
-            offset.x + delta.x * tt,
-            offset.y + delta.y * tt);
+          this.setOffset(offset.x + delta.x * tt, offset.y + delta.y * tt);
         }), time * TIME_MULTIPLIER, animate.easeOut).then(bind(this, function () {
           this._endBounce(offset);
         }));
@@ -580,22 +630,27 @@ exports = Class(View, function (supr) {
       ty = bounds.maxY;
     }
 
+
+
     if (offset.x < bounds.minX) {
       tx = bounds.minX;
     } else if (offset.x > bounds.maxX) {
       tx = bounds.maxX;
     }
 
+
+
     dy = ty - offset.y;
     dx = tx - offset.x;
 
-    if (dy === 0 && dx === 0) { return; }
+    if (dy === 0 && dx === 0) {
+      return;
+    }
+
 
     this._isBouncing = true;
     this._anim.now(bind(this, function (tt, t) {
-      this.setOffset(
-        offset.x + dx * tt,
-        offset.y + dy * tt);
+      this.setOffset(offset.x + dx * tt, offset.y + dy * tt);
     }), 500, animate.easeInOut).then(bind(this, function () {
       this._canBounce = false;
       this._isBouncing = false;
@@ -608,10 +663,19 @@ exports = Class(View, function (supr) {
 
   this.setScrollBounds = function (bounds) {
     if (bounds) {
-      if ('minX' in bounds) { this._scrollBounds.minX = bounds.minX || 0; }
-      if ('minY' in bounds) { this._scrollBounds.minY = bounds.minY || 0; }
-      if ('maxX' in bounds) { this._scrollBounds.maxX = bounds.maxX || 0; }
-      if ('maxY' in bounds) { this._scrollBounds.maxY = bounds.maxY || 0; }
+      if ('minX' in bounds) {
+        this._scrollBounds.minX = bounds.minX || 0;
+      }
+      if ('minY' in bounds) {
+        this._scrollBounds.minY = bounds.minY || 0;
+      }
+      if ('maxX' in bounds) {
+        this._scrollBounds.maxX = bounds.maxX || 0;
+      }
+      if ('maxY' in bounds) {
+        this._scrollBounds.maxY = bounds.maxY || 0;
+      }
+
 
       // If not in the middle of a bounce animation,
       if (!this._canBounce) {
@@ -623,21 +687,30 @@ exports = Class(View, function (supr) {
     }
   };
 
-  this.getScrollBounds = function () { return this._scrollBounds; }
+  this.getScrollBounds = function () {
+    return this._scrollBounds;
+  }
+;
 
   this.addOffset = function (x, y) {
-    this.setOffset(
-        x != undefined && x != null && (this._contentView.style.x + x),
-        y != undefined && y != null && (this._contentView.style.y + y)
-      );
+    this.setOffset(x != undefined && x != null && this._contentView.style.x + x, y != undefined && y != null && this._contentView.style.y + y);
   }
+;
 
-  this.getContentView = function () { return this._contentView; }
+  this.getContentView = function () {
+    return this._contentView;
+  }
+;
 
   /* @deprecated */
-  this.getFullWidth = function () { return this._contentView.style.width; }
+  this.getFullWidth = function () {
+    return this._contentView.style.width;
+  };
   /* @deprecated */
-  this.getFullHeight= function () { return this._contentView.style.height; }
+  this.getFullHeight = function () {
+    return this._contentView.style.height;
+  }
+;
 
   this.render = function (ctx, opts) {
     var s = this.style;
@@ -662,6 +735,7 @@ exports = Class(View, function (supr) {
       viewportIntersect(viewport, opts.viewport);
     }
 
+
     opts.viewport = viewport;
 
     return viewport.x != x || viewport.y != y || viewport.width != width || viewport.height != height;
@@ -678,6 +752,8 @@ exports = Class(View, function (supr) {
       this.addOffset(evt.scrollDelta * 40);
     }
 
+
+
     if (style.y != y || style.x != x) {
       evt.cancel();
     }
@@ -687,8 +763,8 @@ exports = Class(View, function (supr) {
     var bounds = this.getStyleBounds();
     var cvs = this._contentView.style;
 
-    x = (x == null) ? cvs.x : -x;
-    y = (y == null) ? cvs.y : -y;
+    x = x == null ? cvs.x : -x;
+    y = y == null ? cvs.y : -y;
 
     x = x < bounds.minX ? bounds.minX : x;
     x = x > bounds.maxX ? bounds.maxX : x;
@@ -711,13 +787,19 @@ exports = Class(View, function (supr) {
         duration = 500;
       }
 
+
+
       if (opts.maxDuration) {
         duration = Math.min(duration, opts.maxDuration);
       }
     }
 
+
     if (duration) {
-      var anim = animate(this._contentView).now({ x: x, y: y }, duration, animate.easeOut);
+      var anim = animate(this._contentView).now({
+        x: x,
+        y: y
+      }, duration, animate.easeOut);
       if (cb) {
         anim.then(cb);
       }
@@ -733,4 +815,5 @@ if (USE_CLIPPING) {
   // extend the default backing ctor
   exports.prototype.BackingCtor = DEFAULT_BACKING_CTOR;
 }
+
 
