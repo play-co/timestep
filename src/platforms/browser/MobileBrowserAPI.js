@@ -36,10 +36,10 @@ var defaults = {
 /**
  * @extends lib.PubSub
  */
-exports = Class(PubSub, function (supr) {
-  this.init = function (opts) {
+exports = class extends PubSub {
+  constructor(opts) {
     opts = merge(opts, defaults);
-    supr(this, 'init', [opts]);
+    super(opts);
     this._opts = opts;
     this._map = opts.map;
     this._audios = {};
@@ -56,6 +56,10 @@ exports = Class(PubSub, function (supr) {
 
 
 
+
+
+
+
     // Install the event listener right away. Set usecapture=true so that
     // nothing else will affect us from intercepting this event.
     this._load();
@@ -64,9 +68,8 @@ exports = Class(PubSub, function (supr) {
       document.body.addEventListener(device.events.start, this._boundLoadHandler, true);
     }
     window.addEventListener('pagehide', bind(this, 'pause'), false);
-  };
-
-  this._createChannel = function (name, src) {
+  }
+  _createChannel(name, src) {
     var audio = new Audio(src);
     this._audios[name] = audio;
 
@@ -74,30 +77,25 @@ exports = Class(PubSub, function (supr) {
     audio.addEventListener('timeupdate', bind(this, '_ontimeupdate'));
 
     audio.load();
-  };
-
-  this.setMuted = function (muted) {
+  }
+  setMuted(muted) {
     this.muted = muted;
     if (muted) {
       this.setVolume(0);
     }
-  };
-
-  this.setVolume = function (volume) {
+  }
+  setVolume(volume) {
     _.each(this._audios, function (audio, key) {
       audio.volume = volume;
     });
-  };
-
-  this.unload = function () {
+  }
+  unload() {
     this.pause();
     _.each(this._audios, function (audio, key) {
       audio.src = '';
     }, this);
-  };
-
-  // TODO remove event listeners
-  this._load = function () {
+  }
+  _load() {
     this._audios = {};
     var path = this._opts.path.replace(/\/$/, '');
     if (this.oneChannelOnly) {
@@ -113,6 +111,8 @@ exports = Class(PubSub, function (supr) {
     }
 
 
+
+
     logger.info('now loading', this._opts.src);
 
     if (!this._publishedReady) {
@@ -120,21 +120,21 @@ exports = Class(PubSub, function (supr) {
       // this is as close as we'll get with multiple sounds
       this._publishedReady = true;
     }
-  };
-
-  this._playFirst = function () {
+  }
+  _playFirst() {
     document.body.removeEventListener(device.events.start, this._boundLoadHandler, true);
 
     this._audios['AUDIO'].play();
-  };
-
-  this._ontimeupdate = function (evt) {
+  }
+  _ontimeupdate(evt) {
     _.each(this._audios, function (audio, key) {
       if (audio.paused && !audio._pausedOnce) {
         audio.pause();
         audio._pausedOnce = true;
         audio._ready = true;
       }
+
+
 
 
       if (this.oneChannelOnly) {
@@ -144,23 +144,20 @@ exports = Class(PubSub, function (supr) {
       }
     }, this);
 
-  };
-
-  this._onerror = function (event) {
+  }
+  _onerror(event) {
     var s = '';
     for (var key in event) {
       s += event[key] + ' ';
     }
     logger.info('ERROR', s);
-  };
-
-  // this.unload();
-  // this.publish('AudioError', event);
-  // this._status = 'error';
-  this.canPlay = function (name) {
+  }
+  canPlay(name) {
     if (!this._map[name]) {
       return false;
     }
+
+
 
 
     var requiredEnd = null;
@@ -172,6 +169,8 @@ exports = Class(PubSub, function (supr) {
     if (!audio) {
       return false;
     }
+
+
 
 
     // if (!audio._ready) {
@@ -188,12 +187,13 @@ exports = Class(PubSub, function (supr) {
         return false;
       }
     }
-  };
-
-  this.play = function (name, volume, loop) {
+  }
+  play(name, volume, loop) {
     if (this.muted) {
       return;
     }
+
+
 
 
     if (volume === undefined) {
@@ -203,6 +203,8 @@ exports = Class(PubSub, function (supr) {
       logger.info('Not ready yet');
       return;
     }
+
+
 
 
     var audio = this._audios[this.oneChannelOnly ? 'AUDIO' : name];
@@ -224,18 +226,18 @@ exports = Class(PubSub, function (supr) {
       this._nowPlaying = this._map[name];
     } catch (e) {
     }
-  };
-
-  this.pause = function () {
+  }
+  pause() {
     _.each(this._audios, function (audio, key) {
       audio.pause();
     }, this);
-  };
-
-  this.playBackgroundMusic = function (name, volume) {
+  }
+  playBackgroundMusic(name, volume) {
     if (this.muted) {
       return;
     }
+
+
 
 
     if (this.oneChannelOnly) {
@@ -243,19 +245,19 @@ exports = Class(PubSub, function (supr) {
     }
 
 
+
+
     // cannot play bg music here.
     this._backgroundSoundPlaying = name;
     this.play(name, volume);
-  };
-
-  this.pauseBackgroundMusic = function () {
+  }
+  pauseBackgroundMusic() {
     if (!this._backgroundSoundPlaying) {
       return;
     }
     this._audios[this._backgroundSoundPlaying].pause();
-  };
-
-});
+  }
+};
 var AudioAPI = exports;
 
 export default exports;

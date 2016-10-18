@@ -68,8 +68,8 @@ var defaultOpts = {
 /**
  * The i18n Class provides localization support for string JSON files.
  */
-exports = Class(function () {
-  this.init = function (opts) {
+exports = class {
+  constructor(opts) {
     opts = merge(opts, defaultOpts);
     this._languageCode = opts.languageCode;
     this._regionCode = opts.regionCode;
@@ -78,17 +78,14 @@ exports = Class(function () {
     this._strings = {};
 
     this.loadStrings(this._stringsPath, this._defaultStringsFile);
-  };
-
-  this.getLanguageCode = function () {
+  }
+  getLanguageCode() {
     return this._languageCode;
-  };
-
-  this.getRegionCode = function () {
+  }
+  getRegionCode() {
     return this._regionCode;
-  };
-
-  this.loadStrings = function (path, defaultFile) {
+  }
+  loadStrings(path, defaultFile) {
     var lc = this._languageCode;
     var rc = this._regionCode;
     var locPath = path + lc + '-' + rc + '.json';
@@ -105,14 +102,12 @@ exports = Class(function () {
     } else {
       console.error('No JSON found for files:', locPath, langPath, defPath);
     }
-  };
-
-  this.getString = function (key) {
+  }
+  getString(key) {
     var value = this._strings[key];
     return value !== undefined ? value : key;
-  };
-
-});
+  }
+};
 
 /**
  * This function is used by resource/loader to map localized resources to

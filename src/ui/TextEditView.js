@@ -36,10 +36,10 @@ var defaults = {
   paddingBottom: 0
 };
 
-exports = Class(ImageScaleView, function (supr) {
-  this.init = function (opts) {
+exports = class extends ImageScaleView {
+  constructor(opts) {
     this._opts = merge(opts || {}, defaults);
-    supr(this, 'init', [this._opts]);
+    super(this._opts);
 
     this._clipper = new View({
       x: 0,
@@ -83,47 +83,39 @@ exports = Class(ImageScaleView, function (supr) {
     })));
 
     this.setText(this._opts.text || '');
-  };
-
-  this.onSubmit = function () {
-  };
-  this.onFinishEditing = function () {
-  };
-
-  this.onInputStart = function () {
+  }
+  onSubmit() {
+  }
+  onFinishEditing() {
+  }
+  onInputStart() {
     this._validInputStart = true;
-  };
-
-  this.onInputSelect = function () {
+  }
+  onInputSelect() {
     if (this._validInputStart) {
       this.requestFocus();
       this._validInputStart = false;
     }
-  };
-
-  this.requestFocus = function (noSubmit) {
+  }
+  requestFocus(noSubmit) {
     this._focused = true;
     this._editText.requestFocus(noSubmit);
     this.refresh();
-  };
-
-  this.removeFocus = function (noSubmit) {
+  }
+  removeFocus(noSubmit) {
     this._editText.closeEditField(noSubmit);
-  };
-
-  this.refresh = function () {
+  }
+  refresh() {
     this._editText.refresh(this.getText(), this._backTextEditView != null, this._forwardTextEditView != null, this._cursorPos);
-  };
-
-  this.onFocusChange = function (focused) {
+  }
+  onFocusChange(focused) {
     if (focused) {
       this.emit('focusAdd');
     } else {
       this.emit('focusRemove');
     }
-  };
-
-  this.onChange = function (value, prevValue, cursorPos) {
+  }
+  onChange(value, prevValue, cursorPos) {
     var isProcessed;
     var isCursorSet;
 
@@ -137,8 +129,12 @@ exports = Class(ImageScaleView, function (supr) {
         }
 
 
+
+
         value = this._textFilter(value || '', prevValue || '');
       }
+
+
 
 
       this.setText(value);
@@ -148,30 +144,23 @@ exports = Class(ImageScaleView, function (supr) {
       }
 
 
+
+
       // update native EditText with processed values
       this.emit('onChange', value);
     }
-  };
-
-  this.setBackward = function (view) {
+  }
+  setBackward(view) {
     this._backTextEditView = view;
-  };
-
-  this.setForward = function (view) {
+  }
+  setForward(view) {
     this._forwardTextEditView = view;
-  };
-
-  /**
-     * Accepts a function that takes one string argument
-     * and returns a string. This can be used to process text
-     * entered into the EditText.
-     */
-  this.registerTextFilter = function (fn, fn2) {
+  }
+  registerTextFilter(fn, fn2) {
     this._textFilter = fn;
     this._textCursorFilter = fn2;
-  };
-
-  this.getText = function () {
+  }
+  getText() {
     var result;
 
     if (this._hintSet) {
@@ -183,22 +172,23 @@ exports = Class(ImageScaleView, function (supr) {
 
 
 
+
+
+
+
     return result;
-  };
-
-  this.getValue = function () {
+  }
+  getValue() {
     return this._editText.getValue();
-  };
-
-  this.setValue = function (value) {
+  }
+  setValue(value) {
     this.setText(value);
 
     if (this._editText.setValue) {
       this._editText.setValue(value, this._cursorPos);
     }
-  };
-
-  this.setText = function (text) {
+  }
+  setText(text) {
     if ((text == null || text != null && text.length == 0) && this._hint != null) {
       this._hintSet = true;
       text = this._hint;
@@ -211,14 +201,17 @@ exports = Class(ImageScaleView, function (supr) {
 
 
 
-    this._textBox.setText(text);
-  };
 
-  this.setHint = function (hint) {
+
+
+
+    this._textBox.setText(text);
+  }
+  setHint(hint) {
     this._hint = hint;
     this._editText.setHint(hint);
     this.setText(this.getText());
-  };
-});
+  }
+};
 
 export default exports;

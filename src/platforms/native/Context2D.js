@@ -52,9 +52,8 @@ var compositeOps = new Enum({
 var PixelArray = window.Uint8ClampedArray || window.CanvasPixelArray || window.Uint8Array || window.Array;
 
 
-exports = Class(BufferedCanvas, function (supr) {
-  //FIXME add globalalpha back to these
-  this.updateState = function (src, dest) {
+exports = class extends BufferedCanvas {
+  updateState(src, dest) {
     /*
     obj.stroke = this.stroke;
     obj.patternQuality = this.patternQuality;
@@ -73,10 +72,9 @@ exports = Class(BufferedCanvas, function (supr) {
     obj.shadowOffsetY = this.shadowOffsetY;
 */
     return dest;
-  };
-
-  this.init = function (opts) {
-    supr(this, 'init', arguments);
+  }
+  constructor(opts) {
+    super(...arguments);
 
     this._stack = [];
     this._stackPos = 0;
@@ -94,6 +92,8 @@ exports = Class(BufferedCanvas, function (supr) {
     }
 
 
+
+
     this.canvas = opts.canvas || {
       width: opts.width,
       height: opts.height
@@ -105,14 +105,15 @@ exports = Class(BufferedCanvas, function (supr) {
     }
 
 
+
+
     this.resize(this.canvas.width, this.canvas.height);
 
     for (var i = 0; i < 64; i++) {
       this._stack[i] = this.updateState(this, {});
     }
-  };
-
-  this.destroy = function () {
+  }
+  destroy() {
     if (this.canvas._src) {
       NATIVE.gl.forgetCanvas(this.canvas._src);
 
@@ -121,9 +122,8 @@ exports = Class(BufferedCanvas, function (supr) {
         NATIVE.gl.deleteTexture(this.canvas._src);
       }
     }
-  };
-
-  this.resize = function (width, height) {
+  }
+  resize(width, height) {
     // set the internal private properties (the public ones have setters that
     // would call this method again)
     this.canvas._width = width;
@@ -153,60 +153,42 @@ exports = Class(BufferedCanvas, function (supr) {
       this.canvas._src = 'onscreen';
       this._ctx = new NATIVE.gl.Context2D(this.canvas, this.canvas._src, this.canvas.__gl_name);
     }
-  };
-
-  this.getNativeCtx = function () {
+  }
+  getNativeCtx() {
     return this._ctx;
-  };
-
-  this.getElement = function () {
+  }
+  getElement() {
     return this.canvas;
-  };
-
-  this.font = '10px ' + device.defaultFontFamily;
-
-  this.textAlign = 'start';
-  this.textBaseline = 'alphabetic';
-  this.fillStyle = 'rgb(255,255,255)';
-  this.strokeStyle = 'rgb(0,0,0)';
-
-  this.show = function () {
-  };
-
-  this.hide = function () {
-  };
-
-  this.clear = function () {
+  }
+  show() {
+  }
+  hide() {
+  }
+  clear() {
     this._ctx.clear();
-  };
-
-  this.swap = function (operations) {
+  }
+  swap(operations) {
     NATIVE.gl.flushImages();
-  };
-
-  this.loadIdentity = function () {
+  }
+  loadIdentity() {
     this._ctx.loadIdentity();
-  };
-
-  this.save = function () {
+  }
+  save() {
     if (this._stack.length <= this._stackPos) {
       logger.log('expanding stack');
       this._stack.push({});
     }
     this.updateState(this, this._stack[this._stackPos++]);
     this._ctx.save();
-  };
-
-  this.restore = function () {
+  }
+  restore() {
     this._ctx.restore();
     this.updateState(this._stack[this._stackPos--], this);
-  };
-
-  this.clipRect = function (x, y, w, h) {
+  }
+  clipRect(x, y, w, h) {
     this._ctx.enableScissor(x, y, w, h);
-  };
-
-  this.drawImage = function (img, x1, y1, w1, h1, x2, y2, w2, h2) {
+  }
+  drawImage(img, x1, y1, w1, h1, x2, y2, w2, h2) {
     if (!img || !img.complete) {
       return;
     }
@@ -218,48 +200,40 @@ exports = Class(BufferedCanvas, function (supr) {
     } else {
       this._ctx.drawImage(img.__gl_name, img._src, x1, y1, w1, h1, x2, y2, w2, h2);
     }
-  };
-
-  this.translate = function (x, y) {
+  }
+  translate(x, y) {
     this._ctx.translate(x, y);
-  };
-  this.rotate = function (r) {
+  }
+  rotate(r) {
     this._ctx.rotate(r);
-  };
-  this.scale = function (x, y) {
+  }
+  scale(x, y) {
     this._ctx.scale(x, y);
-  };
-
-  this.setFilter = function (filter) {
+  }
+  setFilter(filter) {
     this._ctx.addFilter(filter.getType(), filter.get());
-  };
-
-  this.setFilters = function (filters) {
+  }
+  setFilters(filters) {
     logger.warn('ctx.setFilters is deprecated, use ctx.setFilter instead.');
     for (var name in filters) {
       var filter = filters[name];
       this._ctx.addFilter(name, filter.get());
     }
-  };
-
-  this.clearFilter = function () {
+  }
+  clearFilter() {
     this._ctx.clearFilters();
-  };
-
-  this.clearFilters = function () {
+  }
+  clearFilters() {
     logger.warn('ctx.clearFilters is deprecated, use ctx.clearFilter instead.');
     this._ctx.clearFilters();
-  };
-
-  this.setTransform = function (m11, m12, m21, m22, dx, dy) {
+  }
+  setTransform(m11, m12, m21, m22, dx, dy) {
     this._ctx.setTransform(m11, m12, m21, m22, dx, dy);
-  };
-
-  this.clearRect = function (x, y, width, height) {
+  }
+  clearRect(x, y, width, height) {
     this._ctx.clearRect(x, y, width, height);
-  };
-
-  this.fillRect = function (x, y, width, height) {
+  }
+  fillRect(x, y, width, height) {
     if (typeof this.fillStyle == 'object') {
       var img = this.fillStyle.img, w = img.width, h = img.height, wMax, hMax, xx, yy;
 
@@ -295,20 +269,17 @@ exports = Class(BufferedCanvas, function (supr) {
     } else {
       this._ctx.fillRect(x, y, width, height, this.fillStyle);
     }
-  };
-
-  this.strokeRect = function (x, y, width, height) {
+  }
+  strokeRect(x, y, width, height) {
     this._ctx.strokeRect(x, y, width, height, this.strokeStyle, this.lineWidth || 1);
-  };
-
-  this.createPattern = function (img, repeatPattern) {
+  }
+  createPattern(img, repeatPattern) {
     return {
       img: img,
       repeatPattern: repeatPattern
     };
-  };
-
-  this._checkPath = function () {
+  }
+  _checkPath() {
     if (!this._path) {
       this._path = [];
     }
@@ -316,43 +287,34 @@ exports = Class(BufferedCanvas, function (supr) {
       this._pathIndex = 0;
     }
     return this._pathIndex > 0;
-  };
-
-  this.beginPath = function () {
+  }
+  beginPath() {
     this._pathIndex = 0;
-  };
-
-  this.lineTo = function (x, y) {
+  }
+  lineTo(x, y) {
     this._checkPath();
     this._path[this._pathIndex] = {
       x: x,
       y: y
     };
     this._pathIndex++;
-  };
-
-  this.pointSprite = null;
-  this.pointSpriteStep = 2;
-  this.drawPointSprites = function (x1, y1, x2, y2) {
+  }
+  drawPointSprites(x1, y1, x2, y2) {
     this._ctx.drawPointSprites(this.pointSprite.src, this.lineWidth || 5, this.pointSpriteStep || 2, this.strokeStyle, x1, y1, x2, y2);
-  };
-
-  this.closePath = function () {
-  };
-
-  this.fill = function () {
+  }
+  closePath() {
+  }
+  fill() {
     if (this._checkPath()) {
       this._ctx.fill(this._path, this._pathIndex, this.fillStyle);
     }
-  };
-
-  this.stroke = function () {
+  }
+  stroke() {
     if (this._checkPath()) {
       this._ctx.stroke(this._path, this._pathIndex, this.strokeStyle);
     }
-  };
-
-  this.createImageData = function (width, height) {
+  }
+  createImageData(width, height) {
     // createImageData can be passed another image data object
     // the data in the passed in image is not copied
     if (typeof width === 'object' && 'width' in width) {
@@ -361,20 +323,28 @@ exports = Class(BufferedCanvas, function (supr) {
     }
 
 
+
+
     return {
       width: width,
       height: height,
       data: new PixelArray(width * height)
     };
-  };
+  }
+  fill() {
+  }
+  stroke() {
+  }
+};
 
-  this.fill = function () {
-  };
-  this.stroke = function () {
-  };
-});
 
-
+exports.prototype.font = '10px ' + device.defaultFontFamily;
+exports.prototype.textAlign = 'start';
+exports.prototype.textBaseline = 'alphabetic';
+exports.prototype.fillStyle = 'rgb(255,255,255)';
+exports.prototype.strokeStyle = 'rgb(0,0,0)';
+exports.prototype.pointSprite = null;
+exports.prototype.pointSpriteStep = 2;
 setProperty(exports.prototype, 'globalAlpha', {
   get: function () {
     return this._ctx.getGlobalAlpha();

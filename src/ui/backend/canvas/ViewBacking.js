@@ -36,8 +36,10 @@ var cos = Math.cos;
 
 var ADD_COUNTER = 900000;
 
-exports = Class(BaseBacking, function () {
-  this.init = function (view) {
+exports = class extends BaseBacking {
+  constructor(view) {
+    super();
+
     this._globalTransform = {
       a: 1,
       b: 0,
@@ -54,12 +56,11 @@ exports = Class(BaseBacking, function () {
     this._superview = null;
     this._subviews = [];
     this._childCount = 0;
-  };
-
-  this.getSuperview = function () {
+  }
+  getSuperview() {
     return this._superview;
-  };
-  this.getSubviews = function () {
+  }
+  getSubviews() {
     if (this._needsSort) {
       this._needsSort = false;
       this._subviews.sort();
@@ -72,10 +73,11 @@ exports = Class(BaseBacking, function () {
     }
 
 
-    return subviews;
-  };
 
-  this.addSubview = function (view) {
+
+    return subviews;
+  }
+  addSubview(view) {
     var backing = view.__view;
     var superview = backing._superview;
     if (superview == this._view || this == backing) {
@@ -84,6 +86,8 @@ exports = Class(BaseBacking, function () {
     if (superview) {
       superview.__view.removeSubview(view);
     }
+
+
 
 
     var n = this._subviews.length;
@@ -98,10 +102,11 @@ exports = Class(BaseBacking, function () {
     }
 
 
-    return true;
-  };
 
-  this.removeSubview = function (targetView) {
+
+    return true;
+  }
+  removeSubview(targetView) {
     var index = this._subviews.indexOf(targetView.__view);
     if (index != -1) {
       this._subviews.splice(index, 1);
@@ -113,19 +118,19 @@ exports = Class(BaseBacking, function () {
     }
 
 
-    return false;
-  };
 
-  this.wrapTick = function (dt, app) {
+
+    return false;
+  }
+  wrapTick(dt, app) {
     this._view._tick && this._view._tick(dt, app);
 
     var views = this._subviews;
     for (var i = 0; i < this._childCount; ++i) {
       views[i].wrapTick(dt, app);
     }
-  };
-
-  this.updateGlobalTransform = function () {
+  }
+  updateGlobalTransform() {
     var flipX = this.flipX ? -1 : 1;
     var flipY = this.flipY ? -1 : 1;
 
@@ -138,6 +143,8 @@ exports = Class(BaseBacking, function () {
       pgt = IDENTITY_MATRIX;
       this._globalOpacity = this.opacity;
     }
+
+
 
 
     var gt = this._globalTransform;
@@ -174,6 +181,8 @@ exports = Class(BaseBacking, function () {
       }
 
 
+
+
       gt.a = a * pgt.a + b * pgt.c;
       gt.b = a * pgt.b + b * pgt.d;
       gt.c = c * pgt.a + d * pgt.c;
@@ -181,18 +190,21 @@ exports = Class(BaseBacking, function () {
       gt.tx = tx * pgt.a + ty * pgt.c + pgt.tx;
       gt.ty = tx * pgt.b + ty * pgt.d + pgt.ty;
     }
-  };
-
-  this.wrapRender = function (ctx, opts) {
+  }
+  wrapRender(ctx, opts) {
     if (!this.visible) {
       return;
     }
+
+
 
 
     if (this._needsSort) {
       this._needsSort = false;
       this._subviews.sort();
     }
+
+
 
 
     var width = this._width;
@@ -202,10 +214,14 @@ exports = Class(BaseBacking, function () {
     }
 
 
+
+
     var saveContext = this.clip || this.compositeOperation || !this._view.__parent;
     if (saveContext) {
       ctx.save();
     }
+
+
 
 
     this.updateGlobalTransform();
@@ -218,6 +234,8 @@ exports = Class(BaseBacking, function () {
     }
 
 
+
+
     var filter = this._view.getFilter();
     if (filter) {
       ctx.setFilter(filter);
@@ -226,15 +244,21 @@ exports = Class(BaseBacking, function () {
     }
 
 
+
+
     if (this.compositeOperation) {
       ctx.globalCompositeOperation = this.compositeOperation;
     }
+
+
 
 
     if (this.backgroundColor) {
       ctx.fillStyle = this.backgroundColor;
       ctx.fillRect(0, 0, width, height);
     }
+
+
 
 
     var viewport = opts.viewport;
@@ -246,16 +270,14 @@ exports = Class(BaseBacking, function () {
     if (saveContext) {
       ctx.restore();
     }
-  };
-
-  this._renderSubviews = function (ctx, opts) {
+  }
+  _renderSubviews(ctx, opts) {
     var subviews = this._subviews;
     for (var i = 0; i < this._childCount; i++) {
       subviews[i].wrapRender(ctx, opts);
     }
-  };
-
-  this._onResize = function (prop, value, prevValue) {
+  }
+  _onResize(prop, value, prevValue) {
     // child view properties might be invalidated
     this._view.needsReflow();
 
@@ -265,10 +287,8 @@ exports = Class(BaseBacking, function () {
       s.anchorX = (s.width || 0) / 2;
       s.anchorY = (s.height || 0) / 2;
     }
-  };
-
-  this._sortIndex = strPad.initialValue;
-  this._onZIndex = function (_, zIndex) {
+  }
+  _onZIndex(_, zIndex) {
     this._sortIndex = strPad.pad(zIndex);
 
     this._setSortKey();
@@ -278,31 +298,25 @@ exports = Class(BaseBacking, function () {
     if (superview) {
       superview.__view._needsSort = true;
     }
-  };
-
-  this._setAddedAt = function (addedAt) {
+  }
+  _setAddedAt(addedAt) {
     this._addedAt = addedAt;
     this._setSortKey();
-  };
-
-  this._setSortKey = function () {
+  }
+  _setSortKey() {
     this.__sortKey = this._sortIndex + this._addedAt;
-  };
-
-  //not implemented
-  this._onOffsetX = function (n) {
+  }
+  _onOffsetX(n) {
     this.offsetX = n * this.width / 100;
-  };
-
-  //not implemented
-  this._onOffsetY = function (n) {
+  }
+  _onOffsetY(n) {
     this.offsetY = n * this.height / 100;
-  };
-
-  this.toString = function () {
+  }
+  toString() {
     return this.__sortKey;
-  };
-});
+  }
+};
+exports.prototype._sortIndex = strPad.initialValue;
 var ViewBacking = exports;
 
 export default exports;

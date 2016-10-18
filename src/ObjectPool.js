@@ -20,8 +20,8 @@ let exports = {};
  *  class instances can be very costly to garbage collect and initialize, so
  *  be good to the environment, and always recycle!
  */
-exports = Class('ObjectPool', function () {
-  this.init = function (opts) {
+exports = class {
+  constructor(opts) {
     this._ctor = opts.ctor;
     this._pool = [];
     this._freshIndex = 0;
@@ -30,17 +30,15 @@ exports = Class('ObjectPool', function () {
     for (var i = 0; i < initCount; i++) {
       this.create();
     }
-  };
-
-  this.create = function () {
+  }
+  create() {
     var pool = this._pool;
     var obj = new this._ctor();
     obj._poolIndex = pool.length;
     pool.push(obj);
     return obj;
-  };
-
-  this.obtain = function () {
+  }
+  obtain() {
     var obj;
     var pool = this._pool;
     if (this._freshIndex < pool.length) {
@@ -51,9 +49,8 @@ exports = Class('ObjectPool', function () {
     obj._obtainedFromPool = true;
     this._freshIndex++;
     return obj;
-  };
-
-  this.release = function (obj) {
+  }
+  release(obj) {
     var pool = this._pool;
     if (obj._obtainedFromPool) {
       obj._obtainedFromPool = false;
@@ -65,22 +62,19 @@ exports = Class('ObjectPool', function () {
       obj._poolIndex = tempIndex;
       this._freshIndex--;
     }
-  };
-
-  this.forEachActive = function (fn, ctx) {
+  }
+  forEachActive(fn, ctx) {
     var pool = this._pool;
     for (var i = this._freshIndex - 1; i >= 0; i--) {
       fn.call(ctx, pool[i], i);
     }
-  };
-
-  this.getActiveCount = function () {
+  }
+  getActiveCount() {
     return this._freshIndex;
-  };
-
-  this.getTotalCount = function () {
+  }
+  getTotalCount() {
     return this._pool.length;
-  };
-});
+  }
+};
 
 export default exports;

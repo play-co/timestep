@@ -42,8 +42,8 @@ var FORWARD_KEYS = {
 /**
  * @extends ui.ScrollView
  */
-exports = Class(ScrollView, function (supr) {
-  this.init = function (opts) {
+exports = class extends ScrollView {
+  constructor(opts) {
     this._scrollBuffer = opts.scrollBuffer;
 
     opts.scrollBounds = {
@@ -54,13 +54,10 @@ exports = Class(ScrollView, function (supr) {
     };
 
     this.model = new List({ view: this });
-    supr(this, 'init', [opts]);
-  };
-
-  this.tag = 'ListView';
-
-  this.updateOpts = function () {
-    var opts = supr(this, 'updateOpts', arguments);
+    super(opts);
+  }
+  updateOpts() {
+    var opts = super.updateOpts(...arguments);
 
     var listOpts = { view: this };
     for (var key in FORWARD_KEYS) {
@@ -70,9 +67,13 @@ exports = Class(ScrollView, function (supr) {
     }
 
 
+
+
     if ('autoSize' in opts) {
       this._autoSize = opts.autoSize;
     }
+
+
 
 
     this.model.updateOpts(listOpts);
@@ -85,10 +86,14 @@ exports = Class(ScrollView, function (supr) {
     }
 
 
+
+
     // make sure the height is not undefined for compatibility with the layouts
     if (this._autoSize) {
       this.style.height = 0;
     }
+
+
 
 
     this._needsModelRender = true;
@@ -100,6 +105,8 @@ exports = Class(ScrollView, function (supr) {
     }
 
 
+
+
     var bounds = this._scrollBounds;
     var scrollBuffer = opts.scrollBuffer;
     bounds.minX = scrollBuffer && scrollBuffer.minX || 0;
@@ -107,9 +114,8 @@ exports = Class(ScrollView, function (supr) {
     bounds.minY = scrollBuffer && scrollBuffer.minY || 0;
 
     return opts;
-  };
-
-  this.positionCell = function (cell, pos) {
+  }
+  positionCell(cell, pos) {
     if (this._headerView) {
       pos.y += this._headerView.style.height;
     }
@@ -117,51 +123,45 @@ exports = Class(ScrollView, function (supr) {
 
 
 
+
+
+
+
     cell.style.update(pos);
-  };
-
-  this.setDataSource = function (dataSource) {
+  }
+  setDataSource(dataSource) {
     this.model.setDataSource(dataSource);
-  };
-
-  // This function returns a DataSource
-  this.getSelections = function () {
+  }
+  getSelections() {
     return this.model.getSelections();
-  };
-
-  // This function returns an object the keys are the selected items
-  this.getSelection = function () {
+  }
+  getSelection() {
     return this.model.selection.get();
-  };
-
-  this.getSelectionCount = function () {
+  }
+  getSelectionCount() {
     return this.model.getSelectionCount();
-  };
-
-  this.deselectAll = function () {
+  }
+  deselectAll() {
     this.model.deselectAll();
-  };
-
-  this._onScroll = function () {
+  }
+  _onScroll() {
     this._needsModelRender = true;
     this.needsRepaint();
-  };
-
-  this.reflow = function () {
+  }
+  reflow() {
     this._needsModelRender = true;
-  };
-
-  // This method is for internal use only!
-  this.addCell = function (cellView) {
+  }
+  addCell(cellView) {
     cellView.style.visible = true;
     this.addSubview(cellView);
     this.needsRepaint(true);
-  };
-
-  this.setHeaderView = function (headerView) {
+  }
+  setHeaderView(headerView) {
     if (this._headerView) {
       this._headerView.removeFromSuperview();
     }
+
+
 
 
     this._headerView = headerView;
@@ -175,12 +175,13 @@ exports = Class(ScrollView, function (supr) {
       // update the scroll bounds to account for the footer
       this.setMaxY();
     }
-  };
-
-  this.setFooterView = function (footerView) {
+  }
+  setFooterView(footerView) {
     if (this._footerView) {
       this._footerView.removeFromSuperview();
     }
+
+
 
 
     this._footerView = footerView;
@@ -190,13 +191,16 @@ exports = Class(ScrollView, function (supr) {
       // update the scroll bounds to account for the footer
       this.setMaxY();
     }
-  };
-
-  this.setMaxX = function (maxX) {
+  }
+  setMaxX(maxX) {
     if (this._autoSize && this.style.width != maxX) {
       this.style.width = maxX;
       this._needsModelRender = true;
     }
+
+
+
+
 
 
 
@@ -218,15 +222,18 @@ exports = Class(ScrollView, function (supr) {
     }
 
 
+
+
     if (oldMaxX != newMaxX) {
       this.publish('WidthChanged', maxX);
     }
-  };
-
-  this.setMaxY = function (contentHeight) {
+  }
+  setMaxY(contentHeight) {
     if (!contentHeight) {
       contentHeight = 0;
     }
+
+
 
 
     var additionalHeight = 0;
@@ -235,10 +242,14 @@ exports = Class(ScrollView, function (supr) {
     }
 
 
+
+
     if (this._footerView) {
       this._footerView.style.y = contentHeight + additionalHeight;
       additionalHeight += this._footerView.style.height || 0;
     }
+
+
 
 
     this._contentHeight = contentHeight;
@@ -248,6 +259,10 @@ exports = Class(ScrollView, function (supr) {
       this.style.height = maxY;
       this._needsModelRender = true;
     }
+
+
+
+
 
 
 
@@ -263,17 +278,17 @@ exports = Class(ScrollView, function (supr) {
     if (oldMaxY != newMaxY) {
       this.publish('HeightChanged', maxY);
     }
-  };
-
-  this.render = function (ctx, opts) {
-    var viewportChanged = supr(this, 'render', arguments);
+  }
+  render(ctx, opts) {
+    var viewportChanged = super.render(...arguments);
 
     if (viewportChanged || this._needsModelRender || this.model._needsSort) {
       this._needsModelRender = false;
       this.model.render(opts.viewport);
     }
-  };
-});
+  }
+};
 
 
+exports.prototype.tag = 'ListView';
 export default exports;

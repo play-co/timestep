@@ -47,8 +47,8 @@ var defaultStyle = {
 };
 
 
-exports = Class(function () {
-  this.init = function (opts) {
+exports = class {
+  constructor(opts) {
     opts = merge(opts, {
       color: 'black',
       height: 20
@@ -58,6 +58,8 @@ exports = Class(function () {
     if (opts.color) {
       style.color = opts.color;
     }
+
+
 
 
     this._el = $({
@@ -70,106 +72,96 @@ exports = Class(function () {
     $.onEvent(this._el, 'focus', this, 'onFocus');
     $.onEvent(this._el, 'change', this, 'onChange');
     $.onEvent(this._el, 'click', this, 'onClick');
-  };
-
-  this.onClick = function () {
-  };
-
-  this.destroy = function () {
+  }
+  onClick() {
+  }
+  destroy() {
     $.remove(this._el);
     this._el = null;
-  };
-
-  this.setApp = function (app) {
+  }
+  setApp(app) {
     if (app != this._app || !this._el.parentNode) {
       this._app = app;
       var canvas = app._ctx.canvas;
       logger.log('setting parent', this._el);
       canvas.parentNode.appendChild(this._el);
     }
-  };
-
-  this.change = function () {
-  };
-
-  this.click = function () {
-  };
-
-  this.selectAll = function () {
+  }
+  change() {
+  }
+  click() {
+  }
+  selectAll() {
     this._el.focus();
     this._el.select();
-  };
-
-  this.show = function () {
+  }
+  show() {
     $.show(this._el);
-  };
-  this.hide = function () {
+  }
+  hide() {
     $.hide(this._el);
-  };
-
-  this.setValue = function (value) {
+  }
+  setValue(value) {
     this._el.value = value;
     return this;
-  };
-  this.setOpacity = function (o) {
+  }
+  setOpacity(o) {
     this._el.style.opacity = o;
     return this;
-  };
-  this.setType = function (type) {
+  }
+  setType(type) {
     this._el.type = type;
     return this;
-  };
-  this.setVisible = function (isVisible) {
+  }
+  setVisible(isVisible) {
     return this[isVisible ? 'show' : ' hide']();
-  };
-  this.getX = function () {
+  }
+  getX() {
     return parseInt(this._el.style.left);
-  };
-  this.getY = function () {
+  }
+  getY() {
     return parseInt(this._el.style.top);
-  };
-  this.getWidth = function () {
+  }
+  getWidth() {
     return this._el.offsetWidth;
-  };
-  this.getHeight = function () {
+  }
+  getHeight() {
     return this._el.offsetHeight;
-  };
-  this.getValue = function () {
+  }
+  getValue() {
     return this._el.value;
-  };
-  this.getOpacity = function () {
+  }
+  getOpacity() {
     return this._el.style.opacity;
-  };
-  this.getType = function () {
+  }
+  getType() {
     return this._el.type;
-  };
-  this.getVisible = function () {
+  }
+  getVisible() {
     return this._el.parentNode && this._el.style.display == 'block';
-  };
-
-  this.setPosition = function (p) {
+  }
+  setPosition(p) {
     this._el.style.top = p.y + 'px';
     this._el.style.left = p.x + 'px';
-  };
-  this.getPosition = function () {
+  }
+  getPosition() {
     return {
       x: this.getX(),
       y: this.getY()
     };
-  };
-
-  this.setDimensions = function (d) {
+  }
+  setDimensions(d) {
     this._el.style.width = d.width + 'px';
     this._el.style.height = d.height + 'px';
     return this;
-  };
-  this.getDimensions = function () {
+  }
+  getDimensions() {
     return {
       width: this.getWidth(),
       height: this.getHeight()
     };
-  };
-});
+  }
+};
 
 exports.prototype.onBlur = exports.prototype.onClick;
 exports.prototype.onFocus = exports.prototype.onClick;

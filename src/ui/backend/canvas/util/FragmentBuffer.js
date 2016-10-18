@@ -66,15 +66,14 @@ var debugCheck = function (bin, list) {
 };
 
 
-exports = Class(function () {
-  this.init = function (opts) {
+exports = class {
+  constructor(opts) {
     this.opts = merge(opts, {});
     this._cache = {};
     this._decriptions = [];
     window.addEventListener('pageshow', bind(this, 'clearBuffer'), false);
-  };
-
-  this._build = function () {
+  }
+  _build() {
     var Canvas = device.get('Canvas');
     this._canvas = new Canvas({
       width: 1024,
@@ -99,27 +98,23 @@ exports = Class(function () {
     });
     this._binList.insert(head);
     debug && window.open().document.body.appendChild(this._canvas);
-  };
-
-  this.getCanvas = function () {
+  }
+  getCanvas() {
     if (!this._canvas) {
       this._build();
     }
     return this._canvas;
-  };
-
-  this.getContext = function () {
+  }
+  getContext() {
     if (!this._ctx) {
       this._build();
     }
     return this._ctx;
-  };
-
-  this.onGetHash = function (description) {
+  }
+  onGetHash(description) {
     throw Error('onGetHash should be implemented.');
-  };
-
-  this._insertText = function (description) {
+  }
+  _insertText(description) {
     var width = Math.ceil(description.width) + 1;
     var height = Math.ceil(description.height) + 1;
     var iter = this._binList.iterator();
@@ -144,16 +139,13 @@ exports = Class(function () {
     }
 
 
+
+
     // When we support clearing buffers then this should be enabled again...
     // this.clearBuffer();
     return bin;
-  };
-
-
-  /**
-  * debugging code to verify overlapping bins aren't created.
-  */
-  this.getPositionForText = function (description) {
+  }
+  getPositionForText(description) {
     var hash = this.onGetHash(description);
     var width = Math.ceil(description.width) + 1;
 
@@ -165,14 +157,12 @@ exports = Class(function () {
       debugCheck(description, this._binList);
     }
     return this._cache[hash];
-  };
-
-  this.releaseBin = function (hash) {
+  }
+  releaseBin(hash) {
     if (this._cache[hash]) {
     }
-  };
-
-  this.clearBuffer = function () {
+  }
+  clearBuffer() {
     this._cache = {};
     this._binList = new SortedList(sort);
     this._binList.insert(new FragmentBin({
@@ -185,8 +175,8 @@ exports = Class(function () {
     while (this._decriptions.length) {
       this._decriptions.pop().textView.updateCache();
     }
-  };
-});
+  }
+};
 var FragmentBuffer = exports;
 
 export default exports;

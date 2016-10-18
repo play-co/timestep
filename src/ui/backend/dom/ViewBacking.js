@@ -57,10 +57,14 @@ function CHECK_TRANSLATE3D() {
   }
 
 
+
+
   document.body.removeChild(el);
 
   return has3d !== undefined && has3d.length > 0 && has3d !== 'none';
 }
+
+
 
 
 var SUPPORTS_TRANSLATE3D = false;
@@ -97,8 +101,10 @@ var PAD = '00000000';
 var DURATION = 600;
 
 
-exports = Class(BaseBacking, function () {
-  this.init = function (view, opts) {
+exports = class extends BaseBacking {
+  constructor(view, opts) {
+    super();
+
     this._view = view;
     this._subviews = [];
     this._noCanvas = opts['dom:noCanvas'];
@@ -114,10 +120,14 @@ exports = Class(BaseBacking, function () {
     }
 
 
+
+
     var cssText = 'fontSize:1px;position:absolute;top:0px;left:0px;-webkit-transform-origin:0px 0px;';
     if (!device.isAndroid) {
       cssText += '-webkit-backface-visibility:hidden;';
     }
+
+
 
 
     var s = n.style;
@@ -131,6 +141,8 @@ exports = Class(BaseBacking, function () {
     for (var name in domStyles) {
       s[name] = domStyles[name];
     }
+
+
 
 
     // store for the computed styles
@@ -162,13 +174,11 @@ exports = Class(BaseBacking, function () {
     if (DEBUG) {
       n.setAttribute('TAG:', view.getTag());
     }
-  };
-
-  this.getElement = function () {
+  }
+  getElement() {
     return this._node;
-  };
-
-  this.addSubview = function (view) {
+  }
+  addSubview(view) {
     var backing = view.__view;
     var node = backing._node;
     var superview = node.parentNode && node.parentNode._view;
@@ -190,11 +200,14 @@ exports = Class(BaseBacking, function () {
 
 
 
+
+
+
+
       return true;
     }
-  };
-
-  this.removeSubview = function (targetView) {
+  }
+  removeSubview(targetView) {
     var index = this._subviews.indexOf(targetView.__view);
     if (index != -1) {
       this._subviews.splice(index, 1);
@@ -205,10 +218,13 @@ exports = Class(BaseBacking, function () {
 
 
 
-    return false;
-  };
 
-  this.getSuperview = function () {
+
+
+
+    return false;
+  }
+  getSuperview() {
     var p = this._node.parentNode;
     if (p == document.body || !p) {
       return null;
@@ -217,10 +233,13 @@ exports = Class(BaseBacking, function () {
 
 
 
-    return p._view;
-  };
 
-  this.getSubviews = function () {
+
+
+
+    return p._view;
+  }
+  getSubviews() {
     if (this._needsSort) {
       this._needsSort = false;
       this._subviews.sort();
@@ -231,17 +250,15 @@ exports = Class(BaseBacking, function () {
       subviews[i] = this._subviews[i]._view;
     }
     return subviews;
-  };
-
-  this.wrapTick = function (dt, app) {
+  }
+  wrapTick(dt, app) {
     this._view.tick && this._view.tick(dt, app);
 
     for (var i = 0, view; view = this._subviews[i]; ++i) {
       view.wrapTick(dt, app);
     }
-  };
-
-  this.wrapRender = function (ctx, opts) {
+  }
+  wrapRender(ctx, opts) {
     if (!this.visible) {
       return;
     }
@@ -251,11 +268,15 @@ exports = Class(BaseBacking, function () {
     }
 
 
+
+
     var width = this._computed.width;
     var height = this._computed.height;
     if (width < 0 || height < 0) {
       return;
     }
+
+
 
 
     try {
@@ -265,13 +286,14 @@ exports = Class(BaseBacking, function () {
       }
 
 
+
+
       this._renderSubviews(ctx, opts);
     } catch (e) {
       logger.error(this, e.message, e.stack);
     }
-  };
-
-  this._render = function (render, width, height, opts) {
+  }
+  _render(render, width, height, opts) {
     if (this._noCanvas) {
       render.call(this._view, null, opts);
     } else {
@@ -283,6 +305,8 @@ exports = Class(BaseBacking, function () {
       }
 
 
+
+
       var needsRepaint = this._view._needsRepaint;
 
       // clear the canvas
@@ -291,6 +315,8 @@ exports = Class(BaseBacking, function () {
         this._canvas.width = width;
         this._canvas.height = height;
       }
+
+
 
 
       if (needsRepaint) {
@@ -305,18 +331,16 @@ exports = Class(BaseBacking, function () {
         this._canvas.style.display = 'block';
       }
     }
-  };
-
-  this._renderSubviews = function (ctx, opts) {
+  }
+  _renderSubviews(ctx, opts) {
     var i = 0;
     var view;
     var subviews = this._subviews;
     while (view = subviews[i++]) {
       view.wrapRender(ctx, opts);
     }
-  };
-
-  this.localizePoint = function (pt) {
+  }
+  localizePoint(pt) {
     var s = this._computed;
     pt.x -= s.x + s.anchorX + s.offsetX;
     pt.y -= s.y + s.anchorY + s.offsetY;
@@ -327,18 +351,14 @@ exports = Class(BaseBacking, function () {
     pt.x += s.anchorX;
     pt.y += s.anchorY;
     return pt;
-  };
-
-  // exports the current style object
-  this.copy = function () {
+  }
+  copy() {
     return merge({}, this._computed);
-  };
-
-  this.update = function (style) {
+  }
+  update(style) {
     this._setProps(style);
-  };
-
-  this.position = function (x, y) {
+  }
+  position(x, y) {
     var s = this._node.style;
 
     if (SUPPORTS_TRANSLATE3D) {
@@ -352,20 +372,17 @@ exports = Class(BaseBacking, function () {
       }
 
 
+
+
     } else {
       s.left = x + 'px';
       s.top = y + 'px';
     }
-  };
-
-
-  //****************************************************************
-  // ANIMATION
-  this._updateOrigin = function () {
+  }
+  _updateOrigin() {
     this._node.style.webkitTransformOrigin = (this._computed.anchorX || 0) + 'px ' + (this._computed.anchorY || 0) + 'px';
-  };
-
-  this._setProps = function (props, anim) {
+  }
+  _setProps(props, anim) {
     var setMatrix = false;
     var s = this._node.style;
     var animCount = 0;
@@ -433,6 +450,18 @@ exports = Class(BaseBacking, function () {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
         }
         break;
       }
@@ -472,6 +501,12 @@ exports = Class(BaseBacking, function () {
 
 
 
+
+
+
+
+
+
         // use CSS animations for left and top though, since
         // those can still be taken out of javascript.
         this.position(x, y);
@@ -488,6 +523,8 @@ exports = Class(BaseBacking, function () {
         }
 
 
+
+
         // on iOS, forcing a 3D matrix provides huge performance gains.
         // Rotate it about the y axis 360 degrees to achieve this.
         matrix = matrix.rotate(0, 360, 0);
@@ -496,19 +533,18 @@ exports = Class(BaseBacking, function () {
     }
 
 
+
+
     if (resized) {
       this._view.needsReflow();
     }
 
 
+
+
     return animCount;
-  };
-
-
-  // ----- zIndex -----
-  this._sortIndex = '00000000';
-
-  this._onZIndex = function (zIndex) {
+  }
+  _onZIndex(zIndex) {
     zIndex = ~~zIndex;
 
     if (zIndex < MIN_Z) {
@@ -527,30 +563,30 @@ exports = Class(BaseBacking, function () {
 
 
 
-    this._setSortKey();
-  };
 
-  this._setAddedAt = function (addedAt) {
+
+
+
+    this._setSortKey();
+  }
+  _setAddedAt(addedAt) {
     this._addedAt = addedAt;
     this._setSortKey();
-  };
-
-  this._setSortKey = function () {
+  }
+  _setSortKey() {
     this.__sortKey = this._sortIndex + this._addedAt;
-  };
-  this.toString = function () {
+  }
+  toString() {
     return this.__sortKey;
   }
 
-;
-
-
-  // ----- ANIMATION -----
-  this._transitionEnd = function (evt) {
+  _transitionEnd(evt) {
     $.stopEvent(evt);
     if (this.transitionCallback.fired()) {
       return;
     }
+
+
 
 
     this.transitionCallback.fire();
@@ -564,6 +600,12 @@ exports = Class(BaseBacking, function () {
 
 
 
+
+
+
+
+
+
     this._node.style.webkitTransition = 'none';
 
     this._animating = false;
@@ -574,11 +616,11 @@ exports = Class(BaseBacking, function () {
     }
 
 
+
+
     this._processAnimation();
-  };
-
-
-  this._processAnimation = function (doNow) {
+  }
+  _processAnimation(doNow) {
     if (this._animationQueue.length == 0 || this._isPaused) {
       return;
     }
@@ -600,6 +642,8 @@ exports = Class(BaseBacking, function () {
     }
 
 
+
+
     var anim = this._animationQueue.shift();
     switch (anim.type) {
     case 'animate':
@@ -612,6 +656,8 @@ exports = Class(BaseBacking, function () {
       s.webkitTransitionDuration = (anim.duration | 0) + 'ms';
       s.webkitTransitionTimingFunction = getEasing(anim.easing);
       this._setProps(anim.props, anim);
+
+
 
 
     // fall through
@@ -636,23 +682,20 @@ exports = Class(BaseBacking, function () {
       break;
     }
 
-  };
-
-  this.getQueue = function () {
+  }
+  getQueue() {
     return [];
-  };
-  this.getAnimation = function () {
+  }
+  getAnimation() {
     return this;
-  };
-
-  this.animate = function () {
+  }
+  animate() {
     if (!arguments[0]) {
       return this;
     }
     return this.next.apply(this, arguments);
-  };
-
-  this.clear = function () {
+  }
+  clear() {
     this.transitionCallback && this.transitionCallback.fire();
     if (this._transitionEndTimeout) {
       clearTimeout(this._transitionEndTimeout);
@@ -661,9 +704,8 @@ exports = Class(BaseBacking, function () {
     this._animationCallback = null;
     this._animating = false;
     return this;
-  };
-
-  this.commit = function () {
+  }
+  commit() {
     this._node.style.webkitTransition = 'none';
     var queue = this._animationQueue;
     this._animationQueue = [];
@@ -682,28 +724,23 @@ exports = Class(BaseBacking, function () {
       }
     }
     return this;
-  };
-
-  this.pause = function () {
+  }
+  pause() {
     this._isPaused = true;
-  };
-
-  this.resume = function () {
+  }
+  resume() {
     this._isPaused = false;
     this._processAnimation();
-  };
-
-  this.animate = function (props, duration, easing, callback) {
+  }
+  animate(props, duration, easing, callback) {
     //this.clear();
     return this.then(props, duration, easing, callback);
-  };
-
-  this.now = function (props, duration, easing, callback) {
+  }
+  now(props, duration, easing, callback) {
     this.clear();
     return this.then(props, duration, easing, callback);
-  };
-
-  this.then = function (props, duration, easing, callback) {
+  }
+  then(props, duration, easing, callback) {
     if (arguments.length == 1 && typeof props === 'function') {
       return this.callback(props);
     }
@@ -718,9 +755,8 @@ exports = Class(BaseBacking, function () {
       this._processAnimation();
     }
     return this;
-  };
-
-  this.callback = function (fn) {
+  }
+  callback(fn) {
     this._animationQueue.push({
       type: 'callback',
       duration: 0,
@@ -730,9 +766,8 @@ exports = Class(BaseBacking, function () {
       this._processAnimation();
     }
     return this;
-  };
-
-  this.wait = function (duration, callback) {
+  }
+  wait(duration, callback) {
     this._animationQueue.push({
       type: 'wait',
       duration: duration,
@@ -742,9 +777,8 @@ exports = Class(BaseBacking, function () {
       this._processAnimation();
     }
     return this;
-  };
-
-  this.fadeIn = function (duration, callback) {
+  }
+  fadeIn(duration, callback) {
     this.show();
 
     if (this._node.style.opacity == 1) {
@@ -755,11 +789,12 @@ exports = Class(BaseBacking, function () {
     }
 
 
+
+
     this.then({ opacity: 1 }, duration, null, callback);
     return this;
-  };
-
-  this.fadeOut = function (duration, callback) {
+  }
+  fadeOut(duration, callback) {
     if (this._node.style.opacity == 0) {
       this.hide();
       if (callback) {
@@ -767,6 +802,8 @@ exports = Class(BaseBacking, function () {
       }
       return;
     }
+
+
 
 
     this.then({ opacity: 0 }, duration, null, bind(this, function () {
@@ -777,9 +814,9 @@ exports = Class(BaseBacking, function () {
     }));
 
     return this;
-  };
-
-});
+  }
+};
+exports.prototype._sortIndex = '00000000';
 var ViewBacking = exports;
 
 
@@ -827,5 +864,6 @@ arr.forEach(function (prop) {
 
 
 export default exports;
+
 
 

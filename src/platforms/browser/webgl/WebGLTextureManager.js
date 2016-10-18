@@ -22,35 +22,32 @@ var log = Math.log;
 var LOG_2 = log(2);
 
 
-var WebGLTextureManager = Class(PubSub, function () {
-  this.init = function () {
+class WebGLTextureManager extends PubSub {
+  constructor() {
+    super();
+
     this.textureDataCache = new LRUCache(CACHE_SIZE);
     this.textureByteCount = 0;
     this.memoryLimit = MAX_TEXTURE_BYTES;
-  };
-
-  this.initGL = function (ctx) {
+  }
+  initGL(ctx) {
     this.gl = ctx;
     this.reloadTextures();
-  };
-
-  this.getTexture = function (id) {
+  }
+  getTexture(id) {
     var textureData = this.textureDataCache.get(id);
     return textureData ? textureData.texture : null;
-  };
-
-  this.getTextureData = function (id) {
+  }
+  getTextureData(id) {
     var textureData = this.textureDataCache.get(id);
     return textureData || null;
-  };
-
-  this.deleteTextureForImage = function (image) {
+  }
+  deleteTextureForImage(image) {
     if (image.__GL_ID !== undefined) {
       this.deleteTexture(image.__GL_ID);
     }
-  };
-
-  this.deleteTexture = function (id) {
+  }
+  deleteTexture(id) {
     this.emit(WebGLTextureManager.TEXTURE_REMOVED);
     var textureData = this.textureDataCache.remove(id);
     if (textureData) {
@@ -58,13 +55,14 @@ var WebGLTextureManager = Class(PubSub, function () {
       this.removeFromByteCount(textureData.width, textureData.height);
       textureData.image.__GL_ID = undefined;
     }
-  };
-
-  this.createOrUpdateTexture = function (image, id) {
+  }
+  createOrUpdateTexture(image, id) {
     var gl = this.gl;
     if (!gl) {
       return -1;
     }
+
+
 
 
     var width = image.width;
@@ -77,14 +75,20 @@ var WebGLTextureManager = Class(PubSub, function () {
     }
 
 
+
+
     if (width === 0 || height === 0) {
       throw new Error('Image cannot have a width or height of 0.');
     }
 
 
+
+
     if (id === undefined) {
       id = image.__GL_ID !== undefined ? image.__GL_ID : CACHE_UID++;
     }
+
+
 
 
     image.__GL_ID = id;
@@ -115,12 +119,16 @@ var WebGLTextureManager = Class(PubSub, function () {
     }
 
 
+
+
     if (textureData.width !== width || textureData.height !== height) {
       this.removeFromByteCount(textureData.width, textureData.height);
       textureData.width = width;
       textureData.height = height;
       needsAddByteCount = true;
     }
+
+
 
 
     if (textureData.image !== image) {
@@ -131,6 +139,8 @@ var WebGLTextureManager = Class(PubSub, function () {
     }
 
 
+
+
     if (textureData.isImg || textureData.isCanvas) {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
     } else {
@@ -138,15 +148,18 @@ var WebGLTextureManager = Class(PubSub, function () {
     }
 
 
+
+
     if (needsAddByteCount) {
       this.addToByteCount(width, height);
     }
 
 
-    return id;
-  };
 
-  this.reloadTextures = function () {
+
+    return id;
+  }
+  reloadTextures() {
     var imagesToLoad = [];
     this.textureDataCache.forEach(function (key, value) {
       if (value.isImg || value.isCanvas) {
@@ -158,9 +171,8 @@ var WebGLTextureManager = Class(PubSub, function () {
     for (var i = 0, len = imagesToLoad.length; i < len; i++) {
       this.createOrUpdateTexture(imagesToLoad[i]);
     }
-  };
-
-  this.addToByteCount = function (width, height) {
+  }
+  addToByteCount(width, height) {
     width = this.nextPowerOfTwo(width);
     height = this.nextPowerOfTwo(height);
     this.textureByteCount += width * height * BYTES_PER_PIXEL;
@@ -175,19 +187,16 @@ var WebGLTextureManager = Class(PubSub, function () {
         this.deleteTexture(oldestTextureEntry.key);
       }
     }
-  };
-
-  this.removeFromByteCount = function (width, height) {
+  }
+  removeFromByteCount(width, height) {
     width = this.nextPowerOfTwo(width);
     height = this.nextPowerOfTwo(height);
     this.textureByteCount -= width * height * BYTES_PER_PIXEL;
-  };
-
-  this.nextPowerOfTwo = function (value) {
+  }
+  nextPowerOfTwo(value) {
     return pow(2, ceil(log(value) / LOG_2));
-  };
-
-});
+  }
+}
 
 WebGLTextureManager.TEXTURE_REMOVED = 'TextureRemoved';
 

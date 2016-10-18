@@ -3,43 +3,38 @@ let exports = {};
 var sin = Math.sin;
 var cos = Math.cos;
 
-var Matrix2D = Class(function () {
-  this.init = function () {
+class Matrix2D {
+  constructor() {
     this.identity();
-  };
-
-  this.identity = function () {
+  }
+  identity() {
     this.a = 1;
     this.b = 0;
     this.c = 0;
     this.d = 1;
     this.tx = 0;
     this.ty = 0;
-  };
-
-  this.clone = function () {
+  }
+  clone() {
     var result = new Matrix2D();
     result.copy(this);
     return result;
-  };
-
-  this.copy = function (matrix) {
+  }
+  copy(matrix) {
     this.a = matrix.a;
     this.b = matrix.b;
     this.c = matrix.c;
     this.d = matrix.d;
     this.tx = matrix.tx;
     this.ty = matrix.ty;
-  };
-
-  this.scale = function (x, y) {
+  }
+  scale(x, y) {
     this.a *= x;
     this.b *= x;
     this.c *= y;
     this.d *= y;
-  };
-
-  this.rotate = function (angle) {
+  }
+  rotate(angle) {
     var a = this.a;
     var b = this.b;
     var c = this.c;
@@ -50,14 +45,12 @@ var Matrix2D = Class(function () {
     this.b = b * cosA + d * sinA;
     this.c = a * -sinA + c * cosA;
     this.d = b * -sinA + d * cosA;
-  };
-
-  this.translate = function (x, y) {
+  }
+  translate(x, y) {
     this.tx += this.a * x + this.c * y;
     this.ty += this.b * x + this.d * y;
-  };
-
-  this.transform = function (matrix) {
+  }
+  transform(matrix) {
     helperMatrix.copy(this);
 
     if (matrix.a !== 1 || matrix.b !== 0 || matrix.c !== 0 || matrix.d !== 1) {
@@ -68,26 +61,28 @@ var Matrix2D = Class(function () {
     }
 
 
+
+
     this.tx = helperMatrix.a * matrix.tx + helperMatrix.c * matrix.ty + helperMatrix.tx;
     this.ty = helperMatrix.b * matrix.tx + helperMatrix.d * matrix.ty + helperMatrix.ty;
 
     return this;
-  };
-
-  this.setTo = function (a, b, c, d, tx, ty) {
+  }
+  setTo(a, b, c, d, tx, ty) {
     this.a = a;
     this.b = b;
     this.c = c;
     this.d = d;
     this.tx = tx;
     this.ty = ty;
-  };
-
-  this.invert = function () {
+  }
+  invert() {
     var dtr = this.a * this.d - this.b * this.c;
     if (dtr === 0) {
       return;
     }
+
+
 
 
     dtr = 1 / dtr;
@@ -101,13 +96,11 @@ var Matrix2D = Class(function () {
     this.ty = (helperMatrix.b * helperMatrix.tx - helperMatrix.a * helperMatrix.ty) * dtr;
 
     return this;
-  };
-
-  this.isEqualTo = function (matrix) {
+  }
+  isEqualTo(matrix) {
     return this.a === matrix.a && this.b === matrix.b && this.c === matrix.c && this.d === matrix.d && this.tx === matrix.tx && this.ty === matrix.ty;
-  };
-
-  this.concat = function (matrix) {
+  }
+  concat(matrix) {
     helperMatrix.copy(this);
 
     if (matrix.a !== 1 || matrix.b !== 0 || matrix.c !== 0 || matrix.d !== 1) {
@@ -118,13 +111,14 @@ var Matrix2D = Class(function () {
     }
 
 
+
+
     this.tx = matrix.a * helperMatrix.tx + matrix.c * helperMatrix.ty + matrix.tx;
     this.ty = matrix.b * helperMatrix.tx + matrix.d * helperMatrix.ty + matrix.ty;
 
     return this;
-  };
-
-});
+  }
+}
 
 var helperMatrix = new Matrix2D();
 

@@ -25,43 +25,37 @@ import Point from 'math/geom/Point';
 import dispatch from 'event/input/dispatch';
 import InputEvent from 'event/input/InputEvent';
 
-exports = Class(function () {
-  // ---- start mouseover
-  this.startCount = 0;
-  this.dragCount = 0;
-  this.overCount = 0;
-  this.canHandleEvents = true;
-  this.blockEvents = false;
-
-  this.init = function (view, opts) {
+exports = class {
+  constructor(view, opts) {
     this.view = view;
     this.view.subscribe('InputStart', this, 'onInputStart');
     this.update(opts);
-  };
-
-  this.update = function (opts) {
+  }
+  update(opts) {
     if ('canHandleEvents' in opts) {
       this.canHandleEvents = opts.canHandleEvents;
     }
 
 
+
+
     if ('blockEvents' in opts) {
       this.blockEvents = opts.blockEvents;
     }
-  };
-
-  this.containsEvent = function (evt, localPt) {
+  }
+  containsEvent(evt, localPt) {
     // block events must be false
     return !this.blockEvents && (!this.view._superview || // top-view captures all events
     this.view.containsLocalPoint(localPt));
-  };
-
-  this.onEnter = function (id, atTarget) {
+  }
+  onEnter(id, atTarget) {
     var view = this.view;
     var over = this._over || (this._over = {});
     if (id in over) {
       return;
     }
+
+
 
 
     over[id] = true;
@@ -71,14 +65,15 @@ exports = Class(function () {
       view.onInputOver(over, this.overCount, atTarget);
     }
     view.publish('InputOver', over, this.overCount, atTarget);
-  };
-
-  this.onLeave = function (id, atTarget) {
+  }
+  onLeave(id, atTarget) {
     var view = this.view;
     var over = this._over || (this._over = {});
     if (!(id in over)) {
       return;
     }
+
+
 
 
     delete over[id];
@@ -88,23 +83,15 @@ exports = Class(function () {
       view.onInputOut(over, this.overCount, atTarget);
     }
     view.publish('InputOut', over, this.overCount, atTarget);
-  };
-
-  this.resetOver = function () {
+  }
+  resetOver() {
     delete this._over;
     this.overCount = 0;
   }
 
 
 
-;
-
-
-
-
-  // ---- end mouseover
-  // ---- start drag
-  this.startDrag = function (opts) {
+  startDrag(opts) {
     opts = opts || {};
     var view = this.view;
     var inputStartEvt = opts.inputStartEvt || opts.inputStartEvent || dispatch._evtHistory[dispatch.eventTypes.START];
@@ -128,19 +115,19 @@ exports = Class(function () {
 
     root.subscribe('InputMoveCapture', this, 'onDragStart', dragEvt);
     root.subscribe('InputSelectCapture', this, 'onDragStop', dragEvt);
-  };
-
-  this.isDragging = function () {
+  }
+  isDragging() {
     return this.dragCount && dispatch._isDragging;
-  };
-
-  this.onDragStart = function (dragEvt, moveEvt) {
+  }
+  onDragStart(dragEvt, moveEvt) {
     // have we exceeded the move radius?
     var dx = moveEvt.srcPt.x - dragEvt.srcPt.x;
     var dy = moveEvt.srcPt.y - dragEvt.srcPt.y;
     if (dx * dx + dy * dy <= dragEvt.radius) {
       return;
     }
+
+
 
 
     if (dragEvt.didDrag) {
@@ -157,6 +144,8 @@ exports = Class(function () {
     }
 
 
+
+
     // want to fire onDragStart with the current point equal to the initial point
     // even though the user has moved away by now
     dragEvt.currPt = dragEvt.srcPt;
@@ -171,12 +160,13 @@ exports = Class(function () {
     // we should also call _onDrag now to handle the current move event delta
     dragEvt.root.subscribe('InputMoveCapture', this, 'onDrag', dragEvt);
     this.onDrag(dragEvt, moveEvt);
-  };
-
-  this.onDrag = function (dragEvt, moveEvt) {
+  }
+  onDrag(dragEvt, moveEvt) {
     if (dragEvt.id != moveEvt.id || moveEvt.srcPt.x == dragEvt.currPt.x && moveEvt.srcPt.y == dragEvt.currPt.y) {
       return;
     }
+
+
 
 
     var view = this.view;
@@ -196,15 +186,15 @@ exports = Class(function () {
     }
     view.publish('Drag', dragEvt, moveEvt, delta);
 
-  };
-
-  //moveEvt.cancel();
-  this.onDragStop = function (dragEvt, selectEvt) {
+  }
+  onDragStop(dragEvt, selectEvt) {
     var id = dragEvt.id;
     var dragging = this._isDragging || (this._isDragging = {});
     if (!dragging[id] || dragEvt.id != selectEvt.id) {
       return;
     }
+
+
 
 
     delete dragging[id];
@@ -216,6 +206,8 @@ exports = Class(function () {
       dragEvt.root.unsubscribe('InputSelectCapture', this, 'onDragStop');
       dispatch._isDragging = false;
     }
+
+
 
 
     if (dragEvt.didDrag) {
@@ -231,35 +223,33 @@ exports = Class(function () {
     }
   }
 
-;
-
-
-  // ---- end drag
-  this.onInputStart = function (evt) {
+  onInputStart(evt) {
     if (this.view.listeners('InputActivate').length === 0) {
       return;
     }
     this._isDown = true;
     this.view.subscribe('InputSelect', this, 'onInputSelect');
     evt.root.subscribeOnce('InputSelect', this, 'onGlobalInputSelect');
-  };
-
-  this.onInputSelect = function (evt, localPt) {
+  }
+  onInputSelect(evt, localPt) {
     if (this._isDown) {
       this.view.publish('InputActivate', evt, localPt);
     }
     this._isDown = false;
     this.view.unsubscribe('InputSelect', this, 'onInputSelect');
-  };
-
-  this.onGlobalInputSelect = function (evt) {
+  }
+  onGlobalInputSelect(evt) {
     if (this._isDown) {
       this.view.unsubscribe('InputSelect', this, 'onInputSelect');
     }
     this._isDown = false;
-  };
-
-});
+  }
+};
+exports.prototype.startCount = 0;
+exports.prototype.dragCount = 0;
+exports.prototype.overCount = 0;
+exports.prototype.canHandleEvents = true;
+exports.prototype.blockEvents = false;
 var InputHandler = exports;
 
 export default exports;

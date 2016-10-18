@@ -64,6 +64,8 @@ exports.dispatchEvent = function (root, evt) {
   }
 
 
+
+
   var cbName = 'on' + signal;
   for (var i = 0; i < depth; ++i) {
     var view = evt.trace[i];
@@ -93,6 +95,8 @@ exports.traceEvt = function (view, evt, pt) {
   }
 
 
+
+
   var canHandleEvents = view.getInput().canHandleEvents;
   if (canHandleEvents) {
     evt.depth++;
@@ -101,12 +105,16 @@ exports.traceEvt = function (view, evt, pt) {
   }
 
 
+
+
   var subviews = view.getSubviews();
   for (var i = subviews.length - 1; i >= 0; --i) {
     if (subviews[i].style.visible && exports.traceEvt(subviews[i], evt, localPt)) {
       return true;
     }
   }
+
+
 
 
   if (canHandleEvents) {

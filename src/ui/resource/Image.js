@@ -65,6 +65,8 @@ function imageOnLoad(success, evt, failCount) {
 }
 
 
+
+
 // Listen for preloaded images and add them to cache
 resourceLoader.on(resourceLoader.IMAGE_LOADED, function (image, src) {
   ImageCache[src.resource] = image;
@@ -78,8 +80,8 @@ resourceLoader.on(resourceLoader.IMAGE_LOADED, function (image, src) {
  */
 var ImageMap = !CONFIG.disableNativeViews && NATIVE.timestep && NATIVE.timestep.ImageMap;
 if (!ImageMap) {
-  ImageMap = Class(function () {
-    this.init = function (parentImage, x, y, width, height, marginTop, marginRight, marginBottom, marginLeft, url) {
+  ImageMap = class {
+    constructor(parentImage, x, y, width, height, marginTop, marginRight, marginBottom, marginLeft, url) {
       this.url = url;
       this.x = x;
       this.y = y;
@@ -89,9 +91,13 @@ if (!ImageMap) {
       this.marginRight = marginRight;
       this.marginBottom = marginBottom;
       this.marginLeft = marginLeft;
-    };
-  });
+    }
+  };
 }
+
+
+
+
 
 
 
@@ -104,11 +110,15 @@ var _imgDataCanvas = null;
 var _imgDataCtx = null;
 
 
-exports = Class(PubSub, function () {
-  this.init = function (opts) {
+exports = class extends PubSub {
+  constructor(opts) {
+    super();
+
     if (!opts) {
       opts = {};
     }
+
+
 
 
     this._cb = new Callback();
@@ -122,9 +132,8 @@ exports = Class(PubSub, function () {
     // srcImage can be null, then setSrcImg will create one
     // (use the map's URL in case it was updated to a spritesheet)
     this._setSrcImg(opts.srcImage, this._map.url, opts.forceReload);
-  };
-
-  this._setSrcImg = function (img, url, forceReload) {
+  }
+  _setSrcImg(img, url, forceReload) {
     this._cb.reset();
     this._isError = false;
 
@@ -132,6 +141,8 @@ exports = Class(PubSub, function () {
     if (!img && url && !forceReload && ImageCache[url]) {
       img = ImageCache[url];
     }
+
+
 
 
     // look up the base64 cache -- if it's been preloaded, we'll get back an image that's already loaded
@@ -146,11 +157,15 @@ exports = Class(PubSub, function () {
     }
 
 
+
+
     if (forceReload) {
       // clear native texture in an image object
       if (img && img.destroy) {
         img.destroy();
       }
+
+
 
 
       // clear native textures by URL
@@ -160,11 +175,15 @@ exports = Class(PubSub, function () {
     }
 
 
+
+
     // create an image if we don't have one
     if (!img) {
       img = new Image();
       img.crossOrigin = 'use-credentials';
     }
+
+
 
 
     this._srcImg = img;
@@ -189,33 +208,36 @@ exports = Class(PubSub, function () {
           }
 
 
+
+
           if (!img.src && url) {
             img.src = this._map.url = url;
           }
         }
 
 
+
+
         img.__cb.run(this, function (err) {
           this._onLoad(err, img);
         });
       }
-  };
-
-  this.getSrcImg = function () {
+  }
+  getSrcImg() {
     return this._srcImg;
-  };
-
-  this.setSrcImg = function (srcImg) {
+  }
+  setSrcImg(srcImg) {
     this._setSrcImg(srcImg);
-  };
-
-  this.reload = function (cb) {
+  }
+  reload(cb) {
     var srcImg = this._srcImg;
     if (srcImg) {
       // if passed a lib.Callback, chain it
       if (cb && cb.chain) {
         cb = cb.chain();
       }
+
+
 
 
       var hasFired = this._cb.fired();
@@ -244,92 +266,71 @@ exports = Class(PubSub, function () {
         }
       }
     }
-  };
-
-  this.getURL = function () {
+  }
+  getURL() {
     return this._map.url;
-  };
-
-  this.getOriginalURL = function () {
+  }
+  getOriginalURL() {
     return this._originalURL;
-  };
-
-  this.getSourceX = function () {
+  }
+  getSourceX() {
     return this._map.x;
-  };
-
-  this.getSourceY = function () {
+  }
+  getSourceY() {
     return this._map.y;
-  };
-
-  this.getSourceW = function () {
+  }
+  getSourceW() {
     return this._map.width;
-  };
-
-  this.getSourceH = function () {
+  }
+  getSourceH() {
     return this._map.height;
-  };
-
-  this.getOrigW = function () {
+  }
+  getOrigW() {
     return this._srcImg.width;
-  };
-
-  this.getOrigH = function () {
+  }
+  getOrigH() {
     return this._srcImg.height;
-  };
-
-  this.setSourceX = function (x) {
+  }
+  setSourceX(x) {
     this._map.x = x;
-  };
-
-  this.setSourceY = function (y) {
+  }
+  setSourceY(y) {
     this._map.y = y;
-  };
-
-  this.setSourceW = function (w) {
+  }
+  setSourceW(w) {
     this._map.width = w;
-  };
-
-  this.setSourceH = function (h) {
+  }
+  setSourceH(h) {
     this._map.height = h;
-  };
-
-  this.setMarginTop = function (n) {
+  }
+  setMarginTop(n) {
     this._map.marginTop = n;
-  };
-
-  this.setMarginRight = function (n) {
+  }
+  setMarginRight(n) {
     this._map.marginRight = n;
-  };
-
-  this.setMarginBottom = function (n) {
+  }
+  setMarginBottom(n) {
     this._map.marginBottom = n;
-  };
-
-  this.setMarginLeft = function (n) {
+  }
+  setMarginLeft(n) {
     this._map.marginLeft = n;
-  };
-
-  this.setURL = function (url, forceReload) {
+  }
+  setURL(url, forceReload) {
     resourceLoader._updateImageMap(this._map, url);
     this._setSrcImg(null, this._map.url, forceReload);
-  };
-
-  this.getWidth = function () {
+  }
+  getWidth() {
     var map = this._map;
     return (map.width == -1 ? 0 : map.width + map.marginLeft + map.marginRight) / map.scale;
-  };
-
-  this.getHeight = function () {
+  }
+  getHeight() {
     var map = this._map;
     return (map.height === -1 ? 0 : map.height + map.marginTop + map.marginBottom) / map.scale;
-  };
-
-  this.getBounds = function () {
+  }
+  getBounds() {
     return this._map;
-  };
-
-  this.setBounds = function (x, y, w, h, marginTop, marginRight, marginBottom, marginLeft) {
+  }
+  setBounds(x, y, w, h, marginTop, marginRight, marginBottom, marginLeft) {
     var map = this._map;
     map.x = x;
     map.y = y;
@@ -340,17 +341,12 @@ exports = Class(PubSub, function () {
     map.marginBottom = marginBottom || 0;
     map.marginLeft = marginLeft || 0;
     this.emit('changeBounds');
-  };
-
-  // register a callback for onload
-  this.doOnLoad = function () {
+  }
+  doOnLoad() {
     this._cb.forward(arguments);
     return this;
-  };
-
-  // internal onload handler for actual Image object
-  // img is the internal image that triggered the _onLoad callback
-  this._onLoad = function (err, img) {
+  }
+  _onLoad(err, img) {
     var map = this._map;
     var srcImg = this._srcImg;
     // if our source image has changed we should ignore this onload callback
@@ -358,6 +354,8 @@ exports = Class(PubSub, function () {
     if (img && img !== srcImg) {
       return;
     }
+
+
 
 
     if (err) {
@@ -369,11 +367,15 @@ exports = Class(PubSub, function () {
     }
 
 
+
+
     this._isError = false;
 
     if (srcImg.width === 0) {
       logger.warn('Image has no width', this._url);
     }
+
+
 
 
     if (this._scale !== 1 && (map.width !== -1 || map.height !== -1)) {
@@ -384,10 +386,14 @@ exports = Class(PubSub, function () {
       }
 
 
+
+
       if (map.height === -1) {
         // this._sourceW was initialized above
         map.height = srcImg.height * map.width / srcImg.width;
       }
+
+
 
 
       // TODO: sourceImage might be shared so we can't actually modify width/height. This is a bug.
@@ -403,24 +409,23 @@ exports = Class(PubSub, function () {
     }
 
 
+
+
     map.url = srcImg.src;
     this._cb.fire(null, this);
-  };
-
-  this.isError = function () {
+  }
+  isError() {
     return this._isError;
-  };
-
-  this.isReady = function () {
+  }
+  isReady() {
     return !this._isError && this._cb.fired();
-  };
-
-
-
-  this.render = function (ctx) {
+  }
+  render(ctx) {
     if (!this._cb.fired() || this._isError) {
       return;
     }
+
+
 
 
     var argumentCount = arguments.length;
@@ -450,6 +455,8 @@ exports = Class(PubSub, function () {
     }
 
 
+
+
     if (!isNative && ctx.filter) {
       var filterImg = filterRenderer.renderFilter(ctx, this, srcX, srcY, srcW, srcH);
       if (filterImg) {
@@ -460,15 +467,18 @@ exports = Class(PubSub, function () {
     }
 
 
-    ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
-  };
 
-  this.getImageData = function (x, y, width, height) {
+
+    ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
+  }
+  getImageData(x, y, width, height) {
     // initialize a shared imgDataCanvas when/if needed
     if (_imgDataCanvas === null) {
       _imgDataCanvas = new Canvas();
       _imgDataCtx = _imgDataCanvas.getContext('2d');
     }
+
+
 
 
     var map = this._map;
@@ -478,6 +488,8 @@ exports = Class(PubSub, function () {
     if (!map.width || !map.height) {
       throw 'Not loaded';
     }
+
+
 
 
     x = x || 0;
@@ -490,16 +502,13 @@ exports = Class(PubSub, function () {
     _imgDataCtx.clear();
     this.render(_imgDataCtx, x, y, width, height, 0, 0, width, height);
     return _imgDataCtx.getImageData(0, 0, width, height);
-  };
-
-  this.setImageData = function (data) {
-  };
-
-  this.destroy = function () {
+  }
+  setImageData(data) {
+  }
+  destroy() {
     this._srcImg.destroy && this._srcImg.destroy();
-  };
-
-});
+  }
+};
 
 exports.__clearCache__ = function () {
   ImageCache = {};

@@ -22,11 +22,15 @@ function getter(name) {
 }
 
 
+
+
 function setter(name) {
   return function (val) {
     this._ctxShim[name] = val;
   };
 }
+
+
 
 
 function wrap(name) {
@@ -35,12 +39,13 @@ function wrap(name) {
 }
 
 
-exports = Class(function () {
-  this.init = function () {
-    this._ctxShim = {};
-  };
 
-  this.getViewport = function (targetView) {
+
+exports = class {
+  constructor() {
+    this._ctxShim = {};
+  }
+  getViewport(targetView) {
     if (this._viewport) {
       var viewport = new math2D.Rect(this._viewport), src = this._viewport.src, v = targetView, trace = [targetView];
 
@@ -53,6 +58,8 @@ exports = Class(function () {
       }
 
 
+
+
       // TODO: finish this - translate viewport to local coordinates?
       // should use a modified View::getAbsolutePos(relativeTo)
       while (v = trace.pop()) {
@@ -61,22 +68,22 @@ exports = Class(function () {
 
 
 
+
+
+
+
       return viewport;
     }
-  };
-
-  this.swap = function () {
-  };
-
-  this.reset = function () {
+  }
+  swap() {
+  }
+  reset() {
     this._buffer = [];
-  };
-
-  this.hide = function () {
+  }
+  hide() {
     throw 'abstract';
-  };
-
-  this.fillCircle = function (x, y, radius, fillStyle) {
+  }
+  fillCircle(x, y, radius, fillStyle) {
     this._buffer.push(['beginPath']);
     this._buffer.push([
       'arc',
@@ -90,8 +97,8 @@ exports = Class(function () {
       ]
     ]);
     this._buffer.push(['fill']);
-  };
-});
+  }
+};
 
 
 exports.prototype.drawImage = wrap('drawImage');

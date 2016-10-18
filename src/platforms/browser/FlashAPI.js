@@ -38,14 +38,14 @@ soundManager.useFastPolling = true;
 /**
  * @extends lib.PubSub
  */
-exports = Class(PubSub, function (supr) {
-  this.init = function (opts) {
+exports = class extends PubSub {
+  constructor(opts) {
     opts = merge(opts, {
       map: {},
       background: []
     });
 
-    supr(this, 'init', [opts]);
+    super(opts);
     var path = opts.path;
     this._map = {};
 
@@ -69,27 +69,27 @@ exports = Class(PubSub, function (supr) {
 
 
 
+
+
+
+
       this.publish('Ready');
     }));
-  };
-
-  this.canPlay = function (name) {
+  }
+  canPlay(name) {
     return name in this._map;
-  };
-
-  this.setVolume = function (volume) {
+  }
+  setVolume(volume) {
     this._soundPlaying && soundManager.setVolume(this._soundPlaying, volume);
     this._backgroundSoundPlaying && soundManager.setVolume(this._backgroundSoundPlaying, volume);
-  };
-
-  this.setMuted = function (muted) {
+  }
+  setMuted(muted) {
     this.muted = muted;
     if (muted) {
       this.setVolume(0);
     }
-  };
-
-  this.play = function (name, volume, channel) {
+  }
+  play(name, volume, channel) {
     if (!this.canPlay(name)) {
       return;
     }
@@ -102,14 +102,12 @@ exports = Class(PubSub, function (supr) {
     this._soundPlaying = name;
     this._map[name].setVolume(volume * 100 | 0);
     this._map[name].play();
-  };
-
-  this.pause = function () {
+  }
+  pause() {
     this._map[this._soundPlaying].pause();
     this._soundPlaying = null;
-  };
-
-  this.playBackgroundMusic = function (name, volume) {
+  }
+  playBackgroundMusic(name, volume) {
     if (!this.canPlay(name)) {
       return;
     }
@@ -122,16 +120,15 @@ exports = Class(PubSub, function (supr) {
     this._backgroundSoundPlaying = name;
     this._map[name].setVolume(volume * 100 | 0);
     this._map[name].play();
-  };
-
-  this.pauseBackgroundMusic = function () {
+  }
+  pauseBackgroundMusic() {
     if (!this._backgroundSoundPlaying) {
       return;
     }
     this._map[this._backgroundSoundPlaying].pause();
     this._backgroundSoundPlaying = null;
-  };
-});
+  }
+};
 var AudioAPI = exports;
 
 export default exports;

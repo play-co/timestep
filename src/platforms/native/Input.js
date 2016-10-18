@@ -19,8 +19,8 @@ import { NATIVE } from 'base';
 
 import InputEvent from 'event/input/InputEvent';
 
-exports = Class(function () {
-  this.getEvents = function () {
+exports = class {
+  getEvents() {
     if (NATIVE.timestep && NATIVE.timestep.getEvents) {
       return NATIVE.timestep.getEvents();
     } else {
@@ -34,11 +34,12 @@ exports = Class(function () {
       }
       return evts;
     }
-  };
-});
+  }
+};
 
 if (NATIVE.timestep && NATIVE.timestep.getEvents && !NATIVE.timestep.InputEvent) {
   NATIVE.timestep.InputEvent = InputEvent;
 }
+
 
 export default exports;

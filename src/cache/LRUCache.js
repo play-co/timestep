@@ -211,6 +211,18 @@ LRUCache.prototype.remove = function (key) {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   this.size--;
   return entry.value;
 };
@@ -239,6 +251,8 @@ if (typeof Object.keys === 'function') {
     return keys;
   };
 }
+
+
 
 
 /**

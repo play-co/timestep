@@ -22,8 +22,8 @@ import TextView from 'ui/backend/dom/TextView';
 /**
  * @extends ui.backend.dom.TextView
  */
-exports = Class(TextView, function (supr) {
-  this.init = function (opts) {
+exports = class extends TextView {
+  constructor(opts) {
     opts = merge(opts, {
       type: 'plain',
       text: 'CHANGE ME',
@@ -32,15 +32,14 @@ exports = Class(TextView, function (supr) {
       'dom:className': 'button'
     });
 
-    supr(this, 'init', [opts]);
+    super(opts);
 
     this._node.style.textShadow = 'black 2px 2px 2px';
     this.setText(opts.text);
-  };
-
-  this.onInputSelect = function () {
+  }
+  onInputSelect() {
     this.publish('Select');
-  };
-});
+  }
+};
 
 export default exports;

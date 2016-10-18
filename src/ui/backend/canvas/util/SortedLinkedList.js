@@ -15,93 +15,80 @@ let exports = {};
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-var Iterator = Class(function (supr) {
-  this.init = function (list) {
+class Iterator {
+  constructor(list) {
     this.update(list);
-  };
-
-  this.update = function (list) {
+  }
+  update(list) {
     this._list = list || this._list;
     this._current = list.head;
     this._count = 0;
-  };
-
-  this.next = function () {
+  }
+  next() {
     var data = this._current.data;
     this._current = this._current.next;
     this._count++;
     return data;
-  };
-
-  this.current = function () {
+  }
+  current() {
     return this._current.data;
-  };
-
-  this.insertBefore = function (data) {
+  }
+  insertBefore(data) {
     this._current.insertBefore(data);
     this._list.count++;
-  };
-
-  this.insertAfter = function (data) {
+  }
+  insertAfter(data) {
     this._current.insertAfter(data);
     this._list.count++;
-  };
-
-  this.remove = function () {
+  }
+  remove() {
     this._current.prev.remove();
     if (this._current.prev == this._current) {
       this._list.head = null;
     }
     this._list.count--;
-  };
-
-  this.hasNext = function () {
+  }
+  hasNext() {
     return this._count < this._list.count;
-  };
-
-  this.atHead = function () {
+  }
+  atHead() {
     return this._current == this._list.head;
-  };
-});
+  }
+}
 
-var Item = Class(function (supr) {
-  this.init = function (data, prev, next) {
+class Item {
+  constructor(data, prev, next) {
     this.data = data;
     this.prev = prev || this;
     this.next = next || this;
-  };
-
-  this.insertBefore = function (data) {
+  }
+  insertBefore(data) {
     var item = new Item(data, this.prev, this);
     this.prev.next = item;
     this.prev = item;
-  };
-
-  this.insertAfter = function (data) {
+  }
+  insertAfter(data) {
     var item = new Item(data, this, this.next);
     this.next.prev = item;
     this.next = item;
-  };
-
-  this.remove = function () {
+  }
+  remove() {
     this.prev.next = this.next;
     this.next.prev = this.prev;
-  };
-});
+  }
+}
 
-exports = Class(function (supr) {
-  this.init = function (comparator) {
+exports = class {
+  constructor(comparator) {
     this.head = null;
     this._comparator = comparator;
     this.count = 0;
-  };
-
-  this.append = function (data) {
+  }
+  append(data) {
     this._head.insertAfter(data);
     this.count++;
-  };
-
-  this.insert = function (data) {
+  }
+  insert(data) {
     if (!this.head) {
       this.head = new Item(data);
       this.count++;
@@ -121,11 +108,10 @@ exports = Class(function (supr) {
         this.head = this.head.prev;
       }
     }
-  };
-
-  this.iterator = function () {
+  }
+  iterator() {
     return new Iterator(this);
-  };
-});
+  }
+};
 
 export default exports;

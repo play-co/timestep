@@ -17,14 +17,13 @@ import { bind } from 'base';
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-exports = Class(function () {
-  this.init = function (opts) {
+exports = class {
+  constructor(opts) {
     this._view = opts.view;
 
     this.listenSubviewResize(opts.view);
-  };
-
-  this.reflow = function () {
+  }
+  reflow() {
     var view = this._view;
     var sv = view.getSuperview();
     var style = view.style;
@@ -35,6 +34,8 @@ exports = Class(function () {
     }
 
 
+
+
     if (sv) {
       var notInLayout = !style.inLayout || !style.flex || sv.style.layout != 'linear';
       if (notInLayout || !sv.__layout.isHorizontal()) {
@@ -42,13 +43,14 @@ exports = Class(function () {
       }
 
 
+
+
       if (notInLayout || !sv.__layout.isVertical()) {
         this.reflowY();
       }
     }
-  };
-
-  this.addSubviewListener = function (view) {
+  }
+  addSubviewListener(view) {
     if (!view.__hasSubviewListener) {
       view.__hasSubviewListener = true;
       view.subscribe('SubviewAdded', this, '_onSubviewAdded', view);
@@ -59,9 +61,8 @@ exports = Class(function () {
         this._onSubviewAdded(view, subviews[i]);
       }
     }
-  };
-
-  this.removeSubviewListener = function (view) {
+  }
+  removeSubviewListener(view) {
     if (view.__hasSubviewListener) {
       view.__hasSubviewListener = false;
       view.unsubscribe('SubviewAdded', this, '_onSubviewAdded');
@@ -72,21 +73,20 @@ exports = Class(function () {
         this._onSubviewRemoved(view, subviews[i]);
       }
     }
-  };
-
-  this._onSubviewAdded = function (view, subview) {
+  }
+  _onSubviewAdded(view, subview) {
     subview.style.addResizeListeners();
     view.connectEvent(subview, 'resize', bind(view, 'needsReflow'));
-  };
-
-  this._onSubviewRemoved = function (view, subview) {
+  }
+  _onSubviewRemoved(view, subview) {
     view.disconnectEvent(subview, 'resize');
-  };
-
-  this.addResizeListener = function (view) {
+  }
+  addResizeListener(view) {
     if (view.style.__removeSuperviewResize) {
       view.style.__removeSuperviewResize();
     }
+
+
 
 
     // reflow on parent view resize
@@ -100,21 +100,21 @@ exports = Class(function () {
         superview && superview.removeListener('resize', onResize);
       });
     }
-  };
-
-  this.listenSubviewResize = function (view) {
+  }
+  listenSubviewResize(view) {
     if (view.__root) {
       this.addResizeListener(view);
     }
+
+
 
 
     view.on('ViewAdded', bind(this, 'addResizeListener', view));
     view.on('ViewRemoved', bind(view.style, function () {
       this.__removeSuperviewResize && this.__removeSuperviewResize();
     }));
-  };
-
-  this.reflowX = function (view) {
+  }
+  reflowX(view) {
     var view = this._view;
     var s = view.style;
 
@@ -123,6 +123,8 @@ exports = Class(function () {
       var inLinearLayout = sv.__layout.isHorizontal();
       var padding = sv.style.padding;
     }
+
+
 
 
     var svWidth = sv.style.width;
@@ -150,10 +152,32 @@ exports = Class(function () {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // enforce center anchor on width change
     if (s.centerAnchor) {
       s.anchorX = (w || 0) / 2;
     }
+
+
 
 
     // Note that we don't trigger any resize handlers here
@@ -170,9 +194,8 @@ exports = Class(function () {
         s.x = Math.round(s.left + (padding && padding.left || 0));
       }
     }
-  };
-
-  this.reflowY = function () {
+  }
+  reflowY() {
     var view = this._view;
     var s = view.style;
     var sv = view.getSuperview();
@@ -180,6 +203,8 @@ exports = Class(function () {
       var inLinearLayout = sv.__layout.isVertical();
       var padding = sv.style.padding;
     }
+
+
 
 
     var svHeight = sv.style.height;
@@ -205,10 +230,32 @@ exports = Class(function () {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // enforce center anchor on height change
     if (s.centerAnchor) {
       s.anchorY = (h || 0) / 2;
     }
+
+
 
 
     s._height = h;
@@ -224,9 +271,8 @@ exports = Class(function () {
         s.y = Math.round(s.top + (padding && padding.top || 0));
       }
     }
-  };
-
-  this.getContentWidth = function () {
+  }
+  getContentWidth() {
     // find the maximal right edge
     var w = 0;
     var views = this._view.getSubviews();
@@ -239,9 +285,8 @@ exports = Class(function () {
       }
     }
     return w;
-  };
-
-  this.getContentHeight = function () {
+  }
+  getContentHeight() {
     // find the maximal bottom edge
     var views = this._view.getSubviews();
     var h = 0;
@@ -254,9 +299,8 @@ exports = Class(function () {
       }
     }
     return h;
-  };
-
-});
+  }
+};
 var BoxLayout = exports;
 
 export default exports;

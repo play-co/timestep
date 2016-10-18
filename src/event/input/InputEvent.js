@@ -51,18 +51,8 @@ let exports = {};
 import Point from 'math/geom/Point';
 import timer from 'timer';
 
-exports = Class(function () {
-  this.cancelled = false;
-  // If true, this event will not propogate
-  this.depth = 0;
-
-
-  // Number of levels of the tree from root to target (inclusive)
-  // Note that under normal usage:
-  //   this.depth == this.trace.length
-  //   this.root = this.trace[this.trace.length - 1]
-  //   this.target = this.trace[0]
-  this.init = function (id, evtType, x, y, root, target) {
+exports = class {
+  constructor(id, evtType, x, y, root, target) {
     // unique ID for a particular input - the ID should be constant for a given input
     // for example, the mouse should always have the same ID.  Each finger (touch)
     // should have the same ID throughout the touch start/move/end process
@@ -89,16 +79,16 @@ exports = Class(function () {
 
     // Bottom-most view where the event occurred
     this.target = target || null;
-  };
-
-  this.cancel = function () {
+  }
+  cancel() {
     this.cancelled = true;
-  };
-
-  this.clone = function () {
+  }
+  clone() {
     return new InputEvent(this.id, this.type, this.srcPt.x, this.srcPt.y, this.root, this.target);
-  };
-});
+  }
+};
+exports.prototype.cancelled = false;
+exports.prototype.depth = 0;
 var InputEvent = exports;
 
 export default exports;

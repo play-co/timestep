@@ -59,6 +59,8 @@ if (AudioContext) {
 }
 
 
+
+
 var _muteAll = false;
 var _registeredAudioManagers = [];
 
@@ -68,11 +70,13 @@ var _registeredAudioManagers = [];
 * Extend the local instance of Audio objects.
 * Created and used by MultiSound Class.
 */
-var RawAudio = Class(function () {
-  this.init = function () {
+class RawAudio {
+  constructor() {
     if (typeof Audio === 'undefined') {
       return null;
     }
+
+
 
 
     // we can't extend an HTML5 audio object in a browser, so do our best
@@ -83,6 +87,8 @@ var RawAudio = Class(function () {
         audio[i] = proto[i];
       }
     }
+
+
 
 
     var playTimeout = null;
@@ -104,16 +110,14 @@ var RawAudio = Class(function () {
     };
 
     return audio;
-  };
-
-  // add a stop method that resets the current time
-  this.stop = function () {
+  }
+  stop() {
     !this.paused && this.pause();
     if ((this.NETWORK_LOADING === undefined || this.networkState !== this.NETWORK_LOADING || this.networkState !== this.NETWORK_NO_SOURCE) && !isNaN(this.duration)) {
       this.currentTime = 0;
     }
-  };
-});
+  }
+}
 
 /**
 * MultiSound Class
@@ -121,8 +125,8 @@ var RawAudio = Class(function () {
 * A sound object that can play one of a collection of audio sources.
 * Created and used by exported AudioManager Class.
 */
-var MultiSound = Class(function () {
-  this.init = function (soundManager, name, opts) {
+class MultiSound {
+  constructor(soundManager, name, opts) {
     opts = typeof opts === 'string' ? { sources: [opts] } : opts || {};
 
     this._soundManager = soundManager;
@@ -167,6 +171,8 @@ var MultiSound = Class(function () {
     }
 
 
+
+
     for (var i = 0, src; src = srcList[i]; ++i) {
       // file paths are relative to the base path
       var fullPath = utilPath.join(basePath, opts.path, src);
@@ -194,6 +200,8 @@ var MultiSound = Class(function () {
           }
 
 
+
+
           sources.push(audio);
           if (audio.isBackgroundMusic && NATIVE && NATIVE.sound) {
             NATIVE.sound.registerMusic(fullPath, audio);
@@ -201,18 +209,16 @@ var MultiSound = Class(function () {
         }
       }
     }
-  };
-
-  this.getVolume = function () {
+  }
+  getVolume() {
     if (this._useAudioContext) {
       return this._gainNode.gain.value;
     } else {
       var src = this._sources[0];
       return src && src.volume || 0;
     }
-  };
-
-  this.setVolume = function (volume) {
+  }
+  setVolume(volume) {
     if (this._useAudioContext) {
       this._gainNode.gain.value = volume;
     } else {
@@ -220,9 +226,8 @@ var MultiSound = Class(function () {
         src.volume = volume;
       }
     }
-  };
-
-  this.stop = function () {
+  }
+  stop() {
     if (this._useAudioContext) {
       this._lastSrc && this._lastSrc.stop(0);
       this._lastSrc = null;
@@ -231,9 +236,8 @@ var MultiSound = Class(function () {
         src.stop();
       }
     }
-  };
-
-  this.pause = function () {
+  }
+  pause() {
     this._isPaused = true;
     if (this._useAudioContext) {
       this.stop();
@@ -242,13 +246,11 @@ var MultiSound = Class(function () {
         src.pause();
       }
     }
-  };
-
-  this.isPaused = function () {
+  }
+  isPaused() {
     return this._isPaused;
-  };
-
-  this.isPlaying = function () {
+  }
+  isPlaying() {
     var isPlaying = false;
     if (!this._useAudioContext && this._lastSrc !== null) {
       var cur = this._lastSrc.currentTime;
@@ -262,26 +264,22 @@ var MultiSound = Class(function () {
       }
     }
     return isPlaying;
-  };
-
-  this.getDuration = function () {
+  }
+  getDuration() {
     return this._lastSrc && this._lastSrc.duration || 0;
-  };
-
-  this.getTime = function () {
+  }
+  getTime() {
     return this._lastSrc && this._lastSrc.currentTime || 0;
-  };
-
-  this.setTime = function (t) {
+  }
+  setTime(t) {
     if (!this._useAudioContext && this._lastSrc && this.isBackgroundMusic) {
       if (this._lastSrc.duration) {
         this._lastSrc.currentTime = t;
       } else {
       }
     }
-  };
-
-  this.play = function (opts) {
+  }
+  play(opts) {
     opts = opts || {};
     var loop = opts.loop || this.loop;
     var time = opts.time || 0;
@@ -318,9 +316,8 @@ var MultiSound = Class(function () {
       this._lastSrc = src;
     }
     this._isPaused = false;
-  };
-
-  this._playFromBuffer = function (buffer, loop, time, duration) {
+  }
+  _playFromBuffer(buffer, loop, time, duration) {
     if (buffer) {
       var src = _ctx.createBufferSource();
       src.buffer = buffer;
@@ -333,23 +330,22 @@ var MultiSound = Class(function () {
       }
       this._lastSrc = src;
     }
-  };
-
-  this._getRandom = function () {
+  }
+  _getRandom() {
     var index = Math.random() * this._sources.length | 0;
     return this._sources[index];
-  };
-});
+  }
+}
 
 /**
 * AudioManager Class
 *
 * @extends event.Emitter
 */
-exports = Class(Emitter, function (supr) {
-  this.init = function (opts) {
+exports = class extends Emitter {
+  constructor(opts) {
     opts = opts || {};
-    supr(this, 'init', arguments);
+    super(...arguments);
 
     this._loader = null;
     this.setPath(opts.path);
@@ -385,10 +381,14 @@ exports = Class(Emitter, function (supr) {
     }
 
 
+
+
     if (this._ext === undefined) {
       this._ext = '.mp3';
       logger.warn('Warning: sound support unclear - defaulting to .mp3');
     }
+
+
 
 
     // add sounds to the audio API's list of sounds and preload them
@@ -396,6 +396,8 @@ exports = Class(Emitter, function (supr) {
       var item = this._map[key];
       this.addSound(key, item);
     }
+
+
 
 
     // AudioContext preloading
@@ -407,51 +409,40 @@ exports = Class(Emitter, function (supr) {
       }
       this.preloadSounds(urls);
     }
-  };
-
-  this.getAudioContext = function () {
+  }
+  getAudioContext() {
     return _ctx;
-  };
-
-  this.setAudioContext = function () {
+  }
+  setAudioContext() {
     if (this._loader) {
       this._loader.setAudioContext(_ctx);
     } else {
       this._loader = new AudioLoader({ ctx: _ctx });
     }
-  };
-
-  this.getAudioLoader = function () {
+  }
+  getAudioLoader() {
     return this._loader;
-  };
-
-  this.preloadSounds = function (urls) {
+  }
+  preloadSounds(urls) {
     // used for AudioContext only
     this._loader && this._loader.load(urls);
-  };
-
-  this.getExt = function () {
+  }
+  getExt() {
     return this._ext;
-  };
-
-  this.getPath = function () {
+  }
+  getPath() {
     return this._path;
-  };
-
-  this.setPath = function (path) {
+  }
+  setPath(path) {
     if (path) {
       path = path.replace(/\/$/, '');
     }
     this._path = path || '';
-  };
-
-  this.addSound = function (name, opts) {
+  }
+  addSound(name, opts) {
     this._sounds[name] = new MultiSound(this, name, opts);
-  };
-
-  /* @internal for now
-   */
-  this.persistState = function (key) {
+  }
+  persistState(key) {
     this._key = key;
 
     var value = localStorage.getItem(this._key);
@@ -463,42 +454,36 @@ exports = Class(Emitter, function (supr) {
     }
 
 
+
+
     if (value) {
       logger.log('Restoring Audio API state!');
       this.setMusicMuted(value.isMusicMuted);
       this.setEffectsMuted(value.areEffectsMuted);
     }
-  };
-
-  /* @internal for now
-   */
-  this._persist = function () {
+  }
+  _persist() {
     if (this._key !== '') {
       localStorage.setItem(this._key, JSON.stringify({
         isMusicMuted: this._isMusicMuted,
         areEffectsMuted: this._areEffectsMuted
       }));
     }
-  };
-
-  this.getMuted = function () {
+  }
+  getMuted() {
     return this._isMusicMuted && this._areEffectsMuted;
-  };
-
-  this.getMusicMuted = function () {
+  }
+  getMusicMuted() {
     return this._isMusicMuted;
-  };
-
-  this.getEffectsMuted = function () {
+  }
+  getEffectsMuted() {
     return this._areEffectsMuted;
-  };
-
-  this.setMuted = function (isMuted) {
+  }
+  setMuted(isMuted) {
     this.setMusicMuted(isMuted);
     this.setEffectsMuted(isMuted);
-  };
-
-  this.setMusicMuted = function (isMusicMuted) {
+  }
+  setMusicMuted(isMusicMuted) {
     if (_muteAll) {
       isMusicMuted = true;
     }
@@ -511,9 +496,8 @@ exports = Class(Emitter, function (supr) {
         this._currentMusic.play();
       }
     }
-  };
-
-  this.setEffectsMuted = function (areEffectsMuted) {
+  }
+  setEffectsMuted(areEffectsMuted) {
     if (_muteAll) {
       areEffectsMuted = true;
     }
@@ -527,64 +511,59 @@ exports = Class(Emitter, function (supr) {
         }
       }
     }
-  };
-
-  this.getSound = function (name) {
+  }
+  getSound(name) {
     var sound = this._sounds[name];
     if (!sound) {
       logger.warn('Warning: no sound named ' + name);
     }
     return sound;
-  };
-
-  this.setVolume = function (name, volume) {
+  }
+  setVolume(name, volume) {
     var sound = this.getSound(name);
     if (sound) {
       sound.setVolume(volume);
       return true;
     }
     return false;
-  };
-
-  this.getVolume = function (name) {
+  }
+  getVolume(name) {
     var sound = this.getSound(name);
     if (sound) {
       return sound.getVolume();
     } else {
       return null;
     }
-  };
-
-  this.setTime = function (name, t) {
+  }
+  setTime(name, t) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
     }
     sound.setTime(t || 0);
     return true;
-  };
-
-  this.getTime = function (name) {
+  }
+  getTime(name) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
     }
     return sound.getTime();
-  };
-
-  this.getDuration = function (name) {
+  }
+  getDuration(name) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
     }
     return sound.getDuration();
-  };
-
-  this.play = function (name, opts) {
+  }
+  play(name, opts) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
     }
+
+
 
 
     opts = opts || {};
@@ -604,9 +583,8 @@ exports = Class(Emitter, function (supr) {
       sound.play(opts);
     }
     return true;
-  };
-
-  this.pause = function (name) {
+  }
+  pause(name) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
@@ -617,9 +595,8 @@ exports = Class(Emitter, function (supr) {
     }
     sound.pause();
     return true;
-  };
-
-  this.stop = function (name) {
+  }
+  stop(name) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
@@ -630,33 +607,27 @@ exports = Class(Emitter, function (supr) {
     }
     sound.stop();
     return true;
-  };
-
-  this.isPaused = function (name) {
+  }
+  isPaused(name) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
     }
     return sound.isPaused();
-  };
-
-  this.isPlaying = function (name) {
+  }
+  isPlaying(name) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
     }
     return sound.isPlaying();
-  };
-
-  // @deprecated
-  this.playBackgroundMusic = this.play;
-
-  // @deprecated
-  this.pauseBackgroundMusic = function () {
+  }
+  pauseBackgroundMusic() {
     this._currentMusic && this._currentMusic.pause();
-  };
-});
+  }
+};
 
+exports.prototype.playBackgroundMusic = exports.prototype.play;
 // expose a global mute function (GC.app.muteAll)
 exports.muteAll = function (mute) {
   _muteAll = mute;

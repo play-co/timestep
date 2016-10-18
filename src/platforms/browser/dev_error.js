@@ -48,9 +48,12 @@ function render(ctx, e) {
   }
 
 
+
+
   drawLine(e.message);
   y += 40;
   e.stack.split('\n').map(drawLine);
 }
+
 
 export default exports;

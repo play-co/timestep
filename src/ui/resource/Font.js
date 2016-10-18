@@ -51,12 +51,16 @@ function parseSize(sizeStr, unit) {
 }
 
 
+
+
 function toPx(size) {
   return {
     value: size.value * TO_PX[size.unit],
     unit: 'px'
   };
 }
+
+
 
 
 function toPt(size) {
@@ -67,11 +71,15 @@ function toPt(size) {
 }
 
 
+
+
 function parseFont(fontStr) {
   var match = fontStr.match(fontParser);
   if (!match) {
     throw 'invalid font string';
   }
+
+
 
 
   var res = {};
@@ -112,8 +120,8 @@ var defaults = {
 };
 
 
-exports = Class(function () {
-  this.init = function (opts) {
+exports = class {
+  constructor(opts) {
     if (typeof opts === 'string') {
       _cache[opts] = this;
       this._string = opts;
@@ -123,9 +131,13 @@ exports = Class(function () {
     }
 
 
+
+
     if (typeof opts.size == 'string') {
       opts.size = parseSize(opts.size);
     }
+
+
 
 
     this._name = opts.name;
@@ -137,22 +149,20 @@ exports = Class(function () {
     this._weight = opts.weight;
 
     this._isBold = /bold/i.test(this._weight);
-  };
-
-  this.getSize = function () {
+  }
+  getSize() {
     return this.sizePx;
-  };
-
-  this.getName = function () {
+  }
+  getName() {
     return this._name;
-  };
-  this.getOrigName = function () {
+  }
+  getOrigName() {
     return this._origName;
-  };
-  this.getWeight = function () {
+  }
+  getWeight() {
     return this._weight;
-  };
-});
+  }
+};
 var Font = exports;
 
 Font.parse = function (str) {
@@ -162,7 +172,6 @@ Font.parse = function (str) {
     return new Font(str);
   }
 }
-
 ;
 
 

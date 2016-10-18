@@ -34,9 +34,14 @@ exports.getDeviceImports = function (device) {
 
 
 
+
+
+
+
+
+
   return [];
 }
-
 ;
 
 
@@ -52,6 +57,8 @@ exports.getBackendImports = function (backend) {
   }
 
 
+
+
   if (backend == 'canvas') {
     return [
       '.backend.canvas.animate',
@@ -61,6 +68,10 @@ exports.getBackendImports = function (backend) {
       '.backend.canvas.ViewDebugger'
     ];
   }
+
+
+
+
 
 
 
@@ -86,6 +97,24 @@ exports.resolve = function (env, opts) {
   } else {
     add(exports.getBackendImports('canvas'));
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

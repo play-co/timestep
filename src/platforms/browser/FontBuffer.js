@@ -32,8 +32,8 @@ var randomColor = function () {
   return '#' + randomColorElement() + randomColorElement() + randomColorElement();
 };
 
-exports = Class(function () {
-  this.init = function (opts) {
+exports = class {
+  constructor(opts) {
     // 8 * 24
     // 10 * 32
     // 8 * 64
@@ -80,11 +80,15 @@ exports = Class(function () {
       }
 
 
+
+
       this._list.push({
         size: lineSize.size,
         lines: lines
       });
     }
+
+
 
 
     this._hashMap = {};
@@ -93,9 +97,8 @@ exports = Class(function () {
     this._frameTimeout = 3;
 
     engineInstance.get().subscribe('Tick', this, this._onTick);
-  };
-
-  this._onTick = function (dt) {
+  }
+  _onTick(dt) {
     this._currentFrame++;
 
     var remove, currentFrame = this._currentFrame, frameTimeout = this._frameTimeout, list = this._list, lines, item, i, j, k, l;
@@ -121,9 +124,8 @@ exports = Class(function () {
         }
       }
     }
-  };
-
-  this.alloc = function (opts) {
+  }
+  alloc(opts) {
     var requestHeight = opts.height, requestWidth = opts.width + 3,
       // Add some extra pixels to allow color bleeding...
       strokeStyle = opts.strokeStyle || '', fillStyle = opts.fillStyle || '', font = opts.font || '', hash = strokeStyle + '_' + fillStyle + '_' + font + '_' + opts.text, list = this._list, lines, item = this._hashMap[hash], i, j, k, l;
@@ -133,6 +135,8 @@ exports = Class(function () {
       item.refresh = false;
       return item;
     }
+
+
 
 
     for (i = 0, j = list.length; i < j; i++) {
@@ -157,6 +161,8 @@ exports = Class(function () {
               }
 
 
+
+
               item.frame = this._currentFrame;
               item.hash = hash;
               item.width = requestWidth;
@@ -173,18 +179,21 @@ exports = Class(function () {
         }
 
 
+
+
         break;
       }
     }
 
 
-    return false;
-  };
 
-  this.getCanvas = function () {
+
+    return false;
+  }
+  getCanvas() {
     return this._canvas;
-  };
-});
+  }
+};
 var FontBuffer = exports;
 
 export default exports;

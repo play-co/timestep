@@ -28,8 +28,8 @@ import {
 import Context2D from './Context2D';
 import WebGLContext2D from './webgl/WebGLContext2D';
 
-exports = Class(function () {
-  this.init = function (opts) {
+exports = class {
+  constructor(opts) {
     opts = merge(opts, {
       width: 300,
       height: 200
@@ -48,6 +48,8 @@ exports = Class(function () {
     }
 
 
+
+
     var el = this._el = ctx.getElement();
 
     el.complete = true;
@@ -57,38 +59,32 @@ exports = Class(function () {
     }
 
 
+
+
     el.getContext = function () {
       return ctx;
     };
 
     return el;
-  };
-
-  Object.defineProperties(this, {
-    width: {
-      get: function () {
-        return this._width;
-      },
-      set: function (value) {
-        this._width = value;
-        if (this.isWebGL) {
-          this.getContext().resize(this.width, this.height);
-        }
-      }
-    },
-    height: {
-      get: function () {
-        return this._height;
-      },
-      set: function (value) {
-        this._height = value;
-        if (this.isWebGL) {
-          this.getContext().resize(this.width, this.height);
-        }
-      }
+  }
+  get width() {
+    return this._width;
+  }
+  set width(value) {
+    this._width = value;
+    if (this.isWebGL) {
+      this.getContext().resize(this.width, this.height);
     }
-  });
-
-});
+  }
+  get height() {
+    return this._height;
+  }
+  set height(value) {
+    this._height = value;
+    if (this.isWebGL) {
+      this.getContext().resize(this.width, this.height);
+    }
+  }
+};
 
 export default exports;

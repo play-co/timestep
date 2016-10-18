@@ -15,45 +15,36 @@ let exports = {};
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-exports = Class(function (supr) {
-  this.init = function () {
+exports = class {
+  constructor() {
     this._shortcuts = [];
     this._events = [];
   }
 
-;
-
-
-  this.setEnabled = function (isEnabled) {
+  setEnabled(isEnabled) {
     this._isEnabled = isEnabled;
-  };
-
-  this.captureShortcut = function (shortcut) {
+  }
+  captureShortcut(shortcut) {
     this._shortcuts.push(shortcut);
-  };
-
-  this.getPressed = function () {
+  }
+  getPressed() {
     return {};
-  };
-
-  this.onKeyDown = function (e) {
-  };
-
-  this.liftAll = function () {
-  };
-  this.onKeyUp = function (e) {
-  };
-
-  this.onKeyPress = function (e) {
-  };
-
-  this.peekEvents = function () {
+  }
+  onKeyDown(e) {
+  }
+  liftAll() {
+  }
+  onKeyUp(e) {
+  }
+  onKeyPress(e) {
+  }
+  peekEvents() {
     return this._events;
-  };
-  this.popEvents = function () {
+  }
+  popEvents() {
     return this._events.splice(0, this._events.length);
-  };
-});
+  }
+};
 
 
 export default exports;

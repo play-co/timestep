@@ -141,8 +141,14 @@ function emitEffect(data, opts) {
 
 
 
+
+
+
+
   effectPool.obtain().reset(data, opts);
 }
+
+
 
 
 function mergeOverrides(data, opts) {
@@ -155,6 +161,8 @@ function mergeOverrides(data, opts) {
 }
 
 
+
+
 function onTick(dt) {
   particlePool.forEachActive(function (particle) {
     particle.step(dt);
@@ -163,6 +171,8 @@ function onTick(dt) {
     effect.step(dt);
   });
 }
+
+
 
 
 function validateEffect(data) {
@@ -183,12 +193,20 @@ function validateEffect(data) {
 
 
 
+
+
+
+
   // if a filter type exists, it should be one of the supported types
   if (data.filterType) {
     if (FILTER_TYPES.indexOf(data.filterType) === -1) {
       throw new Error('Invalid filter type: ' + data.filterType);
     }
   }
+
+
+
+
 
 
 
@@ -203,11 +221,19 @@ function validateEffect(data) {
 
 
 
+
+
+
+
     // check each parameter individually and guarantee no duplicates
     for (var i = 0; i < params.length; i++) {
       validateParameter.call(this, params[i], paramList, data);
     }
   }
+
+
+
+
 
 
 
@@ -234,6 +260,8 @@ function validateEffect(data) {
 }
 
 
+
+
 function validateNumericValue(value, paramList, data, testConstraints) {
   var valueType = typeof value;
   if (valueType === 'object') {
@@ -258,6 +286,8 @@ function validateNumericValue(value, paramList, data, testConstraints) {
 }
 
 
+
+
 function validateNumber(value, testConstraints, data) {
   // note: undefined is accepted and replaced by default values
   var valueType = typeof value;
@@ -268,11 +298,15 @@ function validateNumber(value, testConstraints, data) {
 }
 
 
+
+
 function validateImage(url, data) {
   if (!url || typeof url !== 'string') {
     throw new Error('Invalid image URL: ' + url);
   }
 }
+
+
 
 
 function validateParameter(paramData, paramList, data) {
@@ -284,9 +318,17 @@ function validateParameter(paramData, paramList, data) {
 
 
 
+
+
+
+
   if (paramList[paramID]) {
     throw new Error('Duplicate parameter ID defined: ' + paramID);
   }
+
+
+
+
 
 
 
@@ -302,10 +344,18 @@ function validateParameter(paramData, paramList, data) {
 
 
 
+
+
+
+
   var distType = paramData.distributionType;
   if (distType && PARAMETER_TYPES.indexOf(distType) === -1) {
     throw new Error('Invalid parameter type: ' + distType + ', for param: ' + paramID);
   }
+
+
+
+
 
 
 
@@ -319,8 +369,14 @@ function validateParameter(paramData, paramList, data) {
 
 
 
+
+
+
+
   paramList[paramID] = paramData;
 }
+
+
 
 
 function validateProperty(propData, propKey, paramList, data) {
@@ -363,6 +419,8 @@ function validateProperty(propData, propKey, paramList, data) {
 }
 
 
+
+
 /**
  * EffectsEngine Notes
  *  this engine does not replace the original ParticleEngine
@@ -374,36 +432,19 @@ function validateProperty(propData, propKey, paramList, data) {
  *  it's a singleton class that uses object pools for minimal garbage-collection
  *  pause, resume, and clear all effects or individual effects by ID
  */
-var EffectsEngine = Class(View, function (supr) {
-  this.init = function () {
-    supr(this, 'init', [{
-        canHandleEvents: false,
-        blockEvents: true
-      }]);
+class EffectsEngine extends View {
+  constructor() {
+    super({
+      canHandleEvents: false,
+      blockEvents: true
+    });
 
     // wait until engine initialization completes before subscribing to tick
     setTimeout(bind(this, function () {
       Engine.get().on('Tick', bind(this, onTick));
     }), 0);
-  };
-
-  /**
-   * @method emitEffectsFromData - the one-and-only particle emission function
-   *   @arg {string|object|array} data - the URL to a JSON file or the parsed
-   *     JSON data itself (an array of effect objects or a single effect object)
-   *   @arg {object} [opts] - a set of options to modify the effect
-   *   @arg {string} [opts.id] - effect ID, used to pause, resume, etc. by ID
-   *   @arg {View} [opts.superview] - the parent view of the particles' views
-   *   @arg {number} [opts.x] - the x coordinate offset of the effect
-   *   @arg {number} [opts.y] - the y coordinate offset of the effect
-   *   @arg {boolean} [opts.skipDataValidation] - opt of out data validation
-   *   @arg {object} [opts.overrides] - key/value pairs in this object will take
-   *     precedence over the corresponding key/value pairs in the raw data
-   *   @arg {object} [opts.parameterValues] - keys correspond to parameter IDs,
-   *     value can be a number [0, 1] or a function that returns a number [0, 1]
-   *   @returns {string} id - effect ID, used to pause, resume, etc. by ID
-   */
-  this.emitEffectsFromData = function (data, opts) {
+  }
+  emitEffectsFromData(data, opts) {
     opts = opts || {};
     opts.id = opts.id || '' + effectUID++;
     opts.superview = opts.superview || opts.parent || this;
@@ -416,6 +457,8 @@ var EffectsEngine = Class(View, function (supr) {
     }
 
 
+
+
     // allow data to be an array of effects
     if (isArray(data)) {
       data.forEach(bind(this, function (effect) {
@@ -426,70 +469,65 @@ var EffectsEngine = Class(View, function (supr) {
     }
 
 
-    return opts.id;
-  };
 
-  this.pauseEffectByID = function (id) {
+
+    return opts.id;
+  }
+  pauseEffectByID(id) {
     effectPool.forEachActive(function (effect) {
       if (effect.id === id) {
         effect.pause();
       }
     });
-  };
-
-  this.pauseAllEffects = function () {
+  }
+  pauseAllEffects() {
     effectPool.forEachActive(function (effect) {
       effect.pause();
     });
-  };
-
-  this.resumeEffectByID = function (id) {
+  }
+  resumeEffectByID(id) {
     effectPool.forEachActive(function (effect) {
       if (effect.id === id) {
         effect.resume();
       }
     });
-  };
-
-  this.resumeAllEffects = function () {
+  }
+  resumeAllEffects() {
     effectPool.forEachActive(function (effect) {
       effect.resume();
     });
-  };
-
-  this.clearEffectByID = function (id) {
+  }
+  clearEffectByID(id) {
     effectPool.forEachActive(function (effect) {
       if (effect.id === id) {
         effect.clear();
       }
     });
-  };
-
-  this.clearAllEffects = function () {
+  }
+  clearAllEffects() {
     effectPool.forEachActive(function (effect) {
       effect.clear();
     });
-  };
-
-  this.finishEffectByID = function (id) {
+  }
+  finishEffectByID(id) {
     effectPool.forEachActive(function (effect) {
       if (effect.id === id) {
         effect.finish();
       }
     });
-  };
-
-  this.finishAllEffects = function () {
+  }
+  finishAllEffects() {
     effectPool.forEachActive(function (effect) {
       effect.finish();
     });
-  };
-
-  this.validateData = function (data) {
+  }
+  validateData(data) {
     // allow data to be a JSON URL string
     if (typeof data === 'string') {
       data = this.loadDataFromJSON(data);
     }
+
+
 
 
     // allow data to be an array of effects
@@ -498,9 +536,8 @@ var EffectsEngine = Class(View, function (supr) {
     } else {
       validateEffect.call(this, data);
     }
-  };
-
-  this.loadDataFromJSON = function (url) {
+  }
+  loadDataFromJSON(url) {
     try {
       var data = CACHE[url];
       if (typeof data === 'string') {
@@ -513,42 +550,37 @@ var EffectsEngine = Class(View, function (supr) {
     } catch (e) {
       throw e;
     }
-  };
-
-  this.initializeEffectCount = function (count) {
+  }
+  initializeEffectCount(count) {
     count -= effectPool.getTotalCount();
     for (var i = 0; i < count; i++) {
       effectPool.create();
     }
-  };
-
-  this.initializeParticleCount = function (count) {
+  }
+  initializeParticleCount(count) {
     count -= particlePool.getTotalCount();
     for (var i = 0; i < count; i++) {
       particlePool.create();
     }
-  };
-
-  this.initializePropertyCount = function (count) {
+  }
+  initializePropertyCount(count) {
     count -= propertyPool.getTotalCount();
     for (var i = 0; i < count; i++) {
       var prop = propertyPool.create();
       // force the property to init its Animator
       prop.reset(this, 'delta', 0);
     }
-  };
-
-  this.initializeParameterCount = function (count) {
+  }
+  initializeParameterCount(count) {
     count -= parameterPool.getTotalCount();
     for (var i = 0; i < count; i++) {
       parameterPool.create();
     }
-  };
-
-  this.getActiveParticleCount = function () {
+  }
+  getActiveParticleCount() {
     return particlePool._freshIndex;
-  };
-});
+  }
+}
 
 
 function mergeParameterOpts(data, opts) {
@@ -573,13 +605,17 @@ function mergeParameterOpts(data, opts) {
 
 
 
+
+
+
+
 /**
  * Effect Notes
  *  an effect is a group of particles that share the same data definition
  *  most 'particle effects' are created by several of these
  */
-var Effect = Class('Effect', function () {
-  this.init = function () {
+class Effect {
+  constructor() {
     this.id = '';
     this.x = 0;
     this.y = 0;
@@ -593,9 +629,8 @@ var Effect = Class('Effect', function () {
     // ObjectPool book-keeping
     this._poolIndex = 0;
     this._obtainedFromPool = false;
-  };
-
-  this.reset = function (data, opts) {
+  }
+  reset(data, opts) {
     this.id = opts.id;
     this.x = opts.x;
     this.y = opts.y;
@@ -619,6 +654,8 @@ var Effect = Class('Effect', function () {
     }
 
 
+
+
     var count = performance.getAdjustedParticleCount(data.count, opts.performanceScore, opts.allowReduction);
 
     // support value, range, and params for particle count
@@ -628,9 +665,8 @@ var Effect = Class('Effect', function () {
     if (!this.isContinuous) {
       this.emitParticles();
     }
-  };
-
-  this.recycle = function () {
+  }
+  recycle() {
     var params = this.activeParameters;
     for (var id in params) {
       var param = params[id];
@@ -638,9 +674,8 @@ var Effect = Class('Effect', function () {
       params[id] = null;
     }
     effectPool.release(this);
-  };
-
-  this.pause = function () {
+  }
+  pause() {
     var effect = this;
     particlePool.forEachActive(function (particle) {
       if (particle.effect === effect) {
@@ -648,9 +683,8 @@ var Effect = Class('Effect', function () {
       }
     });
     this.isPaused = true;
-  };
-
-  this.resume = function () {
+  }
+  resume() {
     var effect = this;
     particlePool.forEachActive(function (particle) {
       if (particle.effect === effect) {
@@ -658,9 +692,8 @@ var Effect = Class('Effect', function () {
       }
     });
     this.isPaused = false;
-  };
-
-  this.clear = function () {
+  }
+  clear() {
     var effect = this;
     particlePool.forEachActive(function (particle) {
       if (particle.effect === effect) {
@@ -668,13 +701,11 @@ var Effect = Class('Effect', function () {
       }
     });
     this.recycle();
-  };
-
-  this.finish = function () {
+  }
+  finish() {
     this.isContinuous = false;
-  };
-
-  this.emitParticles = function () {
+  }
+  emitParticles() {
     var chance = this.count % 1;
     var count = floor(this.count) + (random() < chance ? 1 : 0);
     var paramKeys = Object.keys(this.activeParameters);
@@ -689,12 +720,13 @@ var Effect = Class('Effect', function () {
         param && param.update(1 / count, true);
       }
     }
-  };
-
-  this.step = function (dt) {
+  }
+  step(dt) {
     if (this.isPaused) {
       return;
     }
+
+
 
 
     // step parameters each tick
@@ -706,6 +738,8 @@ var Effect = Class('Effect', function () {
     }
 
 
+
+
     if (this.isContinuous) {
       // emit particles for continuous effects each tick
       this.emitParticles();
@@ -713,8 +747,8 @@ var Effect = Class('Effect', function () {
       // recycle non-continuous effects when out of active particles
       this.recycle();
     }
-  };
-});
+  }
+}
 
 
 
@@ -722,8 +756,8 @@ var Effect = Class('Effect', function () {
  * Particle Notes
  *  a particle moves a single ImageView across the screen
  */
-var Particle = Class('Particle', function () {
-  this.init = function () {
+class Particle {
+  constructor() {
     this.view = new ImageView({ visible: false });
     this.filter = new filter.Filter({});
     this.filterData = {
@@ -749,18 +783,21 @@ var Particle = Class('Particle', function () {
     }
 
 
+
+
     for (var i = 0; i < OTHER_KEY_COUNT; i++) {
       var key = OTHER_KEYS[i];
       this[key] = OTHER_DEFAULTS[key];
     }
 
 
+
+
     // ObjectPool book-keeping
     this._poolIndex = 0;
     this._obtainedFromPool = false;
-  };
-
-  this.reset = function (effect) {
+  }
+  reset(effect) {
     this.view.removeFilter();
     this.isPolar = false;
     this.hasDeltas = false;
@@ -785,6 +822,8 @@ var Particle = Class('Particle', function () {
     }
 
 
+
+
     // reset animated properties with data or to their defaults
     for (var i = 0; i < PROPERTY_KEY_COUNT; i++) {
       var key = PROPERTY_KEYS[i];
@@ -796,12 +835,16 @@ var Particle = Class('Particle', function () {
     }
 
 
+
+
     // apply the proper initial color filter
     if (this.filterType) {
       this.filterData.type = this.filterType;
       this.updateFilter();
       this.view.setFilter(this.filter);
     }
+
+
 
 
     // prepare the image url for this particle
@@ -814,6 +857,8 @@ var Particle = Class('Particle', function () {
     }
 
 
+
+
     // add this particle to the view hierarchy
     opts.superview.addSubview(this.view);
 
@@ -824,6 +869,8 @@ var Particle = Class('Particle', function () {
         break;
       }
     }
+
+
 
 
     // apply initial view style properties
@@ -845,38 +892,38 @@ var Particle = Class('Particle', function () {
     }
 
 
+
+
     if (this.delay === 0) {
       s.visible = true;
     }
-  };
-
-  this.recycle = function () {
+  }
+  recycle() {
     this.effect.activeParticleCount--;
     for (var i = 0; i < PROPERTY_KEY_COUNT; i++) {
       this[PROPERTY_KEYS[i]].recycle(false);
     }
     this.view.style.visible = false;
     particlePool.release(this);
-  };
-
-  this.pause = function () {
+  }
+  pause() {
     for (var i = 0; i < PROPERTY_KEY_COUNT; i++) {
       this[PROPERTY_KEYS[i]].pause();
     }
     this.isPaused = true;
-  };
-
-  this.resume = function () {
+  }
+  resume() {
     for (var i = 0; i < PROPERTY_KEY_COUNT; i++) {
       this[PROPERTY_KEYS[i]].resume();
     }
     this.isPaused = false;
-  };
-
-  this.step = function (dt) {
+  }
+  step(dt) {
     if (this.isPaused) {
       return;
     }
+
+
 
 
     var s = this.view.style;
@@ -890,10 +937,14 @@ var Particle = Class('Particle', function () {
     }
 
 
+
+
     this.elapsed += dt;
     if (this.elapsed >= this.ttl) {
       this.recycle();
     }
+
+
 
 
     if (this.hasDeltas) {
@@ -907,6 +958,8 @@ var Particle = Class('Particle', function () {
       }
 
 
+
+
       if (this.isPolar) {
         for (var i = 0; i < POLAR_KEY_COUNT; i++) {
           var key = POLAR_KEYS[i];
@@ -917,26 +970,29 @@ var Particle = Class('Particle', function () {
     }
 
 
+
+
     if (this.isPolar) {
       s.offsetX = this.effect.x + this.radius.value * cos(this.theta.value);
       s.offsetY = this.effect.y + this.radius.value * sin(this.theta.value);
     }
 
 
+
+
     // update filter each tick if its values change over time
     if (this.filterType && (!this.filterRed.isStatic || !this.filterGreen.isStatic || !this.filterBlue.isStatic || !this.filterAlpha.isStatic)) {
       this.updateFilter();
     }
-  };
-
-  this.updateFilter = function () {
+  }
+  updateFilter() {
     this.filterData.r = max(0, min(255, ~~(this.filterRed.value + 0.5)));
     this.filterData.g = max(0, min(255, ~~(this.filterGreen.value + 0.5)));
     this.filterData.b = max(0, min(255, ~~(this.filterBlue.value + 0.5)));
     this.filterData.a = max(0, min(1, this.filterAlpha.value));
     this.filter.update(this.filterData);
-  };
-});
+  }
+}
 
 
 
@@ -947,8 +1003,8 @@ var Particle = Class('Particle', function () {
  *  properties on the root particle are never recycled
  *  properties used as deltas on other properties are always recycled
  */
-var Property = Class('Property', function () {
-  this.init = function () {
+class Property {
+  constructor() {
     this.value = 0;
     this.delta = null;
     this.animator = null;
@@ -957,9 +1013,8 @@ var Property = Class('Property', function () {
     // ObjectPool book-keeping
     this._poolIndex = 0;
     this._obtainedFromPool = false;
-  };
-
-  this.reset = function (particle, key, data) {
+  }
+  reset(particle, key, data) {
     this.delta = null;
     this.isStatic = true;
     this.isModified = false;
@@ -971,6 +1026,8 @@ var Property = Class('Property', function () {
     } else {
       this.animator.clear();
     }
+
+
 
 
     // set the initial value of the property
@@ -1002,11 +1059,12 @@ var Property = Class('Property', function () {
     }
 
 
+
+
     // whether this value was or will be changed from its default
     this.isModified = this.isModified || this.value !== defaultValue;
-  };
-
-  this.addTargetAnimation = function (particle, target, animKey) {
+  }
+  addTargetAnimation(particle, target, animKey) {
     // these time values are percentages of the particle's ttl
     var delay = getNumericValueFromData(particle.effect, target.delay, 0);
     var duration = getNumericValueFromData(particle.effect, target.duration, 0);
@@ -1021,34 +1079,30 @@ var Property = Class('Property', function () {
     animObj[animKey] = getNumericValueFromData(particle.effect, target, 0);
     // append the animation to the chain
     this.animator.wait(delay * particle.ttl).then(animObj, duration * particle.ttl, easingID);
-  };
-
-  this.applyDelta = function (dt) {
+  }
+  applyDelta(dt) {
     // deltas are measured in units per second
     var seconds = dt / 1000;
     // apply deltas half before and half after delta deltas for smoother frames
     this.value += seconds * this.delta.value / 2;
     this.delta.delta && this.delta.applyDelta(dt);
     this.value += seconds * this.delta.value / 2;
-  };
-
-  this.recycle = function (isFree) {
+  }
+  recycle(isFree) {
     if (this.delta) {
       this.delta.recycle(true);
     }
     isFree && propertyPool.release(this);
-  };
-
-  this.pause = function () {
+  }
+  pause() {
     this.animator.pause();
     this.delta && this.delta.pause();
-  };
-
-  this.resume = function () {
+  }
+  resume() {
     this.animator.resume();
     this.delta && this.delta.resume();
-  };
-});
+  }
+}
 
 
 
@@ -1073,8 +1127,8 @@ var Property = Class('Property', function () {
  *    instead of resetting to 0, the parameter changes directions towards 0
  *      and then back again, towards 1, etc.
  */
-var Parameter = Class('Parameter', function () {
-  this.init = function () {
+class Parameter {
+  constructor() {
     this.id = '';
     this.value = 0;
     this.resetInterval = 16;
@@ -1085,9 +1139,8 @@ var Parameter = Class('Parameter', function () {
     // ObjectPool book-keeping
     this._poolIndex = 0;
     this._obtainedFromPool = false;
-  };
-
-  this.reset = function (effect, data) {
+  }
+  reset(effect, data) {
     this.id = '' + data.id;
     this.value = data.value || 0;
     this.resetInterval = data.resetInterval || 16;
@@ -1107,14 +1160,18 @@ var Parameter = Class('Parameter', function () {
 
 
 
+
+
+
+
+
+
     this.update(0, false);
-  };
-
-  this.recycle = function () {
+  }
+  recycle() {
     parameterPool.release(this);
-  };
-
-  this.update = function (value, fromEmission) {
+  }
+  update(value, fromEmission) {
     var type = this.distributionType;
     switch (type) {
     // fixed and custom type parameters never update
@@ -1123,10 +1180,14 @@ var Parameter = Class('Parameter', function () {
       break;
 
 
+
+
     // random parameters are updated after each particle with a new value
     case 'random':
       this.value = random();
       break;
+
+
 
 
     // non-random parameters increment over index, time, or both
@@ -1137,6 +1198,8 @@ var Parameter = Class('Parameter', function () {
       if (fromEmission && type === 'time') {
         break;
       }
+
+
 
 
       value = this.value + this.resetDirection * value;
@@ -1159,21 +1222,18 @@ var Parameter = Class('Parameter', function () {
       }
       break;
     }
-  };
-
-  // only continuous effects step their parameters
-  this.step = function (dt) {
+  }
+  step(dt) {
     var type = this.distributionType;
     if (type === 'time' || type === 'indexOverTime') {
       this.update(dt / this.resetInterval, false);
     }
-  };
-
-  this.getValueBetween = function (minVal, maxVal) {
+  }
+  getValueBetween(minVal, maxVal) {
     var diff = maxVal - minVal;
     return minVal + diff * this.distributionFunction(this.value);
-  };
-});
+  }
+}
 
 
 

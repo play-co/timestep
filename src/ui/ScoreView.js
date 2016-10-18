@@ -31,10 +31,10 @@ import filter from 'ui/filter';
 var min = Math.min;
 var max = Math.max;
 
-exports = Class(View, function (supr) {
-  this.init = function (opts) {
+exports = class extends View {
+  constructor(opts) {
     opts.blockEvents = true;
-    supr(this, 'init', arguments);
+    super(...arguments);
 
     // characters that should be rendered
     this._text = '';
@@ -59,9 +59,8 @@ exports = Class(View, function (supr) {
     // both characterData and text are required before rendering text images
     opts.characterData && this.setCharacterData(opts.characterData);
     opts.text && this.setText(opts.text);
-  };
-
-  this.setCharacterData = function (data) {
+  }
+  setCharacterData(data) {
     this._characterData = data;
     var srcHeight = 0;
     for (var i in data) {
@@ -80,9 +79,8 @@ exports = Class(View, function (supr) {
     }
     this._srcHeight = srcHeight || this._srcHeight;
     this._text && this.setText(this._text);
-  };
-
-  this.setText = function (text) {
+  }
+  setText(text) {
     text = '' + text;
     var width = this.style.width;
     var height = this.style.height;
@@ -101,6 +99,8 @@ exports = Class(View, function (supr) {
     if (!this._characterData) {
       return;
     }
+
+
 
 
     var i = 0;
@@ -128,6 +128,8 @@ exports = Class(View, function (supr) {
     } else {
       this._container.style.scale = 1;
     }
+
+
 
 
     if (this._horizontalAlign === 'center') {
@@ -161,6 +163,8 @@ exports = Class(View, function (supr) {
       }
 
 
+
+
       var view = this._imageViews[i];
       var s = view.style;
       var w = data.width * scale;
@@ -178,6 +182,8 @@ exports = Class(View, function (supr) {
       }
 
 
+
+
       view.setImage(data.img);
 
       // update color filters
@@ -185,30 +191,28 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     while (i < this._imageViews.length) {
       this._imageViews[i].style.visible = false;
       i++;
     }
-  };
-
-  this.setFilterColor = function (color) {
+  }
+  setFilterColor(color) {
     this._filterColor = color;
     this._updateFilters();
-  };
-
-  this.clearFilterColor = function () {
+  }
+  clearFilterColor() {
     this.setFilterColor(null);
-  };
-
-  this._updateFilters = function () {
+  }
+  _updateFilters() {
     var fc = this._filterColor;
     var fcHash = this._getColorHash(fc);
     for (var i = 0, len = this._activeCharacters.length; i < len; i++) {
       this._updateFilter(this._imageViews[i], fc, fcHash);
     }
-  };
-
-  this._updateFilter = function (view, color, hash) {
+  }
+  _updateFilter(view, color, hash) {
     if (color) {
       if (!view.colorFilter) {
         view.colorFilter = new filter.MultiplyFilter(color);
@@ -223,16 +227,14 @@ exports = Class(View, function (supr) {
       view.removeFilter();
       view.lastColorHash = 0;
     }
-  };
-
-  this._getColorHash = function (color) {
+  }
+  _getColorHash(color) {
     var hash = 0;
     if (color) {
       hash = 1000 * color.r + color.g + 0.001 * color.b + 0.0001 * color.a;
     }
     return hash;
-  };
-
-});
+  }
+};
 
 export default exports;

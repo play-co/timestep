@@ -43,11 +43,13 @@ var isIOS7 = device.iosVersion === 7;
 var isIOSSafari = device.iosVersion >= 7 && !device.isIpad && !device.isStandalone && !device.isUIWebView;
 var enableLandscapeScroll = isIOSSafari;
 
-exports = Class(function () {
-  this.init = function (opts) {
+exports = class {
+  constructor(opts) {
     if (device.simulatingMobileNative || device.simulatingMobileBrowser) {
       this._simulateMobile = true;
     }
+
+
 
 
     this._evtQueue = [];
@@ -59,6 +61,8 @@ exports = Class(function () {
       }
       this.setElement(opts.el);
     }
+
+
 
 
     // Mouseover/out events do not fire for mobile browsers
@@ -76,11 +80,15 @@ exports = Class(function () {
     }
 
 
+
+
     if (opts.engine) {
       if (opts.engine.getOpt('minIOSLandscapeScroll') > device.iosVersion || opts.engine.getOpt('disableIOSLandscapeScroll')) {
         enableLandscapeScroll = false;
       }
     }
+
+
 
 
     this.enable();
@@ -92,9 +100,8 @@ exports = Class(function () {
       document.addEventListener('focus', bind(this, 'onFocusCapture'), true);
       document.addEventListener('blur', bind(this, 'onBlurCapture'), true);
     }
-  };
-
-  this.enable = function () {
+  }
+  enable() {
     if (this._isEnabled) {
       return;
     }
@@ -108,9 +115,8 @@ exports = Class(function () {
 
     // webkit
     this._addElEvents();
-  };
-
-  this.disable = function () {
+  }
+  disable() {
     if (!this._isEnabled) {
       return;
     }
@@ -134,33 +140,31 @@ exports = Class(function () {
     }
 
 
-    this._removeElEvents();
-  };
 
-  this.onFocusCapture = function (e) {
+
+    this._removeElEvents();
+  }
+  onFocusCapture(e) {
     var tag = e.target.tagName;
     if (tag == 'TEXTAREA' || tag == 'INPUT') {
       this._hasFocus = e.target;
       this._keyListener && this._keyListener.setEnabled(false);
     }
-  };
-
-  this.onBlurCapture = function (e) {
+  }
+  onBlurCapture(e) {
     if (this._hasFocus) {
       this._hasFocus = null;
       this._keyListener && this._keyListener.setEnabled(true);
     }
-  };
-
-  this._removeElEvents = function () {
+  }
+  _removeElEvents() {
     if (this._elEvents) {
       for (var i = 0, detach; detach = this._elEvents[i]; ++i) {
         detach();
       }
     }
-  };
-
-  this._addElEvents = function () {
+  }
+  _addElEvents() {
     this._removeElEvents();
 
     var el = this._el;
@@ -178,45 +182,43 @@ exports = Class(function () {
     }
 
 
+
+
     if (!device.isMobileBrowser && !device.isNative) {
       this._elEvents.push($.onEvent(el, 'mouseover', this, 'onMouseOver'));
       this._elEvents.push($.onEvent(el, 'mouseout', this, 'onMouseOut'));
     }
-  };
-
-  this.setElement = function (el) {
+  }
+  setElement(el) {
     this._removeElEvents();
     this._el = el;
     this._addElEvents();
-  };
-
-  this.onMouseOver = function () {
+  }
+  onMouseOver() {
     this._isOver = true;
-  };
-  this.onMouseOut = function () {
+  }
+  onMouseOut() {
     this._isOver = false;
-  };
-  this.onMouseDown = function () {
+  }
+  onMouseDown() {
     this._isMouseDown = true;
-  };
-  this.onMouseUp = function () {
+  }
+  onMouseUp() {
     this._isMouseUp = true;
-  };
-
-  // for native-compatibility, always returns an empty array in the browser
-  this.getEvents = function () {
+  }
+  getEvents() {
     return this._evtQueue;
-  };
-
-  this.allowScrollEvents = function (allowScrollEvents) {
+  }
+  allowScrollEvents(allowScrollEvents) {
     this._allowScrollEvents = allowScrollEvents;
-  };
-
-  this.handleMouse = function (type, evt) {
+  }
+  handleMouse(type, evt) {
     var target = evt.target;
     if (!device.useDOM && !this._isDown && this._el && evt.target != this._el) {
       return;
     }
+
+
 
 
     var isMobileBrowser = device.isMobileBrowser;
@@ -239,15 +241,21 @@ exports = Class(function () {
       }
 
 
+
+
       if (allowIOSScroll && type === eventTypes.SCROLL) {
         return;
       }
+
+
 
 
       if (!allowIOSScroll) {
         $.stopEvent(evt);
         evt.returnValue = false;
       }
+
+
 
 
       if (type === eventTypes.SELECT && enableLandscapeScroll && isLandscape && window.scrollY) {
@@ -265,6 +273,12 @@ exports = Class(function () {
 
 
 
+
+
+
+
+
+
     // On ios devices, this event could correspond to multiple touches.  We recall
     // ourselves with each changed touch independently.
     if (evt.touches) {
@@ -273,6 +287,8 @@ exports = Class(function () {
       }
       return;
     }
+
+
 
 
     var x, y;
@@ -309,9 +325,17 @@ exports = Class(function () {
       }
 
 
+
+
       x = evt.pageX - offsetX;
       y = evt.pageY - offsetY;
     }
+
+
+
+
+
+
 
 
 
@@ -334,6 +358,8 @@ exports = Class(function () {
     }
 
 
+
+
     if (type == eventTypes.START) {
       this._isDown = true;
     } else if (type == eventTypes.SELECT) {
@@ -344,6 +370,12 @@ exports = Class(function () {
         document.body.appendChild(this._toggleNode);
       }
     }
+
+
+
+
+
+
 
 
 
@@ -359,6 +391,8 @@ exports = Class(function () {
       }
       inputEvent.target = target._view;
     }
+
+
 
 
     if (type == eventTypes.SCROLL) {
@@ -386,6 +420,12 @@ exports = Class(function () {
 
 
 
+
+
+
+
+
+
       } else if (evt.detail) {
         inputEvent.scrollDelta = -evt.detail;
         inputEvent.scrollAxis = 'axis' in evt ? evt.axis == evt.VERTICAL_AXIS ? input.VERTICAL_AXIS : input.HORIZONTAL_AXIS : input.VERTICAL_AXIS;
@@ -397,9 +437,10 @@ exports = Class(function () {
     }
 
 
-    input.dispatchEvent(this._rootView, inputEvent);
-  };
 
-});
+
+    input.dispatchEvent(this._rootView, inputEvent);
+  }
+};
 
 export default exports;

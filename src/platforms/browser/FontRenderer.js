@@ -141,6 +141,8 @@ var loadingCustomFont = function (customFont) {
   }
 
 
+
+
   var settings = customFont.settings;
   var fontName = settings.fontName;
   var info = _customFontInfo[fontName];
@@ -160,6 +162,8 @@ var loadingCustomFont = function (customFont) {
       vertical: customFont.vertical
     };
   }
+
+
 
 
   var images = customFont.images = [];
@@ -213,6 +217,8 @@ var measure = function (ctx, fontInfo, text) {
   }
 
 
+
+
   if (failed) {
     var font = ctx.font;
     ctx.font = fontInfo.size.value + fontInfo.size.unit + ' ' + (ctx.defaultFontFamily || device.defaultFontFamily);
@@ -237,6 +243,8 @@ var renderCustomFont = function (ctx, x, y, maxWidth, text, color, fontInfo, ind
   }
 
 
+
+
   var customFont = fontInfo.customFont;
   var srcBuffers = index === 0 ? customFont.images : customFont.strokeImages;
   var dimensions = customFont.dimensions;
@@ -245,6 +253,8 @@ var renderCustomFont = function (ctx, x, y, maxWidth, text, color, fontInfo, ind
   if (width > maxWidth) {
     scale *= maxWidth / width;
   }
+
+
 
 
   var spacing = (customFont.settings.spacing || 0) * scale;
@@ -260,11 +270,29 @@ var renderCustomFont = function (ctx, x, y, maxWidth, text, color, fontInfo, ind
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
   if (ctx.textAlign === 'center') {
     x -= width / 2;
   } else if (ctx.textAlign === 'right') {
     x -= width;
   }
+
+
+
+
+
+
 
 
 
@@ -287,6 +315,8 @@ var renderCustomFont = function (ctx, x, y, maxWidth, text, color, fontInfo, ind
     }
     prevCharCode = charCode;
   }
+
+
 
 
   return true;
@@ -336,6 +366,8 @@ exports.wrapFillText = function (origFillText) {
     }
 
 
+
+
     // apply color filter if necessary
     var color = Color.parse(this.fillStyle);
     if (!this.filter) {
@@ -345,6 +377,8 @@ exports.wrapFillText = function (origFillText) {
       this.__bmpTxtColor = color;
       this.filter.update(color);
     }
+
+
 
 
     if (!renderCustomFont(this, x, y, maxWidth, text + '', this.fillStyle, fontInfo, 0)) {
@@ -377,6 +411,8 @@ exports.wrapStrokeText = function (origStrokeText) {
     }
 
 
+
+
     // apply color filter if necessary
     var color = Color.parse(this.strokeStyle);
     if (!this.filter) {
@@ -386,6 +422,8 @@ exports.wrapStrokeText = function (origStrokeText) {
       this.__bmpTxtColor = color;
       this.filter.update(color);
     }
+
+
 
 
     if (!renderCustomFont(this, x, y, maxWidth, text + '', this.strokeStyle, fontInfo, 1)) {

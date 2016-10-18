@@ -36,25 +36,22 @@ import DEFAULT_IMAGE from 'ui/resource/Image';
 
 var Image;
 
-exports.Filter = Class(function () {
-  this.init = function (opts) {
+exports.Filter = class {
+  constructor(opts) {
     this._color = new Color(opts);
     this._type = opts.type || '';
     this._views = [];
-  };
-
-  this.get = function () {
+  }
+  get() {
     var opts = this._color.get();
     opts.type = this._type;
     opts.priority = 0;
     return opts;
-  };
-
-  this.getType = function () {
+  }
+  getType() {
     return this._type;
-  };
-
-  this.update = function (opts) {
+  }
+  update(opts) {
     opts = opts || this.get();
     this._color.update(opts);
     this._type = opts.type !== undefined ? opts.type : this._type;
@@ -65,28 +62,24 @@ exports.Filter = Class(function () {
       view.__view.filterColor = this.getColorString();
       view.__view.filterType = Filter.TYPES[this.getType()] || 0;
     }
-  };
-
-  this.setView = function (view) {
+  }
+  setView(view) {
     var views = this._views;
     if (views.indexOf(view) === -1) {
       views.push(view);
     }
-  };
-
-  this.removeView = function (view) {
+  }
+  removeView(view) {
     var views = this._views;
     var i = views.indexOf(view);
     if (i !== -1) {
       views.splice(i, 1);
     }
-  };
-
-  this.getColorString = function () {
+  }
+  getColorString() {
     return this._color.toString();
-  };
-
-});
+  }
+};
 var Filter = exports.Filter;
 
 Filter.TYPES = {
@@ -100,71 +93,69 @@ Filter.TYPES = {
 /**
  * Linear add (lighten) filter.
  */
-exports.LinearAddFilter = Class(Filter, function (supr) {
-  this.init = function (opts) {
-    supr(this, 'init', arguments);
+exports.LinearAddFilter = class extends Filter {
+  constructor(opts) {
+    super(...arguments);
     this._type = 'LinearAdd';
-  };
-});
+  }
+};
 
 
 /**
  * Tint (averaging) filter.
  */
-exports.TintFilter = Class(Filter, function (supr) {
-  this.init = function (opts) {
-    supr(this, 'init', arguments);
+exports.TintFilter = class extends Filter {
+  constructor(opts) {
+    super(...arguments);
     this._type = 'Tint';
-  };
-});
+  }
+};
 
 
 /**
  * Multiply filter.
  */
-exports.MultiplyFilter = Class(Filter, function (supr) {
-  this.init = function (opts) {
-    supr(this, 'init', arguments);
+exports.MultiplyFilter = class extends Filter {
+  constructor(opts) {
+    super(...arguments);
     this._type = 'Multiply';
-  };
-});
+  }
+};
 
 
 /**
  * Positive masking.
  */
-exports.PositiveMaskFilter = Class(Filter, function (supr) {
-  this.init = function (opts) {
-    supr(this, 'init', arguments);
+exports.PositiveMaskFilter = class extends Filter {
+  constructor(opts) {
+    super(...arguments);
     this._type = 'PositiveMask';
     if (opts.image) {
       Image = Image || DEFAULT_IMAGE;
       this._mask = new Image({ url: opts.image });
     }
-  };
-
-  this.getMask = function () {
+  }
+  getMask() {
     return this._mask;
-  };
-});
+  }
+};
 
 
 /**
  * Negative masking.
  */
-exports.NegativeMaskFilter = Class(Filter, function (supr) {
-  this.init = function (opts) {
-    supr(this, 'init', arguments);
+exports.NegativeMaskFilter = class extends Filter {
+  constructor(opts) {
+    super(...arguments);
     this._type = 'NegativeMask';
     if (opts.image) {
       Image = Image || DEFAULT_IMAGE;
       this._mask = new Image({ url: opts.image });
     }
-  };
-
-  this.getMask = function () {
+  }
+  getMask() {
     return this._mask;
-  };
-});
+  }
+};
 
 export default exports;

@@ -29,8 +29,10 @@ let $ = browser.$;
 /**
  * @extends lib.PubSub
  */
-exports = Class(PubSub, function () {
-  this.init = function (opts) {
+exports = class extends PubSub {
+  constructor(opts) {
+    super();
+
     this._el = $({
       tag: 'input',
       parent: document.body,
@@ -53,16 +55,14 @@ exports = Class(PubSub, function () {
     $.onEvent(this._el, 'keypress', this, 'checkValue');
     $.onEvent(this._el, 'focus', this, 'onFocus');
     $.onEvent(this._el, 'blur', this, 'onBlur');
-  };
-
-  this.onFocus = function () {
+  }
+  onFocus() {
     this.publish('Focus');
-  };
-  this.onBlur = function () {
+  }
+  onBlur() {
     this.publish('Blur');
-  };
-
-  this.checkValue = function (evt) {
+  }
+  checkValue(evt) {
     var target = evt.target, start = target.selectionStart, end = target.selectionEnd;
 
     var value = this._el.value;
@@ -73,26 +73,29 @@ exports = Class(PubSub, function () {
     }
 
 
+
+
     if (start != this._selectionStart) {
       this._selectionStart = start;
       this.publish('ChangeSelectionStart', start);
     }
 
 
+
+
     if (end != this._selectionEnd) {
       this._selectionEnd = end;
       this.publish('ChangeSelectionEnd', end);
     }
-  };
-
-  this.focus = function () {
+  }
+  focus() {
     logger.log('focus');
     this._el.focus();
-  };
-  this.blur = function () {
+  }
+  blur() {
     this._el.blur();
-  };
-});
+  }
+};
 
 
 // Set desired tab- defaults to four space softtab
@@ -178,6 +181,8 @@ function checkTab(evt) {
         }
 
 
+
+
         t.value = t.value.slice(0, i).concat(tab).concat(t.value.slice(i, t.value.length));
 
         if (ss == se) {
@@ -211,5 +216,6 @@ function checkTab(evt) {
     t.selectionStart = t.selectionEnd = ss + tabLength;
   }
 }
+
 
 export default exports;

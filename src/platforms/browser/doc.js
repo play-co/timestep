@@ -40,11 +40,15 @@ var defaultScalingMode = !device.isMobileNative || device.simulating ? SCALING.R
 /**
  * @extends lib.PubSub
  */
-var Document = Class(PubSub, function () {
-  this.init = function () {
+class Document extends PubSub {
+  constructor() {
+    super();
+
     if (!$) {
       return;
     }
+
+
 
 
     var doc = GLOBAL.document;
@@ -66,21 +70,23 @@ var Document = Class(PubSub, function () {
       exports.postCreateHook(this);
     }
     this.setScalingMode(defaultScalingMode);
-  };
-
-  this.unsubscribeResize = function () {
+  }
+  unsubscribeResize() {
     device.screen.unsubscribe('Resize', this, 'onResize');
-  };
-
-  this.setEngine = function (engine) {
+  }
+  setEngine(engine) {
     if (engine == this._engine) {
       return;
     }
 
 
+
+
     if (engine.getOpt('minIOSLandscapeScroll') > device.iosVersion || engine.getOpt('disableIOSLandscapeScroll')) {
       enableLandscapeScroll = false;
     }
+
+
 
 
     this._engine = engine;
@@ -91,6 +97,8 @@ var Document = Class(PubSub, function () {
     }
 
 
+
+
     this.appendChild(this._canvas);
 
     if (this._canvas.getContext) {
@@ -99,13 +107,11 @@ var Document = Class(PubSub, function () {
         ctx.setParentNode(this._el);
       }
     }
-  };
-
-  this.getElement = function () {
+  }
+  getElement() {
     return this._el;
-  };
-
-  this.setScalingMode = function (scalingMode, opts) {
+  }
+  setScalingMode(scalingMode, opts) {
     this._scalingMode = scalingMode;
 
     var el = this._el, s = el.style;
@@ -132,9 +138,8 @@ var Document = Class(PubSub, function () {
     this._scalingOpts = opts;
     this.onResize();
     setTimeout(bind(this, 'onResize'), 1000);
-  };
-
-  this.onResize = function () {
+  }
+  onResize() {
     var isIOS = userAgent.OS_TYPE === 'iPhone OS';
     var el = this._el;
     var s = this._el.style;
@@ -151,6 +156,8 @@ var Document = Class(PubSub, function () {
     }
 
 
+
+
     logger.log('resize', device.width, device.height);
 
     var width = device.width;
@@ -164,6 +171,8 @@ var Document = Class(PubSub, function () {
     }
 
 
+
+
     // enforce maxWidth/maxHeight
     // if maxWidth/maxHeight is met, switch a RESIZE scaling mode to FIXED (center the document on the screen)
     if (opts.maxWidth && width > opts.maxWidth) {
@@ -174,6 +183,8 @@ var Document = Class(PubSub, function () {
     }
 
 
+
+
     if (opts.maxHeight && height > opts.maxHeight) {
       height = opts.maxHeight;
       if (mode == SCALING.RESIZE) {
@@ -182,12 +193,16 @@ var Document = Class(PubSub, function () {
     }
 
 
+
+
     // We may need to pause the engine when resizing on iOS
     var needsPause = isIOS && this._engine && this._engine.isRunning;
 
     switch (mode) {
     case SCALING.MANUAL:
       break;
+
+
 
 
     // do nothing
@@ -199,6 +214,8 @@ var Document = Class(PubSub, function () {
       s.width = width + 'px';
       s.height = height + 'px';
       break;
+
+
 
 
     case SCALING.RESIZE:
@@ -214,6 +231,8 @@ var Document = Class(PubSub, function () {
         if (ctx.resize) {
           ctx.resize(width, height);
         }
+
+
 
 
         var needsPause = isIOS && this._engine && this._engine.isRunning;
@@ -234,9 +253,13 @@ var Document = Class(PubSub, function () {
         }
 
 
+
+
         cs.width = scaledWidth + 'px';
         cs.height = scaledHeight + 'px';
       }
+
+
 
 
       s.width = scaledWidth + 'px';
@@ -249,34 +272,30 @@ var Document = Class(PubSub, function () {
     if (this._engine && !needsPause) {
       this._engine.render();
     }
-  };
-
-  this._setDim = function (width, height) {
+  }
+  _setDim(width, height) {
     if (this.width != width || this.height != height) {
       this.width = width;
       this.height = height;
       this.publish('Resize', width, height);
     }
-  };
-
-  this.setColors = function (bgColor, engineColor) {
+  }
+  setColors(bgColor, engineColor) {
     if (this._el) {
       this._el.style.background = engineColor;
       document.documentElement.style.background = document.body.style.background = bgColor;
     }
-  };
-
-  this.appendChild = function (el) {
+  }
+  appendChild(el) {
     this._el.appendChild(el);
-  };
-
-  this.getOffset = function () {
+  }
+  getOffset() {
     return {
       x: this._el.offsetLeft,
       y: this._el.offsetTop
     };
-  };
-});
+  }
+}
 
 exports = new Document();
 exports.SCALING = SCALING;

@@ -20,12 +20,11 @@ let exports = {};
  *
  * A simple class to express padding views.
  */
-exports = Class(function () {
-  this.init = function (args) {
+exports = class {
+  constructor(args) {
     this.update(args);
-  };
-
-  this.update = function (args) {
+  }
+  update(args) {
     if (args instanceof Padding) {
       this.top = args.top;
       this.right = args.right;
@@ -40,9 +39,13 @@ exports = Class(function () {
     }
 
 
+
+
     if (!args || !args.length) {
       args = [args || 0];
     }
+
+
 
 
     switch (args.length) {
@@ -65,24 +68,22 @@ exports = Class(function () {
       this.left = args[3];
       break;
     }
-  };
-
-  this.getVertical = function () {
+  }
+  getVertical() {
     return this.top + this.bottom;
-  };
-  this.getHorizontal = function () {
+  }
+  getHorizontal() {
     return this.left + this.right;
-  };
-
-  this.toString = function () {
+  }
+  toString() {
     return [
       this.top,
       this.right,
       this.bottom,
       this.left
     ].join(' ');
-  };
-});
+  }
+};
 var Padding = exports;
 
 export default exports;

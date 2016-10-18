@@ -28,6 +28,10 @@
 
 
 
+
+
+
+
   /**
      * @typedef {Object} FontDescriptor
      * @property {String} family
@@ -85,6 +89,8 @@
   }
 
 
+
+
   FontLoader.useAdobeBlank = !isIE || ieVer >= 11;
   FontLoader.useResizeEvent = isIE && ieVer < 11 && typeof document.attachEvent !== 'undefined';
   FontLoader.useIntervalChecking = window.opera || isIE && ieVer < 11 && !FontLoader.useResizeEvent;
@@ -115,11 +121,15 @@
       }
 
 
+
+
       if (this.timeout !== null) {
         this._timeoutId = window.setTimeout(function timeoutFire() {
           self._finish();
         }, this.timeout);
       }
+
+
 
 
       // Use constant line-height so there won't be changes in height because Adobe Blank uses zero width but not zero height.
@@ -168,6 +178,8 @@
           FontLoader.referenceFontFamilyVariationSizes[key].push(size);
         }
       }
+
+
 
 
       this._testContainer.parentNode.removeChild(this._testContainer);
@@ -283,6 +295,8 @@
         }
 
 
+
+
         styleAlias = variant[0];
         weightAlias = variant[1];
 
@@ -293,12 +307,16 @@
         }
 
 
+
+
         weight = parseInt(weightAlias, 10);
         if (isNaN(weight)) {
           return;
         } else {
           weight *= 100;
         }
+
+
 
 
         fonts.push({
@@ -331,6 +349,8 @@
       }
 
 
+
+
       FontLoader.adobeBlankReferenceSize = new Size(adobeBlankDiv.offsetWidth, adobeBlankDiv.offsetHeight);
 
       if (this._adobeBlankSizeWatcher !== null) {
@@ -343,6 +363,8 @@
         window.clearInterval(this._intervalId);
         adobeBlankDiv.parentNode.removeChild(adobeBlankDiv);
       }
+
+
 
 
       this._testContainer.parentNode.removeChild(this._testContainer);
@@ -427,6 +449,8 @@
       }
 
 
+
+
       // Append the testContainer after all test elements to minimize DOM insertions
       this._document.body.appendChild(this._testContainer);
 
@@ -497,12 +521,16 @@
       }
 
 
+
+
       fontKey = this._getFontMapKeyFromElement(element);
 
       // Check that the font of this element wasn't already marked as loaded by an element with different reference font family.
       if (typeof this._fontsMap[fontKey] === 'undefined') {
         return;
       }
+
+
 
 
       font = this._fontsMap[fontKey];
@@ -513,6 +541,8 @@
       if (this.delegate && typeof this.delegate.fontLoaded === 'function') {
         this.delegate.fontLoaded(font);
       }
+
+
 
 
       if (this._numberOfLoadedFonts === this._numberOfFonts) {
@@ -527,6 +557,8 @@
       }
 
 
+
+
       this._finished = true;
 
       if (this._adobeBlankSizeWatcher !== null) {
@@ -535,6 +567,8 @@
         }
         this._adobeBlankSizeWatcher = null;
       }
+
+
 
 
       for (i = 0; i < this._sizeWatchers.length; i++) {
@@ -550,14 +584,20 @@
       }
 
 
+
+
       if (this._timeoutId !== null) {
         window.clearTimeout(this._timeoutId);
       }
 
 
+
+
       if (this._intervalId !== null) {
         window.clearInterval(this._intervalId);
       }
+
+
 
 
       if (this.delegate) {
@@ -606,6 +646,8 @@
     this.width = width;
     this.height = height;
   }
+
+
 
 
   Size.sizeFromString = function (sizeString) {
@@ -693,6 +735,8 @@
   }
 
 
+
+
   SizeWatcher.states = {
     initialized: 0,
     generatedScrollWatchers: 1,
@@ -748,6 +792,8 @@
       }
 
 
+
+
       //noinspection JSBitwiseOperatorUsage
       if (this._direction & SizeWatcher.directions.decrease) {
         this._sizeDecreaseWatcherElm = this._document.createElement('div');
@@ -755,9 +801,13 @@
       }
 
 
+
+
       if (size) {
         this.setSize(size);
       }
+
+
 
 
       this._state = SizeWatcher.states.generatedScrollWatchers;
@@ -768,12 +818,16 @@
       }
 
 
+
+
       //noinspection JSBitwiseOperatorUsage
       if (this._direction & SizeWatcher.directions.decrease) {
         container.appendChild(this._sizeDecreaseWatcherElm);
       } else {
         container.appendChild(this._element);
       }
+
+
 
 
       this._state = SizeWatcher.states.appendedScrollWatchers;
@@ -796,9 +850,13 @@
       }
 
 
+
+
       if (this._size === null) {
         this.setSize(new Size(this._element.offsetWidth, this._element.offsetHeight));
       }
+
+
 
 
       //noinspection JSBitwiseOperatorUsage
@@ -811,6 +869,8 @@
       }
 
 
+
+
       // Check if scroll positions updated.
       if (!sizeDecreaseWatcherElmScrolled || !sizeIncreaseWatcherElmScrolled) {
         // Traverse tree to the top node to see if element is in the DOM tree.
@@ -820,12 +880,16 @@
         }
 
 
+
+
         if (parentNode === null) {
           throw new Error('Can\'t set scroll position of scroll watchers. SizeWatcher is not in the DOM tree.');
         } else if (console && typeof console.warn === 'function') {
           console.warn('SizeWatcher can\'t set scroll position of scroll watchers.');
         }
       }
+
+
 
 
       this._state = SizeWatcher.states.preparedScrollWatchers;
@@ -850,6 +914,8 @@
       }
 
 
+
+
       //noinspection JSBitwiseOperatorUsage
       if (this._direction & SizeWatcher.directions.decrease) {
         //noinspection JSValidateTypes
@@ -862,12 +928,16 @@
       }
 
 
+
+
       this._state = SizeWatcher.states.watchingForSizeChange;
     },
     endWatching: function () {
       if (this._state !== SizeWatcher.states.watchingForSizeChange) {
         throw new Error('SizeWatcher.endWatching() invoked before SizeWatcher.beginWatching()');
       }
+
+
 
 
       //noinspection JSBitwiseOperatorUsage
@@ -896,6 +966,8 @@
       }
 
 
+
+
       newSize = new Size(this._element.offsetWidth, this._element.offsetHeight);
       oldSize = this._size;
 
@@ -909,6 +981,8 @@
       }
 
 
+
+
       if (this._delegate && typeof this._delegate.sizeWatcherChangedSize === 'function') {
         this._delegate.sizeWatcherChangedSize(this);
 
@@ -917,6 +991,8 @@
           return;
         }
       }
+
+
 
 
       if (!this._continuous) {

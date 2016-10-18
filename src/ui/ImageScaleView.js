@@ -42,10 +42,18 @@ function adjustMiddleSlice(slices) {
 
 
 
+
+
+
+
 function renderCoverOrContain(ctx, opts) {
   if (!this._img) {
     return;
   }
+
+
+
+
 
 
 
@@ -85,6 +93,10 @@ function renderCoverOrContain(ctx, opts) {
     } else {
       scale = h / oh;
     }
+
+
+
+
 
 
 
@@ -144,6 +156,10 @@ function renderCoverOrContain(ctx, opts) {
 
 
 
+
+
+
+
   this._img.render(ctx, cache.sx, cache.sy, cache.sw, cache.sh, cache.x, cache.y, cache.w, cache.h);
 
   if (this.debug) {
@@ -152,6 +168,10 @@ function renderCoverOrContain(ctx, opts) {
     ctx.strokeRect(0, 0, s.width, s.height);
   }
 }
+
+
+
+
 
 
 
@@ -172,6 +192,10 @@ var renderFunctions = {
     if (!this._img) {
       return;
     }
+
+
+
+
 
 
 
@@ -228,6 +252,10 @@ var renderFunctions = {
 
 
 
+
+
+
+
     var s = this.style;
     var w = s.width;
     var h = s.height;
@@ -239,6 +267,10 @@ var renderFunctions = {
       cachedKey.absScale = scale;
       this._computeSlices(w, h, scale);
     }
+
+
+
+
 
 
 
@@ -256,16 +288,14 @@ var debugColors = [
   '#0000FF'
 ];
 
-exports = Class(View, function (supr) {
-  this.init = function (opts) {
-    supr(this, 'init', [merge(opts, defaults)]);
-  };
-
-  this.getScaleMethod = function () {
+exports = class extends View {
+  constructor(opts) {
+    super(merge(opts, defaults));
+  }
+  getScaleMethod() {
     return this._scaleMethod;
-  };
-
-  this.updateSlices = function (opts) {
+  }
+  updateSlices(opts) {
     opts = opts || this._opts;
 
     // reset slice cache
@@ -288,6 +318,8 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     opts.destSlices = opts.destSlices || opts.sourceSlices;
     // {horizontal: {left: n, center: n, right: n}, vertical: {top: n, middle: n, bottom: n}}
     this._sourceSlices = opts.sourceSlices;
@@ -299,6 +331,8 @@ exports = Class(View, function (supr) {
     if (!opts.sourceSlices || !(opts.sourceSlices.horizontal || opts.sourceSlices.vertical)) {
       throw new Error('slice views require sourceSlices.horizontal and/or sourceSlices.vertical');
     }
+
+
 
 
     if (opts.scaleMethod === '2slice') {
@@ -323,6 +357,8 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     if (opts.sourceSlices.horizontal) {
       var src = opts.sourceSlices.horizontal;
       var slices = [
@@ -336,6 +372,8 @@ exports = Class(View, function (supr) {
         slices[1] = width ? width - slices[0] - slices[2] : 0;
         adjustMiddleSlice(slices);
       }
+
+
 
 
       this._sourceSlicesHor = slices;
@@ -358,6 +396,8 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     if (opts.sourceSlices.vertical) {
       var src = opts.sourceSlices.vertical;
       var slices = [
@@ -370,6 +410,8 @@ exports = Class(View, function (supr) {
         slices[1] = height ? height - slices[0] - slices[2] : 0;
         adjustMiddleSlice(slices);
       }
+
+
 
 
       this._sourceSlicesVer = slices;
@@ -390,16 +432,17 @@ exports = Class(View, function (supr) {
         0
       ];
     }
-  };
-
-  this.updateOpts = function (opts) {
-    var opts = supr(this, 'updateOpts', arguments);
+  }
+  updateOpts(opts) {
+    var opts = super.updateOpts(...arguments);
     var changeScaleMethod = opts.scaleMethod && this._scaleMethod != opts.scaleMethod;
     if (changeScaleMethod) {
       var key = opts.scaleMethod;
       if (/slice$/.test(key)) {
         key = 'slice';
       }
+
+
 
 
       this.render = renderFunctions[key].bind(this);
@@ -409,9 +452,13 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     if ('debug' in opts) {
       this.debug = !!opts.debug;
     }
+
+
 
 
     if (opts.image) {
@@ -422,6 +469,12 @@ exports = Class(View, function (supr) {
 
 
 
+
+
+
+
+
+
     if (opts.verticalAlign) {
       this._renderCacheKey = {};
       this._verticalAlign = opts.verticalAlign;
@@ -429,6 +482,8 @@ exports = Class(View, function (supr) {
     if (opts.align || opts.horizontalAlign) {
       this._align = opts.align || opts.horizontalAlign;
     }
+
+
 
 
     // tile mode
@@ -445,16 +500,19 @@ exports = Class(View, function (supr) {
     }
 
 
-    return opts;
-  };
 
-  this._computeSlices = function (w, h, absScale) {
+
+    return opts;
+  }
+  _computeSlices(w, h, absScale) {
     var bounds = this._img.getBounds();
     var iw = bounds.width;
     var ih = bounds.height;
     if (iw <= 0 || ih <= 0) {
       return;
     }
+
+
 
 
     var image = this._img.getSource();
@@ -477,6 +535,8 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     if (sourceSlicesVer) {
       var ratio = this.style.fixedAspectRatio ? w / iw : 1;
       destSlicesVer[0] = this._destSlicesVer[0] * ratio;
@@ -491,10 +551,14 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     var marginLeft = bounds.marginLeft, origLeftSlice = sourceSlicesHor[0] + bounds.marginLeft;
     if (origLeftSlice && destSlicesHor[0]) {
       marginLeft *= destSlicesHor[0] / origLeftSlice;
     }
+
+
 
 
     var marginRight = bounds.marginRight, origRightSlice = sourceSlicesHor[2] + bounds.marginRight;
@@ -503,16 +567,22 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     var marginTop = bounds.marginTop, origTopSlice = sourceSlicesVer[0] + bounds.marginTop;
     if (origTopSlice && destSlicesVer[0]) {
       marginTop *= destSlicesVer[0] / origTopSlice;
     }
 
 
+
+
     var marginBottom = bounds.marginBottom, origBottomSlice = sourceSlicesVer[2] + bounds.marginBottom;
     if (origBottomSlice && destSlicesVer[2]) {
       marginBottom *= destSlicesVer[2] / origBottomSlice;
     }
+
+
 
 
     if (destSlicesHor[0]) {
@@ -522,11 +592,15 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     if (destSlicesVer[0]) {
       destSlicesVer[0] -= marginTop;
     } else {
       destSlicesVer[1] -= marginTop;
     }
+
+
 
 
     if (destSlicesHor[2]) {
@@ -536,11 +610,15 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     if (destSlicesVer[2]) {
       destSlicesVer[2] -= marginBottom;
     } else {
       destSlicesVer[1] -= marginBottom;
     }
+
+
 
 
     var heightBalance = 0;
@@ -584,6 +662,8 @@ exports = Class(View, function (supr) {
         }
 
 
+
+
         sx += sw;
         dx += dw;
       }
@@ -592,13 +672,11 @@ exports = Class(View, function (supr) {
 
       marginTop = 0;
     }
-  };
-
-  this.getImage = function () {
+  }
+  getImage() {
     return this._img;
-  };
-
-  this.setImage = function (img, opts) {
+  }
+  setImage(img, opts) {
     this._renderCacheKey = {};
 
     var autoSized = false;
@@ -612,6 +690,8 @@ exports = Class(View, function (supr) {
         iw = bounds.w + bounds.marginLeft + bounds.marginRight;
         ih = bounds.h + bounds.marginTop + bounds.marginBottom;
       }
+
+
 
 
       // resolve to object
@@ -628,12 +708,20 @@ exports = Class(View, function (supr) {
 
 
 
+
+
+
+
+
+
     if (img && !bounds) {
       if (!img.isError()) {
         img.doOnLoad(this, 'setImage', img);
       }
       return;
     }
+
+
 
 
     if (viewOpts.autoSize && this._scaleMethod == 'stretch' && !((viewOpts.width || viewOpts.layoutWidth) && (viewOpts.height || viewOpts.layoutHeight))) {
@@ -645,6 +733,8 @@ exports = Class(View, function (supr) {
         this.style.height = ih;
       }
     }
+
+
 
 
     viewOpts.image = this._img = img;
@@ -685,40 +775,39 @@ exports = Class(View, function (supr) {
       }
 
 
+
+
       if (viewOpts.autoSize && !autoSized) {
         img.doOnLoad(this, 'autoSize');
       }
 
 
+
+
       img.doOnLoad(this, 'needsRepaint');
     }
-  };
-
-  this.doOnLoad = function () {
+  }
+  doOnLoad() {
     if (arguments.length == 1) {
       this._img.doOnLoad(this, arguments[0]);
     } else {
       this._img.doOnLoad.apply(this._img, arguments);
     }
     return this;
-  };
-
-  this.autoSize = function () {
+  }
+  autoSize() {
     if (this._img && this._img.isLoaded()) {
       this.style.width = this._img.getWidth() || this._opts.width;
       this.style.height = this._img.getHeight() || this._opts.height;
     }
-  };
-
-  this.getOrigW = function () {
+  }
+  getOrigW() {
     return this._img.getOrigW();
-  };
-
-  this.getOrigH = function () {
+  }
+  getOrigH() {
     return this._img.getOrigH();
-  };
-
-  this._drawSlice = function (ctx, sliceData, i) {
+  }
+  _drawSlice(ctx, sliceData, i) {
     if (!sliceData.render || !this._opts.renderCenter && i == 4) {
       return;
     }
@@ -728,9 +817,8 @@ exports = Class(View, function (supr) {
       ctx.lineWidth = 1;
       ctx.strokeRect(sliceData[5] + 0.5, sliceData[6] + 0.5, sliceData[7] - 1, sliceData[8] - 1);
     }
-  };
-
-  this.getTag = function () {
+  }
+  getTag() {
     var url = this._img && (this._img.getOriginalURL() || this._img._map && this._img._map.url);
     if (url) {
       var match = url.match(/[^\/]+$/);
@@ -739,13 +827,17 @@ exports = Class(View, function (supr) {
       }
 
 
+
+
       url = ':' + url.substring(0, 16);
     }
 
 
+
+
     return 'ImageScaleView' + this.uid + (url || '');
-  };
-});
+  }
+};
 
 exports.prototype.getOrigWidth = exports.prototype.getOrigW;
 exports.prototype.getOrigHeight = exports.prototype.getOrigH;

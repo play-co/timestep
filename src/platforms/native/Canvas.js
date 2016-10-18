@@ -27,8 +27,8 @@ import Context2D from './Context2D';
 import setProperty from 'util/setProperty';
 
 // mock canvas object
-exports = Class(function () {
-  this.init = function (opts) {
+exports = class {
+  constructor(opts) {
     opts = merge(opts, {
       width: 1,
       height: 1,
@@ -45,9 +45,8 @@ exports = Class(function () {
     this.style = {};
     this._context2D = null;
     this.complete = true;
-  };
-
-  this.getContext = function (which, unloadListener) {
+  }
+  getContext(which, unloadListener) {
     if (which.toUpperCase() == '2D') {
       this.complete = true;
       return this._context2D || (this._context2D = new Context2D({
@@ -63,9 +62,8 @@ exports = Class(function () {
         })
       }));
     }
-  };
-
-  this.getBoundingClientRect = function () {
+  }
+  getBoundingClientRect() {
     return {
       bottom: this._height,
       height: this._height,
@@ -74,25 +72,22 @@ exports = Class(function () {
       top: this._width,
       width: 0
     };
-  };
-
-  this.toDataURL = function () {
+  }
+  toDataURL() {
     return NATIVE.gl.toDataURL(this._context2D);
-  };
-
-  this.destroy = function () {
+  }
+  destroy() {
     if (this._context2D) {
       this._context2D.destroy();
     }
-  };
-
-  this.resize = function (width, height) {
+  }
+  resize(width, height) {
     if (this._context2D) {
       // this will set our own _width/_height
       this._context2D.resize(width, height);
     }
-  };
-});
+  }
+};
 GLOBAL.HTMLCanvasElement = exports;
 var Canvas = GLOBAL.HTMLCanvasElement;
 

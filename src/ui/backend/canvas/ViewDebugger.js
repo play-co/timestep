@@ -17,8 +17,8 @@ import { merge } from 'base';
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-exports = Class(function () {
-  this.init = function (target, opts) {
+exports = class {
+  constructor(target, opts) {
     this._target = target;
     this._opts = opts = merge(opts, {
       trackClicks: false,
@@ -32,9 +32,8 @@ exports = Class(function () {
 
     this._flashState = 0;
     this._nextFlash = 0;
-  };
-
-  this.preRender = function (ctx) {
+  }
+  preRender(ctx) {
     if (!this._time) {
       this._time = +new Date();
     }
@@ -51,9 +50,8 @@ exports = Class(function () {
       ctx.strokeRect(0, 0, s.width, s.height);
       ctx.restore();
     }
-  };
-
-  this.postRender = function (ctx) {
+  }
+  postRender(ctx) {
     var s = this._target.style;
 
     var t = this._target;
@@ -70,6 +68,8 @@ exports = Class(function () {
         }
       }
     }
+
+
 
 
     if (this.flash) {
@@ -95,9 +95,11 @@ exports = Class(function () {
       }
 
 
+
+
       ctx.fillRect(0, 0, t.style.width, t.style.height);
     }
-  };
-});
+  }
+};
 
 export default exports;

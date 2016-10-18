@@ -20,8 +20,8 @@ import { merge } from 'base';
 import ImageScaleView from 'ui/ImageScaleView';
 import Image from 'ui/resource/Image';
 
-exports = Class(ImageScaleView, function (supr) {
-  this.init = function (opts) {
+exports = class extends ImageScaleView {
+  constructor(opts) {
     this._minValue = 'minValue' in opts ? opts.minValue : 0;
     this._maxValue = 'maxValue' in opts ? opts.maxValue : 100;
     this._thumbSize = opts.thumbSize || 'auto';
@@ -29,14 +29,13 @@ exports = Class(ImageScaleView, function (supr) {
     this._increment = 'increment' in opts ? opts.increment : false;
 
     opts = merge(opts, opts.track);
-    supr(this, 'init', [opts]);
+    super(opts);
 
     this._value = Math.max(Math.min(opts.value || 0, this._maxValue), this._minValue);
 
     this.updateOpts(opts);
-  };
-
-  this._initThumb = function (opts) {
+  }
+  _initThumb(opts) {
     var thumb = merge({ superview: this }, opts.thumb);
 
     if (!thumb.pressed) {
@@ -47,6 +46,8 @@ exports = Class(ImageScaleView, function (supr) {
     }
 
 
+
+
     this._thumbActiveImage = thumb.active instanceof Image ? thumb.active : new Image({ url: thumb.active || '' });
     this._thumbPressedImage = thumb.pressed instanceof Image ? thumb.pressed : new Image({ url: thumb.pressed || '' });
     this._thumbInactiveImage = thumb.inactive instanceof Image ? thumb.inactive : new Image({ url: thumb.inactive || '' });
@@ -54,13 +55,12 @@ exports = Class(ImageScaleView, function (supr) {
     thumb.inactive = thumb.inactive || thumb.active;
 
     this._thumb = new ImageScaleView(thumb);
-  };
-
-  this.updateOpts = function (opts) {
+  }
+  updateOpts(opts) {
     // This method updates all options which don't have a setter in this class!
     opts = merge(opts, opts.track);
 
-    supr(this, 'updateOpts', [opts]);
+    super.updateOpts(opts);
 
     var track = opts.track || {};
     if (!track.inactive) {
@@ -73,9 +73,8 @@ exports = Class(ImageScaleView, function (supr) {
     this._updateStyle();
 
     return opts;
-  };
-
-  this._updateStyle = function () {
+  }
+  _updateStyle() {
     var opts = this._opts;
     var active = this._active;
 
@@ -86,17 +85,15 @@ exports = Class(ImageScaleView, function (supr) {
       this._thumb.setImage(active ? this._thumbActiveImage : this._thumbInactiveImage);
       this.setImage(active ? this._activeImage : this._inactiveImage);
     }
-  };
-
-  this._publicValue = function () {
+  }
+  _publicValue() {
     // The value which will be published, depends on increment...
     if (this._increment === false) {
       return this._value;
     }
     return Math.round(this._value / this._increment) * this._increment;
-  };
-
-  this._valueFromThumbPosition = function (pos) {
+  }
+  _valueFromThumbPosition(pos) {
     var fields = this._fields;
     // Which fields to use, based on orientation...
     var padding = this.style.padding;
@@ -107,9 +104,8 @@ exports = Class(ImageScaleView, function (supr) {
     pos = pos == undefined ? this._thumb.style[this._fields.pos] : pos;
 
     return this._minValue + (pos - padPos) / (size - padSize - this._thumbLength) * (this._maxValue - this._minValue);
-  };
-
-  this._positionFromPoint = function (pt) {
+  }
+  _positionFromPoint(pt) {
     var fields = this._fields;
     // Which fields to use, based on orientation...
     var padding = this.style.padding;
@@ -119,9 +115,8 @@ exports = Class(ImageScaleView, function (supr) {
     var max = this.style[fields.size] - (padSize + this._thumbLength);
 
     return padPos + Math.min(Math.max(pos, 0), max);
-  };
-
-  this.onInputStart = function (event, pt) {
+  }
+  onInputStart(event, pt) {
     if (this._active) {
       var endPos = this._positionFromPoint(pt);
       var pos = {};
@@ -140,30 +135,26 @@ exports = Class(ImageScaleView, function (supr) {
 
       this.startDrag();
     }
-  };
-
-  this.onDrag = function (dragEvt, moveEvt) {
+  }
+  onDrag(dragEvt, moveEvt) {
     if (this._active && moveEvt.point[this.uid]) {
       this._thumb.style[this._fields.pos] = this._positionFromPoint(moveEvt.point[this.uid]);
       this._value = this._valueFromThumbPosition();
       this.publish('Change', this._publicValue(this._value));
     }
-  };
-
-  this.onDragStop = function (event) {
+  }
+  onDragStop(event) {
     this._updateStyle();
-  };
-
-  this.onInputSelect = function (event, pt) {
+  }
+  onInputSelect(event, pt) {
     if (this._active) {
       this._updateStyle();
       this._thumb.style[this._fields.pos] = this._positionFromPoint(pt);
       this._value = this._valueFromThumbPosition();
       this.publish('Change', this._publicValue(this._value));
     }
-  };
-
-  this.setValue = function (value) {
+  }
+  setValue(value) {
     this._value = Math.max(Math.min(value, this._maxValue), this._minValue);
 
     var fields = this._fields;
@@ -179,38 +170,31 @@ exports = Class(ImageScaleView, function (supr) {
     this._thumb.getAnimation().now(pos, 100);
 
     this.publish('Change', this._publicValue(this._value));
-  };
-
-  this.getValue = function () {
+  }
+  getValue() {
     return this._publicValue(this._value);
-  };
-
-  this.setIncrement = function (increment) {
+  }
+  setIncrement(increment) {
     this._increment = increment;
     this.publish('Change', this._publicValue(this._value));
-  };
-
-  this.setMinValue = function (minValue) {
+  }
+  setMinValue(minValue) {
     this._minValue = minValue;
     this.setValue(this._value);
-  };
-
-  this.setMaxValue = function (maxValue) {
+  }
+  setMaxValue(maxValue) {
     this._maxValue = maxValue;
     this.setValue(this._value);
-  };
-
-  this.setThumbSize = function (thumbSize) {
+  }
+  setThumbSize(thumbSize) {
     this._thumbSize = thumbSize;
     this.reflow();
-  };
-
-  this.setActive = function (active) {
+  }
+  setActive(active) {
     this._active = active;
     this._updateStyle();
-  };
-
-  this.reflow = function () {
+  }
+  reflow() {
     var thumbStyle = this._thumb.style;
     var style = this.style;
     var thumbThickness;
@@ -244,8 +228,10 @@ exports = Class(ImageScaleView, function (supr) {
     }
 
 
+
+
     this.setValue(this._value);
-  };
-});
+  }
+};
 
 export default exports;

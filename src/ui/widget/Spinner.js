@@ -35,19 +35,15 @@ var defaults = {
 };
 
 
-exports = Class(View, function (supr) {
-  this.tag = 'Spinner';
-  this._t = 0;
-
-  this.init = function (opts) {
+exports = class extends View {
+  constructor(opts) {
     var _opts = merge(opts, defaults);
-    supr(this, 'init', [_opts]);
+    super(_opts);
 
     this._opts = _opts;
     this._step = 2 * Math.PI / this._opts.spokes;
-  };
-
-  this.tick = function (dt) {
+  }
+  tick(dt) {
     this._t += dt;
 
     var r = this._t / 1000 % (1 / this._opts.cycles) * Math.PI;
@@ -58,9 +54,8 @@ exports = Class(View, function (supr) {
     if (oldR != r) {
       this.needsRepaint();
     }
-  };
-
-  this.render = function (ctx) {
+  }
+  render(ctx) {
     ctx.fillStyle = this._opts.backgroundColor;
     var alpha = ctx.globalAlpha;
 
@@ -73,6 +68,8 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     y = h - radius;
     ctx.fillRect(0, radius, w, y - radius);
 
@@ -81,6 +78,8 @@ exports = Class(View, function (supr) {
       x = Math.round(radius - Math.sqrt(2 * j * radius - j * j));
       ctx.fillRect(x, y + i, w - 2 * x, 1);
     }
+
+
 
 
     ctx.fillStyle = this._opts.color;
@@ -93,7 +92,9 @@ exports = Class(View, function (supr) {
       ctx.globalAlpha = alpha * Math.max(0.1, (i - trail) / trail);
       ctx.fillRect(10, -thickness / 2, w - 15, thickness);
     }
-  };
-});
+  }
+};
 
+exports.prototype.tag = 'Spinner';
+exports.prototype._t = 0;
 export default exports;

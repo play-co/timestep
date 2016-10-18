@@ -57,9 +57,13 @@ for (var type in exports.nativeTypes) {
 }
 
 
+
+
 for (var type in exports.htmlTypes) {
   exports.htmlTypes[type.toLowerCase()] = exports.htmlTypes[type];
 }
+
+
 
 
 exports.has = function (type) {

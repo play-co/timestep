@@ -41,10 +41,8 @@ var currentFrame = 0;
 var needsInitialization = true;
 
 
-var FilterRenderer = Class(function () {
-  this.cache = new LRUCache(CACHE_SIZE);
-
-  this.initialize = function () {
+class FilterRenderer {
+  initialize() {
     Canvas = device.get('Canvas');
     noCacheCanvas = new Canvas({ useWebGL: CONFIG.useWebGL });
     needsInitialization = false;
@@ -54,15 +52,13 @@ var FilterRenderer = Class(function () {
       // If we're using canvas caching, set up the tick subscription
       Engine.get().subscribe('Tick', this, this.onTick);
     }
-  };
-
-  this.onTick = function (dt) {
+  }
+  onTick(dt) {
     currentFrame++;
     activeChecks = pendingChecks;
     pendingChecks = {};
-  };
-
-  this.renderFilter = function (ctx, srcImg, srcX, srcY, srcW, srcH) {
+  }
+  renderFilter(ctx, srcImg, srcX, srcY, srcW, srcH) {
     if (needsInitialization) {
       this.initialize();
     }
@@ -77,6 +73,8 @@ var FilterRenderer = Class(function () {
     }
 
 
+
+
     if (this.useCache) {
       var cacheKey = this.getCacheKey(srcImg.getURL(), srcX, srcY, srcW, srcH, filter);
       var resultImg = this.cache.get(cacheKey);
@@ -84,6 +82,8 @@ var FilterRenderer = Class(function () {
         return resultImg;
       }
     }
+
+
 
 
     var shouldCache = this.useCache && this.testShouldCache(cacheKey);
@@ -96,10 +96,14 @@ var FilterRenderer = Class(function () {
     }
 
 
+
+
     switch (filterName) {
     case 'LinearAdd':
       this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter, 'lighter', resultImg);
       break;
+
+
 
 
     case 'Tint':
@@ -107,14 +111,20 @@ var FilterRenderer = Class(function () {
       break;
 
 
+
+
     case 'Multiply':
       this.renderMultiply(ctx, srcImg, srcX, srcY, srcW, srcH, filter, resultImg);
       break;
 
 
+
+
     case 'NegativeMask':
       this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(), 'source-in', resultImg);
       break;
+
+
 
 
     case 'PositiveMask':
@@ -128,16 +138,15 @@ var FilterRenderer = Class(function () {
     }
 
 
-    return resultImg;
-  };
 
-  this.testShouldCache = function (key) {
+
+    return resultImg;
+  }
+  testShouldCache(key) {
     var checkFrame = pendingChecks[key] = activeChecks[key] || currentFrame;
     return currentFrame - checkFrame > CACHE_FRAME_THRESHOLD;
-  };
-
-
-  this.renderColorFilter = function (ctx, srcImg, srcX, srcY, srcW, srcH, filter, op, destCanvas) {
+  }
+  renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter, op, destCanvas) {
     var result = destCanvas;
     var resultCtx = result.getContext('2d');
     // render the base image
@@ -151,9 +160,8 @@ var FilterRenderer = Class(function () {
     resultCtx.globalCompositeOperation = 'destination-in';
     srcImg.render(resultCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
     return result;
-  };
-
-  this.renderMultiply = function (ctx, srcImg, srcX, srcY, srcW, srcH, filter, destCanvas) {
+  }
+  renderMultiply(ctx, srcImg, srcX, srcY, srcW, srcH, filter, destCanvas) {
     var color = filter.get();
     var result = destCanvas;
     var resultCtx = result.getContext('2d');
@@ -172,9 +180,8 @@ var FilterRenderer = Class(function () {
     // put the updated rgb data into our new canvas
     resultCtx.putImageData(imgData, 0, 0);
     return result;
-  };
-
-  this.renderMask = function (ctx, srcImg, srcX, srcY, srcW, srcH, mask, op, destCanvas) {
+  }
+  renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, mask, op, destCanvas) {
     var result = destCanvas;
     var resultCtx = result.getContext('2d');
     // render the mask image
@@ -188,13 +195,11 @@ var FilterRenderer = Class(function () {
     resultCtx.globalCompositeOperation = op;
     srcImg.render(resultCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
     return result;
-  };
-
-  this.clearCache = function () {
+  }
+  clearCache() {
     this.cache.removeAll();
-  };
-
-  this.getCacheKey = function (url, srcX, srcY, srcW, srcH, filter) {
+  }
+  getCacheKey(url, srcX, srcY, srcW, srcH, filter) {
     var filterType = filter && filter.getType && filter.getType();
     var suffix;
     if (filterType === 'NegativeMask' || filterType === 'PositiveMask') {
@@ -206,9 +211,8 @@ var FilterRenderer = Class(function () {
     }
     var cacheKey = filterType + '|' + url + '|' + srcX + '|' + srcY + '|' + srcW + '|' + srcH + '|' + suffix;
     return cacheKey;
-  };
-
-  this.getCanvas = function (width, height) {
+  }
+  getCanvas(width, height) {
     var result;
     if (unusedCanvas) {
       result = unusedCanvas;
@@ -222,10 +226,10 @@ var FilterRenderer = Class(function () {
       });
     }
     return result;
-  };
+  }
+}
 
-});
-
+FilterRenderer.prototype.cache = new LRUCache(CACHE_SIZE);
 exports = new FilterRenderer();
 
 export default exports;

@@ -49,9 +49,15 @@ exports = function (subject, groupID) {
 
 
 
+
+
+
+
   if (device.useDOM && subject instanceof IView && !groupID) {
     return subject.getAnimation();
   }
+
+
 
 
   // create a group for this groupID if it doesn't exist
@@ -67,6 +73,8 @@ exports = function (subject, groupID) {
     anim.groupID = groupID;
     anims[groupID] = anim;
   }
+
+
 
 
   return anim;
@@ -156,21 +164,19 @@ exports.getGroup = function (groupID) {
  *     myGroup.once('Finish', function () { ... });
  * - exposes clear, commit, pause, and resume to apply to all group animations
  */
-var Group = Class(Emitter, function () {
-  this.init = function (groupID) {
+class Group extends Emitter {
+  constructor(groupID) {
+    super();
+
     this.groupID = groupID + '';
     this.anims = [];
-  };
-
-  // add an active animator to the group
-  this.add = function (anim) {
+  }
+  add(anim) {
     if (this.anims.indexOf(anim) === -1) {
       this.anims.push(anim);
     }
-  };
-
-  // remove an inactive animator from the group
-  this.remove = function (anim) {
+  }
+  remove(anim) {
     var index = this.anims.indexOf(anim);
     if (index !== -1) {
       this.anims.splice(index, 1);
@@ -180,49 +186,39 @@ var Group = Class(Emitter, function () {
         this.publish('Finish');
       }
     }
-  };
-
-  // are there any active animators in the group?
-  this.isActive = function () {
+  }
+  isActive() {
     return this.anims.length > 0;
-  };
-
-  // clear all the animators in the group
-  this.clear = function () {
+  }
+  clear() {
     var anims = this.anims;
     for (var i = anims.length - 1; i >= 0; i--) {
       anims[i].clear();
     }
     return this;
-  };
-
-  // commit all the animators in the group
-  this.commit = function () {
+  }
+  commit() {
     var anims = this.anims;
     for (var i = anims.length - 1; i >= 0; i--) {
       anims[i].commit();
     }
     return this;
-  };
-
-  // pause all the animators in the group
-  this.pause = function () {
+  }
+  pause() {
     var anims = this.anims;
     for (var i = anims.length - 1; i >= 0; i--) {
       anims[i].pause();
     }
     return this;
-  };
-
-  // resume all the animators in the group
-  this.resume = function () {
+  }
+  resume() {
     var anims = this.anims;
     for (var i = anims.length - 1; i >= 0; i--) {
       anims[i].resume();
     }
     return this;
-  };
-});
+  }
+}
 
 var TRANSITIONS = [
   transitions.easeInOut,
@@ -337,8 +333,8 @@ function getTransition(n) {
 }
 ;
 
-var Frame = Class(function () {
-  this.init = function () {
+class Frame {
+  constructor() {
     this.subject = null;
     this.target = null;
     this.duration = 0;
@@ -349,9 +345,8 @@ var Frame = Class(function () {
     this.pool = null;
     this._poolIndex = 0;
     this._obtainedFromPool = false;
-  };
-
-  this.reset = function (subject, target, duration, transition) {
+  }
+  reset(subject, target, duration, transition) {
     this.subject = subject;
     this.target = target;
     this.duration = duration === 0 ? 0 : duration || 500;
@@ -361,37 +356,29 @@ var Frame = Class(function () {
     if (this.duration < 0) {
       throw new Error('Animations cannot have negative durations!');
     }
-  };
-
-  this.recycle = function () {
+  }
+  recycle() {
     this.pool.release(this);
-  };
+  }
+  exec(tt, t, debug) {
+  }
+  debugLog(tt) {
+  }
+}
 
-  this.exec = function (tt, t, debug) {
-  };
-  this.debugLog = function (tt) {
-  };
-});
-
-var CallbackFrame = Class(Frame, function (supr) {
-  this.reset = function (subject, target, duration, transition) {
-    supr(this, 'reset', [
-      subject,
-      target,
-      duration,
-      transition
-    ]);
+class CallbackFrame extends Frame {
+  reset(subject, target, duration, transition) {
+    super.reset(subject, target, duration, transition);
     // CallbackFrames act like tick functions when given durations
     this.duration = duration || 0;
-  };
-
-  this.exec = function (tt, t, debug) {
+  }
+  exec(tt, t, debug) {
     this.target.call(this.subject, tt, t, debug);
-  };
-});
+  }
+}
 
-var ObjectFrame = Class(Frame, function () {
-  this.exec = function (tt, t, debug) {
+class ObjectFrame extends Frame {
+  exec(tt, t, debug) {
     // set starting values on first execution
     if (!this.base) {
       this.base = {};
@@ -401,25 +388,26 @@ var ObjectFrame = Class(Frame, function () {
     }
 
 
+
+
     for (var key in this.target) {
       var baseValue = this.base[key];
       this.subject[key] = baseValue + tt * (this.target[key] - baseValue);
     }
     debug && this.debugLog(tt);
-  };
-
-  this.debugLog = function (tt) {
+  }
+  debugLog(tt) {
     var changed = {};
     for (var key in this.target) {
       changed[key] = this.subject[key] + ' -> ' + this.target[key];
     }
     logger.log(this.duration, tt, JSON.stringify(changed));
-  };
-});
+  }
+}
 
 // a ViewStyleFrame updates a view's style in exec
-var ViewStyleFrame = Class(Frame, function () {
-  this.resolveDeltas = function (againstStyle) {
+class ViewStyleFrame extends Frame {
+  resolveDeltas(againstStyle) {
     var style = this.target;
     for (var key in style) {
       var baseKey = key.substring(1);
@@ -428,9 +416,8 @@ var ViewStyleFrame = Class(Frame, function () {
         delete style[key];
       }
     }
-  };
-
-  this.exec = function (tt, t, debug) {
+  }
+  exec(tt, t, debug) {
     var oldStyle = this._baseStyle;
     var newStyle = this.target;
     var viewStyle = this.subject.style;
@@ -442,6 +429,8 @@ var ViewStyleFrame = Class(Frame, function () {
     }
 
 
+
+
     for (var key in newStyle) {
       if (key in oldStyle) {
         var oldValue = oldStyle[key];
@@ -449,9 +438,8 @@ var ViewStyleFrame = Class(Frame, function () {
       }
     }
     debug && this.debugLog(tt);
-  };
-
-  this.debugLog = function (tt) {
+  }
+  debugLog(tt) {
     var changed = {};
     var newStyle = this.target;
     var viewStyle = this.subject.style;
@@ -459,20 +447,21 @@ var ViewStyleFrame = Class(Frame, function () {
       changed[key] = viewStyle[key] + ' -> ' + newStyle[key];
     }
     logger.log(timer.now, this.duration, tt, JSON.stringify(changed));
-  };
-});
+  }
+}
 
-exports.Animator = Class(Emitter, function () {
-  this.init = function (subject) {
+exports.Animator = class extends Emitter {
+  constructor(subject) {
+    super();
+
     this.subject = subject;
     this._queue = [];
     this._elapsed = 0;
     this._isPaused = false;
     this._isScheduled = false;
     this._debug = false;
-  };
-
-  this.clear = function () {
+  }
+  clear() {
     var queue = this._queue;
     var len = queue.length;
     for (var i = 0; i < len; i++) {
@@ -483,52 +472,43 @@ exports.Animator = Class(Emitter, function () {
     this._unschedule();
     this._removeFromGroup();
     return this;
-  };
-
-  // Careful: pause will *not* fire the finish event, so anything pending the end of the
-  // animation will have to wait until the animation is resumed.
-  this.pause = function () {
+  }
+  pause() {
     if (!this._isPaused) {
       this._isPaused = true;
       this._unschedule();
     }
     return this;
-  };
-
-  this.resume = function () {
+  }
+  resume() {
     if (this._isPaused) {
       this._isPaused = false;
       this._schedule();
     }
     return this;
-  };
-
-  this._schedule = function () {
+  }
+  _schedule() {
     if (!this._isScheduled) {
       this._isScheduled = true;
       engine.subscribe('Tick', this, 'onTick');
     }
-  };
-
-  this._unschedule = function () {
+  }
+  _unschedule() {
     if (this._isScheduled) {
       this._isScheduled = false;
       engine.unsubscribe('Tick', this, 'onTick');
     }
-  };
-
-  this.isPaused = function () {
+  }
+  isPaused() {
     return this._isPaused;
-  };
-  this.hasFrames = function () {
+  }
+  hasFrames() {
     return !!this._queue[0];
-  };
-
-  this.wait = function (duration) {
+  }
+  wait(duration) {
     return this.then(undefined, duration);
-  };
-
-  this.buildFrame = function (target, duration, transition) {
+  }
+  buildFrame(target, duration, transition) {
     var frame;
     var subject = this.subject;
     var targetType = typeof target;
@@ -544,31 +524,29 @@ exports.Animator = Class(Emitter, function () {
     }
     frame.reset(subject, target, duration, transition);
     return frame;
-  };
-
-  this.now = function (target, duration, transition) {
+  }
+  now(target, duration, transition) {
     this.clear();
     return this.then(target, duration, transition);
-  };
-
-  this.then = function (target, duration, transition) {
+  }
+  then(target, duration, transition) {
     if (!this._queue.length) {
       this._elapsed = 0;
     }
+
+
 
 
     this._queue.push(this.buildFrame(target, duration, transition));
     this._schedule();
     this._addToGroup();
     return this;
-  };
-
-  this.debug = function () {
+  }
+  debug() {
     this._debug = true;
     return this;
-  };
-
-  this.commit = function () {
+  }
+  commit() {
     this.resume();
     this._elapsed = 0;
     for (var i = 0, p; p = this._queue[i]; ++i) {
@@ -576,21 +554,23 @@ exports.Animator = Class(Emitter, function () {
     }
 
 
+
+
     this.next();
     return this;
-  };
-
-  this.onTick = function (dt) {
+  }
+  onTick(dt) {
     if (!this._isScheduled) {
       return;
     }
 
 
+
+
     this._elapsed += dt;
     this.next();
-  };
-
-  this.next = function () {
+  }
+  next() {
     var p = this._queue[0];
     while (p) {
       var duration = p.duration;
@@ -603,6 +583,8 @@ exports.Animator = Class(Emitter, function () {
       }
 
 
+
+
       p.exec(tt, t, this._debug);
 
       // remove frame if finished and queue wasn't modified by a callback
@@ -612,49 +594,49 @@ exports.Animator = Class(Emitter, function () {
       }
 
 
+
+
       // if paused during a callback or frame not finished, don't continue
       if (!frameFinished || this._isPaused) {
         return;
       }
 
 
+
+
       p = this._queue[0];
     }
+
+
 
 
     // nothing left in the queue!
     this._unschedule();
     this._removeFromGroup();
-  };
-
-  this._addToGroup = function () {
+  }
+  _addToGroup() {
     var group = groups[this.groupID];
     group && group.add(this);
-  };
-
-  this._removeFromGroup = function () {
+  }
+  _removeFromGroup() {
     var group = groups[this.groupID];
     group && group.remove(this);
-  };
-});
+  }
+};
 var Animator = exports.Animator;
 
-var ViewAnimator = Class(Animator, function (supr) {
-  this.buildFrame = function (target, duration, transition) {
+class ViewAnimator extends Animator {
+  buildFrame(target, duration, transition) {
     if (typeof target === 'object') {
       var frame = viewStyleFramePool.obtain();
       frame.pool = viewStyleFramePool;
       frame.reset(this.subject, target, duration, transition);
       return frame;
     } else {
-      return supr(this, 'buildFrame', [
-        target,
-        duration,
-        transition
-      ]);
+      return super.buildFrame(target, duration, transition);
     }
-  };
-});
+  }
+}
 
 // used to get/set native or browser ViewAnimator constructors
 exports.getViewAnimator = function () {

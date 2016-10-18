@@ -142,6 +142,8 @@ var loadingCustomFont = function (customFont) {
   }
 
 
+
+
   var settings = customFont.settings;
   var fontName = settings.fontName;
   var info = _customFontInfo[fontName];
@@ -161,6 +163,8 @@ var loadingCustomFont = function (customFont) {
       vertical: customFont.vertical
     };
   }
+
+
 
 
   var images = customFont.images = [];
@@ -217,6 +221,8 @@ exports.wrapFillText = function (origFillText) {
     }
 
 
+
+
     var color = Color.parse(this.fillStyle);
     if (this.__compositeColor !== color) {
       this.__compositeColor = color;
@@ -243,6 +249,8 @@ exports.wrapStrokeText = function (origStrokeText) {
     if (loadingCustomFont(fontInfo.customFont)) {
       return;
     }
+
+
 
 
     var color = Color.parse(this.strokeStyle);

@@ -24,19 +24,19 @@ let $ = browser.$;
 
 var listener = null;
 
-exports = Class(function () {
-  this.init = function () {
+exports = class {
+  constructor() {
     if (!listener) {
       listener = new Listener();
     }
-  };
-  this.getKeys = function () {
+  }
+  getKeys() {
     return listener.getKeys();
-  };
-});
+  }
+};
 
-var Listener = Class(function () {
-  this.init = function (el, events) {
+class Listener {
+  constructor(el, events) {
     this._el = el = el || document;
     this._keys = {};
 
@@ -44,23 +44,19 @@ var Listener = Class(function () {
     //$.onEvent(el, 'click', this, 'click');
     $.onEvent(el, 'keyup', this, 'onKeyUp');
     $.onEvent(el, 'blur', this, 'clear');
-  };
-
-
-  this.onKeyUp = function (e) {
+  }
+  onKeyUp(e) {
     this._keys[e.keyCode] = false;
     delete this._keys[e.keyCode];
     $.stopEvent(e);
-  };
-
-  this.onKeyDown = function (e) {
+  }
+  onKeyDown(e) {
     this._keys[e.keyCode] = true;
     $.stopEvent(e);
-  };
-
-  this.getKeys = function () {
+  }
+  getKeys() {
     return this._keys;
-  };
-});
+  }
+}
 
 export default exports;

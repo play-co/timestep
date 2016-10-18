@@ -45,12 +45,11 @@ import animate from 'animate';
 
 import setProperty from 'util/setProperty';
 
-var EventScheduler = Class(function () {
-  this.init = function () {
+class EventScheduler {
+  constructor() {
     this._queue = [];
-  };
-
-  this.add = function (f) {
+  }
+  add(f) {
     this._queue.push(f);
 
     if (!this._running) {
@@ -60,8 +59,8 @@ var EventScheduler = Class(function () {
       }
       this._running = false;
     }
-  };
-});
+  }
+}
 
 var scheduler = new EventScheduler();
 
@@ -71,20 +70,18 @@ var scheduler = new EventScheduler();
  *
  * This doesn't correspond to native and isn't being used.
  */
-var FocusMgr = new (Class(function () {
-  this.init = function (opts) {
+var FocusMgr = new class {
+  constructor(opts) {
     this._target = null;
     this._canChange = true;
-  };
-
-  /**
-   * Focus the target, unfocusing the last target with focus.
-   */
-  this.focus = function (target) {
+  }
+  focus(target) {
     if (this._target != target && this._canChange) {
       if (this._target && this._target.onBlur) {
         this._target.onBlur(this);
       }
+
+
 
 
       this._target = target;
@@ -92,17 +89,15 @@ var FocusMgr = new (Class(function () {
         this._target.onFocus(this);
       }
     }
-  };
-
-  this.blur = function (target) {
+  }
+  blur(target) {
     target.onBlur && target.onBlur(this);
     this._target = false;
-  };
-
-  this.get = function () {
+  }
+  get() {
     return this;
-  };
-}))();
+  }
+}();
 
 /**
  * Unique ID counter for all views.
@@ -125,8 +120,16 @@ function compareSubscription(args, sub) {
 
 
 
+
+
+
+
   return true;
 }
+
+
+
+
 
 
 
@@ -135,17 +138,15 @@ var DEFAULT_REFLOW = function () {
 };
 
 
-exports = Class(IView, function () {
-  /**
-   * infinite: boolean, default false - if true, no bounding shape at all (e.g. infinite scroll plane)
-   * clip: boolean, default false - if true, always clip to the region
-   * canHandleEvents: boolean, default true - if false, this view is ignored for event handling
-   * parent: object, if provided, sets the initial superview
-   */
-  this.init = function (opts) {
+exports = class extends IView {
+  constructor(opts) {
+    super();
+
     if (!opts) {
       opts = {};
     }
+
+
 
 
     // TODO: remove this eventually
@@ -170,9 +171,8 @@ exports = Class(IView, function () {
     this.__view._view = this;
 
     this.updateOpts(opts);
-  };
-
-  this.updateOpts = function (opts) {
+  }
+  updateOpts(opts) {
     opts = opts || {};
     if (this._opts) {
       for (var key in opts) {
@@ -183,6 +183,8 @@ exports = Class(IView, function () {
     }
 
 
+
+
     if (opts.tag) {
       this.tag = opts.tag;
     }
@@ -191,9 +193,13 @@ exports = Class(IView, function () {
     }
 
 
+
+
     if (opts.infinite) {
       this._infinite = opts.infinite;
     }
+
+
 
 
     this.style.update(opts);
@@ -205,6 +211,8 @@ exports = Class(IView, function () {
     }
 
 
+
+
     if (opts.superview) {
       opts.superview.addSubview(this);
     }
@@ -214,182 +222,92 @@ exports = Class(IView, function () {
     }
 
 
+
+
     return opts;
-  };
-
-
-  // --- filters ---
-  // each filter can have multiple views
-  // but no view can have more than one filter
-  /**
-   * Returns the filters attached to this view -- DEPRECATED
-   */
-  this.getFilters = function () {
+  }
+  getFilters() {
     logger.warn('View.getFilters() is deprecated! Use View.getFilter() instead.');
     var filters = {};
     if (this._filter) {
       filters[this._filter.getType()] = this._filter;
     }
     return filters;
-  };
-
-  /**
-   * Returns the filter attached to this view.
-   */
-  this.getFilter = function () {
+  }
+  getFilter() {
     return this._filter;
-  };
-
-  /**
-   * Sets the filter on this view -- DEPRECATED
-   */
-  this.addFilter = function (filter) {
+  }
+  addFilter(filter) {
     logger.warn('View.addFilter() is deprecated! Use View.setFilter() instead.');
     this.setFilter(filter);
-  };
-
-  /**
-   * Sets the filter on this view. Only one filter can exist on a view.
-   */
-  this.setFilter = function (filter) {
+  }
+  setFilter(filter) {
     this._filter = filter;
-  };
-
-  /**
-   * Remove the filter from this view.
-   */
-  this.removeFilter = function () {
+  }
+  removeFilter() {
     this._filter = null;
-  };
-
-
-  // --- animation component ---
-  /**
-   * Get an animation group from this view.
-   */
-  this.getAnimation = function (groupID) {
+  }
+  getAnimation(groupID) {
     return animate(this, groupID);
-  };
-
-  /**
-   * @deprecated
-   * Return an animation object for this view.
-   */
-  this.animate = function (style, duration, easing) {
+  }
+  animate(style, duration, easing) {
     return this.getAnimation().then(style, duration, easing);
-  };
-
-
-  // --- ui focus/blur component ---
-  /**
-   * Indicate to the focus manager singleton this element is focused.
-   */
-  this.focus = function () {
+  }
+  focus() {
     FocusMgr.get().focus(this);
     return this;
-  };
-
-  /**
-   * Indicate to the focus manager singleton this element is blurred.
-   */
-  this.blur = function () {
+  }
+  blur() {
     FocusMgr.get().blur(this);
     return this;
-  };
-
-  /**
-   * Triggered when focus is given to this view.
-   */
-  this.onFocus = function () {
+  }
+  onFocus() {
     this._isFocused = true;
-  };
-
-  /**
-   * Indicate to the focus manager singleton this element is blurred.
-   */
-  this.onBlur = function () {
+  }
+  onBlur() {
     this._isFocused = false;
-  };
-
-
-  // --- input component ---
-  /**
-   * Returns a boolean indicating we are currently dragging this view.
-   */
-  this.isDragging = function () {
+  }
+  isDragging() {
     return this.__input.isDragging();
-  };
-
-  /**
-   * Start responding to touch input by dragging this view.
-   */
-  this.startDrag = function (opts) {
+  }
+  startDrag(opts) {
     this.__input.startDrag(opts);
-  };
-
-  /**
-   * Return the InputHandler for this view.
-   */
-  this.getInput = function () {
+  }
+  getInput() {
     return this.__input;
-  };
-
-  /**
-   * Returns a boolean indicating if a touch is on this view.
-   */
-  this.isInputOver = function () {
+  }
+  isInputOver() {
     return !!this.__input.overCount;
-  };
-
-  /**
-   * Returns a number indicating how many touches are on this view.
-   */
-  this.getInputOverCount = function () {
+  }
+  getInputOverCount() {
     return this._inputOverCount;
-  };
-
-  /**
-   * Renamed to setHandleEvents, canHandleEvents is deprecated.
-   * @param {boolean} handleEvents Pass events through.
-   * @param {boolean} ignoreSubviews Optional, defaults to false in InputHandler. Ignore events in childen as well.
-   */
-  this.canHandleEvents = function (handleEvents, ignoreSubviews) {
+  }
+  canHandleEvents(handleEvents, ignoreSubviews) {
     this.__input.canHandleEvents = handleEvents;
 
     if (typeof ignoreSubviews === 'boolean') {
       this.__input.blockEvents = ignoreSubviews;
     }
-  };
-
-  // TODO: think about refactoring internal components and exposing them differently...
-  this.setIsHandlingEvents = function (canHandleEvents) {
+  }
+  setIsHandlingEvents(canHandleEvents) {
     this.__input.canHandleEvents = canHandleEvents;
-  };
-
-  this.isHandlingEvents = function () {
+  }
+  isHandlingEvents() {
     return this.__input.canHandleEvents;
-  };
-
-  this.needsRepaint = function () {
+  }
+  needsRepaint() {
     this._needsRepaint = true;
-  };
-
-  this.needsReflow = function () {
+  }
+  needsReflow() {
     if (this.reflow != DEFAULT_REFLOW || this.style.layout) {
       _reflowMgr.add(this);
       this._needsRepaint = true;
     }
-  };
-
-  this.reflowSync = function () {
+  }
+  reflowSync() {
     _reflowMgr.reflow(this);
-  };
-
-  /**
-   * Consumes an event targeting this view.
-   * NOTE: Does no actual propagation.
-   */
-  this._onEventPropagate = function (evt, pt, atTarget) {
+  }
+  _onEventPropagate(evt, pt, atTarget) {
     if (atTarget) {
       var id = evt.id;
       var lastEvt;
@@ -404,6 +322,8 @@ exports = Class(IView, function () {
           dispatch.clearOverState(id);
         }
         break;
+
+
 
 
       case dispatch.eventTypes.START:
@@ -425,6 +345,8 @@ exports = Class(IView, function () {
         }
 
 
+
+
         if (!lastEvt || target != lastEvt.trace[0]) {
           // fire input:over events second, start with outermost node and go to target
           var trace = evt.trace;
@@ -433,15 +355,16 @@ exports = Class(IView, function () {
           }
 
 
+
+
           // update current mouse trace
           dispatch._activeInputOver[id] = evt;
         }
         break;
       }
     }
-  };
-
-  this.localizePoint = function (pt) {
+  }
+  localizePoint(pt) {
     var list = this.getParents();
     var i = 0;
     list.push(this);
@@ -449,32 +372,17 @@ exports = Class(IView, function () {
       pt = list[i++].__view.localizePoint(pt);
     }
     return pt;
-  };
-
-
-  // --- view hierarchy component ---
-  /**
-   * Return the subview at the given index.
-   */
-  this.getSubview = function (i) {
+  }
+  getSubview(i) {
     return this.__view.getSubviews()[i];
-  };
-
-  /**
-   * Returns an array of all subviews.
-   */
-  this.getSubviews = function () {
+  }
+  getSubviews() {
     return this.__view.getSubviews();
-  };
-
-  /**
-   * Returns the superview of this view.
-   */
-  this.getSuperview = function () {
+  }
+  getSuperview() {
     return this.__view.getSuperview();
-  };
-
-  this.connectEvent = function (src, name)
+  }
+  connectEvent(src, name)
     /*, args */
     {
       if (!this.__subs) {
@@ -487,9 +395,8 @@ exports = Class(IView, function () {
           this._connectEvents();
         }
       }
-    };
-
-  this.disconnectEvent = function (src, name) {
+    }
+  disconnectEvent(src, name) {
     if (this.__subs) {
       var args = Array.prototype.slice.call(arguments, 1);
       for (var i = 0, sub; sub = this.__subs[i]; ++i) {
@@ -499,24 +406,18 @@ exports = Class(IView, function () {
         }
       }
     }
-  };
-
-  this._connectEvents = function () {
+  }
+  _connectEvents() {
     for (var i = 0, args; args = this.__subs[i]; ++i) {
       args[0].on.apply(args[0], args[1]);
     }
-  };
-
-  this._disconnectEvents = function () {
+  }
+  _disconnectEvents() {
     for (var i = 0, args; args = this.__subs[i]; ++i) {
       args[0].removeListener.apply(args[0], args[1]);
     }
-  };
-
-  /**
-   * Add a subview.
-   */
-  this.addSubview = function (view) {
+  }
+  addSubview(view) {
     if (this.__view.addSubview(view)) {
       view.needsRepaint();
 
@@ -536,6 +437,8 @@ exports = Class(IView, function () {
           }
 
 
+
+
           view.__root = root;
           view.emit('ViewAdded', viewCreated);
           var subviews = view.getSubviews();
@@ -547,12 +450,11 @@ exports = Class(IView, function () {
     }
 
 
-    return view;
-  };
 
-  // link the input view to the current view to prevent native views from being
-  // garbage collected
-  this._linkView = function (view) {
+
+    return view;
+  }
+  _linkView(view) {
     // remove any current connections
     this._unlinkView(view);
 
@@ -566,9 +468,8 @@ exports = Class(IView, function () {
     view.__parent = this;
 
 
-  };
-
-  this._unlinkView = function (view) {
+  }
+  _unlinkView(view) {
     if (view.__parent) {
       // When removing a subview, remove the view from its sibling list
       if (view.__leftSibling) {
@@ -576,9 +477,13 @@ exports = Class(IView, function () {
       }
 
 
+
+
       if (view.__rightSibling) {
         view.__rightSibling.__leftSibling = view.__leftSibling;
       }
+
+
 
 
       // If this view is the head of the sibling list
@@ -588,16 +493,14 @@ exports = Class(IView, function () {
       }
 
 
+
+
       view.__leftSibling = null;
       view.__rightSibling = null;
       view.__parent = null;
     }
-  };
-
-  /**
-   * Removes a subview.
-   */
-  this.removeSubview = function (view) {
+  }
+  removeSubview(view) {
     if (this.__view.removeSubview(view)) {
       this._unlinkView(view);
       this.publish('SubviewRemoved', view);
@@ -614,47 +517,27 @@ exports = Class(IView, function () {
     }
 
 
-    return view;
-  };
 
-  /**
-   * Removes this view from its parent.
-   */
-  this.removeFromSuperview = function () {
+
+    return view;
+  }
+  removeFromSuperview() {
     var superview = this.__view.getSuperview();
     if (superview) {
       superview.removeSubview(this);
     }
-  };
-
-  /**
-   * Removes all subviews from this view.
-   */
-  this.removeAllSubviews = function () {
+  }
+  removeAllSubviews() {
     var subviews = this.getSubviews();
     var i = subviews.length;
     while (i--) {
       this.removeSubview(subviews[i]);
     }
-  };
-
-
-  // --- onResize callbacks ---
-  this.reflow = DEFAULT_REFLOW;
-
-
-  // ---
-  /**
-   * Get the root application for this view.
-   */
-  this.getApp = function () {
+  }
+  getApp() {
     return this.__root;
-  };
-
-  /**
-   * Returns an array of all ancestors of the current view.
-   */
-  this.getSuperviews = function () {
+  }
+  getSuperviews() {
     var views = [];
     var next = this.getSuperview();
     while (next) {
@@ -663,22 +546,18 @@ exports = Class(IView, function () {
     }
 
 
+
+
     return views;
-  };
-
-  /**
-   * @interface
-   */
-  this.buildView = function () {
-  };
-
-  /**
-   * Determine if this view contains a point.
-   */
-  this.containsLocalPoint = function (pt) {
+  }
+  buildView() {
+  }
+  containsLocalPoint(pt) {
     if (this._infinite) {
       return true;
     }
+
+
 
 
     // infinite plane
@@ -693,14 +572,8 @@ exports = Class(IView, function () {
     } else {
       return pt.x >= w && pt.y >= h && pt.x <= 0 && pt.y <= 0;
     }
-  };
-
-  /**
-   * Return the bounding shape for this view. The shape is defined in the
-   * options object when this view was constructed.
-   */
-  this._boundingShape = {};
-  this.getBoundingShape = function (simple) {
+  }
+  getBoundingShape(simple) {
     if (this._infinite) {
       return true;
     } else {
@@ -734,23 +607,12 @@ exports = Class(IView, function () {
       }
       return new Rect(s.x, s.y, w * s.scale, h * s.scale);
     }
-  };
-
-  /**
-   * Given a rectangle and a parent view, compute the location of
-   * the rectangle in this view's coordinate space.
-   * WARNING: only works with non-rotated rectangles.
-   * TODO Make it work with rotated rectangles!
-   */
-  this.getRelativeRegion = function (region, parent) {
+  }
+  getRelativeRegion(region, parent) {
     var offset = this.getPosition(parent || region.src);
     return new Rect((region.x - offset.x) / offset.scale, (region.y - offset.y) / offset.scale, region.width / offset.scale, region.height / offset.scale);
-  };
-
-  /**
-   * Return a fully defined position, rotation, size, and scale for this view.
-   */
-  this.getPosition = function (relativeTo) {
+  }
+  getPosition(relativeTo) {
     var abs = new Point(), view = this, r = 0, s = this.style, w = s.width, h = s.height, c = 1;
 
     while (view && view != relativeTo) {
@@ -774,6 +636,8 @@ exports = Class(IView, function () {
     }
 
 
+
+
     return {
       x: abs.x,
       y: abs.y,
@@ -784,35 +648,19 @@ exports = Class(IView, function () {
       anchorX: this.style.anchorX,
       anchorY: this.style.anchorY
     };
-  };
-
-  /**
-   * Exposes the internal implementation of the view hierarchy
-   */
-  this.getBacking = function () {
+  }
+  getBacking() {
     return this.__view;
-  };
-
-  /**
-   * Sets the visibility to true. Triggers repaint.
-   */
-  this.show = function () {
+  }
+  show() {
     this.style.visible = true;
     this.needsRepaint();
-  };
-
-  /**
-   * Sets the visibility to false. Triggers repaint.
-   */
-  this.hide = function () {
+  }
+  hide() {
     this.style.visible = false;
     this.needsRepaint();
-  };
-
-  /**
-   * Return a human-readable tag for this view.
-   */
-  this.getTag = function () {
+  }
+  getTag() {
     var cls = 'View';
 
     if (DEBUG) {
@@ -828,9 +676,13 @@ exports = Class(IView, function () {
         }
 
 
+
+
         if (cls) {
           cls = cls.substr(cls.lastIndexOf('_') + 1);
         }
+
+
 
 
         this.__tagClassName = cls || 'unknown';
@@ -838,9 +690,13 @@ exports = Class(IView, function () {
     }
 
 
+
+
     return cls + this.uid + (this.tag ? ':' + this.tag : '');
-  };
-});
+  }
+};
+exports.prototype.reflow = DEFAULT_REFLOW;
+exports.prototype._boundingShape = {};
 var View = exports;
 
 

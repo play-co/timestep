@@ -54,21 +54,8 @@ import loader from 'ui/resource/loader';
 
 var GROUPS = {};
 
-exports = Class(ImageView, function (supr) {
-  this.defaults = {
-    url: null,
-    // specified as a filename prefix, without an animation name or frame count
-    groupID: 'default',
-    frameRate: 15,
-    delay: 0,
-    emitFrameEvents: false,
-    autoStart: false,
-    loop: true
-  };
-
-  this.tick = null;
-
-  this.init = function (opts) {
+exports = class extends ImageView {
+  constructor(opts) {
     this._opts = opts = merge(opts, this.defaults);
     opts.visible = false;
 
@@ -77,15 +64,16 @@ exports = Class(ImageView, function (supr) {
     }
 
 
-    supr(this, 'init', [opts]);
+
+
+    super(opts);
 
     // toggle this flag manually to optimize SpriteViews
     this.onScreen = true;
 
     this.resetAllAnimations(opts);
-  };
-
-  this.resetAllAnimations = function (opts) {
+  }
+  resetAllAnimations(opts) {
     this.stopAnimation();
 
     this._opts = opts = merge(opts, this.defaults);
@@ -98,6 +86,8 @@ exports = Class(ImageView, function (supr) {
     if (!GROUPS[this.groupID]) {
       GROUPS[this.groupID] = new Group();
     }
+
+
 
 
     this._animations = {};
@@ -121,6 +111,8 @@ exports = Class(ImageView, function (supr) {
     }
 
 
+
+
     if (opts.autoSize && this._opts.defaultAnimation) {
       var frameImages = this._animations[this._opts.defaultAnimation].frames;
       if (frameImages[0]) {
@@ -130,10 +122,11 @@ exports = Class(ImageView, function (supr) {
     }
 
 
-    opts.autoStart && this.startAnimation(this._opts.defaultAnimation, opts);
-  };
 
-  this.loadFromSheet = function (animName, sheetUrl, width, height, offsetX, offsetY, startX, startY, frames) {
+
+    opts.autoStart && this.startAnimation(this._opts.defaultAnimation, opts);
+  }
+  loadFromSheet(animName, sheetUrl, width, height, offsetX, offsetY, startX, startY, frames) {
     var frameImages = [];
     for (var i = 0; i < frames.length; i++) {
       frameImages.push(new Image({
@@ -145,9 +138,8 @@ exports = Class(ImageView, function (supr) {
       }));
     }
     this._animations[animName] = { frames: frameImages };
-  };
-
-  this.addAnimation = function (animName, frameData) {
+  }
+  addAnimation(animName, frameData) {
     if (!isArray(frameData)) {
       frameData = SpriteView.allAnimations[frameData][animName];
     }
@@ -160,31 +152,17 @@ exports = Class(ImageView, function (supr) {
       }
     }
     this._animations[animName] = { frames: frameImages };
-  };
-
-  /** Returns a ui.resource.Image for the given animation's frame. */
-  this.getFrame = function (animName, index) {
+  }
+  getFrame(animName, index) {
     return this._animations[animName].frames[index];
-  };
-
-  /** Returns the number of frames in a given animation. */
-  this.getFrameCount = function (animName) {
+  }
+  getFrameCount(animName) {
     return this._animations[animName].frames.length;
-  };
-
-  this.getGroup = function (groupID) {
+  }
+  getGroup(groupID) {
     return GROUPS[groupID || this.groupID];
-  };
-
-  /**
-   * Starts an animation. Default options:
-   *     loop: false
-   *     iterations: 1
-   *     callback: null (called at the end of the animation)
-   *     frame: 0 (frame to start on)
-   *     randomFrame: false (start on a random frame of the animation)
-   */
-  this.startAnimation = function (name, opts) {
+  }
+  startAnimation(name, opts) {
     opts = opts || {};
 
     if (opts.randomFrame === true && opts.frame == null) {
@@ -192,9 +170,13 @@ exports = Class(ImageView, function (supr) {
     }
 
 
+
+
     if (opts.loop === true) {
       opts.iterations = Infinity;
     }
+
+
 
 
     this._iterationsLeft = opts.iterations || 1;
@@ -209,6 +191,8 @@ exports = Class(ImageView, function (supr) {
     }
 
 
+
+
     if (!this.isPlaying) {
       this.tick = this._tickSprite;
       GROUPS[this.groupID].add(this);
@@ -217,12 +201,12 @@ exports = Class(ImageView, function (supr) {
     }
 
 
+
+
     // align the image for the first time
     this._tickSprite(0);
-  };
-
-  /** Stops the current animation. This will make the sprite invisible. */
-  this.stopAnimation = function () {
+  }
+  stopAnimation() {
     if (this.isPlaying) {
       this.style.visible = false;
       this.tick = null;
@@ -232,47 +216,32 @@ exports = Class(ImageView, function (supr) {
       //use isPaused instead, _isPaused is deprecated
       GROUPS[this.groupID].remove(this.uid);
     }
-  };
-
-  /**
-   * If this animation doesn't loop, stops the animation entirely.
-   * Otherwise restarts the default animation. For instance, if you
-   * had a default animation "idle", you could call
-   *
-   *     startAnimation('walk', {iterations: 2});
-   *
-   * and after 2 iterations of the 'walk' animation, it would go
-   * back to the 'walk' animation.
-   */
-  this.resetAnimation = function () {
+  }
+  resetAnimation() {
     if (!this._opts.loop) {
       this.stopAnimation();
     } else {
       this.startAnimation(this._opts.defaultAnimation);
     }
-  };
-
-  // does the animation exist for this url?
-  this.hasAnimation = function (name) {
+  }
+  hasAnimation(name) {
     return !!this._animations[name];
-  };
-
-  this.setFramerate = function (fps) {
+  }
+  setFramerate(fps) {
     this.frameRate = fps || 0.00001;
-  };
-
-  this.pause = function () {
+  }
+  pause() {
     this.isPaused = this._isPaused = true;
-  };
-
-  this.resume = function () {
+  }
+  resume() {
     this.isPaused = this._isPaused = false;
-  };
-
-  this._tickSprite = function (dt) {
+  }
+  _tickSprite(dt) {
     if (this.isPaused) {
       return;
     }
+
+
 
 
     dt += this._dt;
@@ -286,6 +255,8 @@ exports = Class(ImageView, function (supr) {
     }
 
 
+
+
     var anim = this._animations[this._currentAnimationName];
     var stepTime = 1000 / this.frameRate;
     var frameSteps = dt / stepTime | 0;
@@ -296,6 +267,8 @@ exports = Class(ImageView, function (supr) {
     if (this._currentFrame < 0) {
       this._currentFrame += anim.frames.length;
     }
+
+
 
 
     if (this.onScreen && (frameSteps !== 0 || dt === 0)) {
@@ -311,6 +284,8 @@ exports = Class(ImageView, function (supr) {
     }
 
 
+
+
     var iterationsCompleted = (prevFrame + frameSteps) / anim.frames.length | 0;
     if (iterationsCompleted) {
       this._delay = this._opts.delay;
@@ -323,8 +298,19 @@ exports = Class(ImageView, function (supr) {
           cb();
       }
     }
-  };
-});
+  }
+};
+exports.prototype.defaults = {
+  url: null,
+  // specified as a filename prefix, without an animation name or frame count
+  groupID: 'default',
+  frameRate: 15,
+  delay: 0,
+  emitFrameEvents: false,
+  autoStart: false,
+  loop: true
+};
+exports.prototype.tick = null;
 var SpriteView = exports;
 
 SpriteView.allAnimations = {};
@@ -364,40 +350,35 @@ SpriteView.getGroup = SpriteView.prototype.getGroup;
 /**
  * Group class
  */
-var Group = Class(jsio.__filename, function () {
-  this.init = function () {
+class Group extends jsio.__filename {
+  constructor() {
+    super();
+
     this.sprites = {};
-  };
-
-  this.add = function (sprite) {
+  }
+  add(sprite) {
     this.sprites[sprite.uid] = sprite;
-  };
-
-  this.remove = function (uid) {
+  }
+  remove(uid) {
     delete this.sprites[uid];
-  };
-
-  this.pause = function () {
+  }
+  pause() {
     this._forEachSprite('pause');
-  };
-
-  this.resume = function () {
+  }
+  resume() {
     this._forEachSprite('resume');
-  };
-
-  this.stopAnimation = function () {
+  }
+  stopAnimation() {
     this._forEachSprite('stopAnimation');
-  };
-
-  this.resetAnimation = function () {
+  }
+  resetAnimation() {
     this._forEachSprite('resetAnimation');
-  };
-
-  this._forEachSprite = function (method) {
+  }
+  _forEachSprite(method) {
     for (var i in this.sprites) {
       this.sprites[i][method]();
     }
-  };
-});
+  }
+}
 
 export default exports;

@@ -28,14 +28,14 @@ import Image from 'ui/resource/Image';
 /**
  * @extends timestep.View
  */
-exports = Class(View, function (supr) {
-  this.init = function (opts) {
+exports = class extends View {
+  constructor(opts) {
     opts = merge(opts, {
       image: null,
       autoSize: false
     });
 
-    supr(this, 'init', [opts]);
+    super(opts);
 
     var s = this.__view._node.style;
     s.webkitBackgroundClip = s.backgroundClip = 'content-box';
@@ -43,14 +43,15 @@ exports = Class(View, function (supr) {
     if (opts.image) {
       this.setImage(opts.image, opts);
     }
-  };
-
-  this.updateOpts = function (opts) {
-    var opts = supr(this, 'updateOpts', arguments);
+  }
+  updateOpts(opts) {
+    var opts = super.updateOpts(...arguments);
 
     if ('autoSize' in opts) {
       this._autoSize = !!opts.autoSize;
     }
+
+
 
 
     if (opts.image) {
@@ -62,10 +63,13 @@ exports = Class(View, function (supr) {
 
 
 
-    return opts;
-  };
 
-  this.autoSize = function () {
+
+
+
+    return opts;
+  }
+  autoSize() {
     if (this._img) {
       this.style.width = this._img.getWidth();
       this.style.height = this._img.getHeight();
@@ -74,14 +78,11 @@ exports = Class(View, function (supr) {
         this.style.updateAspectRatio();
       }
     }
-  };
-
-  this._imgCache = {};
-
-  this.getImage = function () {
+  }
+  getImage() {
     return this._img;
-  };
-  this.setImage = function (img, opts) {
+  }
+  setImage(img, opts) {
     if (typeof img == 'string') {
       // Cache image requests to avoid heavy performance penalties at the
       // expense of a small amount of additional JS memory usage.
@@ -93,10 +94,14 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     if (img != this._img) {
       if (this._img) {
         this._img.unsubscribe('changeBounds', this);
       }
+
+
 
 
       this._img = img;
@@ -116,18 +121,18 @@ exports = Class(View, function (supr) {
         }
 
 
+
+
         img.doOnLoad(this, 'updateImage');
       } else {
         this.updateImage();
       }
     }
-  };
-
-  this.reflow = function () {
+  }
+  reflow() {
     this.updateImage();
-  };
-
-  this._getBackgroundNode = function (imageURL) {
+  }
+  _getBackgroundNode(imageURL) {
     // When a css background-image is set that has an etag and no max-age
     // (as when developing using the browser simulator in debug mode),
     // Chrome sends an HTTP request for images to check for a 304
@@ -143,6 +148,8 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     var el = this._bgNodes[imageURL];
     if (!el) {
       // create a background node for this URL if we don't
@@ -154,11 +161,15 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     if (el != this._currentBgNode) {
       // hide the previous background node
       if (this._currentBgNode) {
         this._currentBgNode.style.visibility = 'hidden';
       }
+
+
 
 
       // show the current background node
@@ -169,16 +180,17 @@ exports = Class(View, function (supr) {
 
 
 
-    return el;
-  };
 
-  this._canvasRender = function (ctx, opts) {
+
+
+
+    return el;
+  }
+  _canvasRender(ctx, opts) {
     var canvas = this._img.getSource();
     ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, this.style.width, this.style.height);
-  };
-
-  // sets the CSS background-image for this node
-  this.updateImage = function () {
+  }
+  updateImage() {
     var img = this._img;
     var multipleImageNodes = this._opts['dom:multipleImageNodes'];
 
@@ -212,6 +224,8 @@ exports = Class(View, function (supr) {
         }
 
 
+
+
         var bounds = img.getBounds();
         s.padding = scaleY * bounds.marginTop + 'px ' + scaleX * bounds.marginRight + 'px ' + scaleY * bounds.marginBottom + 'px ' + scaleX * bounds.marginLeft + 'px';
         s.backgroundPositionX = scaleX * (-bounds.x + bounds.marginLeft) + 'px';
@@ -219,25 +233,24 @@ exports = Class(View, function (supr) {
         s.backgroundSize = sheetWidth * scaleX + 'px ' + sheetHeight * scaleY + 'px';
       }
     }
-  };
-
-  this.getOrigW = function () {
+  }
+  getOrigW() {
     return this._img.getOrigW();
-  };
-  this.getOrigH = function () {
+  }
+  getOrigH() {
     return this._img.getOrigH();
-  };
-
-  this.doOnLoad = function () {
+  }
+  doOnLoad() {
     if (arguments.length == 1) {
       this._img.doOnLoad(this, arguments[0]);
     } else {
       this._img.doOnLoad.apply(this._img, arguments);
     }
     return this;
-  };
-});
+  }
+};
 
+exports.prototype._imgCache = {};
 exports.prototype.getOrigWidth = exports.prototype.getOrigW;
 exports.prototype.getOrigHeight = exports.prototype.getOrigH;
 

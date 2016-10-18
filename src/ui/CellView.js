@@ -28,45 +28,38 @@ import Cell from 'squill/models/Cell';
 /**
  * @extends ui.View
  */
-exports = Class(View, function (supr) {
-  this.init = function (opts) {
+exports = class extends View {
+  constructor(opts) {
     opts = merge(opts, { layout: 'box' });
-    supr(this, 'init', [opts]);
+    super(opts);
     this.model = new Cell({ view: this });
-  };
-
-  this.tag = 'CellView';
-  this.remove = function (list) {
+  }
+  remove(list) {
     if (!list.isRecycleEnabled) {
       this.removeFromSuperview();
     } else {
       this.style.visible = false;
     }
-  };
-
-  this.isSelected = function () {
+  }
+  isSelected() {
     return this.controller.isSelected && this._data && this.controller.isSelected(this._data);
-  };
-
-  this.select = function () {
+  }
+  select() {
     this.controller.select && this.controller.select(this._data);
-  };
-
-  this.deselect = function () {
+  }
+  deselect() {
     this.controller.deselect && this.controller.deselect(this._data);
-  };
-
-  this.getHeight = function () {
+  }
+  getHeight() {
     return this.style.height;
-  };
-  this.getWidth = function () {
+  }
+  getWidth() {
     return this.style.width;
-  };
-  this.setData = function (data) {
+  }
+  setData(data) {
     this._data = data;
-  };
-
-  this.setController = function (controller) {
+  }
+  setController(controller) {
     this.controller = controller;
     if (this._onSelect) {
       this._selectCB = this._selectCB || function (data) {
@@ -82,12 +75,13 @@ exports = Class(View, function (supr) {
       this.controller.unsubscribe('Deselect', this, this._deselectCB);
       this.controller.subscribe('Deselect', this, this._deselectCB);
     }
-  };
-
-  this.onInputSelect = function () {
+  }
+  onInputSelect() {
     if (!this.controller || !this.controller.selection) {
       return;
     }
+
+
 
 
     var type = this.controller.selection.getType();
@@ -100,9 +94,10 @@ exports = Class(View, function (supr) {
     } else if (type == 'single') {
       this.select();
     }
-  };
-});
+  }
+};
 
+exports.prototype.tag = 'CellView';
 exports.prototype.onClick = exports.prototype.onInputSelect;
 
 export default exports;

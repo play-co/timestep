@@ -34,55 +34,49 @@ var defaults = {
   color: 'white'
 };
 
-exports = Class(function () {
-  this.init = function (opts) {
+exports = class {
+  constructor(opts) {
     logger.log('in init');
     opts = merge(opts, defaults);
     logger.log('making a textbox with opts', JSON.stringify(opts));
     this._id = T.create(opts.x, opts.y, opts.width, opts.height, opts.text);
-  };
-
-  this.setPosition = function (p) {
+  }
+  setPosition(p) {
     T.setPosition(this._id, p.x, p.y);
     return this;
-  };
-  this.getPosition = function () {
+  }
+  getPosition() {
     return {
       x: this.getX(),
       y: this.getY()
     };
-  };
-
-  this.setDimensions = function (d) {
+  }
+  setDimensions(d) {
     T.setDimensions(this._id, d.width, d.height);
     return this;
-  };
-  this.getDimensions = function () {
+  }
+  getDimensions() {
     return {
       width: this.getWidth(),
       height: this.getHeight()
     };
-  };
-
-  this.setApp = function () {
-  };
-
-  this.setOpacity = function (opacity) {
+  }
+  setApp() {
+  }
+  setOpacity(opacity) {
     T.setOpacity(this._id, opacity);
-  };
-
-  this.setVisible = function (isVisible) {
+  }
+  setVisible(isVisible) {
     if (isVisible) {
       T.show(this._id);
     } else {
       T.hide(this._id);
     }
-  };
-
-  this.setValue = function (text) {
+  }
+  setValue(text) {
     T.setValue(this._id, text);
-  };
-});
+  }
+};
 
 var methods = [
   'destroy',
@@ -117,5 +111,6 @@ for (var i = 0, m; m = methods[i]; ++i) {
     }
   })(m);
 }
+
 
 export default exports;

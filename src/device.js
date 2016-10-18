@@ -53,6 +53,8 @@ if (typeof navigator === 'undefined' || !navigator.userAgent) {
 }
 
 
+
+
 var ua = navigator.userAgent;
 
 
@@ -94,6 +96,8 @@ exports.setDevicePixelRatio = function (value) {
   }
 
 
+
+
   exports.devicePixelRatio = exports.screen.devicePixelRatio = value;
 
   var width = Math.floor(window.innerWidth * value);
@@ -131,6 +135,8 @@ if ('ontouchstart' in window && !/BlackBerry/.test(ua)) {
 }
 
 
+
+
 /*
  * All userAgent flags in this file are now DEPRECATED.
  * Please use "src/userAgent.js" for a more accurate description of your device.
@@ -153,6 +159,8 @@ if (exports.isSimulator) {
   exports.isIOSSimulator = false;
   exports.isNativeSimulator = false;
 }
+
+
 
 
 if (exports.isMobile) {
@@ -225,10 +233,18 @@ if (exports.isMobile) {
 
 
 
+
+
+
+
+
+
   // Set up device.width and device.height for browser case
   exports.width = exports.screen.width;
   exports.height = exports.screen.height;
 }
+
+
 
 
 exports.useDOM = false;

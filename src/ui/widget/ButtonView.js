@@ -27,11 +27,11 @@ import Enum from 'lib/Enum';
 
 var states = Enum('UP', 'DOWN', 'DISABLED', 'SELECTED', 'UNSELECTED');
 var lastClicked = null;
-exports = Class(ImageScaleView, function (supr) {
-  this.init = function (opts) {
+exports = class extends ImageScaleView {
+  constructor(opts) {
     this._state = opts.defaultState || opts.state || (opts.toggleSelected ? states.UNSELECTED : states.UP);
 
-    supr(this, 'init', arguments);
+    super(...arguments);
 
     this.selected = opts.toggleSelected && opts.state === states.SELECTED ? true : false;
 
@@ -59,12 +59,11 @@ exports = Class(ImageScaleView, function (supr) {
 
     this.updateOpts(opts);
     this._trigger(this._state, true);
-  };
-
-  this.updateOpts = function (opts) {
+  }
+  updateOpts(opts) {
     opts = merge(opts, this._opts);
 
-    opts = supr(this, 'updateOpts', [opts]);
+    opts = super.updateOpts(opts);
 
     this._opts = opts;
     this._images = opts.images;
@@ -73,37 +72,40 @@ exports = Class(ImageScaleView, function (supr) {
     this._sounds = opts.sounds;
 
     'text' in opts && this._text && this._text.updateOpts(opts.text);
-  };
-
-  this.onInputStart = function () {
+  }
+  onInputStart() {
     //no action when disabled
     if (this._state === states.DISABLED) {
       return;
     }
+
+
 
 
     lastClicked = this.uid;
 
     this._state = states.DOWN;
     this._trigger(states.DOWN);
-  };
-
-  this.onInputOver = function () {
+  }
+  onInputOver() {
     //no action when disabled
     if (this._state === states.DISABLED || lastClicked != this.uid) {
       return;
     }
 
 
+
+
     this._state = states.DOWN;
     this._trigger(states.DOWN, true);
-  };
-
-  this.onInputSelect = function () {
+  }
+  onInputSelect() {
     //no action when disabled
     if (this._state === states.DISABLED) {
       return;
     }
+
+
 
 
     //call the click handler
@@ -116,12 +118,16 @@ exports = Class(ImageScaleView, function (supr) {
     }
 
 
+
+
     if (this._opts.clickOnce) {
       this._state = states.DISABLED;
       this._trigger(states.UP);
       this._trigger(states.DISABLED);
       return;
     }
+
+
 
 
     if (this._opts.toggleSelected) {
@@ -135,17 +141,14 @@ exports = Class(ImageScaleView, function (supr) {
     } else {
       this._trigger(states.UP);
     }
-  };
-
-  this.onInputOut = function () {
+  }
+  onInputOut() {
     if (this._state !== states.DISABLED && this._state !== states.UP) {
       this._state = states.UP;
       this._trigger(states.UP, true);
     }
-  };
-
-  //when this function is called from the constructor the dontPublish parameter to prevent publishing events on create...
-  this._trigger = function (state, dontPublish) {
+  }
+  _trigger(state, dontPublish) {
     var stateName = states[state];
     if (!stateName)
       return;
@@ -161,6 +164,8 @@ exports = Class(ImageScaleView, function (supr) {
     }
 
 
+
+
     if (typeof this._onHandlers[stateName] === 'function') {
       this._onHandlers[stateName].call(this);
     }
@@ -169,42 +174,42 @@ exports = Class(ImageScaleView, function (supr) {
     }
 
 
-    this.emit(stateName);
-  };
 
-  this.reflow = function () {
+
+    this.emit(stateName);
+  }
+  reflow() {
     if (this._reflowText) {
       this._text.style.width = this.style.width;
       this._text.style.height = this.style.height;
     }
-  };
-
-  this.getText = function () {
+  }
+  getText() {
     return this._text;
-  };
-
-  this.setTitle = function (title) {
+  }
+  setTitle(title) {
     this._text.setText(title);
-  };
-
-  this.getIcon = function () {
+  }
+  getIcon() {
     return this._icon;
-  };
-
-  this.setIcon = function (icon) {
+  }
+  setIcon(icon) {
     this._icon.setImage(icon);
-  };
-
-  this.setState = function (state) {
+  }
+  setState(state) {
     var stateName = states[state];
     if (!stateName)
       return;
+
+
 
 
     switch (state) {
     case states.SELECTED:
       this.selected = true;
       break;
+
+
 
 
     case states.UNSELECTED:
@@ -215,8 +220,8 @@ exports = Class(ImageScaleView, function (supr) {
     this._state = state;
     stateName = stateName.toLowerCase();
     this.setImage(this._images[stateName]);
-  };
-});
+  }
+};
 var ButtonView = exports;
 
 ButtonView.states = states;

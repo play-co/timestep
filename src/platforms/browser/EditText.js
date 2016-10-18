@@ -25,63 +25,41 @@ import device from 'device';
 
 var __keyboardIsOpen = false;
 
-var InputField = Class(squill.Widget, function (supr) {
-  this._def = {
-    tag: 'input',
-    parent: document.body,
-    style: {
-      position: 'absolute',
-      background: 'transparent',
-      border: 'none',
-      outline: 'none',
-      zIndex: '990000',
-      left: '0px',
-      top: '0px'
-    }
-  };
-
-  this.buildWidget = function () {
+class InputField extends squill.Widget {
+  buildWidget() {
     this.initKeyEvents();
     this.initFocusEvents();
-  };
-
-  this.setValue = function (value) {
+  }
+  setValue(value) {
     this._el.value = value;
     this._prevValue = value;
-  };
-
-  this.setCursor = function (cursorPos) {
+  }
+  setCursor(cursorPos) {
     this._el.selectionStart = this._el.selectionEnd = cursorPos;
-  };
-
-  this.setPlaceholder = function (placeholder) {
+  }
+  setPlaceholder(placeholder) {
     this._el.placeholder = placeholder;
-  };
-
-  this.setMaxLength = function (maxLength) {
+  }
+  setMaxLength(maxLength) {
     this._el.maxlength = maxLength;
-  };
-
-  this.show = function () {
-    supr(this, 'show', arguments);
+  }
+  show() {
+    super.show(...arguments);
 
     this._el.focus();
-  };
-
-  this.onKeyUp = function (evt) {
+  }
+  onKeyUp(evt) {
     var el = this._el;
     _focused && _focused.onChange(el.value, this._prevValue, el.selectionStart, el.selectionEnd);
     this._prevValue = el.value;
     if (evt.keyCode == 13) {
       _focused && _focused.closeEditField();
     }
-  };
-
-  this.getValue = function () {
+  }
+  getValue() {
     return this._el.value;
-  };
-
-  this.onBlur = function (evt) {
+  }
+  onBlur(evt) {
     this.hide();
     if (__keyboardIsOpen) {
       __keyboardIsOpen = false;
@@ -91,34 +69,42 @@ var InputField = Class(squill.Widget, function (supr) {
     }
     _focused && _focused.closeEditField();
     _focused = null;
-  };
-
-  this.setFontColor = function (color) {
+  }
+  setFontColor(color) {
     this._el.style.color = color;
-  };
-
-  this.setHorizontalPadding = function (left, right) {
+  }
+  setHorizontalPadding(left, right) {
     this._el.style.paddingLeft = left + 'px';
     this._el.style.paddingRight = right + 'px';
-  };
-
-  this.setFontSize = function (fontSize) {
+  }
+  setFontSize(fontSize) {
     this._el.style.fontSize = fontSize + 'px';
-  };
-
-  this.setFontFamily = function (fontFamily) {
+  }
+  setFontFamily(fontFamily) {
     this._el.style.fontFamily = fontFamily;
-  };
-
-  this.setPosition = function (x, y, width, height) {
+  }
+  setPosition(x, y, width, height) {
     var style = this._el.style;
     style.top = y - 1 + 'px';
     style.left = x + 'px';
     style.width = width + 'px';
     style.height = height + 'px';
-  };
-});
+  }
+}
 
+InputField.prototype._def = {
+  tag: 'input',
+  parent: document.body,
+  style: {
+    position: 'absolute',
+    background: 'transparent',
+    border: 'none',
+    outline: 'none',
+    zIndex: '990000',
+    left: '0px',
+    top: '0px'
+  }
+};
 var _input = new InputField();
 _input.hide();
 
@@ -133,8 +119,8 @@ var defaults = {
 };
 
 
-exports = Class(function () {
-  this.init = function (opts) {
+exports = class {
+  constructor(opts) {
     this._opts = merge(opts, defaults);
 
     this._textEditView = opts.textEditView;
@@ -142,29 +128,27 @@ exports = Class(function () {
     };
     this.onSubmit = opts.onSubmit || function () {
     };
-  };
-
-  this.onChange = function (value, prevValue, cursorPos, selectionEnd) {
+  }
+  onChange(value, prevValue, cursorPos, selectionEnd) {
     this._value = value;
     if (this._opts.onChange) {
       this._opts.onChange(value, prevValue, cursorPos);
     }
-  };
-
-  this.getValue = function () {
+  }
+  getValue() {
     return this._value;
-  };
-
-  this.setValue = function (value) {
+  }
+  setValue(value) {
     this._value = value;
     this.onChange(value);
-  };
-
-  this.requestFocus = function (noSubmit) {
+  }
+  requestFocus(noSubmit) {
     if (_focused !== this) {
       if (_focused != null) {
         _focused.removeFocus(noSubmit);
       }
+
+
 
 
       this.onFocusChange(true);
@@ -173,14 +157,19 @@ exports = Class(function () {
 
 
 
-    _focused = this;
-  };
 
-  this.closeEditField = function (noSubmit) {
+
+
+
+    _focused = this;
+  }
+  closeEditField(noSubmit) {
     console.log('TextEditView editText removeFocus');
     if (_focused != null) {
       _focused.removeFocus(noSubmit);
     }
+
+
 
 
     this._showTextBox();
@@ -193,19 +182,16 @@ exports = Class(function () {
       ev.height = device.screen.height;
       window.dispatchEvent(ev);
     }
-  };
-
-  this._hideTextBox = function () {
+  }
+  _hideTextBox() {
     var textBox = this._textEditView._textBox;
     textBox.style.visible = false;
-  };
-
-  this._showTextBox = function () {
+  }
+  _showTextBox() {
     var textBox = this._textEditView._textBox;
     textBox.style.visible = true;
-  };
-
-  this.refresh = function (value, hasBack, hasForward, cursorPos) {
+  }
+  refresh(value, hasBack, hasForward, cursorPos) {
     this._hideTextBox();
 
     var textBox = this._textEditView._textBox;
@@ -233,33 +219,15 @@ exports = Class(function () {
 
 
 
-  };
 
-  /*
-    if (hasBack) {
-      _backButton.onSelect = bind(this, function () {
-        this._textEditView.focusPrevious());
-      });
-      _backButton.disabled = false;
-    } else {
-      _backButton.disabled = true;
-    }
 
-    if (hasForward) {
-      _forwardButton.onSelect = bind(this, function () {
-        this._textEditView.focusNext());
-      });
-      _forwardButton.disabled = false;
-    } else {
-      _forwardButton.disabled = true;
-    }
 
-    */
-  this.hasFocus = function () {
+
+  }
+  hasFocus() {
     return this == _focused;
-  };
-
-  this.removeFocus = function (noSubmit) {
+  }
+  removeFocus(noSubmit) {
     this.onFocusChange(false);
     if (!noSubmit) {
       this.onSubmit(_input.getValue());
@@ -267,11 +235,10 @@ exports = Class(function () {
     if (_focused == this) {
       _focused = null;
     }
-  };
-
-  this.setHint = function (hint) {
+  }
+  setHint(hint) {
     this._opts.hint = hint;
-  };
-});
+  }
+};
 
 export default exports;

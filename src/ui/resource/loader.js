@@ -56,62 +56,31 @@ var _soundManager = null;
 var _soundLoader = null;
 
 
-var Loader = Class(Emitter, function () {
-  this._map = {};
-
-  // save original map
-  this._originalMap = {};
-
-  this._audioMap = {};
-
-  Object.defineProperty(this, 'progress', {
-    get: function () {
-      return globalItemsToLoad > 0 ? globalItemsLoaded / globalItemsToLoad : 1;
-    }
-  });
-
-  this.has = function (src) {
+class Loader extends Emitter {
+  get progress() {
+    return globalItemsToLoad > 0 ? globalItemsLoaded / globalItemsToLoad : 1;
+  }
+  has(src) {
     return this._map[src];
-  };
-
-  this.restoreMap = function () {
+  }
+  restoreMap() {
     this._map = this._originalMap;
-  };
-
-  this.getMap = function () {
+  }
+  getMap() {
     return this._map;
-  };
-
-  // set resources map for the language
-  this.setMap = function (language) {
+  }
+  setMap(language) {
     this.restoreMap();
     if (!language) {
       this._map = i18n.localizeResourceMap(this._map);
     } else {
       this._map = i18n.applyResourceMap(this._map, language);
     }
-  };
-
-  // TODO: rename this function...
-  this.get = function (file) {
+  }
+  get(file) {
     return 'resources/images/' + file;
-  };
-
-  /**
-   * Adds spritesheets to the image map
-   *
-   * @param {Object[]} sheets          an array of spritesheet definitions
-   * @param {string}   sheets[].f      sprite filename
-   * @param {number}   sheets[].x      sprite position x-coordinate (integer)
-   * @param {number}   sheets[].y      sprite position y-coordinate (integer)
-   * @param {number}   sheets[].w      sprite content width (without margin) (integer)
-   * @param {number}   sheets[].h      sprite content height (without margin) (integer)
-   * @param {number}   [sheets[].t=0]  sprite transparent margin top
-   * @param {number}   [sheets[].r=0]  sprite transparent margin right
-   * @param {number}   [sheets[].b=0]  sprite transparent margin bottom
-   * @param {number}   [sheets[].l=0]  sprite transparent margin left
-   */
-  this.addSheets = function (sheets) {
+  }
+  addSheets(sheets) {
     Object.keys(sheets).forEach(function (name) {
       var sheet = sheets[name];
       sheet.forEach(function (info) {
@@ -130,46 +99,21 @@ var Loader = Class(Emitter, function () {
       }, this);
     }, this);
     this._originalMap = this._map;
-  };
-
-
-  this.addAudioMap = function (map) {
+  }
+  addAudioMap(map) {
     Object.keys(map).forEach(function (name) {
       this._audioMap[name] = true;
     }, this);
-  };
-
-  /**
-   * Preload a given resource or array of resources.
-   * You can specify a folder name, or even a partial filename,
-   * to preload all resources that begin with that prefix.
-   * For instance, in a tree like so:
-   *
-   * resources
-   * └── images
-     *     ├── boss
-     *     │   ├── enemy1.png
-   *     │   └── enemy2.png
-     *     └── hero
-     *         ├── shield.png
-   *         └── sword.png
-   *
-   * You could preload both enemy images in either of the following
-   * ways:
-   *
-   *     ui.resource.loader.preload("resources/images/boss/");
-   *     ui.resource.loader.preload("resources/images/boss/enemy");
-   *
-   * Pass an array of paths to preload all at once. The callback
-   * will be called when all resources have finished loading.
-   *
-   * This works for both images and sounds.
-   */
-  this.preload = function (pathPrefix, opts, cb) {
+  }
+  preload(pathPrefix, opts, cb) {
     if (typeof opts == 'function') {
       cb = opts;
       opts = undefined;
     }
+
+
+
+
 
 
 
@@ -199,6 +143,8 @@ var Loader = Class(Emitter, function () {
       }
 
 
+
+
       var audioMap = this._audioMap;
       var audioToLoad = {};
       for (var uri in audioMap) {
@@ -214,17 +160,20 @@ var Loader = Class(Emitter, function () {
       }
 
 
+
+
       var callback = this._loadGroup(merge({ resources: files }, opts));
       cb && callback.run(cb);
       return callback;
     }
-  };
-
-  this.getSound = function (src) {
+  }
+  getSound(src) {
     if (!_soundManager) {
       _soundManager = new AudioManager({ preload: true });
       _soundLoader = _soundManager.getAudioLoader();
     }
+
+
 
 
     if (GLOBAL.NATIVE && GLOBAL.NATIVE.sound && GLOBAL.NATIVE.sound.preloadSound) {
@@ -237,9 +186,8 @@ var Loader = Class(Emitter, function () {
         loader: _soundLoader
       };
     }
-  };
-
-  this.getImagePaths = function (prefix) {
+  }
+  getImagePaths(prefix) {
     prefix = prefix.replace(/^\//, '');
     // remove leading slash
     var images = [];
@@ -250,9 +198,8 @@ var Loader = Class(Emitter, function () {
       }
     }
     return images;
-  };
-
-  this.getImage = function (src, noWarn) {
+  }
+  getImage(src, noWarn) {
     // create the image
     var img = new Image();
     img.crossOrigin = 'use-credentials';
@@ -266,6 +213,8 @@ var Loader = Class(Emitter, function () {
     }
 
 
+
+
     if (b64) {
       img.src = b64;
       Image.set(src, img);
@@ -277,15 +226,11 @@ var Loader = Class(Emitter, function () {
     }
 
 
-    return img;
-  };
 
-  /**
-   * used internally by timestep.Image to seamlessly convert
-   * non-sprited image URLs to sprited images. This is here (rather
-   * than in timestep.Image) to keep sprite formats in one consistent place.
-   */
-  this._updateImageMap = function (map, url, x, y, w, h) {
+
+    return img;
+  }
+  _updateImageMap(map, url, x, y, w, h) {
     x = x || 0;
     y = y || 0;
     w = w == undefined ? -1 : w;
@@ -301,6 +246,8 @@ var Loader = Class(Emitter, function () {
       map.url = url;
       return;
     }
+
+
 
 
     var scale = info.scale || 1;
@@ -323,6 +270,8 @@ var Loader = Class(Emitter, function () {
     }
 
 
+
+
     // now updatea the margins to account for the new source map
     map.marginLeft = Math.max(0, info.x - map.x);
     map.marginTop = Math.max(0, info.y - map.y);
@@ -339,9 +288,8 @@ var Loader = Class(Emitter, function () {
     map.scale = scale;
     map.url = info.sheet;
     return map;
-  };
-
-  this._getRaw = function (type, src, copy, noWarn) {
+  }
+  _getRaw(type, src, copy, noWarn) {
     // always return the cached copy unless specifically requested not to
     if (!copy && _cache[src]) {
       return _cache[src];
@@ -358,17 +306,8 @@ var Loader = Class(Emitter, function () {
       logger.error('Preload Error: Unknown Type', type);
     }
     return _cache[src] = res;
-  };
-
-
-  // The callback is called for each image in the group with the image
-  // source that loaded and whether there was an error.
-  //
-  // function callback(lastSrc, error, isComplete, numCompleted, numTotal)
-  //    where error is true or false and isComplete is true when numCompleted == numTotal
-  this._requestedResources = [];
-
-  this._loadGroup = function (opts, cb) {
+  }
+  _loadGroup(opts, cb) {
     var timeout = opts.timeout;
     var callback = new Callback();
     var that = this;
@@ -399,6 +338,8 @@ var Loader = Class(Emitter, function () {
       }
 
 
+
+
       if (!found) {
         if (type === 'image' || type === 'audio') {
           requested = {
@@ -412,11 +353,17 @@ var Loader = Class(Emitter, function () {
         }
 
 
+
+
         if (type == 'image' && GLOBAL.NATIVE && NATIVE.gl) {
           NATIVE.gl.touchTexture(resources[i]);
         }
       }
     }
+
+
+
+
 
 
 
@@ -428,15 +375,21 @@ var Loader = Class(Emitter, function () {
       }
 
 
+
+
       if (cb) {
         callback.run(cb);
       }
+
+
 
 
       callback.fire();
 
       return callback;
     }
+
+
 
 
     // do the preload asynchronously (note that base64 is synchronous, only downloads are asynchronous)
@@ -459,11 +412,15 @@ var Loader = Class(Emitter, function () {
       }
 
 
+
+
       var next = function (failed) {
         // If already complete, stub this out
         if (numLoaded >= numResources) {
           return;
         }
+
+
 
 
         // Set stubs for the reload and load events so that code
@@ -483,6 +440,8 @@ var Loader = Class(Emitter, function () {
         }
 
 
+
+
         // If we have loaded all of the resources,
         if (numLoaded >= numResources) {
           // Call the progress callback with isComplete == true
@@ -492,6 +451,8 @@ var Loader = Class(Emitter, function () {
           if (_timeout) {
             clearTimeout(_timeout);
           }
+
+
 
 
           // Fire the completion callback chain
@@ -568,6 +529,8 @@ var Loader = Class(Emitter, function () {
           }
 
 
+
+
           // React to successful load of this resource
           next(false);
         };
@@ -593,6 +556,8 @@ var Loader = Class(Emitter, function () {
       }
 
 
+
+
       // register timeout call
       if (timeout) {
         _timeout = setTimeout(function () {
@@ -603,10 +568,13 @@ var Loader = Class(Emitter, function () {
       }
     }, 0);
     return callback;
-  };
+  }
+}
 
-});
-
+Loader.prototype._map = {};
+Loader.prototype._originalMap = {};
+Loader.prototype._audioMap = {};
+Loader.prototype._requestedResources = [];
 Loader.IMAGE_LOADED = 'imageLoaded';
 
 exports = new Loader();

@@ -30,10 +30,10 @@ var defaults = {
   color: '#ffffff'
 };
 
-exports = Class(View, function (supr) {
-  this.init = function (opts) {
+exports = class extends View {
+  constructor(opts) {
     this._opts = merge(opts, defaults);
-    supr(this, 'init', [this._opts]);
+    super(this._opts);
 
     this._font = this._opts.font;
     this._lineHeight = this._opts.lineHeight;
@@ -42,15 +42,13 @@ exports = Class(View, function (supr) {
 
     this._count = 0;
     this._lines = [];
-  };
-
-  this.buildView = function () {
+  }
+  buildView() {
     //if width/height not provided, default to parent dimensions
     this.style.width = this._opts.width ? this._opts.width : this.getSuperview().style.width;
     this.style.height = this._opts.height ? this._opts.height : this.getSuperview().style.height;
-  };
-
-  this.render = function (ctx) {
+  }
+  render(ctx) {
     ctx.fillStyle = this._opts.backgroundColor;
     ctx.fillRect(0, 0, this.style.width, this.style.height);
 
@@ -67,12 +65,8 @@ exports = Class(View, function (supr) {
         ctx.fillText(line, 25, 25 + i * this._lineHeight);
       }
     }
-  };
-
-  /*
-   * @param {*...} args Argument(s) to print to the view.
-   */
-  this.log = function ()
+  }
+  log()
     /*args ...*/
     {
       ++this._count;
@@ -81,7 +75,7 @@ exports = Class(View, function (supr) {
         this._lines.shift();
       }
       this.needsRepaint();
-    };
-});
+    }
+};
 
 export default exports;

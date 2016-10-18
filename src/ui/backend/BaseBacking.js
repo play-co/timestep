@@ -60,12 +60,8 @@ var BASE_STYLE_PROPS = {
 };
 
 
-exports = Class(function () {
-  // required methods:
-  //
-  // this._onResize = function () {};
-  // this._onZIndex = function () {};
-  this.localizePoint = function (pt) {
+exports = class {
+  localizePoint(pt) {
     pt.x -= this.x + this.anchorX + this.offsetX;
     pt.y -= this.y + this.anchorY + this.offsetY;
     if (this.r) {
@@ -75,9 +71,8 @@ exports = Class(function () {
     pt.x += this.anchorX;
     pt.y += this.anchorY;
     return pt;
-  };
-
-  this.copy = function () {
+  }
+  copy() {
     var copy = {};
     for (var key in styleKeys) {
       copy[key] = this[key];
@@ -86,18 +81,21 @@ exports = Class(function () {
 
 
 
-    return copy;
-  };
 
-  this.update = function (style) {
+
+
+
+    return copy;
+  }
+  update(style) {
     for (var i in style) {
       if (style.hasOwnProperty(i) && styleKeys.hasOwnProperty(i)) {
         this[i] = style[i];
       }
     }
     return this;
-  };
-});
+  }
+};
 var BaseBacking = exports;
 
 var styleKeys = BaseBacking.prototype.constructor.styleKeys = {};
@@ -110,5 +108,6 @@ BaseBacking.prototype.constructor.addProperty = function (key, def) {
 for (var key in BASE_STYLE_PROPS) {
   BaseBacking.prototype.constructor.addProperty(key, BASE_STYLE_PROPS[key]);
 }
+
 
 export default exports;

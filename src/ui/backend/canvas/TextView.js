@@ -128,10 +128,10 @@ fontBuffer.onGetHash = function (desc) {
 /**
  * @extends ui.View
  */
-exports = Class(View, function (supr) {
-  this.init = function (opts) {
+exports = class extends View {
+  constructor(opts) {
     opts = merge(opts, defaults);
-    supr(this, 'init', [opts]);
+    super(opts);
 
     this._opts = {};
     this._optsLast = {};
@@ -146,30 +146,27 @@ exports = Class(View, function (supr) {
 
     this._initComplete = true;
     this.updateOpts(opts);
-  };
-
-  this.onChangeWidth = function (width) {
+  }
+  onChangeWidth(width) {
     this.updateOpts({ width: width }, true);
-  };
-
-  this.onChangeHeight = function (height) {
+  }
+  onChangeHeight(height) {
     this.updateOpts({ height: height }, true);
-  };
-
-  this.onChangeSize = function (size, ctx) {
+  }
+  onChangeSize(size, ctx) {
     this.updateOpts({ size: size }, true);
     if (ctx) {
       ctx.font = this._opts.fontWeight + ' ' + this._opts.size + 'px ' + this._opts.fontFamily;
     }
-  };
-
-  // These options might have been changed to make the text fit, restore them...
-  this._restoreOpts = function () {
+  }
+  _restoreOpts() {
     var optsLast = this._optsLast;
     if (!optsLast) {
       console.warn('No _optsLast to restore');
       return;
     }
+
+
 
 
     var optsKey;
@@ -180,15 +177,15 @@ exports = Class(View, function (supr) {
         this._opts[optsKey] = optsLast[optsKey];
       }
     }
-  };
-
-  // Check if the cache should be updated...
-  this._checkOpts = function (opts) {
+  }
+  _checkOpts(opts) {
     var optsLast = this._optsLast;
     if (!optsLast) {
       console.warn('No _optsLast to check against');
       return;
     }
+
+
 
 
     var optsKey;
@@ -211,9 +208,8 @@ exports = Class(View, function (supr) {
         optsLast[optsKey] = defaults[optsKey];
       }
     }
-  };
-
-  this._checkDeprecatedOpts = function (opts) {
+  }
+  _checkDeprecatedOpts(opts) {
     opts.allowVerticalSizing = !legacySettings.disableVerticalAutoSize;
     for (var k in DEPRECATED) {
       if (k in opts) {
@@ -240,18 +236,18 @@ exports = Class(View, function (supr) {
         opts.fontFamily = font.substr(i + 1 - font.length);
       }
     }
-  };
-
-  this.updateCache = function () {
+  }
+  updateCache() {
     this._cacheUpdate = true;
     this._hash = false;
-  };
-
-  this.updateOpts = function (opts, dontCheck) {
+  }
+  updateOpts(opts, dontCheck) {
     if (!this._initComplete) {
       console.warn('TextView instance not yet ready');
       return;
     }
+
+
 
 
     // update emoticon data
@@ -263,6 +259,8 @@ exports = Class(View, function (supr) {
         }
       }
     }
+
+
 
 
     if (this._opts.buffer) {
@@ -278,21 +276,22 @@ exports = Class(View, function (supr) {
       if (this._cacheUpdate) {
         opts.hash = false;
       } else {
-        supr(this, 'updateOpts', arguments);
+        super.updateOpts(...arguments);
         return;
       }
     }
 
 
-    opts = supr(this, 'updateOpts', arguments);
+
+
+    opts = super.updateOpts(...arguments);
 
     'text' in opts && this.setText(opts.text);
     !dontCheck && this._textFlow.setOpts(this._opts);
 
     return opts;
-  };
-
-  this._updateCtx = function (ctx) {
+  }
+  _updateCtx(ctx) {
     var opts = this._opts;
 
     ctx.textAlign = 'left';
@@ -300,9 +299,8 @@ exports = Class(View, function (supr) {
     ctx.fillStyle = opts.color;
     ctx.font = opts.fontWeight + ' ' + opts.size + 'px ' + opts.fontFamily;
     ctx.lineWidth = this.getStrokeWidth();
-  };
-
-  this._renderToCtx = function (ctx, offsetX, offsetY) {
+  }
+  _renderToCtx(ctx, offsetX, offsetY) {
     var opts = this._opts;
     var words = this._textFlow.getWords();
     var maxWidth = opts.autoFontSize ? this._textFlow.getAvailableWidth() : 1000000;
@@ -318,6 +316,8 @@ exports = Class(View, function (supr) {
     if (legacySettings.textViewColor && this.color) {
       color = this.color;
     }
+
+
 
 
     this._updateCtx(ctx);
@@ -336,6 +336,8 @@ exports = Class(View, function (supr) {
         if (emoticonData.image) {
           emoticonData.image.render(ctx, x + lineOffset, y + lineOffset, opts.size, opts.size);
         }
+
+
 
 
       } else {
@@ -364,10 +366,14 @@ exports = Class(View, function (supr) {
         }
 
 
+
+
         if (strokeColor) {
           ctx.strokeStyle = strokeColor;
           ctx.strokeText(word, x + lineOffset, y + lineOffset, maxWidth);
         }
+
+
 
 
         ctx.fillStyle = color;
@@ -380,9 +386,8 @@ exports = Class(View, function (supr) {
       ctx.strokeStyle = 'red';
       ctx.strokeRect(0, 0, this.style.width, this.style.height);
     }
-  };
-
-  this._renderBuffer = function (ctx) {
+  }
+  _renderBuffer(ctx) {
     var fontBufferCtx = fontBuffer.getContext();
     var offsetRect = this._textFlow.getOffsetRect();
     var width = offsetRect.width;
@@ -407,22 +412,22 @@ exports = Class(View, function (supr) {
         this._opts.buffer = false;
       }
     }
-  };
-
-  this.computeSize = function (ctx) {
+  }
+  computeSize(ctx) {
     if (this._cacheUpdate) {
       this._updateCtx(ctx);
       var opts = this._opts;
       this._textFlow.reflow(ctx, 1 + (opts.autoFontSize ? 4 : 0) + (opts.autoSize ? 2 : 0) + (opts.wrap ? 1 : 0));
     }
-  };
-
-  this.render = function (ctx) {
+  }
+  render(ctx) {
     this.computeSize(ctx);
     if (!this._textFlow.getWords().length) {
       this._cacheUpdate = false;
       return;
     }
+
+
 
 
     if (this._opts.buffer) {
@@ -433,18 +438,17 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     this._cacheUpdate = false;
-  };
-
-  this.clearBuffers = function () {
+  }
+  clearBuffers() {
     fontBuffer.clearBuffer();
-  };
-
-  this.getFontBuffer = function () {
+  }
+  getFontBuffer() {
     return fontBuffer;
-  };
-
-  this.setText = function (textData) {
+  }
+  setText(textData) {
     var text = textData != undefined ? textData.toString() : '';
 
     var emoticonData = this._opts.emoticonData;
@@ -456,10 +460,14 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     if (this._opts.text !== text) {
       if (this._opts.buffer) {
         fontBuffer.releaseBin(this.getHash());
       }
+
+
 
 
       this._restoreOpts();
@@ -467,25 +475,20 @@ exports = Class(View, function (supr) {
       this.updateCache();
       this.needsRepaint();
     }
-  };
-
-  this.getStrokeWidth = function () {
+  }
+  getStrokeWidth() {
     return this._opts.strokeColor ? this._opts.strokeWidth : 0;
-  };
-
-  this.getText = function () {
+  }
+  getText() {
     return this._opts.text;
-  };
-
-  this.getTag = function () {
+  }
+  getTag() {
     return 'TextView' + this.uid + ':' + (this.tag || (this._opts.text || '').substring(0, 20));
-  };
-
-  this.getOpts = function () {
+  }
+  getOpts() {
     return this._opts;
-  };
-
-  this.getHash = function () {
+  }
+  getHash() {
     if (!this._hash) {
       this._hash = '';
 
@@ -497,15 +500,12 @@ exports = Class(View, function (supr) {
     }
     return this._hash;
 
-  };
-
-  // When we support clearing offscreen buffers we can use this instead of the code above...
-  // return 't' + this._id;
-  this.reflow = function () {
+  }
+  reflow() {
     this._restoreOpts();
     this._cacheUpdate = true;
-  };
-});
+  }
+};
 var TextView = exports;
 
 exports.clearBuffers = TextView.prototype.clearBuffers;

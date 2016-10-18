@@ -17,8 +17,8 @@ let exports = {};
  */
 exports = {
   disableVerticalAutoSize: false,
-  textViewColor: false  // use this.color in TextView if true
-
+  textViewColor: false
 };
 
+// use this.color in TextView if true
 export default exports;

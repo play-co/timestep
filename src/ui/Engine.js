@@ -71,12 +71,16 @@ var __instance = null;
 /**
  * @extends event.Emitter
  */
-exports = Class(Emitter, function (supr) {
-  this.init = function (opts) {
+exports = class extends Emitter {
+  constructor(opts) {
+    super();
+
     if (!__instance) {
       __instance = this;
       engineInstance.setInstance(this);
     }
+
+
 
 
     var canvas = opts && opts.canvas;
@@ -87,6 +91,8 @@ exports = Class(Emitter, function (supr) {
         throw new Error('Canvas not found for ID: ' + canvasID);
       }
     }
+
+
 
 
     this._opts = opts = merge(opts, {
@@ -147,6 +153,8 @@ exports = Class(Emitter, function (supr) {
     }
 
 
+
+
     this._inputListener = new InputListener({
       rootView: this._view,
       el: this._rootElement,
@@ -173,18 +181,20 @@ exports = Class(Emitter, function (supr) {
     }
 
 
+
+
     this.updateOpts(this._opts);
-  };
-
-  this.getOpt = function (key) {
+  }
+  getOpt(key) {
     return this._opts[key];
-  };
-
-  this.updateOpts = function (opts) {
+  }
+  updateOpts(opts) {
     this._opts = merge(opts, this._opts);
     if (this._keyListener) {
       this._keyListener.setEnabled(this._opts.keyListenerEnabled);
     }
+
+
 
 
     if (this._opts.scaleUI) {
@@ -199,10 +209,14 @@ exports = Class(Emitter, function (supr) {
     }
 
 
+
+
     if (this._opts.showFPS) {
       if (!this._applicationFPS) {
         this._applicationFPS = new FPSView({ application: this });
       }
+
+
 
 
       this._renderFPS = bind(this._applicationFPS, this._applicationFPS.render);
@@ -213,9 +227,8 @@ exports = Class(Emitter, function (supr) {
       this._tickFPS = function () {
       };
     }
-  };
-
-  this.scaleUI = function (w, h) {
+  }
+  scaleUI(w, h) {
     if (device.height > device.width) {
       this._view.baseWidth = w;
       this._view.baseHeight = device.height * (w / device.width);
@@ -226,75 +239,59 @@ exports = Class(Emitter, function (supr) {
       this._view.scale = device.height / this._view.baseHeight;
     }
     this._view.style.scale = this._view.scale;
-  };
-
-  this.supports = function (key) {
+  }
+  supports(key) {
     return this._opts[key];
-  };
-
-  /* @internal */
-  this.getInput = function () {
+  }
+  getInput() {
     return this._inputListener;
-  };
-
-  this.getKeyListener = function () {
+  }
+  getKeyListener() {
     return this._keyListener;
-  };
-
-  this.getEvents = function () {
+  }
+  getEvents() {
     return this._events;
-  };
-
-  // deprecating getCanvas...
-  this.getCanvas = function () {
+  }
+  getCanvas() {
     return this._rootElement;
-  };
-
-  this.getViewCtor = function () {
+  }
+  getViewCtor() {
     return View;
-  };
-
-  this.getView = function () {
+  }
+  getView() {
     return this._view;
-  };
-
-  this.setView = function (view) {
+  }
+  setView(view) {
     this._view = view;
     return this;
-  };
-
-  this.show = function () {
+  }
+  show() {
     this._rootElement.style.display = 'block';
     return this;
-  };
-
-  this.hide = function () {
+  }
+  hide() {
     this._rootElement.style.display = 'none';
     return this;
-  };
-
-  this.pause = function () {
+  }
+  pause() {
     this.stopLoop();
     if (this._keyListener) {
       this._keyListener.setEnabled(false);
     }
-  };
-
-  this.resume = function () {
+  }
+  resume() {
     this.startLoop();
     if (this._keyListener) {
       this._keyListener.setEnabled(true);
     }
-  };
-
-  this.stepFrame = function (n) {
+  }
+  stepFrame(n) {
     this.pause();
     n = n || 1;
     this._countdown = n;
     this.resume();
-  };
-
-  this.startLoop = function (dtMin) {
+  }
+  startLoop(dtMin) {
     if (this._running) {
       return;
     }
@@ -304,9 +301,8 @@ exports = Class(Emitter, function (supr) {
     timer.start(dtMin || this._opts.dtMinimum);
     this.emit('resume');
     return this;
-  };
-
-  this.stopLoop = function () {
+  }
+  stopLoop() {
     if (!this._running) {
       return;
     }
@@ -314,20 +310,17 @@ exports = Class(Emitter, function (supr) {
     timer.stop();
     this.emit('pause');
     return this;
-  };
-
-  this.isRunning = function () {
+  }
+  isRunning() {
     return this._running;
-  };
-
-  this.doOnTick = function (cb) {
+  }
+  doOnTick(cb) {
     if (arguments.length > 1) {
       cb = bind.apply(this, arguments);
     }
     this._onTick.push(cb);
-  };
-
-  this._tick = function (dt) {
+  }
+  _tick(dt) {
     //if the countdown is defined
     if (this._countdown !== null) {
       this._countdown--;
@@ -340,6 +333,8 @@ exports = Class(Emitter, function (supr) {
     }
 
 
+
+
     if (this._ctx) {
       var el = this._ctx.getElement();
       var s = this._view.style;
@@ -350,9 +345,13 @@ exports = Class(Emitter, function (supr) {
     }
 
 
+
+
     for (var i = 0, cb; cb = this._onTick[i]; ++i) {
       cb(dt);
     }
+
+
 
 
     var events = this._inputListener.getEvents();
@@ -373,10 +372,14 @@ exports = Class(Emitter, function (supr) {
     }
 
 
+
+
     for (var i = 0, evt; evt = events[i]; ++i) {
       evt.srcApp = this;
       dispatch.dispatchEvent(this._view, evt);
     }
+
+
 
 
     if (!device.useDOM) {
@@ -393,6 +396,8 @@ exports = Class(Emitter, function (supr) {
     }
 
 
+
+
     if (this._opts.dtFixed) {
       this._tickBuffer += dt;
       while (this._tickBuffer >= this._opts.dtFixed) {
@@ -403,6 +408,8 @@ exports = Class(Emitter, function (supr) {
     } else {
       this.__tick(dt);
     }
+
+
 
 
     this._reflowMgr.reflowViews(this._ctx);
@@ -420,13 +427,20 @@ exports = Class(Emitter, function (supr) {
 
 
 
-    this._needsRepaint = false;
-  };
 
-  this.render = function (dt) {
+
+
+
+
+
+    this._needsRepaint = false;
+  }
+  render(dt) {
     if (this._opts.clearEachFrame) {
       this._ctx && this._ctx.clear();
     }
+
+
 
 
     this._view.__view.constructor.absScale = 1;
@@ -439,22 +453,21 @@ exports = Class(Emitter, function (supr) {
       }
 
 
+
+
       this._ctx.swap();
     }
-  };
-
-  this.needsRepaint = function () {
+  }
+  needsRepaint() {
     this._needsRepaint = true;
     return this;
-  };
-
-  this.__tick = function (dt) {
+  }
+  __tick(dt) {
     this._tickFPS(dt);
     this.publish('Tick', dt);
     this._view.__view.wrapTick(dt, this);
-  };
-
-});
+  }
+};
 
 var Engine = exports;
 

@@ -45,6 +45,8 @@ exports.init = function () {
       }
 
 
+
+
       device.screen.publish('Resize', width, height);
     }
   };

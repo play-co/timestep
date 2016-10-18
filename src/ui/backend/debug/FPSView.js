@@ -48,8 +48,8 @@ function fillRect(ctx, rect, color) {
 }
 ;
 
-var Graph = Class(function () {
-  this.init = function (opts) {
+class Graph {
+  constructor(opts) {
     var Canvas = device.get('Canvas');
 
     this._width = opts.width;
@@ -70,9 +70,8 @@ var Graph = Class(function () {
 
     this._offset = 0;
     this._index = 0;
-  };
-
-  this.addValues = function (values, timeAxis) {
+  }
+  addValues(values, timeAxis) {
     var ctx = this._ctx, width = this._width, height = this._height, value, maxValue = this._maxValue, x = (this._offset + this._index) % width, y = this._height, n, i, j;
 
     ctx.fillStyle = this._backgroundColor;
@@ -88,6 +87,8 @@ var Graph = Class(function () {
       ctx.fillStyle = this._colors[i];
       ctx.fillRect(x, height - n, 2, n);
     }
+
+
 
 
     ctx.fillStyle = this._axisColor;
@@ -106,9 +107,8 @@ var Graph = Class(function () {
         this._offset = 0;
       }
     }
-  };
-
-  this.render = function (ctx, x, y) {
+  }
+  render(ctx, x, y) {
     var offset = this._offset, width = this._width, height = this._height;
 
     if (offset === 0) {
@@ -117,11 +117,11 @@ var Graph = Class(function () {
       ctx.drawImage(this._canvas, offset, 0, width - offset, height, x, y, width - offset, height);
       ctx.drawImage(this._canvas, 0, 0, offset, height, width - offset + x, y, offset, height);
     }
-  };
-});
+  }
+}
 
-exports = Class(function () {
-  this.init = function (opts) {
+exports = class {
+  constructor(opts) {
     this._application = opts.application;
 
     this._time = +new Date() + 1000;
@@ -170,9 +170,8 @@ exports = Class(function () {
       ],
       axisColor: '#FFFFFF'
     });
-  };
-
-  this.tick = function (dt) {
+  }
+  tick(dt) {
     var time = +new Date();
     if (time > this._time) {
       this._time = time + 1000;
@@ -183,10 +182,14 @@ exports = Class(function () {
     }
 
 
+
+
     var events = this._application.getEvents();
     if (events.length) {
       this._handleEvents(events);
     }
+
+
 
 
     this._dt = this._dt * 0.8 + dt * 0.2;
@@ -201,6 +204,8 @@ exports = Class(function () {
         break;
 
 
+
+
       case viewModes.FPS:
         this._graphs[viewModes.FPS].addValues([
           this._fps,
@@ -209,9 +214,8 @@ exports = Class(function () {
         break;
       }
     }
-  };
-
-  this._handleEvents = function (events) {
+  }
+  _handleEvents(events) {
     var types = dispatch.eventTypes;
     var i = events.length;
 
@@ -236,9 +240,8 @@ exports = Class(function () {
         break;
       }
     }
-  };
-
-  this.render = function (ctx) {
+  }
+  render(ctx) {
     ctx.save();
 
     ctx.textBaseline = 'top';
@@ -265,17 +268,18 @@ exports = Class(function () {
     }
 
 
+
+
     strokeRect(ctx, this._rect, this._borderColor);
 
     ctx.fillStyle = this._textColor;
     ctx.fillText(this._fps, 12, 0);
 
     ctx.restore();
-  };
-
-  this.getFPS = function () {
+  }
+  getFPS() {
     return this._fps;
-  };
-});
+  }
+};
 
 export default exports;

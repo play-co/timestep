@@ -62,6 +62,10 @@ if (DEBUG) {
 
 
 
+
+
+
+
 // TODO: native
 // TODO: Resize event on width/height change
 // TODO: reflow on subview visibility change
@@ -70,9 +74,11 @@ function toStringSort() {
 }
 
 
-exports = Class(BoxLayout, function (supr) {
-  this.init = function () {
-    supr(this, 'init', arguments);
+
+
+exports = class extends BoxLayout {
+  constructor() {
+    super(...arguments);
 
     this._view.subscribe('SubviewAdded', this, '_onSubviewAdded');
     this._view.subscribe('SubviewRemoved', this, '_onSubviewRemoved');
@@ -86,29 +92,27 @@ exports = Class(BoxLayout, function (supr) {
     }
 
 
+
+
     this._forwardEvents();
 
     this._debug = DEBUG;
-  };
-
-  this._onSubviewRemoved = function (view) {
+  }
+  _onSubviewRemoved(view) {
     if (view.style.inLayout) {
       this.remove(view);
     }
-  };
-
-  this._onSubviewAdded = function (view) {
+  }
+  _onSubviewAdded(view) {
     if (view.style.inLayout) {
       this.add(view);
     }
-  };
-
-  this.debug = function () {
+  }
+  debug() {
     this._debug = true;
     return this;
-  };
-
-  this._setDirection = function (direction) {
+  }
+  _setDirection(direction) {
     this._direction = direction;
 
     var isVertical = this.isVertical();
@@ -123,53 +127,24 @@ exports = Class(BoxLayout, function (supr) {
     this._propSideB = isVertical ? 'bottom' : 'right';
 
     this._flexProp = isVertical ? 'vflex' : 'hflex';
-  };
-
-  this.isVertical = function () {
+  }
+  isVertical() {
     return this._direction == 'vertical';
-  };
-  this.isHorizontal = function () {
+  }
+  isHorizontal() {
     return this._direction == 'horizontal';
-  };
-
-  /**
-   * Events to proxy to the parent view from this layout.
-   */
-  this._events = [
-    'ViewWillAppear',
-    'ViewDidAppear',
-    'ViewWillDisappear',
-    'ViewDidDisappear'
-  ];
-
-  this._forwardEvents = function () {
+  }
+  _forwardEvents() {
     for (var i = 0, a; a = this._events[i]; ++i) {
       this._view.subscribe(a, this, '_forwardSignal', a);
     }
-  };
-
-  this._events = [
-    'ViewWillAppear',
-    'ViewDidAppear',
-    'ViewWillDisappear',
-    'ViewDidDisappear'
-  ];
-
-
-  /**
-   * Emit events on the children. Variable arguments.
-   */
-  this._forwardSignal = function () {
+  }
+  _forwardSignal() {
     for (var i = 0, v; v = this._views[i]; ++i) {
       v.view.publish.apply(v.view, arguments);
     }
-  };
-
-
-  /**
-   * Initialize a subview controlled by this layout.
-   */
-  this._initLayoutView = function (view) {
+  }
+  _initLayoutView(view) {
     view.style.inLayout = true;
 
     this._debug && _debug.log('view', this._view.uid, 'layout: adding view', view.uid, '(' + this._propDim, '=', view.style[this._propDim] + ')');
@@ -184,35 +159,19 @@ exports = Class(BoxLayout, function (supr) {
       index: 0,
       toString: toStringSort
     };
-  };
-
-
-  /**
-   * Return the size of this element (in its cardinal direction).
-   */
-  this.getSize = function () {
+  }
+  getSize() {
     return this._size;
-  };
-
-
-  /**
-   * Return the index of a subview.
-   */
-  this.getViewIndex = function (view) {
+  }
+  getViewIndex(view) {
     for (var i = 0, d; d = this._views[i]; ++i) {
       if (d.view == view) {
         return i;
       }
     }
     return -1;
-  };
-
-
-  /**
-   * Add an array of subviews to this element in batch (prevent reflow each
-   * time).
-   */
-  this.addSubviews = function (views) {
+  }
+  addSubviews(views) {
     this._debug && _debug.log(this._view.uid, 'adding', views.length, 'views');
     if (isArray(views)) {
       for (var i = 0, n = views.length; i < n; ++i) {
@@ -223,32 +182,25 @@ exports = Class(BoxLayout, function (supr) {
       }
 
 
+
+
       this._view.needsReflow();
     } else {
       this.insertBefore(views);
     }
 
 
+
+
     return this;
   }
 
-;
-
-
-  /**
-   * Return the list of subviews controlled by this layout.
-   */
-  this.getSubviews = function () {
+  getSubviews() {
     return this._views.map(function (v) {
       return v.view;
     });
-  };
-
-
-  /**
-   * Remove a subview controlled by this layout.
-   */
-  this.remove = function (view) {
+  }
+  remove(view) {
     var i = this.getViewIndex(view);
     if (i != -1) {
       this._views.splice(i, 1);
@@ -258,16 +210,12 @@ exports = Class(BoxLayout, function (supr) {
     }
   }
 
-;
-
-
-  /**
-   * Insert a subview before another subview in this hierarchy.
-   */
-  this.insertBefore = function (view, before) {
+  insertBefore(view, before) {
     if (this.getViewIndex(view) != -1) {
       return;
     }
+
+
 
 
     var item = this._initLayoutView(view);
@@ -281,24 +229,24 @@ exports = Class(BoxLayout, function (supr) {
     }
 
 
+
+
     if (!added) {
       this._views.push(item);
     }
 
 
+
+
     this._view.needsReflow();
   }
 
-;
-
-
-  /**
-   * Insert a subview after another subview in this hierarchy.
-   */
-  this.insertAfter = function (view, after) {
+  insertAfter(view, after) {
     if (this.getViewIndex(view) != -1) {
       return;
     }
+
+
 
 
     var item = this._initLayoutView(view);
@@ -312,22 +260,20 @@ exports = Class(BoxLayout, function (supr) {
     }
 
 
+
+
     if (!added) {
       this._views.unshift(item);
     }
 
 
+
+
     this._view.needsReflow();
   }
 
-;
-
-
-  /**
-   * Reflow logic.
-   */
-  this.reflow = function () {
-    supr(this, 'reflow', arguments);
+  reflow() {
+    super.reflow(...arguments);
 
     // Get the position of each view in the subview array. This index
     // will be used as the secondary sorting key.
@@ -336,6 +282,8 @@ exports = Class(BoxLayout, function (supr) {
     for (var i = 0, v; v = children[i]; ++i) {
       indexMap[v.uid] = strPad.pad(i);
     }
+
+
 
 
     // style.order is first, then default to the views position in the
@@ -350,9 +298,13 @@ exports = Class(BoxLayout, function (supr) {
     }
 
 
+
+
     if (!n) {
       return;
     }
+
+
 
 
     this._views.sort();
@@ -361,6 +313,8 @@ exports = Class(BoxLayout, function (supr) {
     if (layoutStyle.direction != this._direction) {
       this._setDirection(layoutStyle.direction);
     }
+
+
 
 
     var scale = this._view.getPosition().scale;
@@ -401,9 +355,13 @@ exports = Class(BoxLayout, function (supr) {
     }
 
 
+
+
     if (flexSum && parentDim == undefined) {
       return;
     }
+
+
 
 
     // compute available space
@@ -411,6 +369,8 @@ exports = Class(BoxLayout, function (supr) {
     if (availableSpace < 0) {
       return;
     }
+
+
 
 
     // if there's a flex subview, the total size is the availableSpace
@@ -427,6 +387,8 @@ exports = Class(BoxLayout, function (supr) {
       if (!s.visible) {
         continue;
       }
+
+
 
 
       if (s.flex) {
@@ -448,10 +410,14 @@ exports = Class(BoxLayout, function (supr) {
         }
 
 
+
+
         // keep track of used flex space
         flexUsed += roundedSpace;
       }
     }
+
+
 
 
     var flexRemaining = flexSize - flexUsed;
@@ -482,6 +448,8 @@ exports = Class(BoxLayout, function (supr) {
     }
 
 
+
+
     // position and size views!
     var propPos = this._propPos;
     for (var i = 0, v; v = views[i]; ++i) {
@@ -490,6 +458,8 @@ exports = Class(BoxLayout, function (supr) {
       if (!s.visible) {
         continue;
       }
+
+
 
 
       // set position
@@ -505,9 +475,13 @@ exports = Class(BoxLayout, function (supr) {
       }
 
 
+
+
       // advance position
       pos += gap + (s[propDim] || 0) * s.scale + v.margins;
     }
+
+
 
 
     this._debug && this._summarize() && _debug.stepOut();
@@ -520,13 +494,17 @@ exports = Class(BoxLayout, function (supr) {
 
 
 
+
+
+
+
+
+
     if (this._size != totalSize) {
       this._size = totalSize;
     }
-  };
-
-  // this._view.publish('LayoutResize', totalSize);
-  this._summarize = function () {
+  }
+  _summarize() {
     var views = this._views;
     for (var i = 0, v; v = views[i]; ++i) {
       var s = v.view.style;
@@ -534,10 +512,24 @@ exports = Class(BoxLayout, function (supr) {
     }
 
 
-    return true;
-  };
-});
 
+
+    return true;
+  }
+};
+
+exports.prototype._events = [
+  'ViewWillAppear',
+  'ViewDidAppear',
+  'ViewWillDisappear',
+  'ViewDidDisappear'
+];
+exports.prototype._events = [
+  'ViewWillAppear',
+  'ViewDidAppear',
+  'ViewWillDisappear',
+  'ViewDidDisappear'
+];
 exports.prototype.add = exports.prototype.insertBefore;
 
 export default exports;

@@ -96,13 +96,13 @@ var positions = {
 };
 
 
-exports = Class(ImageView, function (supr) {
-  this.init = function (opts) {
+exports = class extends ImageView {
+  constructor(opts) {
     if (opts.debug) {
       opts.backgroundColor = 'red';
     }
     opts = merge(opts, defaults);
-    supr(this, 'init', [opts]);
+    super(opts);
     this.text = new TextView({
       superview: this,
       layout: 'box',
@@ -114,22 +114,19 @@ exports = Class(ImageView, function (supr) {
     this.setImages(opts.images);
     this.setPosition(opts.position);
     opts.txt && this.text.setText(opts.txt);
-  };
-
-  this.setImages = function (imgs) {
+  }
+  setImages(imgs) {
     this._images = imgs || {};
     this.position && this.setImage(this._images[this.position]);
-  };
-
-  this.setPosition = function (pos) {
+  }
+  setPosition(pos) {
     for (var k in positions[pos].style) {
       this.style[k] = positions[pos].style[k];
     }
     this.position = pos;
     this.setImage(this._images[this.position]);
-  };
-
-  this.pop = function (text, position) {
+  }
+  pop(text, position) {
     position && this.setPosition(position);
     if (!this._images[this.position]) {
       throw new Error('Toast ' + this.uid + ' doesn\'t have an image for position: ' + this.position);
@@ -141,7 +138,7 @@ exports = Class(ImageView, function (supr) {
     this.style[prop] = pos.negFirst ? sv.style[dim] : -this.style[dim];
     this.style.visible = true;
     animate(this).now(inAnim).wait(1000).then(outAnim);
-  };
-});
+  }
+};
 
 export default exports;

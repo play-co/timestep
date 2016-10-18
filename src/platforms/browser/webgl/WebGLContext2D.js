@@ -36,13 +36,12 @@ import Shaders from './Shaders';
 import Matrix2D from './Matrix2D';
 import WebGLTextureManager from './WebGLTextureManager';
 
-var ContextStateStack = Class(function () {
-  this.init = function () {
+class ContextStateStack {
+  constructor() {
     this._states = [this.getObject()];
     this._stateIndex = 0;
-  };
-
-  this.save = function () {
+  }
+  save() {
     var lastState = this.state;
     if (++this._stateIndex >= this._states.length) {
       this._states[this._stateIndex] = this.getObject();
@@ -61,15 +60,13 @@ var ContextStateStack = Class(function () {
     s.clipRect.y = lastState.clipRect.y;
     s.clipRect.width = lastState.clipRect.width;
     s.clipRect.height = lastState.clipRect.height;
-  };
-
-  this.restore = function () {
+  }
+  restore() {
     if (this._stateIndex > 0) {
       this._stateIndex--;
     }
-  };
-
-  this.getObject = function () {
+  }
+  getObject() {
     return {
       globalCompositeOperation: 'source-over',
       globalAlpha: 1,
@@ -86,20 +83,14 @@ var ContextStateStack = Class(function () {
       fillStyle: '',
       strokeStyle: ''
     };
-  };
-
-  Object.defineProperty(this, 'state', {
-    get: function () {
-      return this._states[this._stateIndex];
-    }
-  });
-
-  Object.defineProperty(this, 'parentState', {
-    get: function () {
-      return this._stateIndex > 0 ? this._states[this._stateIndex - 1] : null;
-    }
-  });
-});
+  }
+  get state() {
+    return this._states[this._stateIndex];
+  }
+  get parentState() {
+    return this._stateIndex > 0 ? this._states[this._stateIndex - 1] : null;
+  }
+}
 
 var STRIDE = 24;
 
@@ -128,8 +119,8 @@ var MAX_BATCH_SIZE = 512;
 var CACHE_UID = 0;
 
 
-var GLManager = Class(function () {
-  this.init = function () {
+class GLManager {
+  constructor() {
     var webglSupported = false;
 
     try {
@@ -140,6 +131,12 @@ var GLManager = Class(function () {
 
 
 
+
+
+
+
+
+
     this.width = device.screen.width;
     this.height = device.screen.height;
     this.isSupported = webglSupported && CONFIG.useWebGL;
@@ -147,6 +144,8 @@ var GLManager = Class(function () {
     if (!this.isSupported) {
       return;
     }
+
+
 
 
     this.textManager = new TextManager();
@@ -183,6 +182,8 @@ var GLManager = Class(function () {
     }
 
 
+
+
     this._batchQueue = new Array(MAX_BATCH_SIZE);
 
     for (var i = 0; i <= MAX_BATCH_SIZE; i++) {
@@ -202,6 +203,8 @@ var GLManager = Class(function () {
     }
 
 
+
+
     this.contexts = [];
     this.initGL();
     this._primaryContext = new Context2D(this, this._canvas);
@@ -215,20 +218,17 @@ var GLManager = Class(function () {
 
     this._canvas.addEventListener('webglcontextlost', this.handleContextLost.bind(this), false);
     this._canvas.addEventListener('webglcontextrestored', this.handleContextRestored.bind(this), false);
-  };
-
-  this.handleContextLost = function (e) {
+  }
+  handleContextLost(e) {
     e.preventDefault();
     this.contextActive = false;
     this.gl = null;
-  };
-
-  this.handleContextRestored = function () {
+  }
+  handleContextRestored() {
     this.initGL();
     this.contextActive = true;
-  };
-
-  this.initGL = function () {
+  }
+  initGL() {
     var gl = this.gl = this._canvas.getWebGLContext();
 
     gl.clearColor(0, 0, 0, 0);
@@ -274,19 +274,16 @@ var GLManager = Class(function () {
 
     this.textureManager.initGL(gl);
     this.updateContexts();
-  };
-
-  this.updateContexts = function () {
+  }
+  updateContexts() {
     for (var i = 0; i < this.contexts.length; i++) {
       this.contexts[i].createOffscreenFrameBuffer();
     }
-  };
-
-  this.updateCanvasDimensions = function () {
+  }
+  updateCanvasDimensions() {
     this._primaryContext.resize(this._canvas.width, this._canvas.height);
-  };
-
-  this.getContext = function (canvas, opts) {
+  }
+  getContext(canvas, opts) {
     opts = opts || {};
 
     var ctx;
@@ -300,10 +297,11 @@ var GLManager = Class(function () {
     }
 
 
-    return ctx;
-  };
 
-  this.setActiveRenderMode = function (id) {
+
+    return ctx;
+  }
+  setActiveRenderMode(id) {
     if (this._activeRenderMode === id || !this.gl) {
       return;
     }
@@ -316,6 +314,8 @@ var GLManager = Class(function () {
     }
 
 
+
+
     this._activeShader = shader;
     gl.useProgram(shader.program);
     shader.enableVertexAttribArrays();
@@ -323,9 +323,8 @@ var GLManager = Class(function () {
     if (shader.uniforms.uSampler !== -1) {
       gl.uniform1i(shader.uniforms.uSampler, 0);
     }
-  };
-
-  this.setActiveCompositeOperation = function (op) {
+  }
+  setActiveCompositeOperation(op) {
     op = op || 'source-over';
     if (this._activeCompositeOperation === op || !this.gl) {
       return;
@@ -343,10 +342,14 @@ var GLManager = Class(function () {
       break;
 
 
+
+
     case 'source-atop':
       source = gl.DST_ALPHA;
       destination = gl.ONE_MINUS_SRC_ALPHA;
       break;
+
+
 
 
     case 'source-in':
@@ -355,10 +358,14 @@ var GLManager = Class(function () {
       break;
 
 
+
+
     case 'source-out':
       source = gl.ONE_MINUS_DST_ALPHA;
       destination = gl.ZERO;
       break;
+
+
 
 
     case 'destination-atop':
@@ -367,10 +374,14 @@ var GLManager = Class(function () {
       break;
 
 
+
+
     case 'destination-in':
       source = gl.ZERO;
       destination = gl.SRC_ALPHA;
       break;
+
+
 
 
     case 'destination-out':
@@ -379,16 +390,22 @@ var GLManager = Class(function () {
       break;
 
 
+
+
     case 'destination-over':
       source = gl.DST_ALPHA;
       destination = gl.SRC_ALPHA;
       break;
 
 
+
+
     case 'lighter':
       source = gl.ONE;
       destination = gl.ONE;
       break;
+
+
 
 
     case 'xor':
@@ -398,18 +415,21 @@ var GLManager = Class(function () {
       break;
 
 
+
+
     default:
       source = gl.ONE;
       destination = gl.ONE_MINUS_SRC_ALPHA;
       break;
     }
     gl.blendFunc(source, destination);
-  };
-
-  this.flush = function () {
+  }
+  flush() {
     if (this._batchIndex === -1 || !this.gl) {
       return;
     }
+
+
 
 
     var gl = this.gl;
@@ -440,16 +460,19 @@ var GLManager = Class(function () {
     }
 
 
+
+
     this._drawIndex = -1;
     this._batchIndex = -1;
-  };
-
-  this.createOrUpdateTexture = function (image, id, drawImmediately) {
+  }
+  createOrUpdateTexture(image, id, drawImmediately) {
     var gl = this.gl;
 
     if (!gl) {
       return -1;
     }
+
+
 
 
     id = this.textureManager.createOrUpdateTexture(image, id);
@@ -464,22 +487,20 @@ var GLManager = Class(function () {
     }
 
 
+
+
     return id;
-  };
-
-  this.getTexture = function (id) {
+  }
+  getTexture(id) {
     return this.textureManager.getTexture(id);
-  };
-
-  this.deleteTexture = function (id) {
+  }
+  deleteTexture(id) {
     this.textureManager.deleteTexture(id);
-  };
-
-  this.deleteTextureForImage = function (image) {
+  }
+  deleteTextureForImage(image) {
     this.textureManager.deleteTextureForImage(image);
-  };
-
-  this.enableScissor = function (x, y, width, height) {
+  }
+  enableScissor(x, y, width, height) {
     if (!this.gl) {
       return;
     }
@@ -497,9 +518,8 @@ var GLManager = Class(function () {
       s.height = height;
       gl.scissor(x, invertedY, width, height);
     }
-  };
-
-  this.disableScissor = function () {
+  }
+  disableScissor() {
     if (!this.gl) {
       return;
     }
@@ -508,9 +528,8 @@ var GLManager = Class(function () {
       this._scissorEnabled = false;
       gl.disable(gl.SCISSOR_TEST);
     }
-  };
-
-  this.addToBatch = function (state, textureId) {
+  }
+  addToBatch(state, textureId) {
     if (this._drawIndex >= MAX_BATCH_SIZE - 1) {
       this.flush();
     }
@@ -544,14 +563,14 @@ var GLManager = Class(function () {
     }
 
 
+
+
     return this._drawIndex;
-  };
-
-  this.isPowerOfTwo = function (width, height) {
+  }
+  isPowerOfTwo(width, height) {
     return width > 0 && (width & width - 1) === 0 && height > 0 && (height & height - 1) === 0;
-  };
-
-  this.activate = function (ctx, forceActivate) {
+  }
+  activate(ctx, forceActivate) {
     var gl = this.gl;
     var sameContext = ctx === this._activeCtx;
 
@@ -565,11 +584,13 @@ var GLManager = Class(function () {
     }
 
 
+
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, ctx.frameBuffer);
     gl.viewport(0, 0, ctx.width, ctx.height);
     this._activeRenderMode = -1;
-  };
-});
+  }
+}
 
 // Create a context to measure text
 var textCtx = document.createElement('canvas').getContext('2d');
@@ -585,10 +606,8 @@ var floor = Math.floor;
 var ceil = Math.ceil;
 
 
-var Context2D = Class(function () {
-  this._helperTransform = new Matrix2D();
-
-  this.init = function (manager, canvas) {
+class Context2D {
+  constructor(manager, canvas) {
     this._manager = manager;
     this.canvas = canvas;
     this.width = canvas.width;
@@ -597,9 +616,8 @@ var Context2D = Class(function () {
     this.font = '11px ' + device.defaultFontFamily;
     this.frameBuffer = null;
     this.filter = null;
-  };
-
-  this.createOffscreenFrameBuffer = function () {
+  }
+  createOffscreenFrameBuffer() {
     var gl = this._manager.gl;
     if (!gl) {
       return;
@@ -613,41 +631,32 @@ var Context2D = Class(function () {
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._texture, 0);
     this.canvas.__glFlip = true;
     this._manager.activate(activeCtx, true);
-  };
-
-  this.loadIdentity = function () {
+  }
+  loadIdentity() {
     this.stack.state.transform.identity();
-  };
-
-  this.setTransform = function (a, b, c, d, tx, ty) {
+  }
+  setTransform(a, b, c, d, tx, ty) {
     this.stack.state.transform.setTo(a, b, c, d, tx, ty);
-  };
-
-  this.transform = function (a, b, c, d, tx, ty) {
+  }
+  transform(a, b, c, d, tx, ty) {
     this._helperTransform.setTo(a, b, c, d, tx, ty);
     this.stack.state.transform.transform(this._helperTransform);
-  };
-
-  this.scale = function (x, y) {
+  }
+  scale(x, y) {
     this.stack.state.transform.scale(x, y);
-  };
-
-  this.translate = function (x, y) {
+  }
+  translate(x, y) {
     this.stack.state.transform.translate(x, y);
-  };
-
-  this.rotate = function (angle) {
+  }
+  rotate(angle) {
     this.stack.state.transform.rotate(angle);
-  };
-
-  this.getElement = function () {
+  }
+  getElement() {
     return this.canvas;
-  };
-
-  this.reset = function () {
-  };
-
-  this.clear = function () {
+  }
+  reset() {
+  }
+  clear() {
     this._manager.activate(this);
     this._manager.flush();
     this._manager.disableScissor();
@@ -655,9 +664,8 @@ var Context2D = Class(function () {
     if (gl) {
       gl.clear(gl.COLOR_BUFFER_BIT);
     }
-  };
-
-  this.resize = function (width, height) {
+  }
+  resize(width, height) {
     this.width = width;
     this.height = height;
     if (this.canvas instanceof HTMLCanvasElement) {
@@ -670,9 +678,8 @@ var Context2D = Class(function () {
       gl.bindTexture(gl.TEXTURE_2D, this._texture);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     }
-  };
-
-  this.clipRect = function (x, y, width, height) {
+  }
+  clipRect(x, y, width, height) {
     var m = this.stack.state.transform;
     var xW = x + width;
     var yH = y + height;
@@ -702,6 +709,8 @@ var Context2D = Class(function () {
     }
 
 
+
+
     var left = min(maxX, x0, x1, x2, x3);
     var right = max(minX, x0, x1, x2, x3);
     var top = min(maxY, y0, y1, y2, y3);
@@ -721,61 +730,51 @@ var Context2D = Class(function () {
     }
 
 
+
+
     this.stack.state.clip = true;
     var r = this.stack.state.clipRect;
     r.x = left;
     r.y = top;
     r.width = right - left;
     r.height = bottom - top;
-  };
-
-  this.swap = function () {
+  }
+  swap() {
     this._manager.flush();
-  };
-
-  this.execSwap = function () {
-  };
-
-  this.setFilter = function (filter) {
+  }
+  execSwap() {
+  }
+  setFilter(filter) {
     this.filter = this.stack.state.filter = filter;
-  };
-
-  // deprecated API, we only support one filter per context
-  this.setFilters = function (filters) {
+  }
+  setFilters(filters) {
     logger.warn('ctx.setFilters is deprecated, use ctx.setFilter instead.');
     for (var filterId in filters) {
       this.setFilter(filters[filterId]);
       return;
     }
     this.clearFilter();
-  };
-
-  this.clearFilter = function () {
+  }
+  clearFilter() {
     this.filter = this.stack.state.filter = null;
-  };
-
-  // deprecated API, we only support one filter per context
-  this.clearFilters = function () {
+  }
+  clearFilters() {
     logger.warn('ctx.clearFilters is deprecated, use ctx.clearFilter instead.');
     this.clearFilter();
-  };
-
-  this.save = function () {
+  }
+  save() {
     this.stack.save();
-  };
-
-  this.restore = function () {
+  }
+  restore() {
     this.stack.restore();
-  };
-
-  this.circle = function (x, y, radius) {
-  };
-  this.drawPointSprites = function (x1, y1, x2, y2) {
-  };
-  this.roundRect = function (x, y, width, height, radius) {
-  };
-
-  this.fillText = function (text, x, y) {
+  }
+  circle(x, y, radius) {
+  }
+  drawPointSprites(x1, y1, x2, y2) {
+  }
+  roundRect(x, y, width, height, radius) {
+  }
+  fillText(text, x, y) {
     if (!this._manager.gl) {
       return;
     }
@@ -786,9 +785,8 @@ var Context2D = Class(function () {
     var w = textData.image.width;
     var h = textData.image.height;
     this.drawImage(textData.image, 0, 0, w, h, x, y, w, h);
-  };
-
-  this.strokeText = function (text, x, y) {
+  }
+  strokeText(text, x, y) {
     if (!this._manager.gl) {
       return;
     }
@@ -799,17 +797,17 @@ var Context2D = Class(function () {
     var w = textData.image.width;
     var h = textData.image.height;
     this.drawImage(textData.image, 0, 0, w, h, x - this.lineWidth * 0.5, y - this.lineWidth * 0.5, w, h);
-  };
-
-  this.measureText = function (text) {
+  }
+  measureText(text) {
     textCtx.font = this.font;
     return textCtx.measureText(text);
-  };
-
-  this.drawImage = function (image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
+  }
+  drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
     if (!this._manager.gl) {
       return;
     }
+
+
 
 
     var flip = !!image.__glFlip;
@@ -818,6 +816,8 @@ var Context2D = Class(function () {
     if (alpha === 0) {
       return;
     }
+
+
 
 
     var manager = this._manager;
@@ -832,6 +832,8 @@ var Context2D = Class(function () {
       image.__needsUpload = false;
       glId = manager.createOrUpdateTexture(image, glId);
     }
+
+
 
 
     var drawIndex = manager.addToBatch(this.stack.state, glId);
@@ -849,6 +851,8 @@ var Context2D = Class(function () {
       sy = imageHeight - sy;
       syH = sy - sHeight;
     }
+
+
 
 
     var needsTrim = sx < 0 || sxW > imageWidth || sy < 0 || syH > imageHeight;
@@ -873,6 +877,8 @@ var Context2D = Class(function () {
       sxW = newSXW;
       syH = newSYH;
     }
+
+
 
 
     // Calculate 4 vertex positions
@@ -940,19 +946,18 @@ var Context2D = Class(function () {
       // B
       cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255;
     }
-  };
-
-  // A
-  this.fillRect = function (x, y, width, height) {
+  }
+  fillRect(x, y, width, height) {
     if (this.globalAlpha === 0) {
       return;
     }
 
 
-    this._fillRect(x, y, width, height, getColor(this.stack.state.fillStyle));
-  };
 
-  this.strokeRect = function (x, y, width, height) {
+
+    this._fillRect(x, y, width, height, getColor(this.stack.state.fillStyle));
+  }
+  strokeRect(x, y, width, height) {
     var lineWidth = this.stack.state.lineWidth;
     var halfWidth = lineWidth / 2;
     var strokeColor = getColor(this.stack.state.strokeStyle);
@@ -961,9 +966,8 @@ var Context2D = Class(function () {
 
     this._fillRect(x - halfWidth, y - halfWidth, lineWidth, height + lineWidth, strokeColor);
     this._fillRect(x + width - halfWidth, y - halfWidth, lineWidth, height + lineWidth, strokeColor);
-  };
-
-  this._fillRect = function (x, y, width, height, color) {
+  }
+  _fillRect(x, y, width, height, color) {
     var m = this.stack.state.transform;
     var xW = x + width;
     var yH = y + height;
@@ -1011,16 +1015,14 @@ var Context2D = Class(function () {
     cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = color.b;
     // B
     cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255;
-  };
-
-  // A
-  this.deleteTextureForImage = function (canvas) {
+  }
+  deleteTextureForImage(canvas) {
     this._manager.deleteTextureForImage(canvas);
-  };
+  }
+}
 
-});
 
-
+Context2D.prototype._helperTransform = new Matrix2D();
 var createContextProperty = function (ctx, name) {
   Object.defineProperty(ctx, name, {
     get: function () {
@@ -1045,6 +1047,14 @@ var contextProperties = [
 for (var i = 0; i < contextProperties.length; i++) {
   createContextProperty(Context2D.prototype, contextProperties[i]);
 }
+
+
+
+
+
+
+
+
 
 
 

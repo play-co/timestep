@@ -16,12 +16,18 @@ exports.getImage = function (url, forceReload) {
   }
 
 
+
+
   if (!img) {
     img = exports.cache[url] = new Image({
       url: url,
       forceReload: !!forceReload
     });
   }
+
+
+
+
 
 
 

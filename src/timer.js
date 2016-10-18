@@ -43,6 +43,8 @@ exports.tick = function (dt) {
     }
 
 
+
+
     exports.now += dt;
     exports.frames++;
     exports.onTick(dt);

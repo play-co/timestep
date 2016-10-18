@@ -121,6 +121,8 @@ var layoutProps = {
       }
 
 
+
+
       this._onLayoutChange();
     }
   }
@@ -129,6 +131,8 @@ var layoutProps = {
 for (var key in layoutProps) {
   BaseBacking.addProperty(key, layoutProps[key]);
 }
+
+
 
 
 View.addExtension({
@@ -147,6 +151,8 @@ View.addExtension({
       } else {
         this._cachedMargin = new Padding(value);
       }
+
+
 
 
       this.top = this._cachedMargin.top;
@@ -242,14 +248,22 @@ View.addExtension({
       }
 
 
+
+
       if (typeof this.minWidth == 'number') {
         this._width = Math.max(this.minWidth, value || 0);
       }
 
 
+
+
       if (this._aspectRatio) {
         this._height = this._width / this._aspectRatio;
       }
+
+
+
+
 
 
 
@@ -265,14 +279,22 @@ View.addExtension({
       }
 
 
+
+
       if (typeof this.minHeight == 'number') {
         this._height = Math.max(this.minHeight, value || 0);
       }
 
 
+
+
       if (this._aspectRatio) {
         this._width = this._height * this._aspectRatio;
       }
+
+
+
+
 
 
 
@@ -304,6 +326,10 @@ View.addExtension({
 
 
 
+
+
+
+
       this._onLayoutChange();
     };
 
@@ -315,6 +341,10 @@ View.addExtension({
         this._layoutHeightValue = 0;
         this._layoutHeightIsPercent = false;
       }
+
+
+
+
 
 
 
@@ -333,6 +363,8 @@ View.addExtension({
       if (superview && superview.__layout) {
         superview.needsReflow();
       }
+
+
 
 
       this._view.needsReflow();

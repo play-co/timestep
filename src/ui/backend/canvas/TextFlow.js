@@ -22,9 +22,9 @@ import PubSub from 'lib/PubSub';
 
 var textFlowMode = Enum('NONE', 'WRAP', 'AUTOSIZE', 'AUTOSIZE_WRAP', 'AUTOFONTSIZE', 'AUTOFONTSIZE_WRAP', 'AUTOFONTSIZE_AUTOSIZE', 'AUTOFONTSIZE_WRAP_AUTOSIZE');
 
-exports = Class(PubSub, function (supr) {
-  this.init = function (opts) {
-    supr(this, 'init', arguments);
+exports = class extends PubSub {
+  constructor(opts) {
+    super(...arguments);
 
     this._target = opts.target;
     this._lineWidth = 0;
@@ -45,9 +45,8 @@ exports = Class(PubSub, function (supr) {
       width: 0,
       height: 0
     };
-  };
-
-  this.measureText = function (ctx, text) {
+  }
+  measureText(ctx, text) {
     var opts = this._opts;
 
     var emoticonData = text[0] == '(' && opts.emoticonData && opts.emoticonData.data[text];
@@ -56,10 +55,8 @@ exports = Class(PubSub, function (supr) {
     } else {
       return ctx.measureText(text).width;
     }
-  };
-
-  // Split the text into a list containing the word and the width of the word...
-  this._lineSplit = function (ctx) {
+  }
+  _lineSplit(ctx) {
     var opts = this._opts;
     var spaceWidth = opts.wrapCharacter ? 0 : ctx.measureText(' ').width;
     var text = opts.text || '';
@@ -118,6 +115,8 @@ exports = Class(PubSub, function (supr) {
     }
 
 
+
+
     while (currentWord < wordCount) {
       var word = {
         word: words[currentWord],
@@ -130,9 +129,8 @@ exports = Class(PubSub, function (supr) {
       currentWord++;
     }
     this._lineWidth -= spaceWidth;
-  };
-
-  this._measureWords = function (ctx) {
+  }
+  _measureWords(ctx) {
     var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(' ').width;
     var currentWord = 0;
     var wordCount = this._line.length;
@@ -149,10 +147,8 @@ exports = Class(PubSub, function (supr) {
       currentWord++;
     }
     this._lineWidth -= spaceWidth;
-  };
-
-  // Split the single line into multiple lines which fit into the available width...
-  this._wrap = function (ctx, width) {
+  }
+  _wrap(ctx, width) {
     var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(' ').width;
     var currentWidth = 0;
     var lines = [];
@@ -245,6 +241,8 @@ exports = Class(PubSub, function (supr) {
               }
 
 
+
+
               if (wordPiece) {
                 /*
                 var line = s + (hasSpace ? " " : "") + wordPiece;
@@ -277,21 +275,20 @@ exports = Class(PubSub, function (supr) {
       }
 
 
+
+
       //if (s !== "") {
       if (line.length > 0) {
         //lines.push([{word: s, width: currentWidth, line: lines.length}]);
         lines.push(line);
       }
     }
-  };
-
-  this._getLineSize = function (lineCount) {
+  }
+  _getLineSize(lineCount) {
     var opts = this._opts;
     return (lineCount <= 1 ? 1 : opts.lineHeight) * opts.size;
-  };
-
-  // Calculate the position of each word on the line...
-  this._wordFlow = function (ctx) {
+  }
+  _wordFlow(ctx) {
     var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(' ').width;
     var lines = this._lines;
 
@@ -323,16 +320,16 @@ exports = Class(PubSub, function (supr) {
       }
 
 
+
+
       y += lineSize;
       x -= spaceWidth;
 
       this._maxWidth = Math.max(this._maxWidth, x);
       this._maxHeight = Math.max(this._maxHeight, y);
     }
-  };
-
-  // Check if the given width fits into the available size, if not the resize the font...
-  this._checkWidth = function (ctx, width) {
+  }
+  _checkWidth(ctx, width) {
     if (this._opts.text === '') {
       return false;
     }
@@ -344,15 +341,16 @@ exports = Class(PubSub, function (supr) {
       return true;
     }
     return false;
-  };
-
-  this._checkHeight = function (ctx, loSize, hiSize, cb) {
+  }
+  _checkHeight(ctx, loSize, hiSize, cb) {
     if (this._opts.text === '') {
       return;
     }
     if (Math.abs(hiSize - loSize) < 2) {
       return;
     }
+
+
 
 
     var pivot = Math.max(loSize + hiSize >> 1, 1);
@@ -363,6 +361,8 @@ exports = Class(PubSub, function (supr) {
     }
 
 
+
+
     var opts = this._opts;
     var lineSize = this._getLineSize(this._lines.length);
     if (this._lines.length * lineSize > this.getAvailableHeight()) {
@@ -371,9 +371,8 @@ exports = Class(PubSub, function (supr) {
       this._heightFound = opts.size;
       this._checkHeight(ctx, pivot, hiSize, cb);
     }
-  };
-
-  this._horizontalAlign = function (ctx) {
+  }
+  _horizontalAlign(ctx) {
     var words = this._words;
     if (words.length) {
       var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(' ').width;
@@ -393,6 +392,8 @@ exports = Class(PubSub, function (supr) {
       }
 
 
+
+
       var endWordIndex = 0;
       var wordCount = words.length;
       // for each line
@@ -405,6 +406,8 @@ exports = Class(PubSub, function (supr) {
           lineWidth += words[endWordIndex].width + spaceWidth;
           endWordIndex++;
         }
+
+
 
 
         // align words in line
@@ -431,9 +434,8 @@ exports = Class(PubSub, function (supr) {
         }
       }
     }
-  };
-
-  this._verticalAlign = function () {
+  }
+  _verticalAlign() {
     var lineCount = this._lines.length;
     var verticalAlign = this._opts.verticalAlign;
     var words = this._words;
@@ -450,16 +452,19 @@ exports = Class(PubSub, function (supr) {
       }
 
 
+
+
       while (i) {
         words[--i].y += offset;
       }
 
 
+
+
       this._offsetRect.y += offset;
     }
-  };
-
-  this.reflow = function (ctx, mode) {
+  }
+  reflow(ctx, mode) {
     var opts = this._opts;
     var availableWidth = this.getAvailableWidth();
     var availableHeight = this.getAvailableHeight();
@@ -473,10 +478,14 @@ exports = Class(PubSub, function (supr) {
       break;
 
 
+
+
     case textFlowMode.WRAP:
       this._wrap(ctx, availableWidth);
       this._wordFlow(ctx);
       break;
+
+
 
 
     case textFlowMode.AUTOSIZE:
@@ -489,10 +498,14 @@ exports = Class(PubSub, function (supr) {
       }
 
 
+
+
       if (this._opts.fitHeight || availableHeight < this._maxHeight) {
         this.publish('ChangeHeight', this._maxHeight + this.getVerticalPadding());
       }
       break;
+
+
 
 
     case textFlowMode.AUTOSIZE_WRAP:
@@ -504,12 +517,18 @@ exports = Class(PubSub, function (supr) {
       }
 
 
+
+
       if (this._opts.fitHeight || availableHeight < this._maxHeight) {
         this.publish('ChangeHeight', this._maxHeight + this.getVerticalPadding());
       }
 
 
+
+
       break;
+
+
 
 
     case textFlowMode.AUTOFONTSIZE:
@@ -531,6 +550,8 @@ exports = Class(PubSub, function (supr) {
       break;
 
 
+
+
     case textFlowMode.AUTOFONTSIZE_WRAP:
       this._wrap(ctx, availableWidth);
       this._wordFlow(ctx);
@@ -550,7 +571,11 @@ exports = Class(PubSub, function (supr) {
       }
 
 
+
+
       break;
+
+
 
 
     case textFlowMode.AUTOFONTSIZE_WRAP_AUTOSIZE:
@@ -581,50 +606,43 @@ exports = Class(PubSub, function (supr) {
       }
 
 
+
+
       this._offsetRect.width += strokeWidth;
     }
-  };
-
-  this.setOpts = function (opts) {
+  }
+  setOpts(opts) {
     this._opts = opts;
-  };
-
-  this.getWords = function () {
+  }
+  getWords() {
     return this._words;
-  };
-
-  this.getHorizontalPadding = function () {
+  }
+  getHorizontalPadding() {
     var padding = this._target.style.padding;
 
     return padding.left + padding.right;
-  };
-
-  this.getPaddingLeft = function () {
+  }
+  getPaddingLeft() {
     return this._target.style.padding.left;
-  };
-
-  this.getAvailableWidth = function () {
+  }
+  getAvailableWidth() {
     return this._target.style.width - this.getHorizontalPadding();
-  };
-
-  this.getVerticalPadding = function () {
+  }
+  getVerticalPadding() {
     var padding = this._target.style.padding;
 
     return padding.top + padding.bottom;
-  };
-
-  this.getPaddingTop = function () {
+  }
+  getPaddingTop() {
     return this._target.style.padding.top;
-  };
-
-  this.getAvailableHeight = function () {
+  }
+  getAvailableHeight() {
     return this._target.style.height - this.getVerticalPadding();
-  };
-
-  this.getOffsetRect = function () {
+  }
+  getOffsetRect() {
     return this._offsetRect;
-  };
-});
+  }
+};
 var TextFlow = exports;
 
 export default exports;

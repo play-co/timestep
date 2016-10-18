@@ -319,6 +319,10 @@ exports = function SoundManager(smURL, smID) {
 
 
 
+
+
+
+
   /*
    * public soundManager API
   */
@@ -362,12 +366,16 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     function make() {
       thisOptions = _loopFix(thisOptions);
       _s.sounds[_tO.id] = new SMSound(_tO);
       _s.soundIDs.push(_tO.id);
       return _s.sounds[_tO.id];
     }
+
+
 
 
     if (_html5OK(_tO)) {
@@ -406,6 +414,8 @@ exports = function SoundManager(smURL, smID) {
           }
         }
       }
+
+
 
 
       if (!_tO.serverURL && (_tO.autoLoad || _tO.autoPlay)) {
@@ -874,6 +884,8 @@ exports = function SoundManager(smURL, smID) {
   }
 
 
+
+
   _html5_events = {
     // HTML5 event-name-to-handler map
     abort: _html5_event(function (e) {
@@ -956,6 +968,8 @@ exports = function SoundManager(smURL, smID) {
       }
 
 
+
+
       var i, j, str, buffered = 0, isProgress = e.type === 'progress', ranges = e.target.buffered, loaded = e.loaded || 0,
         // firefox 3.6 implements e.loaded/total (bytes)
         total = e.total || 1;
@@ -966,6 +980,8 @@ exports = function SoundManager(smURL, smID) {
         for (i = ranges.length; i--;) {
           buffered = ranges.end(i) - ranges.start(i);
         }
+
+
 
 
         // linear case, buffer sum; does not account for seeking and HTTP partials / byte ranges
@@ -982,13 +998,19 @@ exports = function SoundManager(smURL, smID) {
         }
 
 
+
+
         // </d>
         if (isProgress && !isNaN(loaded)) {
           _s._wD(_h5 + 'progress: ' + this._t.sID + ': ' + Math.floor(loaded * 100) + '% loaded');
         }
 
 
+
+
       }
+
+
 
 
       if (!isNaN(loaded)) {
@@ -1002,7 +1024,11 @@ exports = function SoundManager(smURL, smID) {
         }
 
 
+
+
       }
+
+
 
 
     }),
@@ -1720,11 +1746,15 @@ exports = function SoundManager(smURL, smID) {
       }
 
 
+
+
       var f;
 
       function add(oEvt, oFn, bCapture) {
         return _t._a ? _t._a.addEventListener(oEvt, oFn, bCapture || false) : null;
       }
+
+
 
 
       _s._wD(_h5 + 'adding event listeners: ' + _t.sID);
@@ -1735,6 +1765,8 @@ exports = function SoundManager(smURL, smID) {
           add(f, _html5_events[f]);
         }
       }
+
+
 
 
       return true;
@@ -1750,6 +1782,8 @@ exports = function SoundManager(smURL, smID) {
       }
 
 
+
+
       _s._wD(_h5 + 'removing event listeners: ' + _t.sID);
       _t._a._added_events = false;
 
@@ -1758,6 +1792,8 @@ exports = function SoundManager(smURL, smID) {
           remove(f, _html5_events[f]);
         }
       }
+
+
 
 
     };
@@ -2046,6 +2082,8 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     function apply(args, sType) {
       var element = args.shift(), method = [evt[sType]];
       if (old) {
@@ -2056,14 +2094,20 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     function add() {
       apply(getArgs(arguments), 'add');
     }
 
 
+
+
     function remove() {
       apply(getArgs(arguments), 'remove');
     }
+
+
 
 
     return {
@@ -2091,6 +2135,8 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     var url = o.url || null, mime = o.type || null, aF = _s.audioFormats, result, offset, fileExt, item;
 
     function preferFlashCheck(kind) {
@@ -2099,10 +2145,14 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     // account for known cases like audio/mp3
     if (mime && _s.html5[mime] !== 'undefined') {
       return _s.html5[mime] && !preferFlashCheck(mime);
     }
+
+
 
 
     if (!_html5Ext) {
@@ -2117,6 +2167,8 @@ exports = function SoundManager(smURL, smID) {
       }
       _html5Ext = new RegExp('\\.(' + _html5Ext.join('|') + ')(\\?.*)?$', 'i');
     }
+
+
 
 
     fileExt = url ? url.toLowerCase().match(_html5Ext) : null;
@@ -2137,6 +2189,8 @@ exports = function SoundManager(smURL, smID) {
       }
 
 
+
+
     // match the raw extension name - "mp3", for example
     if (fileExt && typeof _s.html5[fileExt] !== 'undefined') {
       // result known
@@ -2150,12 +2204,16 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
   };
 
   _testHTML5 = function () {
     if (!_s.useHTML5Audio || typeof Audio === 'undefined') {
       return false;
     }
+
+
 
 
     // double-whammy: Opera 9.64 throws WRONG_ARGUMENTS_ERR if no parameter passed to Audio(), and Webkit + iOS happily tries to load "null" as a URL. :/
@@ -2184,6 +2242,8 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     // test all registered formats + codecs
     aF = _s.audioFormats;
     for (item in aF) {
@@ -2208,6 +2268,8 @@ exports = function SoundManager(smURL, smID) {
         }
       }
     }
+
+
 
 
     support.canPlayType = a ? _cp : null;
@@ -2464,6 +2526,8 @@ exports = function SoundManager(smURL, smID) {
   }
 
 
+
+
   _toggleDebug = function () {
     var o = _id(_s.debugID), oT = _id(_s.debugID + '-toggle');
     if (!o) {
@@ -2619,6 +2683,8 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     var hasPlugin = false, n = navigator, nP = n.plugins, obj, type, types, AX = _win.ActiveXObject;
 
     if (nP && nP.length) {
@@ -2629,6 +2695,8 @@ exports = function SoundManager(smURL, smID) {
       }
 
 
+
+
     } else if (typeof AX !== 'undefined') {
       try {
         obj = new AX('ShockwaveFlash.ShockwaveFlash');
@@ -2637,6 +2705,12 @@ exports = function SoundManager(smURL, smID) {
       hasPlugin = !!obj;
 
     }
+
+
+
+
+
+
 
 
 
@@ -2662,6 +2736,8 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     if (_s.useHTML5Audio) {
       if (!_s.html5 || !_s.html5.canPlayType) {
         _s._wD('SoundManager: No HTML5 Audio() support detected.');
@@ -2682,6 +2758,8 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     for (item in _s.audioFormats) {
       if (_s.audioFormats.hasOwnProperty(item)) {
         if (_s.audioFormats[item].required && !_s.html5.canPlayType(_s.audioFormats[item].type) || _s.flash[item] || _s.flash[_s.audioFormats[item].type]) {
@@ -2692,10 +2770,14 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     // sanity check..
     if (_s.ignoreFlash) {
       needsFlash = false;
     }
+
+
 
 
     _s.html5Only = _s.hasHTML5 && _s.useHTML5Audio && !needsFlash;
@@ -2806,10 +2888,14 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     // ignore if already succeeded
     function _initMsg() {
       _s._wD('-- SoundManager 2 ' + _s.version + (!_s.html5Only && _s.useHTML5Audio ? _s.hasHTML5 ? ' + HTML5 audio' : ', no HTML5 audio support' : '') + (!_s.html5Only ? (_s.useMovieStar ? ', MovieStar mode' : '') + (_s.useHighPerformance ? ', high performance mode, ' : ', ') + ((_s.flashPollingInterval ? 'custom (' + _s.flashPollingInterval + 'ms)' : _s.useFastPolling ? 'fast' : 'normal') + ' polling') + (_s.wmode ? ', wmode: ' + _s.wmode : '') + (_s.debugFlash ? ', flash debug mode' : '') + (_s.useFlashBlock ? ', flashBlock mode' : '') : '') + ' --', 1);
     }
+
+
 
 
     if (_s.html5Only) {
@@ -2825,6 +2911,8 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     // flash path
     var remoteURL = smURL || _s.url, localURL = _s.altURL || remoteURL, swfTitle = 'JS/Flash audio component (SoundManager 2)', oEmbed, oMovie, oTarget = _getDocument(), tmp, movieHTML, oEl, extraClass = _getSWFCSS(), s, x, sClass, side = 'auto', isRTL = null, html = _doc.getElementsByTagName('html')[0];
 
@@ -2834,6 +2922,8 @@ exports = function SoundManager(smURL, smID) {
     function param(name, value) {
       return '<param name="' + name + '" value="' + value + '" />';
     }
+
+
 
 
     // safety check for legacy (change to Flash 9 URL)
@@ -2853,6 +2943,8 @@ exports = function SoundManager(smURL, smID) {
       _wDS('spcWmode');
       _s.wmode = null;
     }
+
+
 
 
     oEmbed = {
@@ -2877,9 +2969,13 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     if (!_s.wmode) {
       delete oEmbed.wmode;
     }
+
+
 
 
     // don't write empty attribute
@@ -2907,7 +3003,11 @@ exports = function SoundManager(smURL, smID) {
       }
 
 
+
+
     }
+
+
 
 
     _initDebug();
@@ -2951,9 +3051,13 @@ exports = function SoundManager(smURL, smID) {
         }
 
 
+
+
         if (_isWebkit) {
           _s.oMC.style.zIndex = 10000;
         }
+
+
 
 
         // soundcloud-reported render/crash fix, safari 5
@@ -2964,6 +3068,8 @@ exports = function SoundManager(smURL, smID) {
             }
           }
         }
+
+
 
 
         try {
@@ -2983,6 +3089,12 @@ exports = function SoundManager(smURL, smID) {
 
 
 
+
+
+
+
+
+
       } else {
         // SM2 container is already in the document (eg. flashblock use case)
         sClass = _s.oMC.className;
@@ -2998,7 +3110,11 @@ exports = function SoundManager(smURL, smID) {
       }
 
 
+
+
     }
+
+
 
 
     _didAppend = true;
@@ -3016,10 +3132,14 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     // attempt to get, or create, movie
     if (_s.o) {
       return false;
     }
+
+
 
 
     // may already exist
@@ -3044,14 +3164,20 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     if (_s.o) {
       _wDS('waitEI');
     }
 
 
+
+
     if (_s.oninitmovie instanceof Function) {
       setTimeout(_s.oninitmovie, 1);
     }
+
+
 
 
     return true;
@@ -3068,6 +3194,8 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     _waitingForEI = true;
     _event.remove(_win, 'load', _delayWaitForEI);
 
@@ -3078,11 +3206,15 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     var p;
     if (!_didInit) {
       p = _s.getMoviePercent();
       _s._wD(_str('waitImpatient', p === 100 ? ' (SWF loaded)' : p > 0 ? ' (SWF ' + p + '% loaded)' : ''));
     }
+
+
 
 
     setTimeout(function () {
@@ -3104,6 +3236,8 @@ exports = function SoundManager(smURL, smID) {
       }
 
 
+
+
       // give up / time-out, depending
       if (!_didInit && _okToDisable) {
         if (p === null) {
@@ -3119,6 +3253,8 @@ exports = function SoundManager(smURL, smID) {
           }
 
 
+
+
         } else {
           // flash loaded? Shouldn't be a blocking issue, then.
           if (_s.flashLoadTimeout === 0) {
@@ -3128,6 +3264,8 @@ exports = function SoundManager(smURL, smID) {
           }
         }
       }
+
+
 
 
     }, _s.flashLoadTimeout);
@@ -3216,6 +3354,8 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
   };
 
   _init = function () {
@@ -3228,9 +3368,13 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     function _cleanup() {
       _event.remove(_win, 'load', _s.beginDelayedInit);
     }
+
+
 
 
     if (_s.html5Only) {
@@ -3242,6 +3386,8 @@ exports = function SoundManager(smURL, smID) {
       }
       return true;
     }
+
+
 
 
     // flash path
@@ -3273,6 +3419,12 @@ exports = function SoundManager(smURL, smID) {
       _initComplete();
       return false;
     }
+
+
+
+
+
+
 
 
 
@@ -3323,6 +3475,8 @@ exports = function SoundManager(smURL, smID) {
     }
 
 
+
+
     _testHTML5();
     _s.html5.usingFlash = _featureCheck();
     _needsFlash = _s.html5.usingFlash;
@@ -3334,6 +3488,8 @@ exports = function SoundManager(smURL, smID) {
       // TODO: Fatal here vs. timeout approach, etc.
       _s.flashLoadTimeout = 1;
     }
+
+
 
 
     // hack: fail sooner.
@@ -3364,6 +3520,8 @@ exports = function SoundManager(smURL, smID) {
   }
 
 
+
+
   // massive Safari 3.1 focus hack
   if (_doc.addEventListener) {
     _doc.addEventListener('DOMContentLoaded', _dcLoaded, false);
@@ -3380,6 +3538,12 @@ exports = function SoundManager(smURL, smID) {
 
 
 
+
+
+
+
+
+
   if (_doc.readyState === 'complete') {
     setTimeout(_dcLoaded, 100);
   }
@@ -3391,8 +3555,17 @@ exports = function SoundManager(smURL, smID) {
 
 
 
+
+
+
+
+
+
+
+
 };
-var SoundManager = exports;  // SoundManager()
+var SoundManager = exports;
 
 
+// SoundManager()
 export default exports;

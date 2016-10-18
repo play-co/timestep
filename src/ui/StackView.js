@@ -33,29 +33,28 @@ import animate from 'animate';
 /**
  * @extends ui.View
  */
-exports = Class(View, function (supr) {
-  this.init = function (opts) {
+exports = class extends View {
+  constructor(opts) {
     opts = merge(opts, { layout: 'box' });
-    supr(this, 'init', [opts]);
+    super(opts);
     this.stack = [];
-  };
-
-  this.getStack = function () {
+  }
+  getStack() {
     return this.stack;
-  };
-
-  this.getCurrentView = function () {
+  }
+  getCurrentView() {
     if (!this.stack.length) {
       return null;
     }
     return this.stack[this.stack.length - 1];
-  };
-
-  this.push = function (view, dontAnimate, reverse) {
+  }
+  push(view, dontAnimate, reverse) {
     // don't animate the first (base) view of a stackview unless explicitly asked to
     if (!this.stack[0] && dontAnimate !== false) {
       dontAnimate = true;
     }
+
+
 
 
     var current = this.getCurrentView();
@@ -68,9 +67,8 @@ exports = Class(View, function (supr) {
     this.stack.push(view);
     this._show(view, dontAnimate, reverse);
     return view;
-  };
-
-  this._hide = function (view, dontAnimate, reverse) {
+  }
+  _hide(view, dontAnimate, reverse) {
     view.publish('ViewWillDisappear');
     if (!dontAnimate) {
       this.getInput().blockEvents = true;
@@ -83,9 +81,8 @@ exports = Class(View, function (supr) {
       this.removeSubview(view);
       view.publish('ViewDidDisappear');
     }
-  };
-
-  this._show = function (view, dontAnimate, reverse) {
+  }
+  _show(view, dontAnimate, reverse) {
     view.publish('ViewWillAppear');
     view.style.visible = true;
     if (!dontAnimate) {
@@ -97,20 +94,17 @@ exports = Class(View, function (supr) {
       view.style.x = 0;
       view.publish('ViewDidAppear');
     }
-  };
-
-  this.hasView = function (view) {
+  }
+  hasView(view) {
     return this.stack.indexOf(view) >= 0;
-  };
-
-  this.remove = function (view) {
+  }
+  remove(view) {
     var i = this.stack.indexOf(view);
     if (i >= 0) {
       this.stack.splice(i, 1);
     }
-  };
-
-  this.pop = function (dontAnimate, reverse) {
+  }
+  pop(dontAnimate, reverse) {
     if (!this.stack.length) {
       return false;
     }
@@ -123,14 +117,15 @@ exports = Class(View, function (supr) {
     }
 
 
-    return view;
-  };
 
-  this.popAll = function (dontAnimate) {
+
+    return view;
+  }
+  popAll(dontAnimate) {
     while (this.stack[1]) {
       this.pop(dontAnimate);
     }
-  };
-});
+  }
+};
 
 export default exports;

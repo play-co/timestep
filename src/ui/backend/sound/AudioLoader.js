@@ -41,6 +41,8 @@ function onResponse(url, index, batch, buffer) {
   }
 
 
+
+
   _loadingMap[url] = false;
   // batch callback for preloading, called regardless of success
   if (++batch.loadedCount === batch.fileCount) {
@@ -52,18 +54,11 @@ function onResponse(url, index, batch, buffer) {
 /**
  * AudioContextLoader Class designed to work with HTML5 AudioContext
  */
-exports = Class(function () {
-  /**
-   * Requires an instance of AudioContext
-   */
-  this.init = function (opts) {
+exports = class {
+  constructor(opts) {
     _ctx = opts.ctx;
-  };
-
-  /**
-   * Load audio files from a list of urls, call callback when all are loaded
-   */
-  this.load = function (urls, callback) {
+  }
+  load(urls, callback) {
     var batch = {
       fileCount: urls.length,
       loadedCount: 0,
@@ -76,12 +71,8 @@ exports = Class(function () {
     for (var i = 0, len = urls.length; i < len; i++) {
       this._loadFile(urls[i], i, batch);
     }
-  };
-
-  /**
-   * Load an individual audio file asynchronously
-   */
-  this._loadFile = function (url, index, batch) {
+  }
+  _loadFile(url, index, batch) {
     var request = new XMLHttpRequest();
     request.open('GET', url, true);
     request.responseType = 'arraybuffer';
@@ -100,25 +91,20 @@ exports = Class(function () {
 
     _loadingMap[url] = true;
     request.send();
-  };
-
-  this.getAudioContext = function () {
+  }
+  getAudioContext() {
     return _ctx;
-  };
-
-  this.setAudioContext = function (ctx) {
+  }
+  setAudioContext(ctx) {
     _ctx = ctx;
-  };
-
-  this.getBuffer = function (url) {
+  }
+  getBuffer(url) {
     return _bufferMap[url] || null;
-  };
-
-  this.isLoading = function (url) {
+  }
+  isLoading(url) {
     return _loadingMap[url] || false;
-  };
-
-  this.doOnLoad = function (url, cb) {
+  }
+  doOnLoad(url, cb) {
     if (this.isLoading(url)) {
       _onLoadMap[url] = cb;
     } else {
@@ -129,7 +115,7 @@ exports = Class(function () {
         this.load([url], cb);
       }
     }
-  };
-});
+  }
+};
 
 export default exports;

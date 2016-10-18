@@ -52,10 +52,16 @@ if (DEBUG) {
 }
 
 
+
+
 function getBoundingRectangle(pos) {
   if (!pos.r) {
     return;
   }
+
+
+
+
 
 
 
@@ -138,12 +144,16 @@ function clippedWrapRender(contentView, backing, ctx, opts) {
   }
 
 
+
+
   ctx.save();
   ctx.translate(backing.x + backing.anchorX, backing.y + backing.anchorY);
 
   if (backing.r) {
     ctx.rotate(backing.r);
   }
+
+
 
 
   // clip this render to be within its view;
@@ -155,6 +165,8 @@ function clippedWrapRender(contentView, backing, ctx, opts) {
   }
 
 
+
+
   ctx.translate(-backing.anchorX, -backing.anchorY);
 
   // if (backing._circle) { ctx.translate(-backing.width / 2, -backing.height / 2); }
@@ -163,11 +175,15 @@ function clippedWrapRender(contentView, backing, ctx, opts) {
   }
 
 
+
+
   try {
     if (backing.backgroundColor) {
       ctx.fillStyle = backing.backgroundColor;
       ctx.fillRect(0, 0, backing.width, backing.height);
     }
+
+
 
 
     backing._view.render && backing._view.render(ctx, opts);
@@ -193,6 +209,10 @@ function clippedWrapRender(contentView, backing, ctx, opts) {
 
 
 
+
+
+
+
         if (DEBUG) {
           _debug.bounds.push(pos);
         }
@@ -207,9 +227,11 @@ function clippedWrapRender(contentView, backing, ctx, opts) {
 }
 
 
+
+
 // extend the default backing ctor
-var DEFAULT_BACKING_CTOR = Class(View.prototype.BackingCtor, function () {
-  this.wrapRender = function (ctx, opts) {
+class DEFAULT_BACKING_CTOR extends View.prototype.BackingCtor {
+  wrapRender(ctx, opts) {
     clippedWrapRender(this._view._contentView, this, ctx, opts);
 
     if (DEBUG) {
@@ -237,8 +259,8 @@ var DEFAULT_BACKING_CTOR = Class(View.prototype.BackingCtor, function () {
       _debug.bounds = [];
       ctx.restore();
     }
-  };
-});
+  }
+}
 
 
 var PI_2 = Math.PI / 2;
@@ -252,10 +274,8 @@ var PI_2 = Math.PI / 2;
 /**
  * @extends ui.View
  */
-exports = Class(View, function (supr) {
-  this.tag = 'ScrollView';
-
-  this.init = function (opts) {
+exports = class extends View {
+  constructor(opts) {
     opts = merge(opts, defaults);
 
     opts['dom:noCanvas'] = true;
@@ -290,14 +310,12 @@ exports = Class(View, function (supr) {
     this._viewport = new Rect();
     this._viewport.src = this._contentView;
 
-    supr(this, 'init', [opts]);
-    supr(this, 'addSubview', [this._contentView]);
+    super(opts);
+    super.addSubview(this._contentView);
 
-  };
-
-  // this.__layout = this._contentView.__layout;
-  this.updateOpts = function (opts) {
-    supr(this, 'updateOpts', arguments);
+  }
+  updateOpts(opts) {
+    super.updateOpts(...arguments);
 
     if ('useContentBounds' in opts) {
       if (opts.useContentBounds) {
@@ -311,9 +329,13 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     if ('scrollBounds' in opts) {
       this.setScrollBounds(opts.scrollBounds);
     }
+
+
 
 
     if ('bounceRadius' in opts) {
@@ -321,13 +343,16 @@ exports = Class(View, function (supr) {
     }
 
 
-    return opts;
-  };
 
-  this._updateContentBounds = function () {
+
+    return opts;
+  }
+  _updateContentBounds() {
     if (!this._opts.useContentBounds) {
       return;
     }
+
+
 
 
     var bounds = this._scrollBounds;
@@ -336,34 +361,28 @@ exports = Class(View, function (supr) {
     bounds.maxX = s.x + s.width + this.style.padding.right;
     bounds.minY = s.y;
     bounds.maxY = s.y + s.height + this.style.padding.bottom;
-  };
-
-  this.buildView = function () {
+  }
+  buildView() {
     this._snapPixels = this._opts.snapPixels || 1 / this.getPosition().scale;
-  };
-
-  this.addSubview = function (view) {
+  }
+  addSubview(view) {
     this._contentView.addSubview(view);
     this._updateContentBounds();
-  };
-
-  this.removeSubview = function (view) {
+  }
+  removeSubview(view) {
     this._contentView.removeSubview(view);
     this._updateContentBounds();
-  };
-
-  this.removeAllSubviews = function () {
+  }
+  removeAllSubviews() {
     this._contentView.removeAllSubviews();
-  };
-
-  this.addFixedView = function (view) {
-    return supr(this, 'addSubview', [view]);
-  };
-  this.removeFixedView = function (view) {
-    return supr(this, 'removeSubview', [view]);
-  };
-
-  this.getStyleBounds = function () {
+  }
+  addFixedView(view) {
+    return super.addSubview(view);
+  }
+  removeFixedView(view) {
+    return super.removeSubview(view);
+  }
+  getStyleBounds() {
     var bounds = this._scrollBounds;
     var minY = -bounds.maxY;
     var maxY = -bounds.minY < minY ? minY : -bounds.minY;
@@ -375,19 +394,17 @@ exports = Class(View, function (supr) {
       minX: Math.min(minX + this.style.width, maxX),
       maxX: maxX
     };
-  };
-
-  this.getOffset = function () {
+  }
+  getOffset() {
     return new Point(this._contentView.style);
-  };
-  this.getOffsetX = function () {
+  }
+  getOffsetX() {
     return this._contentView.style.x;
-  };
-  this.getOffsetY = function () {
+  }
+  getOffsetY() {
     return this._contentView.style.y;
-  };
-
-  this.setOffset = function (x, y) {
+  }
+  setOffset(x, y) {
     var style = this._contentView.style, delta = {
         x: 0,
         y: 0
@@ -408,7 +425,11 @@ exports = Class(View, function (supr) {
           }
 
 
+
+
         }
+
+
 
 
         if (x > bounds.maxX) {
@@ -417,6 +438,8 @@ exports = Class(View, function (supr) {
           if (this._bounceRadius - x < BOUNCE_THRESHOLD) {
             this._endBounce();
           }
+
+
 
 
         }
@@ -431,11 +454,19 @@ exports = Class(View, function (supr) {
 
 
 
+
+
+
+
+
+
       if (x != style.x) {
         delta.x = x - style.x;
         style.x = (x / this._snapPixels | 0) * this._snapPixels;
       }
     }
+
+
 
 
     if (typeof y == 'number' && this._opts.scrollY !== false) {
@@ -448,6 +479,8 @@ exports = Class(View, function (supr) {
             this._endBounce();
           }
         }
+
+
 
 
         if (y > bounds.maxY) {
@@ -468,6 +501,12 @@ exports = Class(View, function (supr) {
 
 
 
+
+
+
+
+
+
       if (y != style.y) {
         delta.y = y - style.y;
         style.y = (y / this._snapPixels | 0) * this._snapPixels;
@@ -475,18 +514,17 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     this.publish('Scrolled', delta);
-  };
-
-  this.isScrolling = function () {
+  }
+  isScrolling() {
     return this.isDragging() || this._anim && this._anim.hasFrames();
-  };
-
-  this.stopScrolling = function () {
+  }
+  stopScrolling() {
     this._anim && this._anim.now({}, 1);
-  };
-
-  this.onInputStart = function (evt, pt) {
+  }
+  onInputStart(evt, pt) {
     if (this._opts.drag && (this._opts.scrollX || this._opts.scrollY)) {
       this.startDrag({ radius: this._opts.dragRadius * this._snapPixels });
 
@@ -495,21 +533,20 @@ exports = Class(View, function (supr) {
       }
 
 
+
+
       evt.cancel();
     }
-  };
-
-  this.onDragStart = function (dragEvt) {
+  }
+  onDragStart(dragEvt) {
     input.clearOverState(dragEvt.id);
 
     this._contentView.getInput().blockEvents = true;
     this._startBounce();
     this._animState.offset = this.getOffset();
     this._anim = animate(this._animState).clear();
-  };
-
-  this.scrollData = [];
-  this.onDrag = function (dragEvt, moveEvt, delta) {
+  }
+  onDrag(dragEvt, moveEvt, delta) {
     var state = this._animState;
     state.dt = delta.t;
     state.lastDelta = delta;
@@ -523,11 +560,12 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     this.setOffset(state.offset.x += delta.x, state.offset.y += delta.y);
     moveEvt.cancel();
-  };
-
-  this.onDragStop = function (dragEvt, selectEvt) {
+  }
+  onDragStop(dragEvt, selectEvt) {
     this._contentView.getInput().blockEvents = false;
 
     if (this._opts.inertia) {
@@ -547,6 +585,8 @@ exports = Class(View, function (supr) {
         avgDelta.x = avgDelta.x * (1 - WEIGHT) + this.scrollData[i].x * WEIGHT;
         avgDelta.y = avgDelta.y * (1 - WEIGHT) + this.scrollData[i].y * WEIGHT;
       }
+
+
 
 
       this.scrollData = [];
@@ -582,11 +622,15 @@ exports = Class(View, function (supr) {
       }
 
 
+
+
       if (target.y > bounds.maxY + this._bounceRadius) {
         if (offset.y > bounds.maxY) {
           animateY = false;
         }
       }
+
+
 
 
       if (target.x < bounds.minX - this._bounceRadius) {
@@ -596,11 +640,15 @@ exports = Class(View, function (supr) {
       }
 
 
+
+
       if (target.x > bounds.maxX + this._bounceRadius) {
         if (offset.x > bounds.maxX) {
           animateX = false;
         }
       }
+
+
 
 
       if (distance && (animateX || animateY)) {
@@ -613,17 +661,14 @@ exports = Class(View, function (supr) {
         this._endBounce(offset);
       }
     }
-  };
-
-
-  this._startBounce = function () {
+  }
+  _startBounce() {
     this._isBouncing = false;
     if (this._opts.inertia && this._opts.bounce) {
       this._canBounce = true;
     }
-  };
-
-  this._endBounce = function () {
+  }
+  _endBounce() {
     var offset = this.getOffset();
     var bounds = this.getStyleBounds();
 
@@ -639,11 +684,23 @@ exports = Class(View, function (supr) {
 
 
 
+
+
+
+
+
+
     if (offset.x < bounds.minX) {
       tx = bounds.minX;
     } else if (offset.x > bounds.maxX) {
       tx = bounds.maxX;
     }
+
+
+
+
+
+
 
 
 
@@ -653,6 +710,8 @@ exports = Class(View, function (supr) {
     if (dy === 0 && dx === 0) {
       return;
     }
+
+
 
 
     this._isBouncing = true;
@@ -666,9 +725,8 @@ exports = Class(View, function (supr) {
       // been ignored.
       this.scrollTo(undefined, undefined, 0);
     }));
-  };
-
-  this.setScrollBounds = function (bounds) {
+  }
+  setScrollBounds(bounds) {
     if (bounds) {
       if ('minX' in bounds) {
         this._scrollBounds.minX = bounds.minX || 0;
@@ -684,6 +742,8 @@ exports = Class(View, function (supr) {
       }
 
 
+
+
       // If not in the middle of a bounce animation,
       if (!this._canBounce) {
         // Scroll to current position with duration 0. If the bounds have
@@ -692,30 +752,23 @@ exports = Class(View, function (supr) {
         this.scrollTo(undefined, undefined, 0);
       }
     }
-  };
-
-  this.getScrollBounds = function () {
+  }
+  getScrollBounds() {
     return this._scrollBounds;
-  };
-
-  this.addOffset = function (x, y) {
+  }
+  addOffset(x, y) {
     this.setOffset(x != undefined && x != null && this._contentView.style.x + x, y != undefined && y != null && this._contentView.style.y + y);
-  };
-
-  this.getContentView = function () {
+  }
+  getContentView() {
     return this._contentView;
-  };
-
-  /* @deprecated */
-  this.getFullWidth = function () {
+  }
+  getFullWidth() {
     return this._contentView.style.width;
-  };
-  /* @deprecated */
-  this.getFullHeight = function () {
+  }
+  getFullHeight() {
     return this._contentView.style.height;
-  };
-
-  this.render = function (ctx, opts) {
+  }
+  render(ctx, opts) {
     var s = this.style;
     var cvs = this._contentView.style;
 
@@ -739,12 +792,13 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     opts.viewport = viewport;
 
     return viewport.x != x || viewport.y != y || viewport.width != width || viewport.height != height;
-  };
-
-  this.onInputScroll = function (evt) {
+  }
+  onInputScroll(evt) {
     var style = this._contentView.style;
     var x = style.x;
     var y = style.y;
@@ -757,12 +811,17 @@ exports = Class(View, function (supr) {
 
 
 
+
+
+
+
+
+
     if (style.y != y || style.x != x) {
       evt.cancel();
     }
-  };
-
-  this.scrollTo = function (x, y, opts, cb) {
+  }
+  scrollTo(x, y, opts, cb) {
     var bounds = this.getStyleBounds();
     var cvs = this._contentView.style;
 
@@ -792,10 +851,18 @@ exports = Class(View, function (supr) {
 
 
 
+
+
+
+
+
+
       if (opts.maxDuration) {
         duration = Math.min(duration, opts.maxDuration);
       }
     }
+
+
 
 
     if (duration) {
@@ -811,13 +878,20 @@ exports = Class(View, function (supr) {
       cvs.y = y;
       cb && cb();
     }
-  };
-});
+  }
+};
 
+exports.prototype.tag = 'ScrollView';
+exports.prototype.scrollData = [];
 if (USE_CLIPPING) {
   // extend the default backing ctor
   exports.prototype.BackingCtor = DEFAULT_BACKING_CTOR;
 }
+
+
+
+
+
 
 
 

@@ -26,17 +26,8 @@ import View from 'ui/View';
  * @class ui.ViewPool;
  * facilitates easy view re-use
  */
-exports = Class('ViewPool', function () {
-  /**
-   * opts.ctor (function) constructor function for the class you want to pool,
-   * must inherit from View
-   *
-   * opts.initCount (integer) pre-initialize this many views,
-   * for optimal performance, avoid view instantiation during gameplay
-   *
-   * opts.initOpts (object) opts object used only to pre-initialize views
-   */
-  this.init = function (opts) {
+exports = class {
+  constructor(opts) {
     var initCount = opts.initCount || 0;
     this._initOpts = opts.initOpts || {};
 
@@ -49,14 +40,8 @@ exports = Class('ViewPool', function () {
       var view = this._createView(merge({}, this._initOpts));
       view.style.visible = false;
     }
-  };
-
-  /**
-   * opts (object) view options applied to the obtained view
-   *
-   * returns a view from the pool
-   */
-  this.obtainView = function (opts) {
+  }
+  obtainView(opts) {
     var views = this._views;
     if (this._freshViewIndex < views.length) {
       // re-use an existing view if we can
@@ -73,14 +58,8 @@ exports = Class('ViewPool', function () {
     view.style.visible = true;
     this._freshViewIndex++;
     return view;
-  };
-
-  /**
-   * view (instance of this._ctor) to be recycled into the pool
-   *
-   * returns a boolean, whether the view was actually released
-   */
-  this.releaseView = function (view) {
+  }
+  releaseView(view) {
     var views = this._views;
     var released = false;
     if (view._obtainedFromPool) {
@@ -96,12 +75,8 @@ exports = Class('ViewPool', function () {
       this._freshViewIndex--;
     }
     return released;
-  };
-
-  /**
-   * release all views to the pool
-   */
-  this.releaseAllViews = function () {
+  }
+  releaseAllViews() {
     var views = this._views;
     for (var i = 0, len = views.length; i < len; i++) {
       var view = views[i];
@@ -109,33 +84,20 @@ exports = Class('ViewPool', function () {
       view.style.visible = false;
     }
     this._freshViewIndex = 0;
-  };
-
-  /**
-   * fn (function) called for each obtained view, takes params: view, index
-   *
-   * ctx (object) the context on which fn should be called
-   *
-   * like Array.forEach, call a function for each obtained view
-   */
-  this.forEachActiveView = function (fn, ctx) {
+  }
+  forEachActiveView(fn, ctx) {
     var views = this._views;
     for (var i = this._freshViewIndex - 1; i >= 0; i--) {
       fn.call(ctx, views[i], i);
     }
-  };
-
-  /**
-   * internal-use-only: populates view pool with new instances of this._ctor
-   */
-  this._createView = function (opts) {
+  }
+  _createView(opts) {
     var views = this._views;
     var view = new this._ctor(merge(opts, this._initOpts));
     view._poolIndex = views.length;
     views.push(view);
     return view;
-  };
-
-});
+  }
+};
 
 export default exports;

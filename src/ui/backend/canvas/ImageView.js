@@ -35,29 +35,21 @@ var _host = window.location.hostname;
 /**
  * @extends ui.View
  */
-exports = Class(View, function (supr) {
-  /**
-   * Options:
-   *   autoSize - See .setImage()
-   */
-  /**
-   * Return this view's Image object.
-   */
-  this.getImage = function () {
+exports = class extends View {
+  getImage() {
     return this._img;
-  };
-
-  // @deprecated
-  this.getImageFromCache = function (url, forceReload) {
+  }
+  getImageFromCache(url, forceReload) {
     return ImageViewCache.getImage(url, forceReload);
-  };
-
-  this.updateOpts = function (opts) {
-    var opts = supr(this, 'updateOpts', arguments);
+  }
+  updateOpts(opts) {
+    var opts = super.updateOpts(...arguments);
 
     if ('autoSize' in opts) {
       this._autoSize = !!opts.autoSize;
     }
+
+
 
 
     if (opts.image) {
@@ -67,22 +59,23 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     return opts;
-  };
-
-
-  /**
-   * Set the image of the view from an Image object or string.
-   * Options:
-   *   autoSize - Automatically set view size from image dimensions.
-   */
-  this.setImage = function (img, opts) {
+  }
+  setImage(img, opts) {
     var forceReload = opts && opts.forceReload;
     if (typeof img == 'string') {
       img = ImageViewCache.getImage(img, forceReload);
     } else if (forceReload) {
       img.reload();
     }
+
+
+
+
+
+
 
 
 
@@ -101,27 +94,16 @@ exports = Class(View, function (supr) {
       }
       this._img.doOnLoad(this, 'needsRepaint');
     }
-  };
-
-
-  /**
-   * Pass a function to load once the Image object is loaded, or a list of
-   * arguments that call lib.Callback::run() implicitly.
-   */
-  this.doOnLoad = function () {
+  }
+  doOnLoad() {
     if (arguments.length == 1) {
       this._img.doOnLoad(this, arguments[0]);
     } else {
       this._img.doOnLoad.apply(this._img, arguments);
     }
     return this;
-  };
-
-
-  /**
-   * Automatically resize the view to the size of the image.
-   */
-  this.autoSize = function () {
+  }
+  autoSize() {
     if (this._img) {
       this.style.width = this._img.getWidth();
       this.style.height = this._img.getHeight();
@@ -132,32 +114,18 @@ exports = Class(View, function (supr) {
     }
   }
 
-;
-
-
-  /**
-   * Get original width of the Image object.
-   */
-  this.getOrigW = function () {
+  getOrigW() {
     return this._img.getOrigW();
-  };
-
-
-  /**
-   * Get original height of the Image object.
-   */
-  this.getOrigH = function () {
+  }
+  getOrigH() {
     return this._img.getOrigH();
-  };
-
-
-  /**
-   * Render this image onto a canvas.
-   */
-  this.render = function (ctx) {
+  }
+  render(ctx) {
     if (!this._img) {
       return;
     }
+
+
 
 
     var s = this.style;
@@ -166,13 +134,7 @@ exports = Class(View, function (supr) {
     this._img.render(ctx, 0, 0, w, h);
   }
 
-;
-
-
-  /**
-   * Return a human-readable tag for this view.
-   */
-  this.getTag = function () {
+  getTag() {
     var tag;
     if (this._img) {
       var url = this._img.getOriginalURL();
@@ -192,8 +154,8 @@ exports = Class(View, function (supr) {
     ;
 
     return (tag || '') + ':ImageView' + this.uid;
-  };
-});
+  }
+};
 var ImageView = exports;
 
 

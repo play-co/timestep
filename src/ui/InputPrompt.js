@@ -35,26 +35,15 @@ var inputDialog = device.get('inputDialog');
  * <input> tag and HTML5 input types.
  *
  */
-exports = Class(function () {
-  /**
-   * @param {string} opts.title the prompt title
-   * @param {string} opts.value the value passed to the callbacks
-   * @param {function} opts.onChange called with value when value in prompt changes
-   * @param {function} opts.onSubmit called wtih value when prompt is submitted
-   * @param {function} opts.onCancel called with value when prompt is cancelled
-   * @param {string} [opts.okText='ok'] sets custom text for the ok button
-   * @param {string} [opts.cancelText='cancel'] sets custom text for the cancel button
-   * @param {boolean} [opts.autoShowKeyboard=true] opens the keyboard by default on mobile devices
-   * @param {boolean} [opts.isPassword=false] sets the input type to a password
-   * @param {string} [opts.keyboardType='Default'] sets the type of keyboard {@link keyboardTypes.rawTypes}
-   * @param {boolean} [opts.defaultBrowserStyles] use default browser styles
-   */
-  this.init = function (opts) {
+exports = class {
+  constructor(opts) {
     opts = opts || {};
 
     function get(prop, defaultValue) {
       return opts[prop] !== undefined ? opts[prop] : defaultValue;
     }
+
+
 
 
     this._opts = merge({
@@ -119,41 +108,34 @@ exports = Class(function () {
         }
       });
     }
-  };
-
-  this.show = function () {
+  }
+  show() {
     this._prompt = inputDialog.show(this, this._opts);
-  };
-
-  this.getValue = function () {
+  }
+  getValue() {
     return this._opts.value;
-  };
-
-  this.setValue = function (value) {
+  }
+  setValue(value) {
     this._opts.value = value;
     return this;
-  };
-
-  this.setOkButton = function (value) {
+  }
+  setOkButton(value) {
     this._opts.okText = value;
     return this;
-  };
-
-  this.setCancelButton = function (value) {
+  }
+  setCancelButton(value) {
     this._opts.cancelText = value;
     return this;
-  };
-
-  this.setKeyboardType = function (keyboardType) {
+  }
+  setKeyboardType(keyboardType) {
     this._opts.keyboardType = keyboardType;
     return this;
-  };
-
-  this.setMessage = function (message) {
+  }
+  setMessage(message) {
     this._opts.message = message;
     return this;
-  };
-});
+  }
+};
 
 deprecated.method(exports.prototype, 'requestFocus', function () {
   this.show();

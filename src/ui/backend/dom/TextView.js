@@ -56,21 +56,18 @@ var TOLERANCE = 1;
 /**
  * @extends ui.View
  */
-exports = Class(View, function (supr) {
-  this._displayStyle = 'table';
-
-  this.init = function (opts) {
-    supr(this, 'init', [merge(opts, defaults)]);
+exports = class extends View {
+  constructor(opts) {
+    super(merge(opts, defaults));
 
     var el = this._textNode = document.createElement('div');
     el.className = 'view text';
 
     // el.style.position = 'relative';
     this.__view.getElement().appendChild(el);
-  };
-
-  this.updateOpts = function (opts) {
-    opts = supr(this, 'updateOpts', arguments);
+  }
+  updateOpts(opts) {
+    opts = super.updateOpts(...arguments);
 
     var s = this.__view.getElement().style;
 
@@ -85,6 +82,8 @@ exports = Class(View, function (supr) {
     }
 
 
+
+
     if (opts.verticalPadding) {
       if (isArray(opts.verticalPadding)) {
         s.paddingTop = opts.verticalPadding[0] + 'px';
@@ -94,6 +93,8 @@ exports = Class(View, function (supr) {
         s.paddingBottom = opts.verticalPadding + 'px';
       }
     }
+
+
 
 
     if (opts.color) {
@@ -130,15 +131,17 @@ exports = Class(View, function (supr) {
 
 
 
+
+
+
+
     // s.display = 'table';
     this.setText(opts.text || '');
-  };
-
-  this.getText = function () {
+  }
+  getText() {
     return this._text;
-  };
-
-  this.reflow = function () {
+  }
+  reflow() {
     var opts = this._opts;
     var node = this._textNode;
     if (node) {
@@ -148,6 +151,8 @@ exports = Class(View, function (supr) {
           this.style.height = idealHeight;
         }
       }
+
+
 
 
       // use binary-search to fit text into dom node
@@ -169,6 +174,8 @@ exports = Class(View, function (supr) {
         }
 
 
+
+
         // fit height
         do {
           var currentHeight = node.scrollHeight;
@@ -185,18 +192,21 @@ exports = Class(View, function (supr) {
       }
 
 
+
+
       this._computeVerticalAlign();
 
       if (this._strokeNode) {
         this._strokeNode.style.width = this._fillNode.offsetWidth + 'px';
       }
     }
-  };
-
-  this.setText = function (text) {
+  }
+  setText(text) {
     if (typeof text == 'function') {
       return text(this);
     }
+
+
 
 
     text = text != undefined ? text.toString() : '';
@@ -212,12 +222,13 @@ exports = Class(View, function (supr) {
       }
 
 
+
+
       this._textNode.style.fontSize = this._fontSize + 'px';
       this.needsReflow();
     }
-  };
-
-  this._computeVerticalAlign = function () {
+  }
+  _computeVerticalAlign() {
     var s = this._textNode.style;
     var opts = this._opts;
     var fontSize = this._computedFontSize || this._fontSize;
@@ -231,10 +242,11 @@ exports = Class(View, function (supr) {
     }
 
 
-    this._textNode.style.marginTop = offset + 'px';
-  };
 
-  this._updateStroke = function () {
+
+    this._textNode.style.marginTop = offset + 'px';
+  }
+  _updateStroke() {
     var opts = this._opts;
     if (opts.strokeColor && opts.strokeWidth) {
       if (!this._strokeNode) {
@@ -242,6 +254,8 @@ exports = Class(View, function (supr) {
         this._fillNode = this._textNode.childNodes[0].childNodes[0];
         this._strokeNode = this._textNode.childNodes[0].childNodes[1];
       }
+
+
 
 
       // this._strokeNode.style.left = -opts.strokeWidth / 2 + 'px';
@@ -252,7 +266,8 @@ exports = Class(View, function (supr) {
       this._fillNode = null;
       this.setText(this._text);
     }
-  };
-});
+  }
+};
 
+exports.prototype._displayStyle = 'table';
 export default exports;

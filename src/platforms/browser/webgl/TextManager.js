@@ -11,18 +11,19 @@ import Font from 'ui/resource/Font';
 var MAX_BUFFERS = 500;
 
 
-exports = Class(function () {
-  this.init = function () {
+exports = class {
+  constructor() {
     this._buffers = {};
     this._numBuffers = 0;
-  };
-
-  this.get = function (ctx, text, stroked) {
+  }
+  get(ctx, text, stroked) {
     var font = ctx.font;
     var fontData = Font.parse(font);
     if (!isFontLoaded(fontData.getOrigName())) {
       return;
     }
+
+
 
 
     var bufferKey = (stroked ? ctx.lineWidth + '|' + ctx.strokeStyle + '|' : '-|' + ctx.fillStyle) + '|' + font + '|' + text;
@@ -40,11 +41,15 @@ exports = Class(function () {
         }
 
 
+
+
         ctx.deleteTextureForImage(this._buffers[oldestKey].image);
         delete this._buffers[oldestKey];
       } else {
         ++this._numBuffers;
       }
+
+
 
 
       var canvas = document.createElement('canvas');
@@ -57,11 +62,12 @@ exports = Class(function () {
     }
 
 
+
+
     this._buffers[bufferKey].lastUsed = timer.now;
     return this._buffers[bufferKey];
-  };
-
-  this._render = function (canvas, text, font, stroked, fillStyle, strokeStyle, lineWidth) {
+  }
+  _render(canvas, text, font, stroked, fillStyle, strokeStyle, lineWidth) {
     var ctx = canvas.getContext('2d');
     var metrics = getTextHeight(font);
 
@@ -82,9 +88,11 @@ exports = Class(function () {
     }
 
 
+
+
     return metrics;
-  };
-});
+  }
+};
 
 var heightMeasure = document.body.appendChild(document.createElement('div'));
 var contents = heightMeasure.appendChild(document.createElement('span'));
@@ -110,8 +118,12 @@ function getTextHeight(font) {
   }
 
 
+
+
   return _fontHeightCache[font];
 }
+
+
 
 
 var isFontLoaded = function () {
@@ -135,10 +147,14 @@ var isFontLoaded = function () {
   }
 
 
+
+
   return function isFontLoaded(font) {
     if (!_loading[font]) {
       _checkFont(font);
     }
+
+
 
 
     return _loaded[font];

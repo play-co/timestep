@@ -59,6 +59,8 @@ if (isNative) {
 }
 
 
+
+
 if (isAndroid) {
   osType = 'Android';
   osVersionString = ua.match(/Android[/\s][\d.]+/)[0];
@@ -72,6 +74,18 @@ if (isAndroid) {
   osVersionString = ua.match(/Mac OS X [0-9_]+/)[0];
   osVersion = osVersionString.match(/[0-9_]+/)[0].replace(/_/g, '.');
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -97,17 +111,42 @@ if (isChrome) {
 
 
 
-var UserAgent = Class(function () {
-  this.USER_AGENT = ua;
-  this.OS_TYPE = osType;
-  this.OS_VERSION = osVersion;
-  this.APP_RUNTIME = appRuntime;
-  this.DEVICE_TYPE = deviceType;
-  this.BROWSER_TYPE = browserType;
-  this.BROWSER_VERSION = browserVersion;
-  this.SIMULATED = isSimulator;
-});
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class UserAgent {
+
+}
+
+UserAgent.prototype.USER_AGENT = ua;
+UserAgent.prototype.OS_TYPE = osType;
+UserAgent.prototype.OS_VERSION = osVersion;
+UserAgent.prototype.APP_RUNTIME = appRuntime;
+UserAgent.prototype.DEVICE_TYPE = deviceType;
+UserAgent.prototype.BROWSER_TYPE = browserType;
+UserAgent.prototype.BROWSER_VERSION = browserVersion;
+UserAgent.prototype.SIMULATED = isSimulator;
 exports = new UserAgent();
 
 export default exports;

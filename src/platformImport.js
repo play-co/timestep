@@ -23,10 +23,14 @@ var getModule = (req, modulePath) => {
   }
 
 
+
+
   // es6 module compatibility
   if (result.__esModule && result.default) {
     return result.default;
   }
+
+
 
 
   return result;
@@ -41,6 +45,8 @@ export const getImport = function (module) {
   }
 
 
+
+
   // var path = _devices[exports.name] || 'platforms.browser';
   // return jsio('import ' + path + '.' + module, {
   //   dontExport: true,
@@ -48,6 +54,8 @@ export const getImport = function (module) {
   // });
   return getModule(platformBrowserCtx, getDynamicModulePath(module));
 };
+
+
 
 
 export const importUI = function (module) {

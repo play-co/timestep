@@ -2,8 +2,8 @@ let exports = {};
 
 var STRIDE = 24;
 
-var Shader = Class(function () {
-  this.init = function (opts) {
+class Shader {
+  constructor(opts) {
     var gl = this._gl = opts.gl;
 
     this._vertexSrc = opts.vertexSrc || [
@@ -50,14 +50,12 @@ var Shader = Class(function () {
     };
 
     this.initGL();
-  };
-
-  this.initGL = function () {
+  }
+  initGL() {
     this.createProgram();
     this.updateLocations();
-  };
-
-  this.updateLocations = function () {
+  }
+  updateLocations() {
     var gl = this._gl;
     for (var attrib in this.attributes) {
       if (this.attributes[attrib] !== -1) {
@@ -69,9 +67,8 @@ var Shader = Class(function () {
         this.uniforms[uniform] = gl.getUniformLocation(this.program, uniform);
       }
     }
-  };
-
-  this.enableVertexAttribArrays = function () {
+  }
+  enableVertexAttribArrays() {
     var gl = this._gl;
     for (var attrib in this.attributes) {
       if (this.attributes[attrib] !== -1) {
@@ -93,17 +90,15 @@ var Shader = Class(function () {
         }
       }
     }
-  };
-
-  this.disableVertexAttribArrays = function () {
+  }
+  disableVertexAttribArrays() {
     for (var attrib in this.attributes) {
       if (this.attributes[attrib] !== -1) {
         gl.disableVertexAttribArray(this.attributes[attrib]);
       }
     }
-  };
-
-  this.createProgram = function () {
+  }
+  createProgram() {
     gl = this._gl;
 
     var vertexShader = gl.createShader(gl.VERTEX_SHADER);
@@ -124,13 +119,16 @@ var Shader = Class(function () {
     }
 
 
+
+
     this.program = program;
-  };
+  }
+}
 
-});
+class LinearAddShader extends Shader {
+  constructor(opts) {
+    super();
 
-var LinearAddShader = Class(Shader, function () {
-  this.init = function (opts) {
     opts.fragmentSrc = [
       'precision mediump float;',
       'varying vec2 vTextureCoord;',
@@ -143,12 +141,13 @@ var LinearAddShader = Class(Shader, function () {
       '}'
     ].join('\n');
     Shader.prototype.init.call(this, opts);
-  };
+  }
+}
 
-});
+class TintShader extends Shader {
+  constructor(opts) {
+    super();
 
-var TintShader = Class(Shader, function (supr) {
-  this.init = function (opts) {
     opts.fragmentSrc = [
       'precision mediump float;',
       'varying vec2 vTextureCoord;',
@@ -161,12 +160,13 @@ var TintShader = Class(Shader, function (supr) {
       '}'
     ].join('\n');
     Shader.prototype.init.call(this, opts);
-  };
+  }
+}
 
-});
+class MultiplyShader extends Shader {
+  constructor(opts) {
+    super();
 
-var MultiplyShader = Class(Shader, function (supr) {
-  this.init = function (opts) {
     opts.fragmentSrc = [
       'precision mediump float;',
       'varying vec2 vTextureCoord;',
@@ -179,12 +179,13 @@ var MultiplyShader = Class(Shader, function (supr) {
       '}'
     ].join('\n');
     Shader.prototype.init.call(this, opts);
-  };
+  }
+}
 
-});
+class RectShader extends Shader {
+  constructor(opts) {
+    super();
 
-var RectShader = Class(Shader, function (supr) {
-  this.init = function (opts) {
     opts.fragmentSrc = [
       'precision mediump float;',
       'varying float vAlpha;',
@@ -195,9 +196,8 @@ var RectShader = Class(Shader, function (supr) {
     ].join('\n');
     opts.useTexture = false;
     Shader.prototype.init.call(this, opts);
-  };
-
-});
+  }
+}
 
 exports = {
   DefaultShader: Shader,

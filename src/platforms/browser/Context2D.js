@@ -77,6 +77,8 @@ exports = function (opts) {
     }
 
 
+
+
     var width = sprite.width;
     var height = sprite.height;
     var canvas = _lastPointSprite.canvas || (_lastPointSprite.canvas = document.createElement('canvas'));
@@ -94,6 +96,8 @@ exports = function (opts) {
     }
 
 
+
+
     // Add points to the buffer so there are drawing points every X pixels
     var dx = x2 - x1;
     var dy = y2 - y1;
@@ -101,6 +105,8 @@ exports = function (opts) {
     if (count < 1) {
       count = 1;
     }
+
+
 
 
     var d = this.lineWidth;

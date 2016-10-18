@@ -57,18 +57,22 @@ var css = {
 
 var dialogStylesheet;
 
-var InputDialog = Class(function () {
-  this.init = function (controller, opts) {
+class InputDialog {
+  constructor(controller, opts) {
     var addClasses = opts.defaultBrowserStyles;
     if (!dialogStylesheet && addClasses) {
       dialogStylesheet = css.getStylesheet().scale(device.devicePixelRatio).insert();
     }
 
 
+
+
     // at least one button must be visible
     if (!opts.okText && !opts.cancelText) {
       opts.okText = 'ok';
     }
+
+
 
 
     // create buttons
@@ -79,9 +83,13 @@ var InputDialog = Class(function () {
     }
 
 
+
+
     if (opts.okText) {
       this._createButton(opts.okText, opts.onSubmit);
     }
+
+
 
 
     if (opts.isPassword) {
@@ -135,6 +143,8 @@ var InputDialog = Class(function () {
       }
 
 
+
+
       e.preventDefault();
     });
 
@@ -143,21 +153,23 @@ var InputDialog = Class(function () {
     }
 
 
+
+
     if (opts.autoFocus) {
       this._input.focus();
     }
 
 
+
+
     if (opts.onShow) {
       opts.onShow(dialog);
     }
-  };
-
-  this.close = function () {
+  }
+  close() {
     $.remove(this._el);
-  };
-
-  this._createButton = function (text, cb) {
+  }
+  _createButton(text, cb) {
     var btn = $({
       tag: 'button',
       text: text,
@@ -172,9 +184,8 @@ var InputDialog = Class(function () {
     }.bind(this));
 
     this._buttons.push(btn);
-  };
-
-  this._createInputField = function (value, type, cb) {
+  }
+  _createInputField(value, type, cb) {
     var input = $({
       tag: 'input',
       value: value,
@@ -188,6 +199,8 @@ var InputDialog = Class(function () {
       if (value === undefined) {
         value = '';
       }
+
+
 
 
       var listener = function (evt) {
@@ -204,12 +217,13 @@ var InputDialog = Class(function () {
     }
 
 
-    this._input = input;
-  };
 
-  this.getValue = function () {
+
+    this._input = input;
+  }
+  getValue() {
     return this._input && this._input.value;
-  };
-});
+  }
+}
 
 export default exports;

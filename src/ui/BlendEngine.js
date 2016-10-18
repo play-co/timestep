@@ -130,13 +130,13 @@ var MAX_TEX_HEIGHT = 1024;
 /**
  * @extends ui.View, same API as ui.ParticleEngine.js
  */
-exports = Class(View, function (supr) {
-  this.init = function (opts) {
+exports = class extends View {
+  constructor(opts) {
     opts = opts || {};
     // blend engines don't allow input events
     opts.canHandleEvents = false;
     opts.blockEvents = true;
-    supr(this, 'init', [opts]);
+    super(opts);
 
     // particle data array passed to user
     this._particleDataArray = [];
@@ -159,9 +159,8 @@ exports = Class(View, function (supr) {
       height: MAX_TEX_HEIGHT,
       useWebGL: true
     });
-  };
-
-  this.obtainParticleArray = function (count, opts) {
+  }
+  obtainParticleArray(count, opts) {
     var isBrowser = userAgent.APP_RUNTIME === 'browser';
     var isMobile = userAgent.DEVICE_TYPE === 'mobile';
     var isSimulator = userAgent.SIMULATED;
@@ -234,9 +233,8 @@ exports = Class(View, function (supr) {
       });
     }
     return this._particleDataArray;
-  };
-
-  this._cleanObject = function (obj) {
+  }
+  _cleanObject(obj) {
     for (var i = 0, len = PARTICLE_KEYS.length; i < len; i++) {
       var key = PARTICLE_KEYS[i];
       obj[key] = PARTICLE_DEFAULTS[key];
@@ -244,9 +242,8 @@ exports = Class(View, function (supr) {
     obj.triggers = [];
     // don't keep an array in the PARTICLE_DEFAULTS object
     return obj;
-  };
-
-  this.emitParticles = function (particleDataArray) {
+  }
+  emitParticles(particleDataArray) {
     var count = particleDataArray.length;
     var active = this._activeParticleObjects;
     for (var i = 0; i < count; i++) {
@@ -255,6 +252,8 @@ exports = Class(View, function (supr) {
       if (!img) {
         img = imageCache[data.image] = new Image({ url: data.image });
       }
+
+
 
 
       // Inverse scale will be calculated incorrectly for non-sprited images that haven't previously
@@ -266,6 +265,8 @@ exports = Class(View, function (supr) {
       }
 
 
+
+
       if (!data.delay) {
         data.onStart && data.onStart(data);
       } else if (data.delay < 0) {
@@ -274,23 +275,29 @@ exports = Class(View, function (supr) {
 
 
 
+
+
+
+
+
+
       if (data.ttl < 0) {
         throw new Error('Particles cannot have negative time-to-live values!');
       }
 
 
+
+
       active.push(data);
     }
     particleDataArray.length = 0;
-  };
-
-  this._killParticle = function (index) {
+  }
+  _killParticle(index) {
     var data = this._activeParticleObjects.splice(index, 1)[0];
     data.onDeath && data.onDeath(data);
     this._freeParticleObjects.push(this._cleanObject(data));
-  };
-
-  this.killAllParticles = function () {
+  }
+  killAllParticles() {
     // protect against canvas context clear before native texture is ready
     if (this._activeParticleObjects.length) {
       while (this._activeParticleObjects.length) {
@@ -302,9 +309,8 @@ exports = Class(View, function (supr) {
       this._canvH = 1;
       this._canvas.getContext('2D').clear();
     }
-  };
-
-  this.runTick = function (dt) {
+  }
+  runTick(dt) {
     var active = this._activeParticleObjects;
     var free = this._freeParticleObjects;
     var i = 0;
@@ -329,12 +335,16 @@ exports = Class(View, function (supr) {
       }
 
 
+
+
       // is it dead yet?
       data.elapsed += dt;
       if (data.elapsed >= data.ttl) {
         this._killParticle(i);
         continue;
       }
+
+
 
 
       // calculate the percent of one second elapsed; deltas are in units / second
@@ -345,6 +355,8 @@ exports = Class(View, function (supr) {
         var prgAfter = getTransitionProgress(data.elapsed / data.ttl);
         pct = (prgAfter - prgBefore) * data.ttl / 1000;
       }
+
+
 
 
       // translation
@@ -368,6 +380,8 @@ exports = Class(View, function (supr) {
         data.dx += pct * data.ddx;
         data.dy += pct * data.ddy;
       }
+
+
 
 
       // anchor translation
@@ -426,6 +440,8 @@ exports = Class(View, function (supr) {
       }
 
 
+
+
       // establish absolute bounds
       var absX = data.absX = data.x + data.anchorX * (1 - data.scale * data.scaleX);
       var absY = data.absY = data.y + data.anchorY * (1 - data.scale * data.scaleY);
@@ -445,6 +461,8 @@ exports = Class(View, function (supr) {
       }
       i += 1;
     }
+
+
 
 
     // establish canvas size and position, bounded by max texture size
@@ -473,6 +491,8 @@ exports = Class(View, function (supr) {
       }
 
 
+
+
       // render our particle images to the canvas's context
       var ctx = this._canvas.getContext('2D');
       ctx.clear();
@@ -490,10 +510,14 @@ exports = Class(View, function (supr) {
         }
 
 
+
+
         // context opacity
         if (data.opacity !== 1) {
           ctx.globalAlpha *= data.opacity;
         }
+
+
 
 
         ctx.globalCompositeOperation = data.compositeOperation;
@@ -511,8 +535,12 @@ exports = Class(View, function (supr) {
         }
 
 
+
+
         _ctx.restore();
       }
+
+
 
 
       // update our current canvas rendering size and position
@@ -521,24 +549,20 @@ exports = Class(View, function (supr) {
       this._canvW = canvW;
       this._canvH = canvH;
     }
-  };
-
-  this.render = function (ctx) {
+  }
+  render(ctx) {
     ctx.drawImage(this._canvas, 0, 0, this._canvW, this._canvH, this._canvX, this._canvY, this._canvW, this._canvH);
-  };
-
-  this.getActiveParticles = function () {
+  }
+  getActiveParticles() {
     return this._activeParticleObjects;
-  };
-
-  this.forEachActiveParticle = function (fn, ctx) {
+  }
+  forEachActiveParticle(fn, ctx) {
     var active = this._activeParticleObjects;
     var f = bind(ctx, fn);
     for (var i = active.length - 1; i >= 0; i--) {
       f(active[i], i);
     }
-  };
-
-});
+  }
+};
 
 export default exports;

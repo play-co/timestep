@@ -94,6 +94,8 @@ function onRender(dt) {
   }
 
 
+
+
   var now = Date.now();
   var delta = now - _lastTick;
   _lastTick = now;
@@ -107,6 +109,8 @@ function onRender(dt) {
   }
 
 
+
+
   if (_dprScalingEnabled && ++_ticksSinceLastDPRUpdate >= TICKS_TIL_ADJUST_DPR) {
     _ticksSinceLastDPRUpdate = 0;
 
@@ -118,6 +122,8 @@ function onRender(dt) {
   }
 
 
+
+
   if (_debug) {
     logger.log('score ', _averageScore);
   }
@@ -125,8 +131,8 @@ function onRender(dt) {
 ;
 
 
-var Performance = Class(function () {
-  this.init = function () {
+class Performance {
+  constructor() {
     _canMeasure = true;
     _debug = false;
     _dprScalingEnabled = false;
@@ -136,77 +142,35 @@ var Performance = Class(function () {
       _lastTick = Date.now();
       engineInstance.get().on('Render', bind(this, onRender));
     }), 0);
-  };
-
-  /**
-   * @method showDebugLogs - show the performance score every tick
-   */
-  this.showDebugLogs = function () {
+  }
+  showDebugLogs() {
     _debug = true;
-  };
-
-  /**
-   * @method hideDebugLogs - hide the score performance debug info
-   */
-  this.hideDebugLogs = function () {
+  }
+  hideDebugLogs() {
     _debug = false;
-  };
-
-  /**
-   * @method clear - clears all the information saved by past measures
-   */
-  this.clear = function () {
+  }
+  clear() {
     _averageScore = START_AVERAGE_SCORE;
     _averageDelta = START_AVERAGE_DELTA;
     _ticksSinceLastWorstUpdate = 0;
     _ticksSinceLastDPRUpdate = 0;
     _ticksSinceLastScoreUpdate = 0;
-  };
-
-  /**
-   * @method pause - pause the score measurement
-   */
-  this.pause = function () {
+  }
+  pause() {
     _canMeasure = false;
-  };
-
-  /**
-   * @method resume - resume the score measurement
-   */
-  this.resume = function () {
+  }
+  resume() {
     _lastTick = Date.now();
     _canMeasure = true;
-  };
-
-  /**
-   * @method setTargetFPSRange - sets the range of FPS used to calculate the score
-   *   @arg {number} min - minimum value with a score of 0
-   *   @arg {number} max - maximum value with a score of 100
-   */
-  this.setTargetFPSRange = function (min, max) {
+  }
+  setTargetFPSRange(min, max) {
     _minFPS = min;
     _maxFPS = max;
-  };
-
-  /**
-   * @method getPerformanceScore - returns the performance score of the
-   * most recent measurements
-   * @returns {number} score - device performance score
-   */
-  this.getPerformanceScore = function () {
+  }
+  getPerformanceScore() {
     return _averageScore;
-  };
-
-  /**
-   * @method getAdjustedParticleCount - returns a number of particles depending
-   *   on the current performance score to improve performance
-   * @arg {number} count - number of particles that are going to be adjusted
-   * @arg {number} performanceScore - threshold for the calculations
-   * @arg {boolean} allowReduction - boolean used to define if the particles are
-   *   going to be reduced or totally disabled
-   * @returns {number} count - number of particles
-   */
-  this.getAdjustedParticleCount = function (count, performanceScore, allowReduction) {
+  }
+  getAdjustedParticleCount(count, performanceScore, allowReduction) {
     var currCount = count;
     var mR = this.getPerformanceScore();
     var pR = performanceScore || DEFAULT_RANK;
@@ -217,14 +181,17 @@ var Performance = Class(function () {
     }
 
 
-    return currCount;
-  };
 
-  this.setDPRScalingEnabled = function (value) {
+
+    return currCount;
+  }
+  setDPRScalingEnabled(value) {
     if (userAgent.APP_RUNTIME !== 'browser') {
       logger.warn('Auto DPR scaling only supported in browsers!');
       return;
     }
+
+
 
 
     // Due to a browser bug, don't enable auto DPR scaling for iOS
@@ -234,11 +201,12 @@ var Performance = Class(function () {
     }
 
 
+
+
     _dprScalingEnabled = value;
 
-  };
-
-});
+  }
+}
 
 exports = new Performance();
 

@@ -30,6 +30,8 @@ if (window.postMessage) {
   }
 
 
+
+
   if (window.addEventListener) {
     window.addEventListener('message', postMessageCb, false);
   } else {
@@ -41,6 +43,8 @@ if (window.postMessage) {
 }
 
 
+
+
 function sendPostMessage() {
   window.postMessage('timestep.TICK', '*');
 }
@@ -50,6 +54,8 @@ function sendTimeout() {
 function sendTimeoutNow() {
   setTimeout(onFrame, 0);
 }
+
+
 
 
 var fastDriver = sendTimeoutNow, mainDriver = sendTimeout, cancelDriver, driverId;
@@ -79,6 +85,8 @@ if (asFastAsPossible) {
   }
 
 
+
+
   if (reqAnim) {
     fastDriver = mainDriver = reqAnim;
     cancelDriver = cancelAnim;
@@ -86,6 +94,10 @@ if (asFastAsPossible) {
     fastDriver = sendPostMessage;
   }
 }
+
+
+
+
 
 
 
@@ -137,6 +149,8 @@ function onFrame() {
     }
   }
 }
+
+
 
 
 exports.last = null;

@@ -21,24 +21,24 @@ exports.getCSSPrefix = function () {
   }
 
 
+
+
   return _cssPrefix;
 };
 
-exports.Stylesheet = Class(function () {
-  this.init = function (base) {
+exports.Stylesheet = class {
+  constructor(base) {
     this._base = base ? base + ' ' : '';
     this._rules = [];
-  };
-
-  this.add = function (selector, value) {
+  }
+  add(selector, value) {
     this._rules.push({
       selector: selector,
       value: value
     });
     return this;
-  };
-
-  this.scale = function (scale) {
+  }
+  scale(scale) {
     this._rules.forEach(function (rule) {
       rule.value = rule.value.replace(/([^;:]+:)(.*?)(;|$)/g, function (match, property, value, postfix) {
         // skip border, but not border*radius
@@ -60,16 +60,16 @@ exports.Stylesheet = Class(function () {
     }
 
 
-    return this;
-  };
 
-  this.getValue = function () {
+
+    return this;
+  }
+  getValue() {
     return this._rules.map(function (rule) {
       return this._base + rule.selector + '{' + rule.value + '}';
     }, this).join('');
-  };
-
-  this.insert = function () {
+  }
+  insert() {
     if (!this._el) {
       this._el = $({
         parent: document.getElementsByTagName('head')[0],
@@ -78,8 +78,10 @@ exports.Stylesheet = Class(function () {
     }
 
 
+
+
     $.setText(this._el, this.getValue());
-  };
-});
+  }
+};
 
 export default exports;

@@ -49,6 +49,8 @@ exports.show = function (controller, opts) {
   }
 
 
+
+
   // create buttons
   var buttons = [];
   var okButton;
@@ -66,6 +68,8 @@ exports.show = function (controller, opts) {
   }
 
 
+
+
   if (opts.cancelText) {
     cancelButton = $({
       type: 'button',
@@ -77,6 +81,8 @@ exports.show = function (controller, opts) {
       $.onEvent(okButton, 'click', opts.onCancel);
     }
   }
+
+
 
 
   // create input element
@@ -91,6 +97,8 @@ exports.show = function (controller, opts) {
   if (opts.onChange) {
     $.onEvent(input, 'change', opts.onChange);
   }
+
+
 
 
   // create dialog
@@ -121,6 +129,8 @@ exports.show = function (controller, opts) {
       top: (windowSize.height - dialog.offsetHeight) / 2
     });
   }
+
+
 
 
   if (opts.onShow) {

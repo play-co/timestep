@@ -22,24 +22,24 @@ import View from 'ui/View';
 /**
  * @extends timestep.dom.View
  */
-exports = Class(View, function (supr) {
-  this.init = function (opts) {
-    supr(this, 'init', arguments);
+exports = class extends View {
+  constructor(opts) {
+    super(...arguments);
     this.stack = [];
-  };
-
-  this.getCurrentView = function () {
+  }
+  getCurrentView() {
     if (!this.stack.length) {
       return null;
     }
     return this.stack[this.stack.length - 1];
-  };
-
-  this.push = function (view, dontAnimate) {
+  }
+  push(view, dontAnimate) {
     // don't animate the first (base) view of a stackview unless explicitly asked to
     if (!this.stack[0] && dontAnimate !== false) {
       dontAnimate = true;
     }
+
+
 
 
     var current = this.getCurrentView();
@@ -51,9 +51,8 @@ exports = Class(View, function (supr) {
     this.stack.push(view);
     this._show(view, dontAnimate);
     return view;
-  };
-
-  this._hide = function (view, dontAnimate, backward) {
+  }
+  _hide(view, dontAnimate, backward) {
     view.publish('ViewWillDisappear');
     if (!dontAnimate) {
       // Prevent touches from triggering buttons/UI on the
@@ -69,9 +68,8 @@ exports = Class(View, function (supr) {
       this.removeSubview(view);
       view.publish('ViewDidDisappear');
     }
-  };
-
-  this._show = function (view, dontAnimate, backward) {
+  }
+  _show(view, dontAnimate, backward) {
     view.publish('ViewWillAppear');
     view.style.visible = true;
     if (!dontAnimate) {
@@ -83,9 +81,8 @@ exports = Class(View, function (supr) {
       view.style.x = 0;
       view.publish('ViewDidAppear');
     }
-  };
-
-  this.pop = function (dontAnimate) {
+  }
+  pop(dontAnimate) {
     if (!this.stack.length) {
       return false;
     }
@@ -99,14 +96,17 @@ exports = Class(View, function (supr) {
 
 
 
-    return view;
-  };
 
-  this.popAll = function (dontAnimate) {
+
+
+
+    return view;
+  }
+  popAll(dontAnimate) {
     while (this.stack[1]) {
       this.pop(dontAnimate);
     }
-  };
-});
+  }
+};
 
 export default exports;

@@ -27,8 +27,8 @@ import View from 'ui/View';
  * @class ui.widget.GridView
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/widget/gridview.md
  */
-GridView = Class(View, function (supr) {
-  this.init = function (opts) {
+GridView = class extends View {
+  constructor(opts) {
     opts = merge(opts, {
       horizontalMargin: 0,
       verticalMargin: 0,
@@ -37,7 +37,7 @@ GridView = Class(View, function (supr) {
       autoCellSize: true
     });
 
-    supr(this, 'init', [opts]);
+    super(opts);
 
     this._rows = Math.max(opts.rows || 3, 1);
     this._cols = Math.max(opts.cols || 3, 1);
@@ -47,9 +47,8 @@ GridView = Class(View, function (supr) {
 
     this._colInfo = [];
     this._rowInfo = [];
-  };
-
-  this.updateOpts = function (opts) {
+  }
+  updateOpts(opts) {
     if ('horizontalMargin' in opts || 'verticalMargin' in opts) {
       this.needsReflow();
     } else if ('horizontalGutter' in opts || 'verticalGutter' in opts) {
@@ -60,12 +59,15 @@ GridView = Class(View, function (supr) {
 
 
 
-    supr(this, 'updateOpts', [opts]);
-  };
 
-  // Make a list of cell sizes, rounding errors can lead to cells
-  // having a slightly different size which is why they are stored...
-  this._getInfo = function (list, count, totalSize, gutterSize) {
+
+
+
+
+
+    super.updateOpts(opts);
+  }
+  _getInfo(list, count, totalSize, gutterSize) {
     var globalScale = this.getPosition().scale;
     var size = (totalSize + gutterSize) / count | 0;
 
@@ -95,9 +97,8 @@ GridView = Class(View, function (supr) {
       start = gutterSize;
       item.size -= start;
     }
-  };
-
-  this._resize = function () {
+  }
+  _resize() {
     var width = this.style.width;
     var height = this.style.height;
 
@@ -106,11 +107,8 @@ GridView = Class(View, function (supr) {
 
     this._getInfo(this._colInfo, this._cols, width, this._opts.horizontalGutter);
     this._getInfo(this._rowInfo, this._rows, height, this._opts.verticalGutter);
-  };
-
-  // Define getters and setters in a subview of GridView, when the col, row, colspan or rowspan
-  // of the subview changes its location is calculated based on the GridView grid...
-  this._createGetSet = function (subview, opts, property) {
+  }
+  _createGetSet(subview, opts, property) {
     var privateProperty = '_' + property;
     opts[privateProperty] = opts[property];
     opts.__defineSetter__(property, bind(this, function (c) {
@@ -123,9 +121,8 @@ GridView = Class(View, function (supr) {
     opts.__defineGetter__(property, function () {
       return opts[privateProperty];
     });
-  };
-
-  this._checkSubview = function (subview, opts) {
+  }
+  _checkSubview(subview, opts) {
     if (!('row' in opts) || !('col' in opts)) {
       return false;
     }
@@ -133,6 +130,8 @@ GridView = Class(View, function (supr) {
       // If this private property exists then the getters and setters are there...
       return true;
     }
+
+
 
 
     opts.colspan = opts.colspan || 1;
@@ -144,9 +143,8 @@ GridView = Class(View, function (supr) {
     this._createGetSet(subview, opts, 'rowspan');
 
     return true;
-  };
-
-  this._updateSubview = function (subview) {
+  }
+  _updateSubview(subview) {
     var opts = this._opts;
     var subviewOpts = subview._opts;
     var row = subviewOpts.row;
@@ -161,6 +159,12 @@ GridView = Class(View, function (supr) {
     } else if (opts.showInRange) {
       subview.style.visible = true;
     }
+
+
+
+
+
+
 
 
 
@@ -182,6 +186,8 @@ GridView = Class(View, function (supr) {
     }
 
 
+
+
     // Calculate the width based on the stored column sizes...
     var item = this._colInfo[Math.max(Math.min(col + subviewOpts.colspan - 1, this._cols - 1), 0)];
     style.width = item.pos + item.size - this._colInfo[col].pos - horizontalMargin[0] - horizontalMargin[1];
@@ -189,9 +195,8 @@ GridView = Class(View, function (supr) {
     // Calculate the height based on the stored row sizes...
     var item = this._rowInfo[Math.max(Math.min(row + subviewOpts.rowspan - 1, this._rows - 1), 0)];
     style.height = item.pos + item.size - this._rowInfo[row].pos - verticalMargin[0] - verticalMargin[1];
-  };
-
-  this.reflow = function () {
+  }
+  reflow() {
     (this.style.width !== this._lastWidth || this.style.height !== this._lastHeight) && this._resize();
 
     var subviews = this._subviews;
@@ -201,39 +206,34 @@ GridView = Class(View, function (supr) {
       var subview = subviews[--i];
       this._checkSubview(subview, subview._opts) && this._updateSubview(subview);
     }
-  };
-
-  this.getCols = function () {
+  }
+  getCols() {
     return this._cols;
-  };
-
-  this.setCols = function (cols) {
+  }
+  setCols(cols) {
     if (this._cols !== cols) {
       this._cols = Math.max(cols || 3, 1);
       this._lastWidth = null;
       // Forces the cell info to be re-calculated...
       this.needsReflow();
     }
-  };
-
-  this.addSubview = function (view) {
-    supr(this, 'addSubview', [view]);
+  }
+  addSubview(view) {
+    super.addSubview(view);
     this.needsReflow();
-  };
-
-  this.getRows = function () {
+  }
+  getRows() {
     return this._rows;
-  };
-
-  this.setRows = function (rows) {
+  }
+  setRows(rows) {
     if (this._rows !== rows) {
       this._rows = Math.max(rows || 3, 1);
       this._lastHeight = null;
       // Forces the cell info to be re-calculated...
       this.needsReflow();
     }
-  };
-});
+  }
+};
 exports = GridView;
 
 export default exports;

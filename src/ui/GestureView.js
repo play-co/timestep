@@ -21,11 +21,11 @@ import View from 'ui/View';
 import Vec2D from 'math/geom/Vec2D';
 
 // @deprecated
-exports = Class(View, function (supr) {
-  this.init = function (opts) {
+exports = class extends View {
+  constructor(opts) {
     logger.warn('Warning: GestureView has been deprecated and is ' + 'no longer supported. Features may not work as you expect.');
 
-    supr(this, 'init', [opts]);
+    super(opts);
     this._swipeMagnitude = opts.swipeMagnitude || 150;
     this._swipeTime = opts.swipeTime || 250;
     this._fingerOne = null;
@@ -35,16 +35,14 @@ exports = Class(View, function (supr) {
     this._dragPoints = {};
     this._activeFingers = 0;
     this._swipeCount = 0;
-  };
-
-  this.onInputStart = function (evt) {
+  }
+  onInputStart(evt) {
     this._activeFingers += 1;
     this._swipeCount = this._activeFingers;
     this.startDrag({ inputStartEvt: evt });
     this.emit('FingerDown', this._activeFingers);
-  };
-
-  this.onDragStart = function (dragEvent) {
+  }
+  onDragStart(dragEvent) {
     var point = {
       x: dragEvent.srcPoint.x,
       y: dragEvent.srcPoint.y
@@ -56,9 +54,8 @@ exports = Class(View, function (supr) {
     } else if (this._fingerTwo == null && this._fingerOne != id) {
       this._fingerTwo = id;
     }
-  };
-
-  this.onInputSelect = function (evt) {
+  }
+  onInputSelect(evt) {
     var id = 'p' + evt.id;
     delete this._dragPoints[id];
     this._activeFingers -= 1;
@@ -81,9 +78,8 @@ exports = Class(View, function (supr) {
       }
     }
     this.emit('FingerUp', this._activeFingers);
-  };
-
-  this.onDrag = function (dragEvent, moveEvent, delta) {
+  }
+  onDrag(dragEvent, moveEvent, delta) {
     var id = 'p' + dragEvent.id;
     this._dragPoints[id] = {
       x: moveEvent.srcPoint.x,
@@ -111,9 +107,8 @@ exports = Class(View, function (supr) {
     if (this._fingerOne == id) {
       this.emit('DragSingle', delta.x, delta.y);
     }
-  };
-
-  this.onDragStop = function (dragEvent, selectEvent) {
+  }
+  onDragStop(dragEvent, selectEvent) {
     var dy = dragEvent.srcPoint.y - selectEvent.srcPoint.y;
     var dx = dragEvent.srcPoint.x - selectEvent.srcPoint.x;
     var swipeVec = new Vec2D({
@@ -127,8 +122,8 @@ exports = Class(View, function (supr) {
       this.emit('Swipe', degrees, degrees > 60 && degrees < 120 ? 'up' : degrees < -60 && degrees > -120 ? 'down' : degrees > 120 || degrees < -120 ? 'right' : 'left', this._swipeCount);
     }
     this.clearInput(selectEvent);
-  };
-});
+  }
+};
 
 exports.prototype.clearInput = exports.prototype.onInputSelect;
 
