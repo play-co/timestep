@@ -34,7 +34,7 @@ var cos = Math.cos;
 
 var ADD_COUNTER = 900000;
 
-var ViewBacking = exports = Class(BaseBacking, function () {
+exports = Class(BaseBacking, function () {
   this.init = function (view) {
     this._globalTransform = {
       a: 1,
@@ -301,3 +301,4 @@ var ViewBacking = exports = Class(BaseBacking, function () {
     return this.__sortKey;
   };
 });
+var ViewBacking = exports;

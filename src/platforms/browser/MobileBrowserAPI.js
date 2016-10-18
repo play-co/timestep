@@ -34,7 +34,7 @@ var defaults = {
 /**
  * @extends lib.PubSub
  */
-var AudioAPI = exports = Class(PubSub, function (supr) {
+exports = Class(PubSub, function (supr) {
   this.init = function (opts) {
     opts = merge(opts, defaults);
     supr(this, 'init', [opts]);
@@ -254,3 +254,4 @@ var AudioAPI = exports = Class(PubSub, function (supr) {
   };
 
 });
+var AudioAPI = exports;

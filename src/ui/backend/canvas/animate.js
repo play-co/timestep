@@ -460,7 +460,7 @@ var ViewStyleFrame = Class(Frame, function () {
   };
 });
 
-var Animator = exports.Animator = Class(Emitter, function () {
+exports.Animator = Class(Emitter, function () {
   this.init = function (subject) {
     this.subject = subject;
     this._queue = [];
@@ -635,6 +635,7 @@ var Animator = exports.Animator = Class(Emitter, function () {
     group && group.remove(this);
   };
 });
+var Animator = exports.Animator;
 
 var ViewAnimator = Class(Animator, function (supr) {
   this.buildFrame = function (target, duration, transition) {

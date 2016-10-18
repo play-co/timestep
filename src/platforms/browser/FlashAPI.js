@@ -36,7 +36,7 @@ soundManager.useFastPolling = true;
 /**
  * @extends lib.PubSub
  */
-var AudioAPI = exports = Class(PubSub, function (supr) {
+exports = Class(PubSub, function (supr) {
   this.init = function (opts) {
     opts = merge(opts, {
       map: {},
@@ -130,3 +130,4 @@ var AudioAPI = exports = Class(PubSub, function (supr) {
     this._backgroundSoundPlaying = null;
   };
 });
+var AudioAPI = exports;

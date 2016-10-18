@@ -95,7 +95,7 @@ var PAD = '00000000';
 var DURATION = 600;
 
 
-var ViewBacking = exports = Class(BaseBacking, function () {
+exports = Class(BaseBacking, function () {
   this.init = function (view, opts) {
     this._view = view;
     this._subviews = [];
@@ -778,6 +778,7 @@ var ViewBacking = exports = Class(BaseBacking, function () {
   };
 
 });
+var ViewBacking = exports;
 
 
 var arr = [

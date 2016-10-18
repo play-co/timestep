@@ -49,7 +49,7 @@
 import Point from 'math/geom/Point';
 import timer from 'timer';
 
-var InputEvent = exports = Class(function () {
+exports = Class(function () {
   this.cancelled = false;
   // If true, this event will not propogate
   this.depth = 0;
@@ -97,3 +97,4 @@ var InputEvent = exports = Class(function () {
     return new InputEvent(this.id, this.type, this.srcPt.x, this.srcPt.y, this.root, this.target);
   };
 });
+var InputEvent = exports;

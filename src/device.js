@@ -68,7 +68,8 @@ exports.get = getImport;
 exports.importUI = importUI;
 
 
-exports.isMobileNative = exports.isMobile = /TeaLeaf/.test(ua);
+exports.isMobile = /TeaLeaf/.test(ua);
+exports.isMobileNative = exports.isMobile;
 
 logger.log(exports.isMobile ? 'on mobile device' : 'in web browser');
 
@@ -160,7 +161,8 @@ if (exports.isMobile) {
   if (exports.isAndroid) {
     exports.isTablet = navigator.width / devicePixelRatio >= 600;
   } else {
-    exports.isIPad = exports.isTablet = /iPad/.test(ua);
+    exports.isTablet = /iPad/.test(ua);
+    exports.isIPad = exports.isTablet;
     exports.isIPhone = /iPhone/.test(ua);
 
     // Until we support more platforms, if it's not

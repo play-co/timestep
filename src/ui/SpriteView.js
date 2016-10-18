@@ -52,7 +52,7 @@ import loader from 'ui/resource/loader';
 
 var GROUPS = {};
 
-var SpriteView = exports = Class(ImageView, function (supr) {
+exports = Class(ImageView, function (supr) {
   this.defaults = {
     url: null,
     // specified as a filename prefix, without an animation name or frame count
@@ -323,6 +323,7 @@ var SpriteView = exports = Class(ImageView, function (supr) {
     }
   };
 });
+var SpriteView = exports;
 
 SpriteView.allAnimations = {};
 SpriteView.getGroup = SpriteView.prototype.getGroup;

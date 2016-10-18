@@ -20,7 +20,7 @@ import PubSub from 'lib/PubSub';
 
 var textFlowMode = Enum('NONE', 'WRAP', 'AUTOSIZE', 'AUTOSIZE_WRAP', 'AUTOFONTSIZE', 'AUTOFONTSIZE_WRAP', 'AUTOFONTSIZE_AUTOSIZE', 'AUTOFONTSIZE_WRAP_AUTOSIZE');
 
-var TextFlow = exports = Class(PubSub, function (supr) {
+exports = Class(PubSub, function (supr) {
   this.init = function (opts) {
     supr(this, 'init', arguments);
 
@@ -623,3 +623,4 @@ var TextFlow = exports = Class(PubSub, function (supr) {
     return this._offsetRect;
   };
 });
+var TextFlow = exports;

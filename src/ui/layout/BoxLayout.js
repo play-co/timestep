@@ -15,7 +15,7 @@ import { bind } from 'base';
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-var BoxLayout = exports = Class(function () {
+exports = Class(function () {
   this.init = function (opts) {
     this._view = opts.view;
 
@@ -255,3 +255,4 @@ var BoxLayout = exports = Class(function () {
   };
 
 });
+var BoxLayout = exports;

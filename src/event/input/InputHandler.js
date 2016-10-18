@@ -23,7 +23,7 @@ import Point from 'math/geom/Point';
 import dispatch from 'event/input/dispatch';
 import InputEvent from 'event/input/InputEvent';
 
-var InputHandler = exports = Class(function () {
+exports = Class(function () {
   // ---- start mouseover
   this.startCount = 0;
   this.dragCount = 0;
@@ -258,3 +258,4 @@ var InputHandler = exports = Class(function () {
   };
 
 });
+var InputHandler = exports;

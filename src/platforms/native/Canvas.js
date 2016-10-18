@@ -25,7 +25,7 @@ import Context2D from './Context2D';
 import setProperty from 'util/setProperty';
 
 // mock canvas object
-var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
+exports = Class(function () {
   this.init = function (opts) {
     opts = merge(opts, {
       width: 1,
@@ -91,6 +91,8 @@ var Canvas = GLOBAL.HTMLCanvasElement = exports = Class(function () {
     }
   };
 });
+GLOBAL.HTMLCanvasElement = exports;
+var Canvas = GLOBAL.HTMLCanvasElement;
 
 
 setProperty(Canvas.prototype, 'width', {

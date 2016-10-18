@@ -81,7 +81,7 @@ var _pool = new Pool();
  * MAX_REFLOW_THRESHOLD, reflow stops for that view, preventing infinite
  * loops when reflow cycles occur.
  */
-var ReflowManager = exports = Class(function () {
+exports = Class(function () {
   this.init = function () {
     this._pending = {};
     this._iter = 0;
@@ -241,6 +241,7 @@ var ReflowManager = exports = Class(function () {
     this._pendingCount = 0;
   };
 });
+var ReflowManager = exports;
 
 var _instance = null;
 exports.get = function () {

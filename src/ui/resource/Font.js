@@ -110,7 +110,7 @@ var defaults = {
 };
 
 
-var Font = exports = Class(function () {
+exports = Class(function () {
   this.init = function (opts) {
     if (typeof opts === 'string') {
       _cache[opts] = this;
@@ -151,6 +151,7 @@ var Font = exports = Class(function () {
     return this._weight;
   };
 });
+var Font = exports;
 
 Font.parse = function (str) {
   if (str in _cache) {

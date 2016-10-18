@@ -133,7 +133,7 @@ var DEFAULT_REFLOW = function () {
 };
 
 
-var View = exports = Class(IView, function () {
+exports = Class(IView, function () {
   /**
    * infinite: boolean, default false - if true, no bounding shape at all (e.g. infinite scroll plane)
    * clip: boolean, default false - if true, always clip to the region
@@ -839,6 +839,7 @@ var View = exports = Class(IView, function () {
     return cls + this.uid + (this.tag ? ':' + this.tag : '');
   };
 });
+var View = exports;
 
 
 View.prototype.setHandleEvents = View.prototype.canHandleEvents;

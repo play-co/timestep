@@ -64,7 +64,7 @@ var debugCheck = function (bin, list) {
 };
 
 
-var FragmentBuffer = exports = Class(function () {
+exports = Class(function () {
   this.init = function (opts) {
     this.opts = merge(opts, {});
     this._cache = {};
@@ -185,3 +185,4 @@ var FragmentBuffer = exports = Class(function () {
     }
   };
 });
+var FragmentBuffer = exports;

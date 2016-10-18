@@ -25,7 +25,7 @@ import Enum from 'lib/Enum';
 
 var states = Enum('UP', 'DOWN', 'DISABLED', 'SELECTED', 'UNSELECTED');
 var lastClicked = null;
-var ButtonView = exports = Class(ImageScaleView, function (supr) {
+exports = Class(ImageScaleView, function (supr) {
   this.init = function (opts) {
     this._state = opts.defaultState || opts.state || (opts.toggleSelected ? states.UNSELECTED : states.UP);
 
@@ -215,5 +215,6 @@ var ButtonView = exports = Class(ImageScaleView, function (supr) {
     this.setImage(this._images[stateName]);
   };
 });
+var ButtonView = exports;
 
 ButtonView.states = states;

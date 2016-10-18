@@ -18,7 +18,7 @@
  *
  * A simple class to express padding views.
  */
-var Padding = exports = Class(function () {
+exports = Class(function () {
   this.init = function (args) {
     this.update(args);
   };
@@ -81,3 +81,4 @@ var Padding = exports = Class(function () {
     ].join(' ');
   };
 });
+var Padding = exports;

@@ -25,12 +25,14 @@
 exports.linear = function (n) {
   return n;
 };
-exports.easeIn = exports.easeInQuad = function (n) {
+exports.easeInQuad = function (n) {
   return n * n;
 };
-exports.easeOut = exports.easeOutQuad = function (n) {
+exports.easeIn = exports.easeInQuad;
+exports.easeOutQuad = function (n) {
   return n * (2 - n);
 };
+exports.easeOut = exports.easeOutQuad;
 exports.easeInOutQuad = function (n) {
   if ((n *= 2) < 1)
     return 0.5 * n * n;
@@ -42,11 +44,12 @@ exports.easeInCubic = function (n) {
 exports.easeOutCubic = function (n) {
   return (n -= 1) * n * n + 1;
 };
-exports.easeInOut = exports.easeInOutCubic = function (n) {
+exports.easeInOutCubic = function (n) {
   if ((n *= 2) < 1)
     return 0.5 * n * n * n;
   return 0.5 * ((n -= 2) * n * n + 2);
 };
+exports.easeInOut = exports.easeInOutCubic;
 exports.easeInQuart = function (n) {
   return n * n * n * n;
 };

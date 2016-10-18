@@ -30,7 +30,7 @@ var randomColor = function () {
   return '#' + randomColorElement() + randomColorElement() + randomColorElement();
 };
 
-var FontBuffer = exports = Class(function () {
+exports = Class(function () {
   this.init = function (opts) {
     // 8 * 24
     // 10 * 32
@@ -183,3 +183,4 @@ var FontBuffer = exports = Class(function () {
     return this._canvas;
   };
 });
+var FontBuffer = exports;

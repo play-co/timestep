@@ -58,7 +58,7 @@ var BASE_STYLE_PROPS = {
 };
 
 
-var BaseBacking = exports = Class(function () {
+exports = Class(function () {
   // required methods:
   //
   // this._onResize = function () {};
@@ -96,6 +96,7 @@ var BaseBacking = exports = Class(function () {
     return this;
   };
 });
+var BaseBacking = exports;
 
 var styleKeys = BaseBacking.prototype.constructor.styleKeys = {};
 

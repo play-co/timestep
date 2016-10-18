@@ -34,7 +34,7 @@ import DEFAULT_IMAGE from 'ui/resource/Image';
 
 var Image;
 
-var Filter = exports.Filter = Class(function () {
+exports.Filter = Class(function () {
   this.init = function (opts) {
     this._color = new Color(opts);
     this._type = opts.type || '';
@@ -85,6 +85,7 @@ var Filter = exports.Filter = Class(function () {
   };
 
 });
+var Filter = exports.Filter;
 
 Filter.TYPES = {
   'None': 0,

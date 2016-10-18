@@ -12,7 +12,7 @@
 */
 /*global window, SM2_DEFER, sm2Debugger, console, document, navigator, setTimeout, setInterval, clearInterval, Audio */
 /*jslint regexp: true, sloppy: true, white: true, nomen: true, plusplus: true */
-var SoundManager = exports = function SoundManager(smURL, smID) {
+exports = function SoundManager(smURL, smID) {
   this.flashVersion = 8;
   // version of flash to require, either 8 or 9. Some API features require Flash 9.
   this.debugMode = true;
@@ -3383,4 +3383,7 @@ var SoundManager = exports = function SoundManager(smURL, smID) {
   }
 
 
-};  // SoundManager()
+
+
+};
+var SoundManager = exports;  // SoundManager()

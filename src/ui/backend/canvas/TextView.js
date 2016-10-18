@@ -126,7 +126,7 @@ fontBuffer.onGetHash = function (desc) {
 /**
  * @extends ui.View
  */
-var TextView = exports = Class(View, function (supr) {
+exports = Class(View, function (supr) {
   this.init = function (opts) {
     opts = merge(opts, defaults);
     supr(this, 'init', [opts]);
@@ -504,6 +504,7 @@ var TextView = exports = Class(View, function (supr) {
     this._cacheUpdate = true;
   };
 });
+var TextView = exports;
 
 exports.clearBuffers = TextView.prototype.clearBuffers;
 exports.getFontBuffer = TextView.prototype.getFontBuffer;

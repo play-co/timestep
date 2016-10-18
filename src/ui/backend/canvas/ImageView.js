@@ -33,7 +33,7 @@ var _host = window.location.hostname;
 /**
  * @extends ui.View
  */
-var ImageView = exports = Class(View, function (supr) {
+exports = Class(View, function (supr) {
   /**
    * Options:
    *   autoSize - See .setImage()
@@ -192,6 +192,7 @@ var ImageView = exports = Class(View, function (supr) {
     return (tag || '') + ':ImageView' + this.uid;
   };
 });
+var ImageView = exports;
 
 
 ImageView.prototype.getOrigWidth = ImageView.prototype.getOrigW;

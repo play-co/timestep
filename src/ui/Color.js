@@ -32,7 +32,7 @@ function hexToRGB(a) {
 ;
 
 
-var RGBA = exports = Class(function () {
+exports = Class(function () {
   this.init = function () {
     this.r = 0;
     this.g = 0;
@@ -120,6 +120,7 @@ var RGBA = exports = Class(function () {
   };
 
 });
+var RGBA = exports;
 
 exports.parse = function (str) {
   return cache[str] || (cache[str] = new RGBA(str));
