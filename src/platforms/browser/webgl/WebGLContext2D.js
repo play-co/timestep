@@ -296,6 +296,7 @@ class GLManager {
     }
 
     this._activeShader = shader;
+    var gl = this.gl;
     gl.useProgram(shader.program);
     shader.enableVertexAttribArrays();
     gl.uniform2f(shader.uniforms.uResolution, ctx.width, ctx.height);

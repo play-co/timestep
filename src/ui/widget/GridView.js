@@ -27,7 +27,7 @@ import View from 'ui/View';
  * @class ui.widget.GridView
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/widget/gridview.md
  */
-GridView = class extends View {
+class GridView extends View {
   constructor (opts) {
     opts = merge(opts, {
       horizontalMargin: 0,

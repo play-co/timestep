@@ -92,6 +92,7 @@ class Shader {
     }
   }
   disableVertexAttribArrays () {
+    var gl = this._gl
     for (var attrib in this.attributes) {
       if (this.attributes[attrib] !== -1) {
         gl.disableVertexAttribArray(this.attributes[attrib]);
@@ -99,7 +100,7 @@ class Shader {
     }
   }
   createProgram () {
-    gl = this._gl;
+    var gl = this._gl;
 
     var vertexShader = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(vertexShader, this._vertexSrc);
@@ -124,8 +125,6 @@ class Shader {
 
 class LinearAddShader extends Shader {
   constructor (opts) {
-    super();
-
     opts.fragmentSrc = [
       'precision mediump float;',
       'varying vec2 vTextureCoord;',
@@ -137,14 +136,12 @@ class LinearAddShader extends Shader {
       ' gl_FragColor = vec4((vSample.rgb + vColor.rgb * vColor.a) * vSample.a, vSample.a) * vAlpha;',
       '}'
     ].join('\n');
-    Shader.prototype.init.call(this, opts);
+    super(opts);
   }
 }
 
 class TintShader extends Shader {
   constructor (opts) {
-    super();
-
     opts.fragmentSrc = [
       'precision mediump float;',
       'varying vec2 vTextureCoord;',
@@ -156,14 +153,12 @@ class TintShader extends Shader {
       ' gl_FragColor = vec4((vSample.rgb * (1.0 - vColor.a) + (vColor.rgb * vColor.a)) * vSample.a * vAlpha, vSample.a * vAlpha);',
       '}'
     ].join('\n');
-    Shader.prototype.init.call(this, opts);
+    super(opts);
   }
 }
 
 class MultiplyShader extends Shader {
   constructor (opts) {
-    super();
-
     opts.fragmentSrc = [
       'precision mediump float;',
       'varying vec2 vTextureCoord;',
@@ -175,14 +170,12 @@ class MultiplyShader extends Shader {
       ' gl_FragColor = vec4(vSample.rgb * (vColor.rgb * vColor.a), vSample.a) * vAlpha;',
       '}'
     ].join('\n');
-    Shader.prototype.init.call(this, opts);
+    super(opts);
   }
 }
 
 class RectShader extends Shader {
   constructor (opts) {
-    super();
-
     opts.fragmentSrc = [
       'precision mediump float;',
       'varying float vAlpha;',
@@ -192,7 +185,7 @@ class RectShader extends Shader {
       '}'
     ].join('\n');
     opts.useTexture = false;
-    Shader.prototype.init.call(this, opts);
+    super(opts);
   }
 }
 

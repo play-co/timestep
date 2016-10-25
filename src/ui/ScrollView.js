@@ -192,7 +192,7 @@ function clippedWrapRender (contentView, backing, ctx, opts) {
 }
 
 // extend the default backing ctor
-class DEFAULT_BACKING_CTOR extends View.prototype.BackingCtor {
+class DEFAULT_BACKING_CTOR extends View.BackingCtor {
   wrapRender (ctx, opts) {
     clippedWrapRender(this._view._contentView, this, ctx, opts);
 
@@ -240,6 +240,8 @@ exports = class extends View {
 
     opts['dom:noCanvas'] = true;
 
+    super(opts);
+
     this._acceleration = 15;
 
     this._animState = {
@@ -270,10 +272,17 @@ exports = class extends View {
     this._viewport = new Rect();
     this._viewport.src = this._contentView;
 
-    super(opts);
     super.addSubview(this._contentView);
+
+    this.__initCompleteScrollView = true;
+    this.updateOpts(opts);
   }
   updateOpts (opts) {
+    if (!this.__initCompleteScrollView) {
+      console.warn('ScrollView instance not yet ready');
+      return;
+    }
+
     super.updateOpts(...arguments);
 
     if ('useContentBounds' in opts) {

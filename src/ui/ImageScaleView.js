@@ -2,6 +2,10 @@ let exports = {};
 
 import { merge } from 'base';
 
+import View from 'ui/View';
+import ImageViewCache from 'ui/resource/ImageViewCache';
+import resourceLoader from 'ui/resource/loader';
+
 /**
  * @license
  * This file is part of the Game Closure SDK.

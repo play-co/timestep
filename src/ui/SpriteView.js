@@ -52,11 +52,15 @@ import ImageView from 'ui/ImageView';
 import Image from 'ui/resource/Image';
 import loader from 'ui/resource/loader';
 
+import View from 'ui/View';
+
+
 var GROUPS = {};
+
 
 exports = class extends ImageView {
   constructor (opts) {
-    this._opts = opts = merge(opts, this.defaults);
+    opts = merge(opts, exports.prototype.defaults);
     opts.visible = false;
 
     if (DEBUG && device.useDOM) {
@@ -64,6 +68,7 @@ exports = class extends ImageView {
     }
 
     super(opts);
+    this._opts = opts;
 
     // toggle this flag manually to optimize SpriteViews
     this.onScreen = true;
@@ -318,7 +323,7 @@ SpriteView.getGroup = SpriteView.prototype.getGroup;
 /**
  * Group class
  */
-class Group extends jsio.__filename {
+class Group extends View {
   constructor () {
     super();
 

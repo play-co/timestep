@@ -142,7 +142,7 @@ exports = class extends View {
 
     this._id = textViewID++;
 
-    this._initComplete = true;
+    this.__initCompleteTextView = true;
     this.updateOpts(opts);
   }
   onChangeWidth (width) {
@@ -240,7 +240,7 @@ exports = class extends View {
     this._hash = false;
   }
   updateOpts (opts, dontCheck) {
-    if (!this._initComplete) {
+    if (!this.__initCompleteTextView) {
       console.warn('TextView instance not yet ready');
       return;
     }

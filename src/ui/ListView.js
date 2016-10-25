@@ -44,8 +44,6 @@ var FORWARD_KEYS = {
  */
 exports = class extends ScrollView {
   constructor (opts) {
-    this._scrollBuffer = opts.scrollBuffer;
-
     opts.scrollBounds = {
       minX: 0,
       minY: 0,
@@ -53,10 +51,20 @@ exports = class extends ScrollView {
       maxY: Number.MAX_VALUE
     };
 
-    this.model = new List({ view: this });
     super(opts);
+
+    this._scrollBuffer = opts.scrollBuffer;
+    this.model = new List({ view: this });
+
+    this.__initCompleteListView = true;
+    this.updateOpts(opts);
   }
   updateOpts () {
+    if (!this.__initCompleteListView) {
+      console.warn('ListView instance not yet ready');
+      return;
+    }
+
     var opts = super.updateOpts(...arguments);
 
     var listOpts = { view: this };

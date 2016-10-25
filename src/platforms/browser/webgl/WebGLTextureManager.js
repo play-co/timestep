@@ -1,7 +1,6 @@
 let exports = {};
 
 import {
-  log,
   bind
 } from 'base';
 
