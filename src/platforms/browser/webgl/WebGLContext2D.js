@@ -152,7 +152,7 @@ class GLManager {
       'webgl', {
         alpha: true,
         premultipliedAlpha: true,
-        preserveDrawingBuffer: true
+        preserveDrawingBuffer: CONFIG.preserveDrawingBuffer
       });
 
     this._indexCache = new Uint16Array(MAX_BATCH_SIZE * 6);
