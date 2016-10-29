@@ -44,9 +44,6 @@ exports.init = function () {
         device.screen.orientation = 'portrait';
       }
 
-
-
-
       device.screen.publish('Resize', width, height);
     }
   };

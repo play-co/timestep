@@ -74,7 +74,11 @@ logger.log(exports.isMobile ? 'on mobile device' : 'in web browser');
 
 exports.screen = new Emitter();
 
-var devicePixelRatio = window.devicePixelRatio || 1;
+// When in simulator, use provided dpr
+let devicePixelRatio = window.devicePixelRatio || 1;
+if (CONFIG.simulator && CONFIG.simulator.deviceId) {
+  devicePixelRatio = CONFIG.simulator.deviceInfo.devicePixelRatio;
+}
 
 // @deprecated
 exports.devicePixelRatio = devicePixelRatio;
@@ -84,6 +88,9 @@ exports.screen.devicePixelRatio = devicePixelRatio;
 exports.screen.width = window.innerWidth * devicePixelRatio;
 exports.screen.height = window.innerHeight * devicePixelRatio;
 
+
+// FIXME: this does not apply browser specific logic to reads of
+// `window.innerWidth` or `window.innerHeight`
 exports.setDevicePixelRatio = function (value) {
   if (userAgent.APP_RUNTIME !== 'browser') {
     logger.warn('device.setDevicePixelRatio is only supported in browsers!');
@@ -210,8 +217,8 @@ if (exports.isMobile) {
     };
   } else {
     // All other browsers
-    exports.screen.width = window.innerWidth;
-    exports.screen.height = window.innerHeight;
+    exports.screen.width = window.innerWidth * devicePixelRatio;
+    exports.screen.height = window.innerHeight * devicePixelRatio;
     exports.name = 'browser';
     exports.canResize = false;
   }

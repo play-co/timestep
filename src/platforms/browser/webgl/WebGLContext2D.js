@@ -204,6 +204,7 @@ class GLManager {
     this._canvas.addEventListener('webglcontextrestored', this.handleContextRestored
       .bind(this), false);
   }
+
   handleContextLost (e) {
     e.preventDefault();
     this.contextActive = false;
@@ -733,6 +734,7 @@ class Context2D {
     textCtx.font = this.font;
     return textCtx.measureText(text);
   }
+
   drawImage (image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
     if (!this._manager.gl) {
       return;
