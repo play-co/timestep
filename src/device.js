@@ -77,7 +77,7 @@ exports.screen = new Emitter();
 // When in simulator, use provided dpr
 let devicePixelRatio = window.devicePixelRatio || 1;
 if (CONFIG.simulator && CONFIG.simulator.deviceId) {
-  devicePixelRatio = CONFIG.simulator.deviceInfo.devicePixelRatio;
+  devicePixelRatio = CONFIG.simulator.deviceInfo.devicePixelRatio || 1;
 }
 
 // @deprecated
