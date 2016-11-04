@@ -25,7 +25,7 @@ import device;
 
 var Timer = device.get('Timer');
 
-var MAX_TICK = 10000; // ticks over 10 seconds will be considered too large to process
+var MAX_TICK = 150; // ticks over .15 seconds will be considered too large to process
 exports.now = 0;
 exports.frames = 0;
 exports.reset = function () { this._last = null; }
