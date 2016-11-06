@@ -58,7 +58,7 @@ import View from 'ui/View';
 var GROUPS = {};
 
 
-exports = class extends ImageView {
+exports = class SpriteView extends ImageView {
   constructor (opts) {
     opts = merge(opts, exports.prototype.defaults);
     opts.visible = false;

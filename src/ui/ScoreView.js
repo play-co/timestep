@@ -31,7 +31,7 @@ import filter from 'ui/filter';
 var min = Math.min;
 var max = Math.max;
 
-exports = class extends View {
+exports = class ScoreView extends View {
   constructor (opts) {
     opts.blockEvents = true;
     super(...arguments);

@@ -118,7 +118,7 @@ function compareSubscription (args, sub) {
 
 var DEFAULT_REFLOW = function () {};
 
-exports = class extends IView {
+exports = class View extends IView {
   constructor (opts) {
     super();
 
