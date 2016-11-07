@@ -377,6 +377,7 @@ class ObjectFrame extends Frame {
     }
     debug && this.debugLog(tt);
   }
+
   debugLog (tt) {
     var changed = {};
     for (var key in this.target) {
@@ -460,7 +461,24 @@ exports.Animator = class extends Emitter {
   }
 
   scheduler (scheduler) {
+    let wasScheduled = false;
+    if (this._scheduler) {
+      if (this._scheduler === scheduler) {
+        // Dont need to do anything
+        return;
+      } else {
+        // Detach from old scheduler
+        if (this._isScheduled) {
+          this._scheduler.unschedule(this);
+          wasScheduled = true;
+        }
+      }
+    }
     this._scheduler = scheduler || DEFAULT_ANIMATOR_SCHEDULER;
+    if (wasScheduled) {
+      // Attach to new scheduler
+      this.scheduler.schedule(this);
+    }
     return this;
   }
 
