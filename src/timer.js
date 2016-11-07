@@ -21,13 +21,15 @@ let exports = {};
  * Implements an independent, singleton timer for use by the environment.
  * The Application Engine binds to this to generate the rendering tick.
  */
-import { logger } from 'base';
+import {
+  logger,
+  CONFIG
+} from 'base';
 
 import { getImport } from 'platformImport';
 
 var Timer = getImport('Timer');
 
-var MAX_TICK = 10000;
 // ticks over 10 seconds will be considered too large to process
 exports.now = 0;
 exports.frames = 0;
@@ -37,8 +39,8 @@ exports.reset = function () {
 exports.tick = function (dt) {
   var ok = false;
   try {
-    if (dt > MAX_TICK) {
-      exports.onLargeTick(dt, MAX_TICK);
+    if (dt > CONFIG.maxTick) {
+      exports.onLargeTick(dt, CONFIG.maxTick);
       dt = 1;
     }
 
