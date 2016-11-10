@@ -107,6 +107,8 @@ exports = class extends PubSub {
       opts = {};
     }
 
+    this._crossOrigin = opts.useCredentials ? 'use-credentials' : 'anonymous';
+
     this._cb = new Callback();
     this._map = new ImageMap(this, 0, 0, -1, -1, 0, 0, 0, 0, opts.url || '');
     this._originalURL = opts.url || '';
@@ -120,6 +122,7 @@ exports = class extends PubSub {
     // (use the map's URL in case it was updated to a spritesheet)
     this._setSrcImg(opts.srcImage, this._map.url, opts.forceReload);
   }
+
   _setSrcImg (img, url, forceReload) {
     this._cb.reset();
     this._isError = false;
@@ -155,7 +158,7 @@ exports = class extends PubSub {
     // create an image if we don't have one
     if (!img) {
       img = new Image();
-      img.crossOrigin = 'use-credentials';
+      img.crossOrigin = this._crossOrigin;
     }
 
     this._srcImg = img;

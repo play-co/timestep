@@ -126,7 +126,7 @@ fontBuffer.onGetHash = function (desc) {
 /**
  * @extends ui.View
  */
-exports = class extends View {
+exports = class TextView extends View {
   constructor (opts) {
     opts = merge(opts, defaults);
     super(opts);
