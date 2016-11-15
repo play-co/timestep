@@ -147,7 +147,9 @@ exports = Class(lib.PubSub, function () {
     // create an image if we don't have one
     if (!img) {
       img = new Image();
-      img.crossOrigin = 'use-credentials';
+      if (!url || !url.startsWith('data:image')) {
+        img.crossOrigin = 'use-credentials';
+      }
     }
 
     this._srcImg = img;
