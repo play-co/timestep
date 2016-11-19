@@ -377,6 +377,7 @@ class ObjectFrame extends Frame {
     }
     debug && this.debugLog(tt);
   }
+
   debugLog (tt) {
     var changed = {};
     for (var key in this.target) {
@@ -429,6 +430,22 @@ class ViewStyleFrame extends Frame {
   }
 }
 
+
+class AnimatorScheduler extends Emitter {
+  schedule (anim) {
+    engine.subscribe('Tick', anim, 'onTick');
+  }
+
+  unschedule (anim) {
+    engine.unsubscribe('Tick', anim, 'onTick');
+  }
+}
+
+exports.AnimatorScheduler = AnimatorScheduler;
+
+const DEFAULT_ANIMATOR_SCHEDULER = new AnimatorScheduler();
+
+
 exports.Animator = class extends Emitter {
   constructor (subject) {
     super();
@@ -439,7 +456,32 @@ exports.Animator = class extends Emitter {
     this._isPaused = false;
     this._isScheduled = false;
     this._debug = false;
+
+    this._scheduler = DEFAULT_ANIMATOR_SCHEDULER;
   }
+
+  scheduler (scheduler) {
+    let wasScheduled = false;
+    if (this._scheduler) {
+      if (this._scheduler === scheduler) {
+        // Dont need to do anything
+        return;
+      } else {
+        // Detach from old scheduler
+        if (this._isScheduled) {
+          this._scheduler.unschedule(this);
+          wasScheduled = true;
+        }
+      }
+    }
+    this._scheduler = scheduler || DEFAULT_ANIMATOR_SCHEDULER;
+    if (wasScheduled) {
+      // Attach to new scheduler
+      this.scheduler.schedule(this);
+    }
+    return this;
+  }
+
   clear () {
     var queue = this._queue;
     var len = queue.length;
@@ -452,6 +494,7 @@ exports.Animator = class extends Emitter {
     this._removeFromGroup();
     return this;
   }
+
   pause () {
     if (!this._isPaused) {
       this._isPaused = true;
@@ -459,6 +502,7 @@ exports.Animator = class extends Emitter {
     }
     return this;
   }
+
   resume () {
     if (this._isPaused) {
       this._isPaused = false;
@@ -466,27 +510,33 @@ exports.Animator = class extends Emitter {
     }
     return this;
   }
+
   _schedule () {
     if (!this._isScheduled) {
       this._isScheduled = true;
-      engine.subscribe('Tick', this, 'onTick');
+      this._scheduler.schedule(this);
     }
   }
+
   _unschedule () {
     if (this._isScheduled) {
       this._isScheduled = false;
-      engine.unsubscribe('Tick', this, 'onTick');
+      this._scheduler.unschedule(this);
     }
   }
+
   isPaused () {
     return this._isPaused;
   }
+
   hasFrames () {
     return !!this._queue[0];
   }
+
   wait (duration) {
     return this.then(undefined, duration);
   }
+
   buildFrame (target, duration, transition) {
     var frame;
     var subject = this.subject;
@@ -504,10 +554,12 @@ exports.Animator = class extends Emitter {
     frame.reset(subject, target, duration, transition);
     return frame;
   }
+
   now (target, duration, transition) {
     this.clear();
     return this.then(target, duration, transition);
   }
+
   then (target, duration, transition) {
     if (!this._queue.length) {
       this._elapsed = 0;
@@ -518,10 +570,12 @@ exports.Animator = class extends Emitter {
     this._addToGroup();
     return this;
   }
+
   debug () {
     this._debug = true;
     return this;
   }
+
   commit () {
     this.resume();
     this._elapsed = 0;
@@ -532,6 +586,7 @@ exports.Animator = class extends Emitter {
     this.next();
     return this;
   }
+
   onTick (dt) {
     if (!this._isScheduled) {
       return;
@@ -540,6 +595,7 @@ exports.Animator = class extends Emitter {
     this._elapsed += dt;
     this.next();
   }
+
   next () {
     var p = this._queue[0];
     while (p) {
@@ -576,6 +632,7 @@ exports.Animator = class extends Emitter {
     var group = groups[this.groupID];
     group && group.add(this);
   }
+
   _removeFromGroup () {
     var group = groups[this.groupID];
     group && group.remove(this);

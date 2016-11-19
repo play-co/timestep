@@ -24,24 +24,27 @@ import path from 'util/path';
 import URI from 'std/uri';
 
 import View from 'ui/View';
-import Image from 'ui/resource/Image';
 import ImageViewCache from 'ui/resource/ImageViewCache';
+
 
 var _loc = window.location.toString();
 var _host = window.location.hostname;
 
+
 /**
  * @extends ui.View
  */
-exports = class extends View {
+exports = class ImageView extends View {
   getImage () {
     return this._img;
   }
+
   getImageFromCache (url, forceReload) {
     return ImageViewCache.getImage(url, forceReload);
   }
+
   updateOpts (opts) {
-    var opts = super.updateOpts(...arguments);
+    opts = super.updateOpts(...arguments);
 
     if ('autoSize' in opts) {
       this._autoSize = !!opts.autoSize;
@@ -55,9 +58,10 @@ exports = class extends View {
 
     return opts;
   }
+
   setImage (img, opts) {
     var forceReload = opts && opts.forceReload;
-    if (typeof img == 'string') {
+    if (typeof img === 'string') {
       img = ImageViewCache.getImage(img, forceReload);
     } else if (forceReload) {
       img.reload();
@@ -79,14 +83,16 @@ exports = class extends View {
       this._img.doOnLoad(this, 'needsRepaint');
     }
   }
+
   doOnLoad () {
-    if (arguments.length == 1) {
+    if (arguments.length === 1) {
       this._img.doOnLoad(this, arguments[0]);
     } else {
       this._img.doOnLoad.apply(this._img, arguments);
     }
     return this;
   }
+
   autoSize () {
     if (this._img) {
       this.style.width = this._img.getWidth();
@@ -101,9 +107,11 @@ exports = class extends View {
   getOrigW () {
     return this._img.getOrigW();
   }
+
   getOrigH () {
     return this._img.getOrigH();
   }
+
   render (ctx) {
     if (!this._img) {
       return;
@@ -119,12 +127,12 @@ exports = class extends View {
     var tag;
     if (this._img) {
       var url = this._img.getOriginalURL();
-      if (this._cachedTag && url == this._cachedTag.url) {
+      if (this._cachedTag && url === this._cachedTag.url) {
         tag = this._cachedTag.tag;
       } else {
         var uri = URI.relativeTo(url, _loc);
         var host = uri.getHost();
-        tag = path.splitExt(uri.getFile()).basename + (host && host !=
+        tag = path.splitExt(uri.getFile()).basename + (host && host !==
           _host ? ':' + host : '');
 
         this._cachedTag = {
@@ -139,7 +147,9 @@ exports = class extends View {
 };
 var ImageView = exports;
 
+
 ImageView.prototype.getOrigWidth = ImageView.prototype.getOrigW;
 ImageView.prototype.getOrigHeight = ImageView.prototype.getOrigH;
+
 
 export default exports;
