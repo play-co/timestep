@@ -107,7 +107,7 @@ exports = class extends PubSub {
       opts = {};
     }
 
-    this._crossOrigin = opts.useCredentials ? 'use-credentials' : 'anonymous';
+    this._crossOrigin = opts.crossOrigin !== undefined ? opts.crossOrigin : 'use-credentials';
 
     this._cb = new Callback();
     this._map = new ImageMap(this, 0, 0, -1, -1, 0, 0, 0, 0, opts.url || '');
