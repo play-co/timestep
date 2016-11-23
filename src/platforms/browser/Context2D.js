@@ -38,6 +38,11 @@ exports = function (opts) {
     return el;
   };
 
+  Object.defineProperty(ctx, 'filter', {
+    get: function() { return this._filter; },
+    set: function(value) { this._filter = value; }
+  });
+
   ctx.reset = function () {
   };
 

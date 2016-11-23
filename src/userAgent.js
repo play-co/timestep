@@ -1,9 +1,6 @@
 let exports = {};
 
-import {
-  GLOBAL,
-  CONFIG
-} from 'base';
+import { GLOBAL, CONFIG } from 'base';
 
 /**
  * @license
@@ -58,9 +55,6 @@ if (isNative) {
   }
 }
 
-
-
-
 if (isAndroid) {
   osType = 'Android';
   osVersionString = ua.match(/Android[/\s][\d.]+/)[0];
@@ -75,21 +69,6 @@ if (isAndroid) {
   osVersion = osVersionString.match(/[0-9_]+/)[0].replace(/_/g, '.');
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 if (isChrome) {
   browserType = 'Chrome';
   browserVersionString = ua.match(/Chrome[/\s][\d.]+/)[0];
@@ -103,37 +82,6 @@ if (isChrome) {
   browserVersionString = ua.match(/Firefox[/\s][\d.]+/)[0];
   browserVersion = browserVersionString.match(/[\d.]+/)[0];
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 class UserAgent {
 
