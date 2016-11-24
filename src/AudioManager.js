@@ -55,6 +55,9 @@ if (AudioContext) {
 var _muteAll = false;
 var _registeredAudioManagers = [];
 
+var min = Math.min; 
+var max = Math.max;
+
 /**
 * RawAudio Class
 *
@@ -175,7 +178,7 @@ var MultiSound = Class(function () {
         var audio = new RawAudio();
         if (audio) {
           audio.loop = loop;
-          audio.volume = volume;
+          audio.volume = max(0, min(1, volume));
           audio.isBackgroundMusic = opts.background;
           audio.src = fullPath;
           audio.preload = ((audio.readyState !== 4) || (soundManager._preload && !opts.background)) ? "auto" : "none";
