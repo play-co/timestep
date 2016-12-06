@@ -116,21 +116,8 @@ setProperty(exports, 'defaultFontFamily', {
   },
   value: 'Helvetica'
 });
-exports.defaultFontWeight = '';
 
-if ('ontouchstart' in window && !/BlackBerry/.test(ua)) {
-  exports.events = {
-    start: 'touchstart',
-    move: 'touchmove',
-    end: 'touchend'
-  };
-} else {
-  exports.events = {
-    start: 'mousedown',
-    move: 'mousemove',
-    end: 'mouseup'
-  };
-}
+exports.defaultFontWeight = '';
 
 /*
  * All userAgent flags in this file are now DEPRECATED.

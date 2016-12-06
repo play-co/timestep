@@ -1,5 +1,3 @@
-let exports = {};
-
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -35,15 +33,13 @@ var eventTypes = input.eventTypes;
 
 import InputEvent from 'event/input/InputEvent';
 
-// import ...FPSCounter;
 var UID = -1;
-
 var isIOS7 = device.iosVersion === 7;
-var isIOSSafari = device.iosVersion >= 7 && !device.isIpad && !device.isStandalone &&
-  !device.isUIWebView;
+var isIOSSafari = device.iosVersion >= 7 && !device.isIpad && !device.isStandalone && !device.isUIWebView;
 var enableLandscapeScroll = isIOSSafari;
 
-exports = class {
+export default class Input {
+
   constructor (opts) {
     if (device.simulatingMobileNative || device.simulatingMobileBrowser) {
       this._simulateMobile = true;
@@ -69,11 +65,6 @@ exports = class {
     // disable the key listener on focus of input elements
     this._keyListener = opts.keyListener;
 
-    if (device.useDOM) {
-      $.onEvent(document, device.events.start, this, 'handleMouse',
-        eventTypes.START);
-    }
-
     if (opts.engine) {
       if (opts.engine.getOpt('minIOSLandscapeScroll') > device.iosVersion ||
         opts.engine.getOpt('disableIOSLandscapeScroll')) {
@@ -81,7 +72,22 @@ exports = class {
       }
     }
 
-    this.enable();
+    if (this._isEnabled) {
+      return;
+    }
+    this._isEnabled = true;
+
+    $.onEvent(document, 'touchmove', this, 'handleMouse', eventTypes.MOVE);
+    $.onEvent(document, 'mousemove', this, 'handleMouse', eventTypes.MOVE);
+    $.onEvent(document, 'mouseup', this, 'handleMouse', eventTypes.SELECT);
+    $.onEvent(document, 'touchend', this, 'handleMouse', eventTypes.SELECT);
+    $.onEvent(window, 'DOMMouseScroll', this, 'handleMouse', eventTypes.SCROLL);
+
+    // FF
+    this._handleWheel = $.onEvent(window, 'mousewheel', this, 'handleMouse', eventTypes.SCROLL);
+
+    // webkit
+    this._addElEvents();
 
     // this._evtFps = new FPSCounter({name: "mouse events"});
     this._hasFocus = false;
@@ -90,50 +96,27 @@ exports = class {
       document.addEventListener('blur', bind(this, 'onBlurCapture'), true);
     }
   }
+
   enable () {
-    if (this._isEnabled) {
-      return;
-    }
     this._isEnabled = true;
-
-    this._handleMove = $.onEvent(document, device.events.move, this,
-      'handleMouse', eventTypes.MOVE);
-    this._handleSelect = $.onEvent(document, device.events.end, this,
-      'handleMouse', eventTypes.SELECT);
-    this._handleScroll = $.onEvent(window, 'DOMMouseScroll', this,
-      'handleMouse', eventTypes.SCROLL);
-    // FF
-    this._handleWheel = $.onEvent(window, 'mousewheel', this, 'handleMouse',
-      eventTypes.SCROLL);
-
-    // webkit
-    this._addElEvents();
   }
+
   disable () {
-    if (!this._isEnabled) {
-      return;
-    }
     this._isEnabled = false;
-
-    if (this._handleMove) {
-      this._handleMove();
-      this._handleMove = false;
-    }
-    if (this._handleSelect) {
-      this._handleSelect();
-      this._handleSelect = false;
-    }
-    if (this._handleScroll) {
-      this._handleScroll();
-      this._handleScroll = false;
-    }
-    if (this._handleWheel) {
-      this._handleWheel();
-      this._handleWheel = false;
-    }
-
-    this._removeElEvents();
   }
+
+  onInputStart (e) {
+    this.handleMouse(eventTypes.START, e);
+  }
+
+  onInputMove (e) {
+    this.handleMouse(eventTypes.MOVE, e);
+  }
+
+  onInputEnd (e) {
+    this.handleMouse(eventTypes.SELECT, e);
+  }
+
   onFocusCapture (e) {
     var tag = e.target.tagName;
     if (tag == 'TEXTAREA' || tag == 'INPUT') {
@@ -141,12 +124,14 @@ exports = class {
       this._keyListener && this._keyListener.setEnabled(false);
     }
   }
+
   onBlurCapture (e) {
     if (this._hasFocus) {
       this._hasFocus = null;
       this._keyListener && this._keyListener.setEnabled(true);
     }
   }
+
   _removeElEvents () {
     if (this._elEvents) {
       for (var i = 0, detach; detach = this._elEvents[i]; ++i) {
@@ -154,6 +139,7 @@ exports = class {
       }
     }
   }
+
   _addElEvents () {
     this._removeElEvents();
 
@@ -166,43 +152,50 @@ exports = class {
     };
 
     this._elEvents = [];
-
-    if (!device.useDOM) {
-      this._elEvents.push($.onEvent(el, device.events.start, this,
-        'handleMouse', eventTypes.START));
-    }
+    this._elEvents.push($.onEvent(el, 'mousedown', this, 'handleMouse', eventTypes.START));
+    this._elEvents.push($.onEvent(el, 'touchstart', this, 'handleMouse', eventTypes.START));
 
     if (!device.isMobileBrowser && !device.isNative) {
       this._elEvents.push($.onEvent(el, 'mouseover', this, 'onMouseOver'));
       this._elEvents.push($.onEvent(el, 'mouseout', this, 'onMouseOut'));
     }
   }
+
   setElement (el) {
     this._removeElEvents();
     this._el = el;
     this._addElEvents();
   }
+
   onMouseOver () {
     this._isOver = true;
   }
+
   onMouseOut () {
     this._isOver = false;
   }
+
   onMouseDown () {
     this._isMouseDown = true;
   }
+
   onMouseUp () {
     this._isMouseUp = true;
   }
+
   getEvents () {
     return this._evtQueue;
   }
+
   allowScrollEvents (allowScrollEvents) {
     this._allowScrollEvents = allowScrollEvents;
   }
+
   handleMouse (type, evt) {
+    if (!this._isEnabled) { return; }
+
     var target = evt.target;
-    if (!device.useDOM && !this._isDown && this._el && evt.target != this._el) {
+    if (!this._isDown && this._el && evt.target != this._el) {
       return;
     }
 
@@ -216,8 +209,8 @@ exports = class {
       var innerHeight = window.innerHeight;
       var docHeight = document.documentElement.offsetHeight;
       var matches = docHeight === innerHeight;
-      var allowIOSScroll = enableLandscapeScroll && isLandscape && (isIOS7 ?
-        innerHeight !== 320 : !matches);
+      var allowIOSScroll = enableLandscapeScroll && isLandscape && (isIOS7 ? innerHeight !== 320 : !matches);
+
       if (isIOS7) {
         if (allowIOSScroll) {
           document.documentElement.style.height = '640px';
@@ -267,7 +260,7 @@ exports = class {
     //    y: evt.pageY
     //  };
     // } else
-    if ('offsetX' in evt && !device.useDOM) {
+    if ('offsetX' in evt) {
       // Chrome makes life easy.  offsetX/offsetY is w.r.t. the target, which
       // for us should be the canvas.
       x = evt.offsetX;
@@ -326,17 +319,7 @@ exports = class {
     }
 
     var dpr = device.screen.devicePixelRatio;
-
     var inputEvent = new InputEvent(id, type, x * dpr, y * dpr);
-    if (device.useDOM) {
-      while (target && !target._view) {
-        target = target.parentNode;
-      }
-      if (!target) {
-        return;
-      }
-      inputEvent.target = target._view;
-    }
 
     if (type == eventTypes.SCROLL) {
       // try to normalize scroll events! :-(
@@ -375,5 +358,3 @@ exports = class {
     input.dispatchEvent(this._rootView, inputEvent);
   }
 };
-
-export default exports;

@@ -146,17 +146,8 @@ class InputDialog {
       children: [dialog]
     });
 
-    $.onEvent(this._el, device.events.move, function (e) {
-      var target = e.target;
-      while (target && target != document.body) {
-        if (target == dialog) {
-          return;
-        }
-        target = target.parentNode;
-      }
-
-      e.preventDefault();
-    });
+    $.onEvent(this._el, 'mousemove', this.onInputMove;
+    $.onEvent(this._el, 'touchmove', this.onInputMove;
 
     if (addClasses) {
       css.sizeAndPositionDialog(dialog, body);
@@ -170,9 +161,30 @@ class InputDialog {
       opts.onShow(dialog);
     }
   }
+
+  onInputMove (e) {
+    var target = e.target;
+    while (target && target != document.body) {
+      if (target == dialog) {
+        return;
+      }
+      target = target.parentNode;
+    }
+
+    e.preventDefault();
+  }
+
+  onInputEnd (cb) {
+    this.close();
+    if (cb) {
+      cb && cb(this.getValue());
+    }
+  }
+
   close () {
     $.remove(this._el);
   }
+
   _createButton (text, cb) {
     var btn = $({
       tag: 'button',
@@ -180,15 +192,12 @@ class InputDialog {
       attrs: { noCapture: true }
     });
 
-    $.onEvent(btn, device.events.end, function () {
-      this.close();
-      if (cb) {
-        cb && cb(this.getValue());
-      }
-    }.bind(this));
+    $.onEvent(btn, 'mouseup', () => this.onInputEnd(callback));
+    $.onEvent(btn, 'touchend', () => this.onInputEnd(callback));
 
     this._buttons.push(btn);
   }
+
   _createInputField (value, type, cb) {
     var input = $({
       tag: 'input',
@@ -219,6 +228,7 @@ class InputDialog {
 
     this._input = input;
   }
+
   getValue () {
     return this._input && this._input.value;
   }

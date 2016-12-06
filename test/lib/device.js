@@ -203,21 +203,6 @@ describe(
     );
 
     describe(
-      "device.events",
-      function() {
-        it(
-          "check the device events",
-          function() {
-            var events = device.events;
-            assert(events.start === "mousedown", "events.start should be \"mousedown\"")
-            assert(events.move === "mousemove", "events.move should be \"mousemove\"")
-            assert(events.end === "mouseup", "events.end should be \"mouseup\"")
-          }
-        );
-      }
-    );
-
-    describe(
       "device.hideAddressBar",
       function() {
         it(

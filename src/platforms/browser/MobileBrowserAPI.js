@@ -56,8 +56,8 @@ exports = class extends PubSub {
     this._load();
     if (this.oneChannelOnly) {
       this._boundLoadHandler = bind(this, '_playFirst');
-      document.body.addEventListener(device.events.start, this._boundLoadHandler,
-        true);
+      document.body.addEventListener('mouseDown', this._boundLoadHandler, true);
+      document.body.addEventListener('touchStart', this._boundLoadHandler, true);
     }
     window.addEventListener('pagehide', bind(this, 'pause'), false);
   }
@@ -112,8 +112,8 @@ exports = class extends PubSub {
     }
   }
   _playFirst () {
-    document.body.removeEventListener(device.events.start, this._boundLoadHandler,
-      true);
+    document.body.removeEventListener('mouseDown', this._boundLoadHandler, true);
+    document.body.removeEventListener('touchStart', this._boundLoadHandler, true);
 
     this._audios['AUDIO'].play();
   }
