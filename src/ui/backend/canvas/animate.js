@@ -433,6 +433,7 @@ var Animator = exports.Animator = Class(Emitter, function () {
     }
     queue.length = 0;
     this._elapsed = 0;
+    this._isPaused = false;
     this._unschedule();
     this._removeFromGroup();
     return this;
