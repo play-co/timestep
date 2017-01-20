@@ -11,5 +11,10 @@
 		"clientPaths": {
 			"*": "src/"
 		}
-	}
+	},
+  "jsioWebpack": {
+    "alias": {
+      "timestep": "src"
+    }
+  }
 }
