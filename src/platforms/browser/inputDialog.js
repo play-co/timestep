@@ -146,8 +146,8 @@ class InputDialog {
       children: [dialog]
     });
 
-    $.onEvent(this._el, 'mousemove', this.onInputMove;
-    $.onEvent(this._el, 'touchmove', this.onInputMove;
+    $.onEvent(this._el, 'mousemove', this.onInputMove);
+    $.onEvent(this._el, 'touchmove', this.onInputMove);
 
     if (addClasses) {
       css.sizeAndPositionDialog(dialog, body);
