@@ -1,16 +1,11 @@
-let exports = {};
-
-import {
-  bind
-} from 'base';
-
+import { bind } from 'base';
 import LRUCache from 'cache/LRUCache';
 import PubSub from 'lib/PubSub';
 
 var CACHE_SIZE = 65535;
 var CACHE_UID = 1;
 var BYTES_PER_PIXEL = 4;
-var MAX_TEXTURE_BYTES = 256 * 1024 * 1024;
+var MAX_TEXTURE_BYTES = 128 * 1024 * 1024;
 var MAX_TEXTURE_DUMP_ITERATIONS = 5;
 
 var pow = Math.pow;
@@ -19,31 +14,40 @@ var log = Math.log;
 
 var LOG_2 = log(2);
 
-class WebGLTextureManager extends PubSub {
+export default class WebGLTextureManager extends PubSub {
+
   constructor () {
     super();
 
+    this.gl = null;
     this.textureDataCache = new LRUCache(CACHE_SIZE);
     this.textureByteCount = 0;
     this.memoryLimit = MAX_TEXTURE_BYTES;
   }
+
   initGL (ctx) {
     this.gl = ctx;
     this.reloadTextures();
   }
+
   getTexture (id) {
     var textureData = this.textureDataCache.get(id);
-    return textureData ? textureData.texture : null;
+    return textureData
+      ? textureData.texture
+      : null;
   }
+
   getTextureData (id) {
     var textureData = this.textureDataCache.get(id);
     return textureData || null;
   }
+
   deleteTextureForImage (image) {
     if (image.__GL_ID !== undefined) {
       this.deleteTexture(image.__GL_ID);
     }
   }
+
   deleteTexture (id) {
     this.emit(WebGLTextureManager.TEXTURE_REMOVED);
     var textureData = this.textureDataCache.remove(id);
@@ -53,6 +57,7 @@ class WebGLTextureManager extends PubSub {
       textureData.image.__GL_ID = undefined;
     }
   }
+
   createOrUpdateTexture (image, id) {
     var gl = this.gl;
     if (!gl) {
@@ -73,13 +78,17 @@ class WebGLTextureManager extends PubSub {
     }
 
     if (id === undefined) {
-      id = image.__GL_ID !== undefined ? image.__GL_ID : CACHE_UID++;
+      id = image.__GL_ID !== undefined
+        ? image.__GL_ID
+        : CACHE_UID++;
     }
 
     image.__GL_ID = id;
 
     var textureDataEntry = this.textureDataCache.find(id);
-    var textureData = textureDataEntry ? textureDataEntry.value : null;
+    var textureData = textureDataEntry
+      ? textureDataEntry.value
+      : null;
     var needsAddByteCount = false;
 
     // No data exists for id, create new entry
@@ -129,6 +138,7 @@ class WebGLTextureManager extends PubSub {
 
     return id;
   }
+
   reloadTextures () {
     var imagesToLoad = [];
     this.textureDataCache.forEach(function (key, value) {
@@ -142,13 +152,16 @@ class WebGLTextureManager extends PubSub {
       this.createOrUpdateTexture(imagesToLoad[i]);
     }
   }
+
   addToByteCount (width, height) {
     width = this.nextPowerOfTwo(width);
     height = this.nextPowerOfTwo(height);
     this.textureByteCount += width * height * BYTES_PER_PIXEL;
+
     var textureDumps = 0;
-    while (this.textureByteCount > MAX_TEXTURE_BYTES && textureDumps++ <
-      MAX_TEXTURE_DUMP_ITERATIONS) {
+    while (this.textureByteCount > this.memoryLimit
+      && textureDumps++ < MAX_TEXTURE_DUMP_ITERATIONS)
+    {
       var oldestTextureEntry = this.textureDataCache.head;
       if (oldestTextureEntry) {
         if (!oldestTextureEntry.value.isImg) {
@@ -159,18 +172,16 @@ class WebGLTextureManager extends PubSub {
       }
     }
   }
+
   removeFromByteCount (width, height) {
     width = this.nextPowerOfTwo(width);
     height = this.nextPowerOfTwo(height);
     this.textureByteCount -= width * height * BYTES_PER_PIXEL;
   }
+
   nextPowerOfTwo (value) {
     return pow(2, ceil(log(value) / LOG_2));
   }
 }
 
 WebGLTextureManager.TEXTURE_REMOVED = 'TextureRemoved';
-
-exports = WebGLTextureManager;
-
-export default exports;

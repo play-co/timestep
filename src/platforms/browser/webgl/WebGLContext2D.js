@@ -36,16 +36,21 @@ import Shaders from './Shaders';
 import Matrix2D from './Matrix2D';
 import WebGLTextureManager from './WebGLTextureManager';
 
+
+
 class ContextStateStack {
+
   constructor () {
     this._states = [this.getObject()];
     this._stateIndex = 0;
   }
+
   save () {
     var lastState = this.state;
     if (++this._stateIndex >= this._states.length) {
       this._states[this._stateIndex] = this.getObject();
     }
+
     var s = this.state;
     s.globalCompositeOperation = lastState.globalCompositeOperation;
     s.globalAlpha = lastState.globalAlpha;
@@ -61,11 +66,13 @@ class ContextStateStack {
     s.clipRect.width = lastState.clipRect.width;
     s.clipRect.height = lastState.clipRect.height;
   }
+
   restore () {
     if (this._stateIndex > 0) {
       this._stateIndex--;
     }
   }
+
   getObject () {
     return {
       globalCompositeOperation: 'source-over',
@@ -84,13 +91,19 @@ class ContextStateStack {
       strokeStyle: ''
     };
   }
+
   get state () {
     return this._states[this._stateIndex];
   }
+
   get parentState () {
-    return this._stateIndex > 0 ? this._states[this._stateIndex - 1] : null;
+    return this._stateIndex > 0
+      ? this._states[this._stateIndex - 1]
+      : null;
   }
 }
+
+
 
 var STRIDE = 24;
 
@@ -117,14 +130,16 @@ var getColor = function (key) {
 var MAX_BATCH_SIZE = 512;
 var CACHE_UID = 0;
 
+
+
 class GLManager {
+
   constructor () {
     var webglSupported = false;
 
     try {
       var testCanvas = document.createElement('canvas');
-      webglSupported = !!(window.WebGLRenderingContext && testCanvas.getContext(
-        'webgl'));
+      webglSupported = !!(window.WebGLRenderingContext && testCanvas.getContext('webgl'));
     } catch (e) {}
 
     this.width = device.screen.width;
@@ -138,22 +153,18 @@ class GLManager {
     this.textManager = new TextManager();
     this.textureManager = new WebGLTextureManager();
 
-    this.textureManager.on(WebGLTextureManager.TEXTURE_REMOVED, bind(this,
-      function () {
-        this.flush();
-      }));
+    this.textureManager.on(WebGLTextureManager.TEXTURE_REMOVED, bind(this, this.flush));
 
     this._helperTransform = new Matrix2D();
 
     this._canvas = document.createElement('canvas');
     this._canvas.width = this.width;
     this._canvas.height = this.height;
-    this._canvas.getWebGLContext = this._canvas.getContext.bind(this._canvas,
-      'webgl', {
-        alpha: true,
-        premultipliedAlpha: true,
-        preserveDrawingBuffer: CONFIG.preserveDrawingBuffer
-      });
+    this._canvas.getWebGLContext = this._canvas.getContext.bind(this._canvas, 'webgl', {
+      alpha: true,
+      premultipliedAlpha: true,
+      preserveDrawingBuffer: CONFIG.preserveDrawingBuffer
+    });
 
     this._indexCache = new Uint16Array(MAX_BATCH_SIZE * 6);
     this._vertexCache = new ArrayBuffer(MAX_BATCH_SIZE * STRIDE * 4);
@@ -199,10 +210,8 @@ class GLManager {
 
     this.contextActive = true;
 
-    this._canvas.addEventListener('webglcontextlost', this.handleContextLost.bind(
-      this), false);
-    this._canvas.addEventListener('webglcontextrestored', this.handleContextRestored
-      .bind(this), false);
+    this._canvas.addEventListener('webglcontextlost', this.handleContextLost.bind(this), false);
+    this._canvas.addEventListener('webglcontextrestored', this.handleContextRestored.bind(this), false);
   }
 
   handleContextLost (e) {
@@ -210,10 +219,12 @@ class GLManager {
     this.contextActive = false;
     this.gl = null;
   }
+
   handleContextRestored () {
     this.initGL();
     this.contextActive = true;
   }
+
   initGL () {
     var gl = this.gl = this._canvas.getWebGLContext();
 
@@ -261,14 +272,17 @@ class GLManager {
     this.textureManager.initGL(gl);
     this.updateContexts();
   }
+
   updateContexts () {
     for (var i = 0; i < this.contexts.length; i++) {
       this.contexts[i].createOffscreenFrameBuffer();
     }
   }
+
   updateCanvasDimensions () {
     this._primaryContext.resize(this._canvas.width, this._canvas.height);
   }
+
   getContext (canvas, opts) {
     opts = opts || {};
 
@@ -284,10 +298,12 @@ class GLManager {
 
     return ctx;
   }
+
   setActiveRenderMode (id) {
     if (this._activeRenderMode === id || !this.gl) {
       return;
     }
+
     var ctx = this._activeCtx;
     this._activeRenderMode = id;
     var shader = this.shaders[id];
@@ -305,6 +321,7 @@ class GLManager {
       gl.uniform1i(shader.uniforms.uSampler, 0);
     }
   }
+
   setActiveCompositeOperation (op) {
     op = op || 'source-over';
     if (this._activeCompositeOperation === op || !this.gl) {
@@ -375,6 +392,7 @@ class GLManager {
     }
     gl.blendFunc(source, destination);
   }
+
   flush () {
     if (this._batchIndex === -1 || !this.gl) {
       return;
@@ -404,13 +422,13 @@ class GLManager {
       this.setActiveRenderMode(curQueueObj.renderMode);
       var start = curQueueObj.index;
       var next = this._batchQueue[i + 1].index;
-      gl.drawElements(gl.TRIANGLES, (next - start) * 6, gl.UNSIGNED_SHORT,
-        start * 12);
+      gl.drawElements(gl.TRIANGLES, (next - start) * 6, gl.UNSIGNED_SHORT, start * 12);
     }
 
     this._drawIndex = -1;
     this._batchIndex = -1;
   }
+
   createOrUpdateTexture (image, id, drawImmediately) {
     var gl = this.gl;
 
@@ -431,24 +449,30 @@ class GLManager {
 
     return id;
   }
+
   getTexture (id) {
     return this.textureManager.getTexture(id);
   }
+
   deleteTexture (id) {
     this.textureManager.deleteTexture(id);
   }
+
   deleteTextureForImage (image) {
     this.textureManager.deleteTextureForImage(image);
   }
+
   enableScissor (x, y, width, height) {
     if (!this.gl) {
       return;
     }
+
     var gl = this.gl;
     if (!this._scissorEnabled) {
       gl.enable(gl.SCISSOR_TEST);
       this._scissorEnabled = true;
     }
+
     var s = this._activeScissor;
     var invertedY = this._activeCtx.height - height - y;
     if (x !== s.x || invertedY !== s.y || width !== s.width || height !== s.height) {
@@ -459,16 +483,19 @@ class GLManager {
       gl.scissor(x, invertedY, width, height);
     }
   }
+
   disableScissor () {
     if (!this.gl) {
       return;
     }
+
     if (this._scissorEnabled) {
       var gl = this.gl;
       this._scissorEnabled = false;
       gl.disable(gl.SCISSOR_TEST);
     }
   }
+
   addToBatch (state, textureId) {
     if (this._drawIndex >= MAX_BATCH_SIZE - 1) {
       this.flush();
@@ -479,15 +506,18 @@ class GLManager {
     var clip = state.clip;
     var clipRect = state.clipRect;
 
-    var queuedState = this._batchIndex > -1 ? this._batchQueue[this._batchIndex] :
-      null;
-    var stateChanged = !queuedState || queuedState.textureId !== textureId ||
-      textureId === -1 && queuedState.fillStyle !== state.fillStyle ||
-      queuedState.globalCompositeOperation !== state.globalCompositeOperation ||
-      queuedState.filter !== filter || queuedState.clip !== clip ||
-      queuedState.clipRect.x !== clipRect.x || queuedState.clipRect.y !==
-      clipRect.y || queuedState.clipRect.width !== clipRect.width ||
-      queuedState.clipRect.height !== clipRect.height;
+    var queuedState = this._batchIndex > -1
+      ? this._batchQueue[this._batchIndex]
+      : null;
+    var stateChanged = !queuedState
+      || queuedState.textureId !== textureId
+      || textureId === -1 && queuedState.fillStyle !== state.fillStyle
+      || queuedState.globalCompositeOperation !== state.globalCompositeOperation
+      || queuedState.filter !== filter || queuedState.clip !== clip
+      || queuedState.clipRect.x !== clipRect.x
+      || queuedState.clipRect.y !== clipRect.y
+      || queuedState.clipRect.width !== clipRect.width
+      || queuedState.clipRect.height !== clipRect.height;
 
     if (stateChanged) {
       var queueObject = this._batchQueue[++this._batchIndex];
@@ -500,6 +530,7 @@ class GLManager {
       queueObject.clipRect.y = clipRect.y;
       queueObject.clipRect.width = clipRect.width;
       queueObject.clipRect.height = clipRect.height;
+
       if (textureId === -1) {
         queueObject.renderMode = RENDER_MODES.Rect;
       } else if (filter) {
@@ -511,10 +542,12 @@ class GLManager {
 
     return this._drawIndex;
   }
+
   isPowerOfTwo (width, height) {
-    return width > 0 && (width & width - 1) === 0 && height > 0 && (height &
-      height - 1) === 0;
+    return width > 0 && (width & width - 1) === 0
+      && height > 0 && (height & height - 1) === 0;
   }
+
   activate (ctx, forceActivate) {
     var gl = this.gl;
     var sameContext = ctx === this._activeCtx;
@@ -522,6 +555,7 @@ class GLManager {
     if (sameContext && !forceActivate) {
       return;
     }
+
     if (!sameContext) {
       this.flush();
       gl.finish();
@@ -533,6 +567,8 @@ class GLManager {
     this._activeRenderMode = -1;
   }
 }
+
+
 
 // Create a context to measure text
 var textCtx = document.createElement('canvas').getContext('2d');
@@ -546,6 +582,7 @@ var floor = Math.floor;
 var ceil = Math.ceil;
 
 class Context2D {
+
   constructor (manager, canvas) {
     this._manager = manager;
     this.canvas = canvas;
@@ -556,45 +593,55 @@ class Context2D {
     this.frameBuffer = null;
     this.filter = null;
   }
+
   createOffscreenFrameBuffer () {
     var gl = this._manager.gl;
     if (!gl) {
       return;
     }
+
     var activeCtx = this._manager._activeCtx;
     var id = this._manager.createOrUpdateTexture(this.canvas);
     this._texture = this._manager.getTexture(id);
     this.frameBuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
     gl.bindTexture(gl.TEXTURE_2D, this._texture);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D,
-      this._texture, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._texture, 0);
     this.canvas.__glFlip = true;
     this._manager.activate(activeCtx, true);
   }
+
   loadIdentity () {
     this.stack.state.transform.identity();
   }
+
   setTransform (a, b, c, d, tx, ty) {
     this.stack.state.transform.setTo(a, b, c, d, tx, ty);
   }
+
   transform (a, b, c, d, tx, ty) {
     this._helperTransform.setTo(a, b, c, d, tx, ty);
     this.stack.state.transform.transform(this._helperTransform);
   }
+
   scale (x, y) {
     this.stack.state.transform.scale(x, y);
   }
+
   translate (x, y) {
     this.stack.state.transform.translate(x, y);
   }
+
   rotate (angle) {
     this.stack.state.transform.rotate(angle);
   }
+
   getElement () {
     return this.canvas;
   }
+
   reset () {}
+
   clear () {
     this._manager.activate(this);
     this._manager.flush();
@@ -604,6 +651,7 @@ class Context2D {
       gl.clear(gl.COLOR_BUFFER_BIT);
     }
   }
+
   resize (width, height) {
     this.width = width;
     this.height = height;
@@ -615,10 +663,10 @@ class Context2D {
     if (this._texture && this._manager.gl) {
       var gl = this._manager.gl;
       gl.bindTexture(gl.TEXTURE_2D, this._texture);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE,
-        null);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     }
   }
+
   clipRect (x, y, width, height) {
     var m = this.stack.state.transform;
     var xW = x + width;
@@ -673,13 +721,17 @@ class Context2D {
     r.width = right - left;
     r.height = bottom - top;
   }
+
   swap () {
     this._manager.flush();
   }
+
   execSwap () {}
+
   setFilter (filter) {
     this.filter = this.stack.state.filter = filter;
   }
+
   setFilters (filters) {
     logger.warn('ctx.setFilters is deprecated, use ctx.setFilter instead.');
     for (var filterId in filters) {
@@ -688,23 +740,30 @@ class Context2D {
     }
     this.clearFilter();
   }
+
   clearFilter () {
     this.filter = this.stack.state.filter = null;
   }
+
   clearFilters () {
-    logger.warn(
-      'ctx.clearFilters is deprecated, use ctx.clearFilter instead.');
+    logger.warn('ctx.clearFilters is deprecated, use ctx.clearFilter instead.');
     this.clearFilter();
   }
+
   save () {
     this.stack.save();
   }
+
   restore () {
     this.stack.restore();
   }
+
   circle (x, y, radius) {}
+
   drawPointSprites (x1, y1, x2, y2) {}
+
   roundRect (x, y, width, height, radius) {}
+
   fillText (text, x, y) {
     if (!this._manager.gl) {
       return;
@@ -717,6 +776,7 @@ class Context2D {
     var h = textData.image.height;
     this.drawImage(textData.image, 0, 0, w, h, x, y, w, h);
   }
+
   strokeText (text, x, y) {
     if (!this._manager.gl) {
       return;
@@ -727,9 +787,9 @@ class Context2D {
     }
     var w = textData.image.width;
     var h = textData.image.height;
-    this.drawImage(textData.image, 0, 0, w, h, x - this.lineWidth * 0.5, y -
-      this.lineWidth * 0.5, w, h);
+    this.drawImage(textData.image, 0, 0, w, h, x - this.lineWidth * 0.5, y - this.lineWidth * 0.5, w, h);
   }
+
   measureText (text) {
     textCtx.font = this.font;
     return textCtx.measureText(text);
@@ -865,6 +925,7 @@ class Context2D {
       cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255;
     }
   }
+
   fillRect (x, y, width, height) {
     if (this.globalAlpha === 0) {
       return;
@@ -872,20 +933,17 @@ class Context2D {
 
     this._fillRect(x, y, width, height, getColor(this.stack.state.fillStyle));
   }
+
   strokeRect (x, y, width, height) {
     var lineWidth = this.stack.state.lineWidth;
     var halfWidth = lineWidth / 2;
     var strokeColor = getColor(this.stack.state.strokeStyle);
-    this._fillRect(x + halfWidth, y - halfWidth, width - lineWidth, lineWidth,
-      strokeColor);
-    this._fillRect(x + halfWidth, y + height - halfWidth, width - lineWidth,
-      lineWidth, strokeColor);
-
-    this._fillRect(x - halfWidth, y - halfWidth, lineWidth, height +
-      lineWidth, strokeColor);
-    this._fillRect(x + width - halfWidth, y - halfWidth, lineWidth, height +
-      lineWidth, strokeColor);
+    this._fillRect(x + halfWidth, y - halfWidth, width - lineWidth, lineWidth, strokeColor);
+    this._fillRect(x + halfWidth, y + height - halfWidth, width - lineWidth, lineWidth, strokeColor);
+    this._fillRect(x - halfWidth, y - halfWidth, lineWidth, height + lineWidth, strokeColor);
+    this._fillRect(x + width - halfWidth, y - halfWidth, lineWidth, height + lineWidth, strokeColor);
   }
+
   _fillRect (x, y, width, height, color) {
     var m = this.stack.state.transform;
     var xW = x + width;
@@ -935,6 +993,7 @@ class Context2D {
     // B
     cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255;
   }
+
   deleteTextureForImage (canvas) {
     this._manager.deleteTextureForImage(canvas);
   }
