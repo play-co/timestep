@@ -1,5 +1,3 @@
-let exports = {};
-
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -20,11 +18,7 @@ let exports = {};
  *
  * Generates a WebGL rendering context by creating our own Canvas element.
  */
-import {
-  CONFIG,
-  bind,
-  logger
-} from 'base';
+import { CONFIG, bind, logger } from 'base';
 
 import device from 'device';
 
@@ -35,6 +29,9 @@ import TextManager from './TextManager';
 import Shaders from './Shaders';
 import Matrix2D from './Matrix2D';
 import WebGLTextureManager from './WebGLTextureManager';
+import filter from 'ui/filter';
+
+const WHITE = { r: 255, g: 255, b: 255, a: 1 };
 
 
 
@@ -107,14 +104,16 @@ class ContextStateStack {
 
 var STRIDE = 24;
 
+var filterTypes = filter.Filter.TYPES;
+
 var RENDER_MODES = {
-  Default: 0,
-  LinearAdd: 1,
-  Tint: 2,
-  Multiply: 3,
+  Default: filterTypes.Multiply,
+  LinearAdd: filterTypes.LinearAdd,
+  Tint: filterTypes.TINT,
+  Multiply: filterTypes.Multiply,
   Rect: 4,
-  PositiveMask: 0,
-  NegativeMask: 0
+  PositiveMask: filterTypes.Multiply,
+  NegativeMask: filterTypes.Multiply
 };
 
 var COLOR_MAP = {};
@@ -262,12 +261,12 @@ class GLManager {
     gl.bufferData(gl.ARRAY_BUFFER, this._vertexCache, gl.DYNAMIC_DRAW);
 
     // Initialize Shaders
-    this.shaders = [];
-    this.shaders[RENDER_MODES.Default] = new Shaders.DefaultShader({ gl: gl });
-    this.shaders[RENDER_MODES.LinearAdd] = new Shaders.LinearAddShader({ gl: gl });
-    this.shaders[RENDER_MODES.Tint] = new Shaders.TintShader({ gl: gl });
-    this.shaders[RENDER_MODES.Multiply] = new Shaders.MultiplyShader({ gl: gl });
-    this.shaders[RENDER_MODES.Rect] = new Shaders.RectShader({ gl: gl });
+    this.shaders = {
+      [RENDER_MODES.LinearAdd] : new Shaders.LinearAddShader({ gl: gl }),
+      [RENDER_MODES.Tint]      : new Shaders.TintShader({ gl: gl }),
+      [RENDER_MODES.Multiply]  : new Shaders.MultiplyShader({ gl: gl }),
+      [RENDER_MODES.Rect]      : new Shaders.RectShader({ gl: gl })
+    };
 
     this.textureManager.initGL(gl);
     this.updateContexts();
@@ -506,18 +505,24 @@ class GLManager {
     var clip = state.clip;
     var clipRect = state.clipRect;
 
-    var queuedState = this._batchIndex > -1
-      ? this._batchQueue[this._batchIndex]
-      : null;
-    var stateChanged = !queuedState
-      || queuedState.textureId !== textureId
-      || textureId === -1 && queuedState.fillStyle !== state.fillStyle
-      || queuedState.globalCompositeOperation !== state.globalCompositeOperation
-      || queuedState.filter !== filter || queuedState.clip !== clip
-      || queuedState.clipRect.x !== clipRect.x
-      || queuedState.clipRect.y !== clipRect.y
-      || queuedState.clipRect.width !== clipRect.width
-      || queuedState.clipRect.height !== clipRect.height;
+    var queuedState = this._batchIndex > -1 ? this._batchQueue[this._batchIndex] : null;
+    var renderMode;
+
+    if (textureId === -1) {
+      renderMode = RENDER_MODES.Rect;
+    } else if (filter) {
+      renderMode = RENDER_MODES[filter.getType()];
+    } else {
+      renderMode = RENDER_MODES.Default;
+    }
+
+    var stateChanged = !queuedState || queuedState.textureId !== textureId ||
+      (textureId === -1 && queuedState.fillStyle !== state.fillStyle) ||
+      queuedState.globalCompositeOperation !== state.globalCompositeOperation ||
+      queuedState.renderMode !== renderMode || queuedState.clip !== clip ||
+      queuedState.clipRect.x !== clipRect.x || queuedState.clipRect.y !==
+      clipRect.y || queuedState.clipRect.width !== clipRect.width ||
+      queuedState.clipRect.height !== clipRect.height;
 
     if (stateChanged) {
       var queueObject = this._batchQueue[++this._batchIndex];
@@ -530,14 +535,7 @@ class GLManager {
       queueObject.clipRect.y = clipRect.y;
       queueObject.clipRect.width = clipRect.width;
       queueObject.clipRect.height = clipRect.height;
-
-      if (textureId === -1) {
-        queueObject.renderMode = RENDER_MODES.Rect;
-      } else if (filter) {
-        queueObject.renderMode = RENDER_MODES[filter.getType()];
-      } else {
-        queueObject.renderMode = RENDER_MODES.Default;
-      }
+      queueObject.renderMode = renderMode;
     }
 
     return this._drawIndex;
@@ -912,18 +910,18 @@ class Context2D {
     // v4
     vc[i + 22] = alpha;
 
-    if (state.filter) {
-      var color = state.filter.get();
-      var ci = drawIndex * 4 * STRIDE;
-      var cc = manager._colors;
-      cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = color.r;
-      // R
-      cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = color.g;
-      // G
-      cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = color.b;
-      // B
-      cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255;
-    }
+    var ci = drawIndex * 4 * STRIDE;
+    var cc = manager._colors;
+    var colorData = state.filter || WHITE;
+
+    // R
+    cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = colorData.r;
+    // G
+    cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = colorData.g;
+    // B
+    cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = colorData.b;
+    // A
+    cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = colorData.a * 255;
   }
 
   fillRect (x, y, width, height) {
@@ -985,21 +983,21 @@ class Context2D {
 
     var ci = drawIndex * 4 * STRIDE;
     var cc = manager._colors;
-    cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = color.r;
-    // R
-    cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = color.g;
-    // G
-    cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = color.b;
-    // B
-    cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255;
+
+    cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = color.r;       // R
+    cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = color.g;       // G
+    cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = color.b;       // B
+    cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255; // A
   }
 
   deleteTextureForImage (canvas) {
     this._manager.deleteTextureForImage(canvas);
   }
+
 }
 
 Context2D.prototype._helperTransform = new Matrix2D();
+
 var createContextProperty = function (ctx, name) {
   Object.defineProperty(ctx, name, {
     get: function () {
@@ -1025,6 +1023,4 @@ for (var i = 0; i < contextProperties.length; i++) {
   createContextProperty(Context2D.prototype, contextProperties[i]);
 }
 
-exports = new GLManager();
-
-export default exports;
+export default new GLManager();

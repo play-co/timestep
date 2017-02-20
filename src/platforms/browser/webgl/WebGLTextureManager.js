@@ -181,6 +181,7 @@ export default class WebGLTextureManager extends PubSub {
   nextPowerOfTwo (value) {
     return pow(2, ceil(log(value) / LOG_2));
   }
+
 }
 
 WebGLTextureManager.TEXTURE_REMOVED = 'TextureRemoved';

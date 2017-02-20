@@ -37,20 +37,24 @@ import DEFAULT_IMAGE from 'ui/resource/Image';
 var Image;
 
 exports.Filter = class {
+
   constructor (opts) {
     this._color = new Color(opts);
     this._type = opts.type || '';
     this._views = [];
   }
+
   get () {
     var opts = this._color.get();
     opts.type = this._type;
     opts.priority = 0;
     return opts;
   }
+
   getType () {
     return this._type;
   }
+
   update (opts) {
     opts = opts || this.get();
     this._color.update(opts);
@@ -63,12 +67,14 @@ exports.Filter = class {
       view.__view.filterType = Filter.TYPES[this.getType()] || 0;
     }
   }
+
   setView (view) {
     var views = this._views;
     if (views.indexOf(view) === -1) {
       views.push(view);
     }
   }
+
   removeView (view) {
     var views = this._views;
     var i = views.indexOf(view);
@@ -76,10 +82,17 @@ exports.Filter = class {
       views.splice(i, 1);
     }
   }
+
   getColorString () {
     return this._color.toString();
   }
+
+  get r() { return this._color.r; }
+  get g() { return this._color.g; }
+  get b() { return this._color.b; }
+  get a() { return this._color.a; }
 };
+
 var Filter = exports.Filter;
 
 Filter.TYPES = {
