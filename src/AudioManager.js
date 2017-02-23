@@ -67,6 +67,7 @@ var _registeredAudioManagers = [];
  * Created and used by MultiSound Class.
  */
 class RawAudio {
+
   constructor () {
     if (typeof Audio === 'undefined') {
       return null;
@@ -101,6 +102,7 @@ class RawAudio {
 
     return audio;
   }
+
   stop () {
     !this.paused && this.pause();
     if ((this.NETWORK_LOADING === undefined || this.networkState !== this.NETWORK_LOADING ||
@@ -108,7 +110,10 @@ class RawAudio {
       this.currentTime = 0;
     }
   }
+
 }
+
+
 
 /**
  * MultiSound Class
@@ -117,12 +122,14 @@ class RawAudio {
  * Created and used by exported AudioManager Class.
  */
 class MultiSound {
+
   constructor (soundManager, name, opts) {
     opts = typeof opts === 'string' ? { sources: [opts] } : opts || {};
 
     this._soundManager = soundManager;
     this._name = name;
     this._isPaused = false;
+    this._isStopped = false;
     this._lastSrc = null;
     this._sources = [];
     this._paths = [];
@@ -196,6 +203,7 @@ class MultiSound {
       }
     }
   }
+
   getVolume () {
     if (this._useAudioContext) {
       return this._gainNode.gain.value;
@@ -204,6 +212,7 @@ class MultiSound {
       return src && src.volume || 0;
     }
   }
+
   setVolume (volume) {
     if (this._useAudioContext) {
       this._gainNode.gain.value = volume;
@@ -213,16 +222,19 @@ class MultiSound {
       }
     }
   }
+
   stop () {
+    this._isStopped = true;
     if (this._useAudioContext) {
-      this._lastSrc && this._lastSrc.stop(0);
-      this._lastSrc = null;
+      // our lastSrc setter will stop this automatically, see below
+      this.lastSrc = null;
     } else {
       for (var i = 0, src; src = this._sources[i]; ++i) {
         src.stop();
       }
     }
   }
+
   pause () {
     this._isPaused = true;
     if (this._useAudioContext) {
@@ -233,17 +245,23 @@ class MultiSound {
       }
     }
   }
+
   isPaused () {
     return this._isPaused;
   }
+
+  isStopped () {
+    return this._isStopped;
+  }
+
   isPlaying () {
     var isPlaying = false;
-    if (!this._useAudioContext && this._lastSrc !== null) {
-      var cur = this._lastSrc.currentTime;
-      var dur = this._lastSrc.duration;
+    if (!this._useAudioContext && this.lastSrc !== null) {
+      var cur = this.lastSrc.currentTime;
+      var dur = this.lastSrc.duration;
       // NaN duration means the duration isn't loaded yet,
       // meaning the sound was started very recently. Since
-      // this._lastSrc is defined, we know that the sound has
+      // this.lastSrc is defined, we know that the sound has
       // been played, so it's playing unless it's paused :)
       if (isNaN(dur) || cur < dur) {
         isPlaying = !this.isPaused();
@@ -251,19 +269,23 @@ class MultiSound {
     }
     return isPlaying;
   }
+
   getDuration () {
-    return this._lastSrc && this._lastSrc.duration || 0;
+    return this.lastSrc && this.lastSrc.duration || 0;
   }
+
   getTime () {
-    return this._lastSrc && this._lastSrc.currentTime || 0;
+    return this.lastSrc && this.lastSrc.currentTime || 0;
   }
+
   setTime (t) {
-    if (!this._useAudioContext && this._lastSrc && this.isBackgroundMusic) {
-      if (this._lastSrc.duration) {
-        this._lastSrc.currentTime = t;
+    if (!this._useAudioContext && this.lastSrc && this.isBackgroundMusic) {
+      if (this.lastSrc.duration) {
+        this.lastSrc.currentTime = t;
       } else {}
     }
   }
+
   play (opts) {
     opts = opts || {};
     var loop = opts.loop || this.loop;
@@ -277,7 +299,8 @@ class MultiSound {
       var buffer = loader.getBuffer(path);
       if (!buffer) {
         loader.doOnLoad(path, bind(this, function (buffers) {
-          if (!this._isPaused) {
+          // handle async pause and stop
+          if (!this._isPaused && !this._isStopped) {
             this._playFromBuffer(buffers[0], loop, time, duration);
           }
         }));
@@ -298,10 +321,12 @@ class MultiSound {
       if (duration !== undefined) {
         setTimeout(bind(this, 'pause'), duration);
       }
-      this._lastSrc = src;
+      this.lastSrc = src;
     }
     this._isPaused = false;
+    this._isStopped = false;
   }
+
   _playFromBuffer (buffer, loop, time, duration) {
     if (buffer) {
       var src = _ctx.createBufferSource();
@@ -313,14 +338,29 @@ class MultiSound {
       } else {
         src.start(_ctx.currentTime, time);
       }
-      this._lastSrc = src;
+      this.lastSrc = src;
     }
   }
+
   _getRandom () {
     var index = Math.random() * this._sources.length | 0;
     return this._sources[index];
   }
+
+  set lastSrc (src) {
+    if (this.isBackgroundMusic && this._lastSrc) {
+      this._lastSrc.stop(0);
+    }
+    this._lastSrc = src;
+  }
+
+  get lastSrc () {
+    return this._lastSrc;
+  }
+
 }
+
+
 
 /**
  * AudioManager Class
@@ -328,9 +368,10 @@ class MultiSound {
  * @extends event.Emitter
  */
 exports = class extends Emitter {
+
   constructor (opts) {
     opts = opts || {};
-    super(...arguments);
+    super(opts);
 
     this._loader = null;
     this.setPath(opts.path);
@@ -386,9 +427,11 @@ exports = class extends Emitter {
       this.preloadSounds(urls);
     }
   }
+
   getAudioContext () {
     return _ctx;
   }
+
   setAudioContext () {
     if (this._loader) {
       this._loader.setAudioContext(_ctx);
@@ -396,28 +439,35 @@ exports = class extends Emitter {
       this._loader = new AudioLoader({ ctx: _ctx });
     }
   }
+
   getAudioLoader () {
     return this._loader;
   }
+
   preloadSounds (urls) {
     // used for AudioContext only
     this._loader && this._loader.load(urls);
   }
+
   getExt () {
     return this._ext;
   }
+
   getPath () {
     return this._path;
   }
+
   setPath (path) {
     if (path) {
       path = path.replace(/\/$/, '');
     }
     this._path = path || '';
   }
+
   addSound (name, opts) {
     this._sounds[name] = new MultiSound(this, name, opts);
   }
+
   persistState (key) {
     this._key = key;
 
@@ -434,6 +484,7 @@ exports = class extends Emitter {
       this.setEffectsMuted(value.areEffectsMuted);
     }
   }
+
   _persist () {
     if (this._key !== '') {
       localStorage.setItem(this._key, JSON.stringify({
@@ -442,19 +493,24 @@ exports = class extends Emitter {
       }));
     }
   }
+
   getMuted () {
     return this._isMusicMuted && this._areEffectsMuted;
   }
+
   getMusicMuted () {
     return this._isMusicMuted;
   }
+
   getEffectsMuted () {
     return this._areEffectsMuted;
   }
+
   setMuted (isMuted) {
     this.setMusicMuted(isMuted);
     this.setEffectsMuted(isMuted);
   }
+
   setMusicMuted (isMusicMuted) {
     if (_muteAll) {
       isMusicMuted = true;
@@ -462,13 +518,14 @@ exports = class extends Emitter {
     this._isMusicMuted = isMusicMuted;
     this._persist();
     // resume music on unmute
-    if (this._currentMusic) {
-      this._currentMusic.pause();
+    if (this.currentMusic) {
+      this.currentMusic.pause();
       if (!isMusicMuted) {
-        this._currentMusic.play();
+        this.currentMusic.play();
       }
     }
   }
+
   setEffectsMuted (areEffectsMuted) {
     if (_muteAll) {
       areEffectsMuted = true;
@@ -484,6 +541,7 @@ exports = class extends Emitter {
       }
     }
   }
+
   getSound (name) {
     var sound = this._sounds[name];
     if (!sound) {
@@ -491,6 +549,7 @@ exports = class extends Emitter {
     }
     return sound;
   }
+
   setVolume (name, volume) {
     var sound = this.getSound(name);
     if (sound) {
@@ -499,6 +558,7 @@ exports = class extends Emitter {
     }
     return false;
   }
+
   getVolume (name) {
     var sound = this.getSound(name);
     if (sound) {
@@ -507,6 +567,7 @@ exports = class extends Emitter {
       return null;
     }
   }
+
   setTime (name, t) {
     var sound = this.getSound(name);
     if (!sound) {
@@ -515,6 +576,7 @@ exports = class extends Emitter {
     sound.setTime(t || 0);
     return true;
   }
+
   getTime (name) {
     var sound = this.getSound(name);
     if (!sound) {
@@ -522,6 +584,7 @@ exports = class extends Emitter {
     }
     return sound.getTime();
   }
+
   getDuration (name) {
     var sound = this.getSound(name);
     if (!sound) {
@@ -529,6 +592,7 @@ exports = class extends Emitter {
     }
     return sound.getDuration();
   }
+
   play (name, opts) {
     var sound = this.getSound(name);
     if (!sound) {
@@ -540,10 +604,10 @@ exports = class extends Emitter {
     if (isBackgroundMusic) {
       // some platforms enforce only one simultaneous background music
       // (native) while others do not.  Enforce it always.
-      if (this._currentMusic) {
-        this._currentMusic.stop();
+      if (this.currentMusic) {
+        this.currentMusic.stop();
       }
-      this._currentMusic = sound;
+      this.currentMusic = sound;
       // if we're muted, make sure to resume the music if we unmute
       if (!this._isMusicMuted) {
         sound.play(opts);
@@ -553,30 +617,33 @@ exports = class extends Emitter {
     }
     return true;
   }
+
   pause (name) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
     }
     // if muted and we pause current music, don't resume it on unmute
-    if (this._currentMusic === sound) {
-      this._currentMusic = null;
+    if (this.currentMusic === sound) {
+      this.currentMusic = null;
     }
     sound.pause();
     return true;
   }
+
   stop (name) {
     var sound = this.getSound(name);
     if (!sound) {
       return false;
     }
     // if muted and we pause current music, don't resume it on unmute
-    if (this._currentMusic === sound) {
-      this._currentMusic = null;
+    if (this.currentMusic === sound) {
+      this.currentMusic = null;
     }
     sound.stop();
     return true;
   }
+
   isPaused (name) {
     var sound = this.getSound(name);
     if (!sound) {
@@ -584,6 +651,7 @@ exports = class extends Emitter {
     }
     return sound.isPaused();
   }
+
   isPlaying (name) {
     var sound = this.getSound(name);
     if (!sound) {
@@ -591,10 +659,25 @@ exports = class extends Emitter {
     }
     return sound.isPlaying();
   }
+
   pauseBackgroundMusic () {
-    this._currentMusic && this._currentMusic.pause();
+    this.currentMusic && this.currentMusic.pause();
   }
+
+  set currentMusic (music) {
+    if (this._currentMusic) {
+      this._currentMusic.stop();
+    }
+    this._currentMusic = music;
+  }
+
+  get currentMusic () {
+    return this._currentMusic;
+  }
+
 };
+
+
 
 exports.prototype.playBackgroundMusic = exports.prototype.play;
 // expose a global mute function (GC.app.muteAll)
