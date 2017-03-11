@@ -574,7 +574,7 @@ exports = class extends View {
     var viewOpts = this._opts;
     var forceReload = opts && opts.forceReload;
 
-    if (typeof img == 'string') {
+    if (typeof img === 'string') {
       bounds = resourceLoader.getMap()[img];
       if (bounds) {
         iw = bounds.w + bounds.marginLeft + bounds.marginRight;
@@ -590,6 +590,21 @@ exports = class extends View {
         bounds = img.getBounds();
         iw = bounds.width + bounds.marginLeft + bounds.marginRight;
         ih = bounds.height + bounds.marginTop + bounds.marginBottom;
+      }
+    } else {
+      // hack to fix max call stack exception when above conditionals fail
+      var url = img.getOriginalURL && img.getOriginalURL();
+      if (typeof url === 'string') {
+        bounds = resourceLoader.getMap()[url];
+
+        if (!bounds) {
+          bounds = img.getBounds && img.getBounds();
+        }
+
+        if (bounds) {
+          iw = bounds.w + bounds.marginLeft + bounds.marginRight;
+          ih = bounds.h + bounds.marginTop + bounds.marginBottom;
+        }
       }
     }
 
