@@ -19,6 +19,7 @@ import {
   isArray,
   merge,
   GLOBAL,
+  CACHE,
   NATIVE,
   logger,
   bind
@@ -32,6 +33,7 @@ import AudioManager from 'AudioManager';
 var _cache = {};
 
 var MIME = {
+  '.js': 'text',
   '.png': 'image',
   '.jpg': 'image',
   '.bmp': 'image',
@@ -169,6 +171,19 @@ class Loader extends Emitter {
       };
     }
   }
+
+  getText(url) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function() {
+      if (this.readyState === 4 && this.status === 200) {
+        CACHE[url] = this.responseText;
+      }
+    };
+    xhr.send();
+    return xhr;
+  }
+
   getImagePaths (prefix) {
     prefix = prefix.replace(/^\//, '');
     // remove leading slash
@@ -265,13 +280,21 @@ class Loader extends Emitter {
       return _cache[src];
     }
     var res = null;
+
     switch (type) {
+
       case 'audio':
         res = this.getSound(src);
         break;
+
       case 'image':
         res = this.getImage(src, noWarn);
         break;
+
+      case 'text':
+        res = this.getText(src);
+        break;
+
       default:
         logger.error('Preload Error: Unknown Type', type);
     }
@@ -288,8 +311,7 @@ class Loader extends Emitter {
     var loadableResources = [];
 
     for (var i = 0; i < n; ++i) {
-      var ext = resources[i].substring(resources[i].lastIndexOf('.')).split('|')[
-        0];
+      var ext = resources[i].substring(resources[i].lastIndexOf('.')).split('|')[0];
       var type = MIME[ext];
       var found = false;
       var foundCount = 0;
@@ -301,15 +323,13 @@ class Loader extends Emitter {
 
         if (requested.type === type && requested.resource === resources[i]) {
           found = true;
-
           foundCount++;
-
           break;
         }
       }
 
       if (!found) {
-        if (type === 'image' || type === 'audio') {
+        if (type === 'image' || type === 'audio' || type === 'text') {
           requested = {
             type: type,
             resource: resources[i]
