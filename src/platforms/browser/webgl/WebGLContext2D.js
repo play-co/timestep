@@ -152,7 +152,7 @@ class GLManager {
     this.textManager = new TextManager();
     this.textureManager = new WebGLTextureManager();
 
-    this.textureManager.on(WebGLTextureManager.TEXTURE_REMOVED, bind(this, this.flush));
+    this.textureManager.subscribe(WebGLTextureManager.TEXTURE_REMOVED, this, this.flush);
 
     this._helperTransform = new Matrix2D();
 
@@ -203,14 +203,12 @@ class GLManager {
     this._primaryContext = new Context2D(this, this._canvas);
     this.activate(this._primaryContext);
 
-    loader.on(loader.IMAGE_LOADED, function (image) {
-      this.createOrUpdateTexture(image, image.__GL_ID, true);
-    }.bind(this));
+    loader.on(loader.IMAGE_LOADED, image => this.createOrUpdateTexture(image, image.__GL_ID, true));
 
     this.contextActive = true;
 
-    this._canvas.addEventListener('webglcontextlost', this.handleContextLost.bind(this), false);
-    this._canvas.addEventListener('webglcontextrestored', this.handleContextRestored.bind(this), false);
+    this._canvas.addEventListener('webglcontextlost', e => this.handleContextLost(e), false);
+    this._canvas.addEventListener('webglcontextrestored', () => this.handleContextRestored(), false);
   }
 
   handleContextLost (e) {
