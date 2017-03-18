@@ -88,8 +88,8 @@ class BitmapFontTextView {
         charView.textureData.sourceH,
         charView.x,
         charView.y,
-        charView.width * charView.textureData.parentW,
-        charView.height * charView.textureData.parentH
+        charView.textureData.sourceW * charView.scale,
+        charView.textureData.sourceH * charView.scale
       );
     }
   }
