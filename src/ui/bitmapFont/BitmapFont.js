@@ -59,8 +59,12 @@ class BitmapFont extends EventEmitter {
   }
 
   parsedata(data) {
-    // var map = this.texture.getMap();
-    var scale = 1;//map.scale;
+    const isDevkitImage = !!this.texture.getMap;
+    let scale = 1;
+    if (isDevkitImage) {
+      const map = this.texture.getMap();
+      scale = map.scale;
+    }
 
     var fontInfo = data.font.info[0].$;
     var fontCommon = data.font.common[0].$;
@@ -91,8 +95,8 @@ class BitmapFont extends EventEmitter {
       var textureData = {
         texture: this.texture,
         url: this.texture.url,
-        parentW: this.texture.width,
-        parentH: this.texture.height,
+        parentW: isDevkitImage ? this.texture.getWidth() : this.texture.width,
+        parentH: isDevkitImage ? this.texture.getHeight() : this.texture.height,
         sourceX: parseFloat(charElement.x),
         sourceY: parseFloat(charElement.y),
         sourceW: parseFloat(charElement.width),
@@ -103,6 +107,16 @@ class BitmapFont extends EventEmitter {
 
       if (id !== CHAR_SPACE && id !== CHAR_TAB && id !== CHAR_NEWLINE && id !== CHAR_CARRIAGE_RETURN && isValidSize) {
         textureDataFinal = textureData;
+
+        if (isDevkitImage) {
+          textureData.texture = new this.texture.constructor({
+            url: this.texture.getOriginalURL(),
+            sourceX: textureData.sourceX,
+            sourceY: textureData.sourceY,
+            sourceW: textureData.sourceW,
+            sourceH: textureData.sourceH
+          });
+        }
       }
 
       this.addChar(id, new BitmapChar(id, textureDataFinal, xOffset, yOffset, xAdvance));

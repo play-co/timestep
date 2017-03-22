@@ -82,10 +82,10 @@ class BitmapFontTextView extends View {
       superview: this,
       x: x,
       y: y,
-      width: charData.width,
-      height: charData.height,
+      width: charData.textureData.sourceW,
+      height: charData.textureData.sourceH,
       scale: scale,
-      image: charData.texture
+      image: charData.textureData.texture
     });
 
     charView.setFilter(this._backing.color !== '#ffffff' ? this.colorFilter : null);
