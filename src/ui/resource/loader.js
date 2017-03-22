@@ -418,7 +418,7 @@ var Loader = Class(Emitter, function () {
         return;
       }
 
-      var next = function (failed) {
+      var next = bind(this, function (failed) {
         // If already complete, stub this out
         if (numLoaded >= numResources) { return; }
 
@@ -440,6 +440,11 @@ var Loader = Class(Emitter, function () {
           // Call the progress callback with isComplete == true
           cb && cb(src, failed, true, numLoaded, numResources);
 
+          // Emit progress event
+          this.emit('progress', {
+            progress: this.progress
+          });
+
           // If a timeout was set, clear it
           if (_timeout) {
             clearTimeout(_timeout);
@@ -452,10 +457,15 @@ var Loader = Class(Emitter, function () {
           // Call the progress callback with the current progress
           cb && cb(src, failed, false, numLoaded, numResources);
 
+          // Emit progress event
+          this.emit('progress', {
+            progress: this.progress
+          });
+
           // Restart on next image in list
           setTimeout(loadResource, 0);
         }
-      };
+      });
 
       // IF this is the type of resource that has a reload method,
       if (res.reload && res.complete) {
