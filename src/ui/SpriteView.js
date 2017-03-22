@@ -237,7 +237,7 @@ var SpriteView = exports = Class("SpriteView", ImageView, function (logger, supr
     if (!this._opts.loop) {
       this.stopAnimation();
     } else {
-      this.startAnimation(this._opts.defaultAnimation);
+      this.startAnimation(this._opts.defaultAnimation, this._opts);
     }
   };
 
