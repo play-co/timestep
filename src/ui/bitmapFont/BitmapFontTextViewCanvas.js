@@ -77,9 +77,12 @@ class BitmapFontTextView {
   }
 
   render(context) {
+    context.save();
+    context.translate(this._opts.x, this._opts.y);
+
     for (let i = 0; i < this._backing._activeCharacterCount; i++) {
       const charView = this._backing._activeCharacters[i];
-      console.log('charView', i, charView);
+      // console.log('charView', i, charView);
       context.drawImage(
         charView.textureData.texture,
         charView.textureData.sourceX,
@@ -92,6 +95,8 @@ class BitmapFontTextView {
         charView.textureData.sourceH * charView.scale
       );
     }
+
+    context.restore();
   }
 
   get maxWidth() {
