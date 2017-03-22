@@ -50,8 +50,10 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
     this._load();
     if (this.oneChannelOnly) {
       this._boundLoadHandler = bind(this, '_playFirst');
-      document.body.addEventListener(device.events.start, 
-                       this._boundLoadHandler, true);
+      for (var i = 0; i < device.events.start.length; i++) {
+        document.body.addEventListener(device.events.start[i], 
+                         this._boundLoadHandler, true);
+      }
     }
     window.addEventListener('pagehide', bind(this, 'pause'), false);
   }
@@ -109,8 +111,10 @@ var AudioAPI = exports = Class(lib.PubSub, function (supr) {
   }
 
   this._playFirst = function () {
-    document.body.removeEventListener(device.events.start, 
-                      this._boundLoadHandler, true);
+    for (var i = 0; i < device.events.start.length; i++) {
+      document.body.removeEventListener(device.events.start[i], 
+                        this._boundLoadHandler, true);
+    }
     
     this._audios['AUDIO'].play();
   }

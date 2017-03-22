@@ -65,7 +65,9 @@ exports = Class(function () {
     this._keyListener = opts.keyListener;
 
     if (device.useDOM) {
-      $.onEvent(document, device.events.start, this, 'handleMouse', eventTypes.START);
+      for (var i = 0; i < device.events.start.length; i++) {
+        $.onEvent(document, device.events.start, this, 'handleMouse', eventTypes.START);
+      }
     }
 
     if (opts.engine) {
@@ -90,8 +92,13 @@ exports = Class(function () {
     if (this._isEnabled) { return; }
     this._isEnabled = true;
 
-    this._handleMove = $.onEvent(document, device.events.move, this, 'handleMouse', eventTypes.MOVE);
-    this._handleSelect = $.onEvent(document, device.events.end, this, 'handleMouse', eventTypes.SELECT);
+    for (var i = 0; i < device.events.move.length; i++) {
+      this._handleMove = $.onEvent(document, device.events.move[i], this, 'handleMouse', eventTypes.MOVE);
+    }
+    for (i = 0; i < device.events.end.length; i++) {
+      this._handleSelect = $.onEvent(document, device.events.end[i], this, 'handleMouse', eventTypes.SELECT);
+    }
+
     this._handleScroll = $.onEvent(window, 'DOMMouseScroll', this, 'handleMouse', eventTypes.SCROLL); // FF
     this._handleWheel = $.onEvent(window, 'mousewheel', this, 'handleMouse', eventTypes.SCROLL); // webkit
 
@@ -156,7 +163,9 @@ exports = Class(function () {
     this._elEvents = [];
 
     if (!device.useDOM) {
-      this._elEvents.push($.onEvent(el, device.events.start, this, 'handleMouse', eventTypes.START));
+      for (var i = 0; i < device.events.start.length; i++) {
+        this._elEvents.push($.onEvent(el, device.events.start[i], this, 'handleMouse', eventTypes.START));
+      }
     }
 
     if (!device.isMobileBrowser && !device.isNative) {
@@ -204,7 +213,7 @@ exports = Class(function () {
         }
       }
 
-     if (allowIOSScroll && type === eventTypes.SCROLL) {
+      if (allowIOSScroll && type === eventTypes.SCROLL) {
         return;
       }
 
