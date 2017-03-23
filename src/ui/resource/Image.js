@@ -60,7 +60,14 @@ function imageOnLoad (success, evt, failCount) {
   }
 }
 
-// Listen for preloaded images and add them to cache
+resourceLoader.on(resourceLoader.IMAGE_READY, function (image, src) {
+  if (image.devkitImage) {
+    console.log("~~~ halfsize", src.resource);
+
+    image.devkitImage.__halfsize();
+  }
+});
+
 resourceLoader.on(resourceLoader.IMAGE_LOADED, function (image, src) {
   image.__cb = new Callback();
   imageOnLoad.call(image, true);
@@ -124,7 +131,7 @@ exports = class extends PubSub {
 
     // if we haven't found an image, look in the resourceLoader's image cache
     if (!img && url && !forceReload) {
-      img = resourceLoader._getRaw('image', url);
+      img = resourceLoader._getRaw('image', url, this);
     }
 
     // look up the base64 cache -- if it's been preloaded, we'll get back an image that's already loaded

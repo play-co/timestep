@@ -207,7 +207,7 @@ class Loader extends Emitter {
     return images;
   }
 
-  getImage (src) {
+  getImage (src, devkitImage) {
     // create the image
     var img = new Image();
     img.crossOrigin = 'use-credentials';
@@ -226,6 +226,8 @@ class Loader extends Emitter {
     } else {
       img.src = src;
     }
+
+    img.devkitImage = devkitImage;
 
     return img;
   }
@@ -284,7 +286,7 @@ class Loader extends Emitter {
     return map;
   }
 
-  _getRaw (type, src) {
+  _getRaw (type, src, devkitImage) {
     var res = _cache[src] || null;
     if (res) { return res; }
 
@@ -294,7 +296,7 @@ class Loader extends Emitter {
         break;
 
       case 'image':
-        res = this.getImage(src);
+        res = this.getImage(src, devkitImage);
         break;
 
       case 'text':
@@ -309,6 +311,7 @@ class Loader extends Emitter {
   }
 
   _emitImageLoaded (res, src) {
+    this.emit(Loader.IMAGE_READY, res, src);
     this.emit(Loader.IMAGE_LOADED, res, src);
   }
 
@@ -540,10 +543,12 @@ Loader.prototype._map = {};
 Loader.prototype._originalMap = {};
 Loader.prototype._audioMap = {};
 Loader.prototype._requestedResources = [];
+Loader.IMAGE_READY = 'imageReady';
 Loader.IMAGE_LOADED = 'imageLoaded';
 
 exports = new Loader();
 
+exports.IMAGE_READY = Loader.IMAGE_READY;
 exports.IMAGE_LOADED = Loader.IMAGE_LOADED;
 
 export default exports;
