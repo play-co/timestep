@@ -1,33 +1,37 @@
 import Image from './Image';
 
+/**
+ * A cache of instances of ui/resource/Image
+ *   NOTE: the ui/resource/Image Class is a wrapper for HTML5 Image;
+ *         HTML5 images are cached in ui/resource/loader along w other resources
+ */
 
-let exports = {};
+class ImageViewCache {
 
-
-// cache of Images for ImageView and ImageScaleView
-exports.cache = {};
-
-
-exports.clear = function () {
-  exports.cache = {};
-};
-
-
-exports.getImage = function (url, forceReload) {
-  var img;
-  if (!forceReload) {
-    img = exports.cache[url];
+  constructor () {
+    this.cache = {};
   }
 
-  if (!img) {
-    img = exports.cache[url] = new Image({
-      url: url,
-      forceReload: !!forceReload
-    });
+  clear () {
+    this.cache = {};
   }
 
-  return img;
-};
+  getImage (url, forceReload) {
+    var img;
+    if (!forceReload) {
+      img = this.cache[url];
+    }
 
+    if (!img) {
+      img = this.cache[url] = new Image({
+        url: url,
+        forceReload: !!forceReload
+      });
+    }
 
-export default exports;
+    return img;
+  }
+
+}
+
+export default new ImageViewCache();

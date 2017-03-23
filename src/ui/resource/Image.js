@@ -28,8 +28,7 @@ import {
   GLOBAL,
   bind,
   CONFIG,
-  NATIVE,
-  logger
+  NATIVE
 } from 'base';
 
 import device from 'device';
@@ -37,8 +36,6 @@ import PubSub from 'lib/PubSub';
 import Callback from 'event/Callback';
 import resourceLoader from 'ui/resource/loader';
 import filterRenderer from 'ui/backend/canvas/filterRenderer';
-
-var ImageCache = {};
 
 var GET_IMAGE_DATA_NOT_SUPPORTED = !GLOBAL.document || !document.createElement;
 
@@ -51,9 +48,9 @@ var GET_IMAGE_DATA_NOT_SUPPORTED = !GLOBAL.document || !document.createElement;
 function imageOnLoad (success, evt, failCount) {
   if (success && !this.width) {
     // Some browsers fire the load event before the image width is
-    // available.  Wait up to 3 frames for the width.  Note that an image
+    // available.  Wait up to 5 frames for the width.  Note that an image
     // with zero-width will be considered an error.
-    if (failCount <= 3) {
+    if (failCount <= 5) {
       setTimeout(bind(this, imageOnLoad, success, evt, (failCount || 0) + 1), 0);
     } else {
       this.__cb.fire(false);
@@ -65,7 +62,6 @@ function imageOnLoad (success, evt, failCount) {
 
 // Listen for preloaded images and add them to cache
 resourceLoader.on(resourceLoader.IMAGE_LOADED, function (image, src) {
-  ImageCache[src.resource] = image;
   image.__cb = new Callback();
   imageOnLoad.call(image, true);
 });
@@ -73,8 +69,7 @@ resourceLoader.on(resourceLoader.IMAGE_LOADED, function (image, src) {
 /**
  * This class models the region of a larger image that this "Image" references.
  */
-var ImageMap = !CONFIG.disableNativeViews && NATIVE.timestep && NATIVE.timestep
-  .ImageMap;
+var ImageMap = !CONFIG.disableNativeViews && NATIVE.timestep && NATIVE.timestep.ImageMap;
 if (!ImageMap) {
   ImageMap = class {
     constructor (parentImage, x, y, width, height, marginTop, marginRight,
@@ -100,14 +95,15 @@ var _imgDataCanvas = null;
 var _imgDataCtx = null;
 
 exports = class extends PubSub {
+
   constructor (opts) {
     super();
 
-    if (!opts) {
-      opts = {};
-    }
+    opts = opts || {};
 
-    this._crossOrigin = opts.crossOrigin !== undefined ? opts.crossOrigin : 'use-credentials';
+    this._crossOrigin = opts.crossOrigin !== undefined
+      ? opts.crossOrigin
+      : 'use-credentials';
 
     this._cb = new Callback();
     this._map = new ImageMap(this, 0, 0, -1, -1, 0, 0, 0, 0, opts.url || '');
@@ -115,8 +111,7 @@ exports = class extends PubSub {
     this._scale = opts.scale || 1;
     this._isError = false;
 
-    resourceLoader._updateImageMap(this._map, opts.url, opts.sourceX, opts.sourceY,
-      opts.sourceW, opts.sourceH);
+    resourceLoader._updateImageMap(this._map, opts.url, opts.sourceX, opts.sourceY, opts.sourceW, opts.sourceH);
 
     // srcImage can be null, then setSrcImg will create one
     // (use the map's URL in case it was updated to a spritesheet)
@@ -127,9 +122,9 @@ exports = class extends PubSub {
     this._cb.reset();
     this._isError = false;
 
-    // if we haven't found an image, look in the image cache
-    if (!img && url && !forceReload && ImageCache[url]) {
-      img = ImageCache[url];
+    // if we haven't found an image, look in the resourceLoader's image cache
+    if (!img && url && !forceReload) {
+      img = resourceLoader._getRaw('image', url);
     }
 
     // look up the base64 cache -- if it's been preloaded, we'll get back an image that's already loaded
@@ -155,19 +150,12 @@ exports = class extends PubSub {
       }
     }
 
-    // create an image if we don't have one
-    if (!img) {
-      img = new Image();
-      img.crossOrigin = this._crossOrigin;
-    }
-
+    img.crossOrigin = this._crossOrigin;
     this._srcImg = img;
 
     if (img instanceof HTMLCanvasElement || img instanceof Canvas) {
       this._onLoad(false, img);
-    } else
-    // no error
-    {
+    } else {
       // if it's already loaded, we call _onLoad immediately. Note that
       // we don't use `.complete` here intentionally since web browsers
       // set `.complete = true` before firing on the load/error
@@ -177,10 +165,6 @@ exports = class extends PubSub {
         img.__cb = new Callback();
         img.addEventListener('load', bind(img, imageOnLoad, true), false);
         img.addEventListener('error', bind(img, imageOnLoad, false), false);
-
-        if (url) {
-          ImageCache[url] = img;
-        }
 
         if (!img.src && url) {
           img.src = this._map.url = url;
@@ -192,12 +176,15 @@ exports = class extends PubSub {
       });
     }
   }
+
   getSrcImg () {
     return this._srcImg;
   }
+
   setSrcImg (srcImg) {
     this._setSrcImg(srcImg);
   }
+
   reload (cb) {
     var srcImg = this._srcImg;
     if (srcImg) {
@@ -233,71 +220,92 @@ exports = class extends PubSub {
       }
     }
   }
+
   getURL () {
     return this._map.url;
   }
+
   getOriginalURL () {
     return this._originalURL;
   }
+
   getSourceX () {
     return this._map.x;
   }
+
   getSourceY () {
     return this._map.y;
   }
+
   getSourceW () {
     return this._map.width;
   }
+
   getSourceH () {
     return this._map.height;
   }
+
   getOrigW () {
     return this._srcImg.width;
   }
+
   getOrigH () {
     return this._srcImg.height;
   }
+
   setSourceX (x) {
     this._map.x = x;
   }
+
   setSourceY (y) {
     this._map.y = y;
   }
+
   setSourceW (w) {
     this._map.width = w;
   }
+
   setSourceH (h) {
     this._map.height = h;
   }
+
   setMarginTop (n) {
     this._map.marginTop = n;
   }
+
   setMarginRight (n) {
     this._map.marginRight = n;
   }
+
   setMarginBottom (n) {
     this._map.marginBottom = n;
   }
+
   setMarginLeft (n) {
     this._map.marginLeft = n;
   }
+
   setURL (url, forceReload) {
     resourceLoader._updateImageMap(this._map, url);
     this._setSrcImg(null, this._map.url, forceReload);
   }
+
   getWidth () {
     var map = this._map;
     return (map.width == -1 ? 0 : map.width + map.marginLeft + map.marginRight) /
       map.scale;
   }
+
   getHeight () {
     var map = this._map;
     return (map.height === -1 ? 0 : map.height + map.marginTop + map.marginBottom) /
       map.scale;
   }
+
   getBounds () {
     return this._map;
   }
+
   setBounds (x, y, w, h, marginTop, marginRight, marginBottom, marginLeft) {
     var map = this._map;
     map.x = x;
@@ -310,10 +318,12 @@ exports = class extends PubSub {
     map.marginLeft = marginLeft || 0;
     this.emit('changeBounds');
   }
+
   doOnLoad () {
     this._cb.forward(arguments);
     return this;
   }
+
   _onLoad (err, img) {
     var map = this._map;
     var srcImg = this._srcImg;
@@ -325,7 +335,7 @@ exports = class extends PubSub {
 
     if (err) {
       // TODO: something better?
-      logger.error('Image failed to load:', map.url);
+      console.error('Image failed to load:', map.url);
       this._isError = true;
       this._cb.fire({ NoImage: true });
       return;
@@ -334,7 +344,7 @@ exports = class extends PubSub {
     this._isError = false;
 
     if (srcImg.width === 0) {
-      logger.warn('Image has no width', this._url);
+      console.warn('Image has no width', this._url);
     }
 
     if (this._scale !== 1 && (map.width !== -1 || map.height !== -1)) {
@@ -364,16 +374,17 @@ exports = class extends PubSub {
     map.url = srcImg.src;
     this._cb.fire(null, this);
   }
+
   isError () {
     return this._isError;
   }
+
   isReady () {
     return !this._isError && this._cb.fired();
   }
+
   render (ctx) {
-    if (!this._cb.fired() || this._isError) {
-      return;
-    }
+    if (!this.isReady()) { return; }
 
     var argumentCount = arguments.length;
     var map = this._map;
@@ -402,8 +413,7 @@ exports = class extends PubSub {
     }
 
     if (!isNative && ctx.filter) {
-      var filterImg = filterRenderer.renderFilter(ctx, this, srcX, srcY,
-        srcW, srcH);
+      var filterImg = filterRenderer.renderFilter(ctx, this, srcX, srcY, srcW, srcH);
       if (filterImg) {
         srcImg = filterImg;
         srcX = 0;
@@ -411,15 +421,11 @@ exports = class extends PubSub {
       }
     }
 
-    ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW,
-      destH);
+    ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
   }
+
   getImageData (x, y, width, height) {
-    // initialize a shared imgDataCanvas when/if needed
-    if (_imgDataCanvas === null) {
-      _imgDataCanvas = new Canvas();
-      _imgDataCtx = _imgDataCanvas.getContext('2d');
-    }
+    this.prepCanvas();
 
     var map = this._map;
     if (GET_IMAGE_DATA_NOT_SUPPORTED) {
@@ -440,14 +446,21 @@ exports = class extends PubSub {
     this.render(_imgDataCtx, x, y, width, height, 0, 0, width, height);
     return _imgDataCtx.getImageData(0, 0, width, height);
   }
+
   setImageData (data) {}
+
   destroy () {
     this._srcImg.destroy && this._srcImg.destroy();
   }
-};
 
-exports.__clearCache__ = function () {
-  ImageCache = {};
+  prepCanvas () {
+    // initialize a shared imgDataCanvas when/if needed
+    if (_imgDataCanvas === null) {
+      _imgDataCanvas = new Canvas();
+      _imgDataCtx = _imgDataCanvas.getContext('2d');
+    }
+  }
+
 };
 
 exports.prototype.getSource = exports.prototype.getSrcImg;
