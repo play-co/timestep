@@ -1,12 +1,22 @@
 import { CONFIG, bind } from 'base';
 import LRUCache from 'cache/LRUCache';
 import PubSub from 'lib/PubSub';
+import userAgent from 'userAgent';
 
 var CACHE_SIZE = 65535;
 var CACHE_UID = 1;
 var BYTES_PER_PIXEL = 4;
-var MAX_TEXTURE_BYTES = CONFIG.maxTextureMegabytes * 1024 * 1024;
 var MAX_TEXTURE_DUMP_ITERATIONS = 5;
+
+// default to general limit, allow platform specific overrides
+var MAX_TEXTURE_BYTES = CONFIG.maxTextureMegabytes * 1024 * 1024;
+if (userAgent.OS_TYPE === 'Android') {
+  var mb = CONFIG.android.maxTextureMegabytes;
+  MAX_TEXTURE_BYTES = (mb * 1024 * 1024) || MAX_TEXTURE_BYTES;
+} else if (userAgent.OS_TYPE === 'iPhone OS') {
+  var mb = CONFIG.ios.maxTextureMegabytes;
+  MAX_TEXTURE_BYTES = (mb * 1024 * 1024) || MAX_TEXTURE_BYTES;
+}
 
 var pow = Math.pow;
 var ceil = Math.ceil;
