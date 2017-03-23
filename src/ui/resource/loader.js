@@ -25,10 +25,10 @@ import {
   bind
 } from 'base';
 
-import i18n from './i18n';
 import Callback from 'lib/Callback';
 import Emitter from 'event/Emitter';
 import AudioManager from 'AudioManager';
+import Image from './Image';
 
 var _cache = {};
 
@@ -57,54 +57,50 @@ var _soundManager = null;
 var _soundLoader = null;
 
 class Loader extends Emitter {
+
   get progress () {
     return globalItemsToLoad > 0 ? globalItemsLoaded / globalItemsToLoad : 1;
   }
+
+  // ------------------------------------
+  // Forwarded to Image
+  // TODO: Remove these and point directly to Image
+  // ------------------------------------
+
   has (src) {
-    return this._map[src];
+    return Image.has(src);
   }
+
   restoreMap () {
-    this._map = this._originalMap;
+    Image.restoreMap();
   }
+
   getMap () {
-    return this._map;
+    return Image.getMap();
   }
+
   setMap (language) {
-    this.restoreMap();
-    if (!language) {
-      this._map = i18n.localizeResourceMap(this._map);
-    } else {
-      this._map = i18n.applyResourceMap(this._map, language);
-    }
+    Image.setMap(language);
   }
+
+  addSheets (sheets) {
+    Image.addSheets(sheets);
+  }
+
+  // ------------------------------------
+  // End forward
+  // ------------------------------------
+
   get (file) {
     return 'resources/images/' + file;
   }
-  addSheets (sheets) {
-    Object.keys(sheets).forEach(function (name) {
-      var sheet = sheets[name];
-      sheet.forEach(function (info) {
-        this._map[info.f] = {
-          sheet: name,
-          x: info.x || 0,
-          y: info.y || 0,
-          w: info.w || 0,
-          h: info.h || 0,
-          scale: info.s || 1,
-          marginTop: info.t || 0,
-          marginRight: info.r || 0,
-          marginBottom: info.b || 0,
-          marginLeft: info.l || 0
-        };
-      }, this);
-    }, this);
-    this._originalMap = this._map;
-  }
+
   addAudioMap (map) {
     Object.keys(map).forEach(function (name) {
       this._audioMap[name] = true;
     }, this);
   }
+
   preload (pathPrefix, opts, cb) {
     if (typeof opts == 'function') {
       cb = opts;
@@ -127,7 +123,7 @@ class Loader extends Emitter {
       // if an item is found in the map, add that item's sheet to the group.
       // If there is no sheet in the map (i.e. for sounds), load that file directly.
       var preloadSheets = {};
-      var map = this._map;
+      var map = Image.getMap();
       for (var uri in map) {
         if (uri.indexOf(pathPrefix) === 0) {
           // sprites have sheet; sounds are just by the filename key itself
@@ -154,6 +150,7 @@ class Loader extends Emitter {
       return callback;
     }
   }
+
   getSound (src) {
     if (!_soundManager) {
       _soundManager = new AudioManager({ preload: true });
@@ -188,7 +185,7 @@ class Loader extends Emitter {
     prefix = prefix.replace(/^\//, '');
     // remove leading slash
     var images = [];
-    var map = this._map;
+    var map = Image.getMap();
     for (var uri in map) {
       if (uri.indexOf(prefix) == 0) {
         images.push(uri);
@@ -196,110 +193,37 @@ class Loader extends Emitter {
     }
     return images;
   }
-  getImage (src, noWarn) {
-    // create the image
-    var img = new Image();
-    img.crossOrigin = 'use-credentials';
 
-    // find the base64 image if it exists
-    if (Image.get) {
-      var b64 = Image.get(src);
-      if (b64 instanceof Image) {
-        return b64;
-      }
-    }
-
-    if (b64) {
-      img.src = b64;
-      Image.set(src, img);
-    } else {
-      if (!noWarn) {
-        logger.warn('Preload Warning:', src, 'not properly cached!');
-      }
-      img.src = src;
-    }
-
-    return img;
-  }
-  _updateImageMap (map, url, x, y, w, h) {
-    x = x || 0;
-    y = y || 0;
-    w = w == undefined ? -1 : w;
-    h = h == undefined ? -1 : h;
-
-    var info = this._map[url];
-    if (!info || !info.sheet) {
-      map.x = x;
-      map.y = y;
-      map.width = w;
-      map.height = h;
-      map.scale = 1;
-      map.url = url;
-      return;
-    }
-
-    var scale = info.scale || 1;
-
-    // calculate the source rectangle, with margins added to the edges
-    // (disregarding the fact that they may fall off the edge of the sheet)
-    map.x = info.x - info.marginLeft;
-    map.y = info.y - info.marginTop;
-    map.width = info.w + info.marginLeft + info.marginRight;
-    map.height = info.h + info.marginTop + info.marginBottom;
-
-    // Add in any source map options passed in to get the actual offsets
-    map.x += x * scale;
-    map.y += y * scale;
-    if (w > 0) {
-      map.width = w * scale;
-    }
-    if (h > 0) {
-      map.height = h * scale;
-    }
-
-    // now updatea the margins to account for the new source map
-    map.marginLeft = Math.max(0, info.x - map.x);
-    map.marginTop = Math.max(0, info.y - map.y);
-    map.marginRight = Math.max(0, map.x + map.width - (info.x + info.w));
-    map.marginBottom = Math.max(0, map.y + map.height - (info.y + info.h));
-
-    // and re-offset the source map to exclude margins
-    map.x += map.marginLeft;
-    map.y += map.marginTop;
-    map.width -= map.marginLeft + map.marginRight;
-    map.height -= map.marginTop + map.marginBottom;
-
-    // the scale of the source image, if scaled in a spritesheet
-    map.scale = scale;
-    map.url = info.sheet;
-    return map;
-  }
-  _getRaw (type, src, copy, noWarn) {
-    // always return the cached copy unless specifically requested not to
-    if (!copy && _cache[src]) {
+  _getRaw (type, src) {
+    if (_cache[src]) {
       return _cache[src];
     }
+
     var res = null;
 
     switch (type) {
 
-      case 'audio':
-        res = this.getSound(src);
+      case 'image':
+        res = Image.getRaw(src);
         break;
 
-      case 'image':
-        res = this.getImage(src, noWarn);
+      case 'audio':
+        res = this.getSound(src);
+        _cache[src] = res;
         break;
 
       case 'text':
         res = this.getText(src);
+        _cache[src] = res;
         break;
 
       default:
         logger.error('Preload Error: Unknown Type', type);
     }
-    return _cache[src] = res;
+
+    return res;
   }
+
   _loadGroup (opts, cb) {
     var timeout = opts.timeout;
     var callback = new Callback();
@@ -374,7 +298,7 @@ class Loader extends Emitter {
       var src = loadableResources[currentIndex];
       var res;
       if (src) {
-        res = this._getRaw(src.type, src.resource, false, true);
+        res = this._getRaw(src.type, src.resource);
       } else {
         // End of resource list, done!
         return;
@@ -523,8 +447,6 @@ class Loader extends Emitter {
   }
 }
 
-Loader.prototype._map = {};
-Loader.prototype._originalMap = {};
 Loader.prototype._audioMap = {};
 Loader.prototype._requestedResources = [];
 Loader.IMAGE_LOADED = 'imageLoaded';

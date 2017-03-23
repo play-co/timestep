@@ -36,8 +36,6 @@ import Shaders from './Shaders';
 import Matrix2D from './Matrix2D';
 import WebGLTextureManager from './WebGLTextureManager';
 
-
-
 class ContextStateStack {
 
   constructor () {
@@ -204,14 +202,16 @@ class GLManager {
     this._primaryContext = new Context2D(this, this._canvas);
     this.activate(this._primaryContext);
 
-    loader.on(loader.IMAGE_LOADED, function (image) {
-      this.createOrUpdateTexture(image, image.__GL_ID, true);
-    }.bind(this));
-
     this.contextActive = true;
 
     this._canvas.addEventListener('webglcontextlost', this.handleContextLost.bind(this), false);
     this._canvas.addEventListener('webglcontextrestored', this.handleContextRestored.bind(this), false);
+
+    // Hack around circular dependency
+    // TODO: Find better solution
+    setTimeout(() => {
+      loader.on(loader.IMAGE_LOADED, image => this.createOrUpdateTexture(image, image.__GL_ID, true));
+    }, 0);
   }
 
   handleContextLost (e) {

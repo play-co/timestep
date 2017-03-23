@@ -1,33 +1,14 @@
+import { logger } from 'base';
 import Image from './Image';
 
+// TODO: Deprecated. Remove this when convenient.
 
-let exports = {};
+export default {
 
+  clear: function () { logger.error('Unimplemented'); },
 
-// cache of Images for ImageView and ImageScaleView
-exports.cache = {};
-
-
-exports.clear = function () {
-  exports.cache = {};
-};
-
-
-exports.getImage = function (url, forceReload) {
-  var img;
-  if (!forceReload) {
-    img = exports.cache[url];
+  getImage: function (url, forceReload) {
+    return Image.fromURL(url, forceReload);
   }
 
-  if (!img) {
-    img = exports.cache[url] = new Image({
-      url: url,
-      forceReload: !!forceReload
-    });
-  }
-
-  return img;
-};
-
-
-export default exports;
+}

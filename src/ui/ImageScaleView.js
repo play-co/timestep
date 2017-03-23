@@ -3,7 +3,7 @@ let exports = {};
 import { merge } from 'base';
 
 import View from 'ui/View';
-import ImageViewCache from 'ui/resource/ImageViewCache';
+import Image from 'ui/resource/Image';
 import resourceLoader from 'ui/resource/loader';
 
 /**
@@ -582,7 +582,7 @@ exports = class extends View {
       }
 
       // resolve to object
-      img = ImageViewCache.getImage(img, forceReload);
+      img = Image.fromURL(img, forceReload);
     } else if (img instanceof Image) {
       if (forceReload) {
         img.reload();

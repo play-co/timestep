@@ -24,8 +24,7 @@ import path from 'util/path';
 import URI from 'std/uri';
 
 import View from 'ui/View';
-import ImageViewCache from 'ui/resource/ImageViewCache';
-
+import Image from 'ui/resource/Image';
 
 var _loc = window.location.toString();
 var _host = window.location.hostname;
@@ -40,7 +39,7 @@ exports = class ImageView extends View {
   }
 
   getImageFromCache (url, forceReload) {
-    return ImageViewCache.getImage(url, forceReload);
+    return Image.fromURL(url, forceReload);
   }
 
   updateOpts (opts) {
@@ -62,7 +61,7 @@ exports = class ImageView extends View {
   setImage (img, opts) {
     var forceReload = opts && opts.forceReload;
     if (typeof img === 'string') {
-      img = ImageViewCache.getImage(img, forceReload);
+      img = this.getImageFromCache(img, forceReload);
     } else if (forceReload) {
       img.reload();
     }
