@@ -56,6 +56,8 @@ class BitmapFont extends EventEmitter {
     } else {
       this.parsedata(data);
     }
+
+    this.setMaxListeners(100);
   }
 
   parsedata(data) {

@@ -84,6 +84,23 @@ export default class BitmapFontTextViewBacking {
     this._activeCharacterCount = 0;
 
     this._listener = null;
+
+    this._boundOnFontLoad = this._onFontLoad.bind(this);
+  }
+
+  _onFontLoad() {
+    this._clearOnFontLoad();
+    this.invalidate();
+  }
+
+  _clearOnFontLoad() {
+    if (
+      this._listener
+      && this._listener._opts
+      && this._listener._opts.font
+    ) {
+      this._listener._opts.font.removeListener('loaded', this._boundOnFontLoad);
+    }
   }
 
   setListener(listener) {
@@ -93,9 +110,12 @@ export default class BitmapFontTextViewBacking {
   updateOpts(opts) {
     this._color = opts.color || this._color;
 
+    // Clear last font listener
+    this._clearOnFontLoad();
     if (opts.font) {
-      opts.font.once('loaded', () => this.invalidate());
+      opts.font.on('loaded', this._boundOnFontLoad);
     }
+
     if (opts.text) {
       this.text = opts.text;
     }

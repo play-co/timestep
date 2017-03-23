@@ -54,9 +54,9 @@ class BitmapFontTextView extends View {
     this._backing.updateOpts(opts);
   };
 
-  updateOpts(opts, skipBacking = false) {
+  updateOpts(opts) {
     super.updateOpts(opts);
-    if (this._backing && !skipBacking) {
+    if (this._backing) {
       this._backing.updateOpts(opts);
     }
   }
