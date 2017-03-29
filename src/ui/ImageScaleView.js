@@ -379,7 +379,7 @@ exports = class extends View {
     }
   }
   updateOpts (opts) {
-    var opts = super.updateOpts(...arguments);
+    var opts = super.updateOpts(opts);
     var changeScaleMethod = opts.scaleMethod && this._scaleMethod != opts.scaleMethod;
     if (changeScaleMethod) {
       var key = opts.scaleMethod;

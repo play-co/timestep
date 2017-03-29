@@ -94,7 +94,7 @@ Filter.TYPES = {
  */
 exports.LinearAddFilter = class extends Filter {
   constructor (opts) {
-    super(...arguments);
+    super(opts);
     this._type = 'LinearAdd';
   }
 };
@@ -104,7 +104,7 @@ exports.LinearAddFilter = class extends Filter {
  */
 exports.TintFilter = class extends Filter {
   constructor (opts) {
-    super(...arguments);
+    super(opts);
     this._type = 'Tint';
   }
 };
@@ -114,7 +114,7 @@ exports.TintFilter = class extends Filter {
  */
 exports.MultiplyFilter = class extends Filter {
   constructor (opts) {
-    super(...arguments);
+    super(opts);
     this._type = 'Multiply';
   }
 };
@@ -124,7 +124,7 @@ exports.MultiplyFilter = class extends Filter {
  */
 exports.PositiveMaskFilter = class extends Filter {
   constructor (opts) {
-    super(...arguments);
+    super(opts);
     this._type = 'PositiveMask';
     if (opts.image) {
       Image = Image || DEFAULT_IMAGE;
@@ -141,7 +141,7 @@ exports.PositiveMaskFilter = class extends Filter {
  */
 exports.NegativeMaskFilter = class extends Filter {
   constructor (opts) {
-    super(...arguments);
+    super(opts);
     this._type = 'NegativeMask';
     if (opts.image) {
       Image = Image || DEFAULT_IMAGE;

@@ -283,7 +283,7 @@ exports = class extends View {
       return;
     }
 
-    super.updateOpts(...arguments);
+    super.updateOpts(opts);
 
     if ('useContentBounds' in opts) {
       if (opts.useContentBounds) {
