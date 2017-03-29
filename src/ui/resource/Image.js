@@ -370,40 +370,38 @@ exports = class extends PubSub {
   isReady () {
     return !this._isError && this._cb.fired();
   }
-  render (ctx) {
-    if (!this._cb.fired() || this._isError) {
-      return;
-    }
 
-    var argumentCount = arguments.length;
+  /**
+   * Easy-to-use 5 param render function that relies on the internal _map
+   */
+  renderShort (ctx, destX, destY, destW, destH) {
+    if (!this.isReady()) { return; }
+
     var map = this._map;
-    var srcImg = this._srcImg;
     var srcX = map.x;
     var srcY = map.y;
     var srcW = map.width;
     var srcH = map.height;
-    var destX = argumentCount > 5 ? arguments[5] : arguments[1] || 0;
-    var destY = argumentCount > 6 ? arguments[6] : arguments[2] || 0;
-    var destW = argumentCount > 7 ? arguments[7] : arguments[3] || 0;
-    var destH = argumentCount > 8 ? arguments[8] : arguments[4] || 0;
+    var scaleX = destW / (map.marginLeft + srcW + map.marginRight);
+    var scaleY = destH / (map.marginTop + srcH + map.marginBottom);
+    destX += scaleX * map.marginLeft;
+    destY += scaleY * map.marginTop;
+    destW = scaleX * srcW;
+    destH = scaleY * srcH;
 
-    if (argumentCount < 9) {
-      var scaleX = destW / (map.marginLeft + map.width + map.marginRight);
-      var scaleY = destH / (map.marginTop + map.height + map.marginBottom);
-      destX += scaleX * map.marginLeft;
-      destY += scaleY * map.marginTop;
-      destW = scaleX * map.width;
-      destH = scaleY * map.height;
-    } else {
-      srcX = arguments[1];
-      srcY = arguments[2];
-      srcW = arguments[3];
-      srcH = arguments[4];
-    }
+    this.render(ctx, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
+  }
+
+  /**
+   * Optimized, non-polymorphic render, requires all 9 params
+   */
+  render (ctx, srcX, srcY, srcW, srcH, destX, destY, destW, destH) {
+    if (!this.isReady()) { return; }
+
+    var srcImg = this._srcImg;
 
     if (!isNative && ctx.filter) {
-      var filterImg = filterRenderer.renderFilter(ctx, this, srcX, srcY,
-        srcW, srcH);
+      var filterImg = filterRenderer.renderFilter(ctx, this, srcX, srcY, srcW, srcH);
       if (filterImg) {
         srcImg = filterImg;
         srcX = 0;
@@ -411,9 +409,9 @@ exports = class extends PubSub {
       }
     }
 
-    ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW,
-      destH);
+    ctx.drawImage(srcImg, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
   }
+
   getImageData (x, y, width, height) {
     // initialize a shared imgDataCanvas when/if needed
     if (_imgDataCanvas === null) {
@@ -440,10 +438,13 @@ exports = class extends PubSub {
     this.render(_imgDataCtx, x, y, width, height, 0, 0, width, height);
     return _imgDataCtx.getImageData(0, 0, width, height);
   }
+
   setImageData (data) {}
+
   destroy () {
     this._srcImg.destroy && this._srcImg.destroy();
   }
+
 };
 
 exports.__clearCache__ = function () {

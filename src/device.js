@@ -55,6 +55,8 @@ if (typeof navigator === 'undefined' || !navigator.userAgent) {
 
 var ua = navigator.userAgent;
 
+var MAX_DPR = 2;
+
 /**
  * @namespace
  */
@@ -81,6 +83,7 @@ if (CONFIG.simulator && CONFIG.simulator.deviceId) {
 }
 
 // @deprecated
+devicePixelRatio = Math.min(MAX_DPR, devicePixelRatio);
 exports.devicePixelRatio = devicePixelRatio;
 
 exports.screen.defaultDevicePixelRatio = devicePixelRatio;

@@ -322,8 +322,7 @@ exports = class TextView extends View {
         // ctx.fillStyle = color;
         // ctx.fillRect(x + lineOffset, y + lineOffset, opts.size, opts.size);
         if (emoticonData.image) {
-          emoticonData.image.render(ctx, x + lineOffset, y + lineOffset,
-            opts.size, opts.size);
+          emoticonData.image.renderShort(ctx, x + lineOffset, y + lineOffset, opts.size, opts.size);
         }
       } else {
         if (shadowColor) {

@@ -1,5 +1,3 @@
-let exports = {};
-
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -15,26 +13,30 @@ let exports = {};
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
+
 /**
  * package ui.backend.canvas.ImageView;
  *
  * canvas.ImageView implementation.
  */
+
 import path from 'util/path';
 import URI from 'std/uri';
 
 import View from 'ui/View';
 import ImageViewCache from 'ui/resource/ImageViewCache';
 
-
 var _loc = window.location.toString();
 var _host = window.location.hostname;
+
 
 
 /**
  * @extends ui.View
  */
-exports = class ImageView extends View {
+
+export default class ImageView extends View {
+
   getImage () {
     return this._img;
   }
@@ -44,10 +46,10 @@ exports = class ImageView extends View {
   }
 
   updateOpts (opts) {
-    opts = super.updateOpts(...arguments);
+    opts = super.updateOpts(opts);
 
-    if ('autoSize' in opts) {
-      this._autoSize = !!opts.autoSize;
+    if (opts.autoSize !== void 0) {
+      this._autoSize = opts.autoSize;
     }
 
     if (opts.image) {
@@ -70,7 +72,10 @@ exports = class ImageView extends View {
     this._img = img;
 
     if (this._img) {
-      this._autoSize = opts && 'autoSize' in opts ? opts.autoSize : this._autoSize;
+      if (opts && opts.autoSize !== void 0) {
+        this._autoSize = opts.autoSize;
+      }
+
       if (this._autoSize) {
         // sprited resources will know their dimensions immediately
         if (this._img.getWidth() > 0 && this._img.getHeight() > 0) {
@@ -80,6 +85,7 @@ exports = class ImageView extends View {
           this._img.doOnLoad(this, 'autoSize');
         }
       }
+
       this._img.doOnLoad(this, 'needsRepaint');
     }
   }
@@ -113,14 +119,10 @@ exports = class ImageView extends View {
   }
 
   render (ctx) {
-    if (!this._img) {
-      return;
-    }
+    if (!this._img) { return; }
 
     var s = this.style;
-    var w = s.width;
-    var h = s.height;
-    this._img.render(ctx, 0, 0, w, h);
+    this._img.renderShort(ctx, 0, 0, s.width, s.height);
   }
 
   getTag () {
@@ -144,12 +146,10 @@ exports = class ImageView extends View {
 
     return (tag || '') + ':ImageView' + this.uid;
   }
+
 };
-var ImageView = exports;
+
 
 
 ImageView.prototype.getOrigWidth = ImageView.prototype.getOrigW;
 ImageView.prototype.getOrigHeight = ImageView.prototype.getOrigH;
-
-
-export default exports;

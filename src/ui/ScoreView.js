@@ -34,7 +34,7 @@ var max = Math.max;
 exports = class ScoreView extends View {
   constructor (opts) {
     opts.blockEvents = true;
-    super(...arguments);
+    super(opts);
 
     // characters that should be rendered
     this._text = '';
