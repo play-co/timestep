@@ -725,14 +725,14 @@ export default class BitmapFontTextViewBacking {
     var lineHeight = font.lineHeight * scale + this._listener._opts.leading;
     var textHeight = this._numLines * lineHeight;
 
-    if (textHeight > this._listener._opts.height) {
+    if (textHeight > this._listener.getHeight()) {
       return 0;
     }
 
     if (this._listener._opts.verticalAlign === Align.BOTTOM) {
-      return (this._listener._opts.height - textHeight);
+      return (this._listener.getHeight() - textHeight);
     } else if (this._listener._opts.verticalAlign === Align.CENTER) {
-      return (this._listener._opts.height - textHeight) / 2;
+      return (this._listener.getHeight() - textHeight) / 2;
     }
     return 0;
   }

@@ -54,6 +54,10 @@ class BitmapFontTextView extends View {
     this._backing.updateOpts(opts);
   };
 
+  getHeight() {
+    return this.style.height;
+  }
+
   updateOpts(opts) {
     super.updateOpts(opts);
     if (this._backing) {

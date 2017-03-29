@@ -40,7 +40,11 @@ class BitmapFontTextView {
 
     this._backing = new BitmapFontTextViewBacking(opts);
     this._backing.setListener(this);
-  };
+  }
+
+  getHeight() {
+    return this._opts.height;
+  }
 
   updateOpts(opts) {
     this._opts = opts;
