@@ -57,18 +57,23 @@ var _soundManager = null;
 var _soundLoader = null;
 
 class Loader extends Emitter {
+
   get progress () {
     return globalItemsToLoad > 0 ? globalItemsLoaded / globalItemsToLoad : 1;
   }
+
   has (src) {
     return this._map[src];
   }
+
   restoreMap () {
     this._map = this._originalMap;
   }
+
   getMap () {
     return this._map;
   }
+
   setMap (language) {
     this.restoreMap();
     if (!language) {
@@ -77,9 +82,11 @@ class Loader extends Emitter {
       this._map = i18n.applyResourceMap(this._map, language);
     }
   }
+
   get (file) {
     return 'resources/images/' + file;
   }
+
   addSheets (sheets) {
     Object.keys(sheets).forEach(function (name) {
       var sheet = sheets[name];
@@ -100,11 +107,13 @@ class Loader extends Emitter {
     }, this);
     this._originalMap = this._map;
   }
+
   addAudioMap (map) {
     Object.keys(map).forEach(function (name) {
       this._audioMap[name] = true;
     }, this);
   }
+
   preload (pathPrefix, opts, cb) {
     if (typeof opts == 'function') {
       cb = opts;
@@ -154,6 +163,7 @@ class Loader extends Emitter {
       return callback;
     }
   }
+
   getSound (src) {
     if (!_soundManager) {
       _soundManager = new AudioManager({ preload: true });
@@ -196,7 +206,8 @@ class Loader extends Emitter {
     }
     return images;
   }
-  getImage (src, noWarn) {
+
+  getImage (src, devkitImage) {
     // create the image
     var img = new Image();
     img.crossOrigin = 'use-credentials';
@@ -213,14 +224,14 @@ class Loader extends Emitter {
       img.src = b64;
       Image.set(src, img);
     } else {
-      if (!noWarn) {
-        logger.warn('Preload Warning:', src, 'not properly cached!');
-      }
       img.src = src;
     }
 
+    img.devkitImage = devkitImage;
+
     return img;
   }
+
   _updateImageMap (map, url, x, y, w, h) {
     x = x || 0;
     y = y || 0;
@@ -274,21 +285,18 @@ class Loader extends Emitter {
     map.url = info.sheet;
     return map;
   }
-  _getRaw (type, src, copy, noWarn) {
-    // always return the cached copy unless specifically requested not to
-    if (!copy && _cache[src]) {
-      return _cache[src];
-    }
-    var res = null;
+
+  _getRaw (type, src, devkitImage) {
+    var res = _cache[src] || null;
+    if (res) { return res; }
 
     switch (type) {
-
       case 'audio':
         res = this.getSound(src);
         break;
 
       case 'image':
-        res = this.getImage(src, noWarn);
+        res = this.getImage(src, devkitImage);
         break;
 
       case 'text':
@@ -298,8 +306,15 @@ class Loader extends Emitter {
       default:
         logger.error('Preload Error: Unknown Type', type);
     }
+
     return _cache[src] = res;
   }
+
+  _emitImageLoaded (res, src) {
+    this.emit(Loader.IMAGE_READY, res, src);
+    this.emit(Loader.IMAGE_LOADED, res, src);
+  }
+
   _loadGroup (opts, cb) {
     var timeout = opts.timeout;
     var callback = new Callback();
@@ -374,7 +389,7 @@ class Loader extends Emitter {
       var src = loadableResources[currentIndex];
       var res;
       if (src) {
-        res = this._getRaw(src.type, src.resource, false, true);
+        res = this._getRaw(src.type, src.resource);
       } else {
         // End of resource list, done!
         return;
@@ -459,7 +474,7 @@ class Loader extends Emitter {
         } else {
           // Let subscribers know an image was loaded
           if (src.type === 'image') {
-            that.emit(Loader.IMAGE_LOADED, res, src);
+            that._emitImageLoaded(res, src);
           }
           // Since the resource has already completed loading, go
           // ahead and invoke the next callback indicating the previous
@@ -483,7 +498,7 @@ class Loader extends Emitter {
 
           // Let subscribers know an image was loaded
           if (src.type === 'image') {
-            that.emit(Loader.IMAGE_LOADED, res, src);
+            that._emitImageLoaded(res, src);
           }
 
           // React to successful load of this resource
@@ -521,16 +536,19 @@ class Loader extends Emitter {
     }, 0);
     return callback;
   }
+
 }
 
 Loader.prototype._map = {};
 Loader.prototype._originalMap = {};
 Loader.prototype._audioMap = {};
 Loader.prototype._requestedResources = [];
+Loader.IMAGE_READY = 'imageReady';
 Loader.IMAGE_LOADED = 'imageLoaded';
 
 exports = new Loader();
 
+exports.IMAGE_READY = Loader.IMAGE_READY;
 exports.IMAGE_LOADED = Loader.IMAGE_LOADED;
 
 export default exports;
