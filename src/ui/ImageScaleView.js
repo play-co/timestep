@@ -138,8 +138,7 @@ function renderCoverOrContain (ctx, opts) {
     }
   }
 
-  this._img.render(ctx, cache.sx, cache.sy, cache.sw, cache.sh, cache.x, cache.y,
-    cache.w, cache.h);
+  this._img.render(ctx, cache.sx, cache.sy, cache.sw, cache.sh, cache.x, cache.y, cache.w, cache.h);
 
   if (this.debug) {
     ctx.strokeStyle = debugColors[0];
@@ -150,13 +149,16 @@ function renderCoverOrContain (ctx, opts) {
 
 var renderFunctions = {
   'none': function (ctx, opts) {
-    this._img && this._img.render(ctx, 0, 0);
+    if (!this._img) { return; }
+
+    var s = this.style;
+    this._img.renderShort(ctx, 0, 0, s.width, s.height);
   },
   'stretch': function (ctx, opts) {
+    if (!this._img) { return; }
+
     var s = this.style;
-    var w = s.width;
-    var h = s.height;
-    this._img && this._img.render(ctx, 0, 0, w, h);
+    this._img.renderShort(ctx, 0, 0, s.width, s.height);
   },
   'contain': renderCoverOrContain,
   'cover': renderCoverOrContain,
@@ -184,7 +186,7 @@ var renderFunctions = {
       var targetWidth = iw * targetRatio;
       for (var i = 0; i < this.rows; i++) {
         while (x < w) {
-          this._img.render(ctx, x, y, targetWidth, targetHeight);
+          this._img.renderShort(ctx, x, y, targetWidth, targetHeight);
           if (this.debug) {
             ctx.strokeStyle = debugColors[i % 3];
             ctx.strokeRect(x + 0.5, y + 0.5, targetWidth - 1, targetHeight -
@@ -201,7 +203,7 @@ var renderFunctions = {
       var targetHeight = ih * targetRatio;
       for (var i = 0; i < this.columns; i++) {
         while (y < h) {
-          this._img.render(ctx, x, y, targetWidth, targetHeight);
+          this._img.renderShort(ctx, x, y, targetWidth, targetHeight);
           if (this.debug) {
             ctx.strokeStyle = debugColors[i % 3];
             ctx.strokeRect(x + 0.5, y + 0.5, targetWidth - 1, targetHeight -

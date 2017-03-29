@@ -29,6 +29,15 @@ import i18n from './i18n';
 import Callback from 'lib/Callback';
 import Emitter from 'event/Emitter';
 import AudioManager from 'AudioManager';
+import userAgent from 'userAgent';
+
+var LOW_RES_KEY = '__dk_low_res';
+var LOW_RES_ENABLED = false;
+if (userAgent.OS_TYPE === 'Android') {
+  LOW_RES_ENABLED = CONFIG.android.enableLowRes;
+} else if (userAgent.OS_TYPE === 'iPhone OS') {
+  LOW_RES_ENABLED = CONFIG.ios.enableLowRes;
+}
 
 var _cache = {};
 
@@ -56,19 +65,26 @@ var globalItemsLoaded = 0;
 var _soundManager = null;
 var _soundLoader = null;
 
+
+
 class Loader extends Emitter {
+
   get progress () {
     return globalItemsToLoad > 0 ? globalItemsLoaded / globalItemsToLoad : 1;
   }
+
   has (src) {
     return this._map[src];
   }
+
   restoreMap () {
     this._map = this._originalMap;
   }
+
   getMap () {
     return this._map;
   }
+
   setMap (language) {
     this.restoreMap();
     if (!language) {
@@ -77,11 +93,17 @@ class Loader extends Emitter {
       this._map = i18n.applyResourceMap(this._map, language);
     }
   }
+
   get (file) {
     return 'resources/images/' + file;
   }
+
   addSheets (sheets) {
     Object.keys(sheets).forEach(function (name) {
+      // exclude sheets of the resolution not in use
+      var isLowRes = name.indexOf(LOW_RES_KEY) >= 0;
+      if (LOW_RES_ENABLED !== isLowRes) { return; }
+
       var sheet = sheets[name];
       sheet.forEach(function (info) {
         this._map[info.f] = {
@@ -98,13 +120,16 @@ class Loader extends Emitter {
         };
       }, this);
     }, this);
+
     this._originalMap = this._map;
   }
+
   addAudioMap (map) {
     Object.keys(map).forEach(function (name) {
       this._audioMap[name] = true;
     }, this);
   }
+
   preload (pathPrefix, opts, cb) {
     if (typeof opts == 'function') {
       cb = opts;
@@ -154,6 +179,7 @@ class Loader extends Emitter {
       return callback;
     }
   }
+
   getSound (src) {
     if (!_soundManager) {
       _soundManager = new AudioManager({ preload: true });
@@ -196,6 +222,7 @@ class Loader extends Emitter {
     }
     return images;
   }
+
   getImage (src, noWarn) {
     // create the image
     var img = new Image();
@@ -221,6 +248,7 @@ class Loader extends Emitter {
 
     return img;
   }
+
   _updateImageMap (map, url, x, y, w, h) {
     x = x || 0;
     y = y || 0;
@@ -274,6 +302,7 @@ class Loader extends Emitter {
     map.url = info.sheet;
     return map;
   }
+
   _getRaw (type, src, copy, noWarn) {
     // always return the cached copy unless specifically requested not to
     if (!copy && _cache[src]) {
@@ -300,6 +329,7 @@ class Loader extends Emitter {
     }
     return _cache[src] = res;
   }
+
   _loadGroup (opts, cb) {
     var timeout = opts.timeout;
     var callback = new Callback();
@@ -521,7 +551,10 @@ class Loader extends Emitter {
     }, 0);
     return callback;
   }
+
 }
+
+
 
 Loader.prototype._map = {};
 Loader.prototype._originalMap = {};
@@ -532,5 +565,7 @@ Loader.IMAGE_LOADED = 'imageLoaded';
 exports = new Loader();
 
 exports.IMAGE_LOADED = Loader.IMAGE_LOADED;
+exports.LOW_RES_ENABLED = LOW_RES_ENABLED;
+exports.LOW_RES_KEY = LOW_RES_KEY;
 
 export default exports;

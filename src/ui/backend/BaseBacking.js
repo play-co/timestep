@@ -1,5 +1,3 @@
-let exports = {};
-
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -15,26 +13,18 @@ let exports = {};
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
+
 import setProperty from 'util/setProperty';
 
 // keys map to properties
 var BASE_STYLE_PROPS = {
   'x': { value: 0 },
   'y': { value: 0 },
-  'offsetX': { value: 0 },
   // translate
+  'offsetX': { value: 0 },
   'offsetY': { value: 0 },
-  'offsetXPercent': {
-    value: undefined,
-    cb: '_onOffsetX'
-  },
-  // not implemented
-  'offsetYPercent': {
-    value: undefined,
-    cb: '_onOffsetY'
-  },
-  'anchorX': { value: 0 },
   // rotation and scale
+  'anchorX': { value: 0 },
   'anchorY': { value: 0 },
   'centerAnchor': { value: false },
   'width': { cb: '_onResize' },
@@ -51,14 +41,13 @@ var BASE_STYLE_PROPS = {
   'flipX': { value: false },
   'flipY': { value: false },
   'visible': { value: true },
-  'shadowColor': { value: 'black' },
-  // only has an effect in TextView??
   'clip': { value: false },
   'backgroundColor': { value: '' },
-  'compositeOperation': { value: undefined }
+  'compositeOperation': { value: '' }
 };
 
-exports = class {
+export default class BaseBacking {
+
   localizePoint (pt) {
     pt.x -= this.x + this.anchorX + this.offsetX;
     pt.y -= this.y + this.anchorY + this.offsetY;
@@ -70,34 +59,39 @@ exports = class {
     pt.y += this.anchorY;
     return pt;
   }
+
   copy () {
     var copy = {};
-    for (var key in styleKeys) {
+
+    for (var i = 0; i < styleKeyList.length; i++) {
+      var key = styleKeyList[i];
       copy[key] = this[key];
     }
 
     return copy;
   }
+
   update (style) {
-    for (var i in style) {
-      if (style.hasOwnProperty(i) && styleKeys.hasOwnProperty(i)) {
-        this[i] = style[i];
+    for (var i = 0; i < styleKeyList.length; i++) {
+      var key = styleKeyList[i];
+      if (style[key] !== void 0) {
+        this[key] = style[key];
       }
     }
     return this;
   }
+
 };
-var BaseBacking = exports;
 
 var styleKeys = BaseBacking.prototype.constructor.styleKeys = {};
+var styleKeyList = [];
 
 BaseBacking.prototype.constructor.addProperty = function (key, def) {
   styleKeys[key] = true;
+  styleKeyList.push(key);
   setProperty(BaseBacking.prototype, key, def);
 };
 
 for (var key in BASE_STYLE_PROPS) {
   BaseBacking.prototype.constructor.addProperty(key, BASE_STYLE_PROPS[key]);
 }
-
-export default exports;
