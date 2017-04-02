@@ -56,6 +56,11 @@ class FilterRenderer {
     pendingChecks = {};
   }
   renderFilter (ctx, srcImg, srcX, srcY, srcW, srcH) {
+    // canvas filters are currently broken
+    if (!this.useWebGL) {
+      return null;
+    }
+
     if (needsInitialization) {
       this.initialize();
     }

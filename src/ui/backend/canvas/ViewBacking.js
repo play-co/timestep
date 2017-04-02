@@ -37,6 +37,7 @@ var cos = Math.cos;
 var ADD_COUNTER = 900000;
 
 exports = class extends BaseBacking {
+
   constructor (view) {
     super();
 
@@ -57,9 +58,11 @@ exports = class extends BaseBacking {
     this._subviews = [];
     this._childCount = 0;
   }
+
   getSuperview () {
     return this._superview;
   }
+
   getSubviews () {
     if (this._needsSort) {
       this._needsSort = false;
@@ -74,6 +77,7 @@ exports = class extends BaseBacking {
 
     return subviews;
   }
+
   addSubview (view) {
     var backing = view.__view;
     var superview = backing._superview;
@@ -97,6 +101,7 @@ exports = class extends BaseBacking {
 
     return true;
   }
+
   removeSubview (targetView) {
     var index = this._subviews.indexOf(targetView.__view);
     if (index != -1) {
@@ -110,6 +115,7 @@ exports = class extends BaseBacking {
 
     return false;
   }
+
   wrapTick (dt, app) {
     this._view._tick && this._view._tick(dt, app);
 
@@ -118,6 +124,7 @@ exports = class extends BaseBacking {
       views[i].wrapTick(dt, app);
     }
   }
+
   updateGlobalTransform () {
     var flipX = this.flipX ? -1 : 1;
     var flipY = this.flipY ? -1 : 1;
@@ -173,6 +180,7 @@ exports = class extends BaseBacking {
       gt.ty = tx * pgt.b + ty * pgt.d + pgt.ty;
     }
   }
+
   wrapRender (ctx, opts) {
     if (!this.visible) {
       return;
@@ -229,12 +237,14 @@ exports = class extends BaseBacking {
       ctx.restore();
     }
   }
+
   _renderSubviews (ctx, opts) {
     var subviews = this._subviews;
     for (var i = 0; i < this._childCount; i++) {
       subviews[i].wrapRender(ctx, opts);
     }
   }
+
   _onResize (prop, value, prevValue) {
     // child view properties might be invalidated
     this._view.needsReflow();
@@ -246,6 +256,7 @@ exports = class extends BaseBacking {
       s.anchorY = (s.height || 0) / 2;
     }
   }
+
   _onZIndex (_, zIndex) {
     this._sortIndex = strPad.pad(zIndex);
 
@@ -257,23 +268,30 @@ exports = class extends BaseBacking {
       superview.__view._needsSort = true;
     }
   }
+
   _setAddedAt (addedAt) {
     this._addedAt = addedAt;
     this._setSortKey();
   }
+
   _setSortKey () {
     this.__sortKey = this._sortIndex + this._addedAt;
   }
+
   _onOffsetX (n) {
     this.offsetX = n * this.width / 100;
   }
+
   _onOffsetY (n) {
     this.offsetY = n * this.height / 100;
   }
+
   toString () {
     return this.__sortKey;
   }
+
 };
+
 exports.prototype._sortIndex = strPad.initialValue;
 var ViewBacking = exports;
 

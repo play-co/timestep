@@ -36,23 +36,17 @@ exports.frames = 0;
 exports.reset = function () {
   this._last = null;
 };
-exports.tick = function (dt) {
-  var ok = false;
-  try {
-    if (dt > CONFIG.maxTick) {
-      exports.onLargeTick(dt, CONFIG.maxTick);
-      dt = 1;
-    }
 
-    exports.now += dt;
-    exports.frames++;
-    exports.onTick(dt);
-    ok = true;
-  } finally {
-    if (exports.debug && !ok) {
-      app.stopLoop();
-    }
+var MAX_TICK = CONFIG.maxTick;
+
+exports.tick = function (dt) {
+  if (dt > MAX_TICK) {
+    dt = MAX_TICK;
   }
+
+  exports.now += dt;
+  exports.frames++;
+  exports.onTick(dt);
 };
 
 /**
