@@ -21,10 +21,12 @@ let exports = {};
  * System timer exposed to the device.
  */
 
+import WebGLContext2D from './webgl/WebGLContext2D';
+
 var _onTick = null;
-var disableRequestAnimFrame = true;
+var disableRequestAnimFrame = !WebGLContext2D.isSupported;
 var disablePostMessage = false;
-var asFastAsPossible = true;
+var asFastAsPossible = !WebGLContext2D.isSupported;
 var MIN_DT = 16;
 
 if (window.postMessage) {
