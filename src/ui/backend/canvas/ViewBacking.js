@@ -1,5 +1,3 @@
-let exports = {};
-
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -15,11 +13,13 @@ let exports = {};
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
+
 /**
  * @package ui.backend.canvas.ViewStyle;
  *
  * Models the style object of the canvas View.
  */
+
 import strPad from '../strPad';
 import BaseBacking from '../BaseBacking';
 
@@ -31,12 +31,12 @@ var IDENTITY_MATRIX = {
   tx: 0,
   ty: 0
 };
+
 var sin = Math.sin;
 var cos = Math.cos;
-
 var ADD_COUNTER = 900000;
 
-exports = class extends BaseBacking {
+export default class ViewBacking extends BaseBacking {
 
   constructor (view) {
     super();
@@ -120,7 +120,8 @@ exports = class extends BaseBacking {
     this._view._tick && this._view._tick(dt, app);
 
     var views = this._subviews;
-    for (var i = 0; i < this._childCount; ++i) {
+    var count = this._childCount;
+    for (var i = 0; i < count; ++i) {
       views[i].wrapTick(dt, app);
     }
   }
@@ -290,9 +291,8 @@ exports = class extends BaseBacking {
     return this.__sortKey;
   }
 
-};
+}
 
-exports.prototype._sortIndex = strPad.initialValue;
-var ViewBacking = exports;
 
-export default exports;
+
+ViewBacking.prototype._sortIndex = strPad.initialValue;
