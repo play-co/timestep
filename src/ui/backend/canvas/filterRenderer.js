@@ -39,6 +39,7 @@ var currentFrame = 0;
 var needsInitialization = true;
 
 class FilterRenderer {
+
   initialize () {
     Canvas = device.get('Canvas');
     noCacheCanvas = new Canvas({ useWebGL: CONFIG.useWebGL });
@@ -50,12 +51,19 @@ class FilterRenderer {
       Engine.get().subscribe('Tick', this, this.onTick);
     }
   }
+
   onTick (dt) {
     currentFrame++;
     activeChecks = pendingChecks;
     pendingChecks = {};
   }
+
   renderFilter (ctx, srcImg, srcX, srcY, srcW, srcH) {
+    // canvas filters are currently broken, so bail out until they're fixed
+    if (!this.useWebGL || !noCacheCanvas.isWebGL) {
+      return null;
+    }
+
     if (needsInitialization) {
       this.initialize();
     }
@@ -122,10 +130,12 @@ class FilterRenderer {
 
     return resultImg;
   }
+
   testShouldCache (key) {
     var checkFrame = pendingChecks[key] = activeChecks[key] || currentFrame;
     return currentFrame - checkFrame > CACHE_FRAME_THRESHOLD;
   }
+
   renderColorFilter (ctx, srcImg, srcX, srcY, srcW, srcH, filter, op, destCanvas) {
     var result = destCanvas;
     var resultCtx = result.getContext('2d');
@@ -141,6 +151,7 @@ class FilterRenderer {
     srcImg.render(resultCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
     return result;
   }
+
   renderMultiply (ctx, srcImg, srcX, srcY, srcW, srcH, filter, destCanvas) {
     var color = filter.get();
     var result = destCanvas;
@@ -161,6 +172,7 @@ class FilterRenderer {
     resultCtx.putImageData(imgData, 0, 0);
     return result;
   }
+
   renderMask (ctx, srcImg, srcX, srcY, srcW, srcH, mask, op, destCanvas) {
     var result = destCanvas;
     var resultCtx = result.getContext('2d');
@@ -177,9 +189,11 @@ class FilterRenderer {
     srcImg.render(resultCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
     return result;
   }
+
   clearCache () {
     this.cache.removeAll();
   }
+
   getCacheKey (url, srcX, srcY, srcW, srcH, filter) {
     var filterType = filter && filter.getType && filter.getType();
     var suffix;
@@ -194,6 +208,7 @@ class FilterRenderer {
       srcW + '|' + srcH + '|' + suffix;
     return cacheKey;
   }
+
   getCanvas (width, height) {
     var result;
     if (unusedCanvas) {
@@ -209,6 +224,7 @@ class FilterRenderer {
     }
     return result;
   }
+
 }
 
 FilterRenderer.prototype.cache = new LRUCache(CACHE_SIZE);

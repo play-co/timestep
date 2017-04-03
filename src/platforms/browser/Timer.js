@@ -20,11 +20,14 @@ let exports = {};
  *
  * System timer exposed to the device.
  */
-var _onTick = null,
-  disableRequestAnimFrame = false,
-  disablePostMessage = true,
-  asFastAsPossible = false,
-  MIN_DT = 16;
+
+import WebGLContext2D from './webgl/WebGLContext2D';
+
+var _onTick = null;
+var disableRequestAnimFrame = !WebGLContext2D.isSupported;
+var disablePostMessage = false;
+var asFastAsPossible = !WebGLContext2D.isSupported;
+var MIN_DT = 16;
 
 if (window.postMessage) {
   function postMessageCb (evt) {
@@ -101,35 +104,11 @@ var slow = 0, fast = 0;
 */
 function onFrame () {
   if (_onTick) {
-    var now = Date.now(),
-      dt = now - (exports.last || now);
+    var now = Date.now();
+    var dt = now - (exports.last || now);
 
     exports.last = now;
 
-    // try {
-    _onTick(dt);
-
-    /* } catch (e) {
-      if (window.DEV_MODE) {
-        var err = '.dev_error';
-        jsio('import ' + err).render(e);
-        exports.stop();
-      }
-    }*/
-    /*
-    frameDts.push(dt);
-    var delay = +new Date() - now;
-    ++frames;
-    if (print) {
-      logger.log(fast, slow, JSON.stringify(frameDts), now - lastPrint, dt, frames, delay);
-      frameDts = [];
-      lastPrint = now;
-      print = false;
-      frames = 0;
-      slow = 0;
-      fast = 0;
-    }
-    */
     if (dt > MIN_DT) {
       //  ++fast;
       driverId = fastDriver.call(window, onFrame);
@@ -137,6 +116,8 @@ function onFrame () {
       //  ++slow;
       driverId = mainDriver.call(window, onFrame);
     }
+
+    _onTick(dt);
   }
 }
 
