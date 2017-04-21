@@ -32,6 +32,9 @@ var isIPhoneOS = /iPhone OS/.test(ua);
 var isSafari = /Safari/.test(ua);
 var isChrome = /Chrome/.test(ua);
 var isFirefox = /Firefox/.test(ua);
+var isIE = /MSIE/.test(ua);
+var isIE11 = /Trident/.test(ua);
+var isEdge = /Edge/.test(ua);
 var isSimulator = GLOBAL.CONFIG && !!CONFIG.simulator;
 
 var appRuntime = 'unknown';
@@ -81,6 +84,12 @@ if (isChrome) {
   browserType = 'Firefox';
   browserVersionString = ua.match(/Firefox[/\s][\d.]+/)[0];
   browserVersion = browserVersionString.match(/[\d.]+/)[0];
+} else if (isIE) {
+  browserType = 'Internet Explorer';
+} else if (isIE11) {
+  browserType = 'Internet Explorer';
+} else if (isEdge) {
+  browserType = 'Edge';
 }
 
 class UserAgent {
