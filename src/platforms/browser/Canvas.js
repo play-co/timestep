@@ -49,6 +49,7 @@ exports = class {
 
     var el = this._el = ctx.getElement();
 
+    el.isWebGL = this.isWebGL;
     el.complete = true;
 
     if (el.style) {

@@ -48,11 +48,12 @@ class FilterRenderer {
     Canvas = device.get('Canvas');
     noCacheCanvas = new Canvas({ useWebGL: CONFIG.useWebGL });
     needsInitialization = false;
-    this.useCache = !device.isNative && !CONFIG.useWebGL;
-    this.useWebGL = CONFIG.useWebGL;
+    var engine = Engine.get();
+    this.useWebGL = engine.useWebGL;
+    this.useCache = !this.useWebGL;
     if (this.useCache) {
       // If we're using canvas caching, set up the tick subscription
-      Engine.get().subscribe('Tick', this, this.onTick);
+      engine.subscribe('Tick', this, this.onTick);
     }
   }
 
