@@ -25,6 +25,10 @@ import LRUCache from 'cache/LRUCache';
 import device from 'device';
 import Engine from 'ui/Engine';
 
+import userAgent from 'userAgent';
+
+const COMPOSITE_MULTIPLY_SUPPORTED = userAgent.browserType !== 'Internet Explorer';
+
 var Canvas = null;
 var noCacheCanvas = null;
 var unusedCanvas = null;
@@ -59,14 +63,10 @@ class FilterRenderer {
   }
 
   renderFilter (ctx, srcImg, srcX, srcY, srcW, srcH) {
-    // canvas filters are currently broken, so bail out until they're fixed
-    if (!this.useWebGL || !noCacheCanvas.isWebGL) {
-      return null;
-    }
-
     if (needsInitialization) {
       this.initialize();
     }
+
     var filter = ctx.filter;
     var filterName = filter && filter.getType && filter.getType();
 
@@ -79,8 +79,7 @@ class FilterRenderer {
     }
 
     if (this.useCache) {
-      var cacheKey = this.getCacheKey(srcImg.getURL(), srcX, srcY, srcW, srcH,
-        filter);
+      var cacheKey = this.getCacheKey(srcImg.getURL(), srcX, srcY, srcW, srcH, filter);
       var resultImg = this.cache.get(cacheKey);
       if (resultImg) {
         return resultImg;
@@ -98,28 +97,27 @@ class FilterRenderer {
 
     switch (filterName) {
       case 'LinearAdd':
-        this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter,
-        'lighter', resultImg);
+        this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter, 'lighter', resultImg);
         break;
 
       case 'Tint':
-        this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter,
-        'source-over', resultImg);
+        this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter, 'source-over', resultImg);
         break;
 
       case 'Multiply':
-        this.renderMultiply(ctx, srcImg, srcX, srcY, srcW, srcH, filter,
-        resultImg);
+        if (COMPOSITE_MULTIPLY_SUPPORTED) {
+          this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter, 'multiply', resultImg);
+        } else {
+          this.renderMultiply(ctx, srcImg, srcX, srcY, srcW, srcH, filter, resultImg);
+        }
         break;
 
       case 'NegativeMask':
-        this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(),
-        'source-in', resultImg);
+        this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(), 'source-in', resultImg);
         break;
 
       case 'PositiveMask':
-        this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(),
-        'source-out', resultImg);
+        this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(), 'source-out', resultImg);
         break;
     }
 
