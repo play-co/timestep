@@ -31,7 +31,7 @@ import Emitter from 'event/Emitter';
 import AudioManager from 'AudioManager';
 import userAgent from 'userAgent';
 
-var LOW_RES_KEY = '__dk_low_res';
+var LOW_RES_KEY = 'low_res_';
 var LOW_RES_ENABLED = false;
 if (userAgent.OS_TYPE === 'Android') {
   LOW_RES_ENABLED = CONFIG.android.enableLowRes;
