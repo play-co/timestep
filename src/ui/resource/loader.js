@@ -39,6 +39,22 @@ if (userAgent.OS_TYPE === 'Android') {
   LOW_RES_ENABLED = CONFIG.ios.enableLowRes;
 }
 
+// special application resolution settings
+var RES_KEY = CONFIG.appID + '.resolution';
+var _resolution = '';
+
+try {
+  _resolution = localStorage.getItem(RES_KEY) || '';
+} catch (e) {}
+
+if (_resolution === 'LOW') {
+  LOW_RES_ENABLED = true;
+} else if (_resolution === 'HIGH') {
+  LOW_RES_ENABLED = false;
+}
+
+
+
 var _cache = {};
 
 var MIME = {
@@ -567,5 +583,10 @@ exports = new Loader();
 exports.IMAGE_LOADED = Loader.IMAGE_LOADED;
 exports.LOW_RES_ENABLED = LOW_RES_ENABLED;
 exports.LOW_RES_KEY = LOW_RES_KEY;
+
+exports.setLowResEnabled = function (value) {
+  LOW_RES_ENABLED = value;
+  exports.LOW_RES_ENABLED = value;
+};
 
 export default exports;
