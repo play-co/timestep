@@ -13,7 +13,7 @@ exports.clear = function () {
 };
 
 
-exports.getImage = function (url, forceReload) {
+exports.getImage = function (url, forceReload, crossOrigin) {
   var img;
   if (!forceReload) {
     img = exports.cache[url];
@@ -22,7 +22,8 @@ exports.getImage = function (url, forceReload) {
   if (!img) {
     img = exports.cache[url] = new Image({
       url: url,
-      forceReload: !!forceReload
+      forceReload: !!forceReload,
+      crossOrigin: crossOrigin
     });
   }
 
