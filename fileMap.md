@@ -1,0 +1,189 @@
+# timestep filemap
+
+- `animate/`
+  - `transitions.js` - Includes transition functions for use by the animate features
+- `cache/`
+  - `LRUCache.js`
+  - `ObjectPool.js` - Class to cache/"recycle" objects
+- `event/`
+  - `input/`
+    - `InputEvent.js` - Class representing an input event
+    - `InputHandler.js` - Handles input for individual views
+    - `KeyHandler.js` - Implements a simple Key listener
+    - `dispatch.js` - Functions to dispatch touch events
+    - `drag.js` - Contains helper functions related to dragging
+    - `keys.js` - Contains list of keys
+  - `Callback.js` - Namespace shim to bring in Callback from jsio
+  - `Emitter.js` - Namespace shim to bring in PubSub from jsio
+- `math/`
+  - `geom/`
+    - `Circle.js`
+    - `Line.js`
+    - `Point.js`
+    - `Polygon.js`
+    - `Rect.js`
+    - `Vec2D.js`
+    - `angle.js`
+    - `intersect.js`
+  - `array.js` - Helper functions related to arrays
+  - `random.js` - Random number generator
+  - `util.js` - Util functions
+- `platforms/`
+  - `browser/`
+    - `Audio.js` - Audio implementation using the \<audio\> element for browsers
+    - `Canvas.js` - Canvas implementation for browsers. Wraps a Context2D.
+    - `Context2D.js` - Generates a rendering context by creating our own Canvas element.
+    - `EditText.js` - 
+    - `FlashAPI.js` - Flash audio class
+    - `FontBuffer.js` - Font buffer
+    - `FontRenderer.js` - Render fonts or custom fonts on a Canvas context.
+    - `Input.js` - Input class, binds touch or mouse events on the document
+    - `InputPrompt.js` - Prompt the user manually for input.
+    - `KeyListener.js` - Listens to pressed keys and exposes them
+    - `MobileBrowserAPI.js`
+    - `SoundManager.js` - Manages sound
+    - `StatusBar.js` - Empty class ???
+    - `TextBox.js` - Textbox class for inputting data
+    - `TextInput.js` - Textbox class for inputting data (what's the diff between this and TextBox.js???)
+    - `Timer.js` - System timer exposed to the device.
+    - `__imports__.js`
+    - `cache-worker.js` - Cache worker
+    - `cache.js` - Cache manager
+    - `chromeFrame.js`
+    - `dev_error.js` - Display a developer error
+    - `doc.js`
+    - `dom.js` - Helper functions related to DOM (?)
+    - `exportSettings.js`
+    - `facebook.js`
+    - `facebookApp.js` - Creates and manages Facebook app
+    - `importSettings.js` - Import settings from url (?)
+    - `initialize.js` - Initialize function
+    - `inputDialog.js` - Prompt the user manually for input.
+    - `launchClient.js` - Starts app
+- `preprocessors/`
+  - `cls.js`
+  - `compiler.js`
+  - `import.js`
+  - `inlineSlice.js`
+  - `logger.js`
+- `ui/`
+  - `bitmapFont/`
+    - `BitmapChar.js` - Class representing a bitmap char
+    - `BitmapFont.js` - Bitmap font
+    - `BitmapFontTextView.js` - TextView using bitmap
+    - `BitmapFontTextViewBacking.js`
+    - `BitmapFontTextViewCanvas.js`
+  - `debug/`
+    - `ConsoleView.js`
+    - `FPSView.js` - View which renders the FPS when showFPS is set to true
+    - `deprecated.js`
+    - `types.js`
+  - `layout/`
+    - `BackingExtension.js`
+    - `BoxLayout.js`
+    - `LinearLayout.js` - A class to direct the layout of its parent view, set through opts.parent
+    - `Padding.js` - A simple class to express padding view
+  - `resource/`
+    - `Font.js` - Font string parser
+    - `Image.js` - Model an Image for rendering
+    - `ImageViewCache.js` - Cache of Images for ImageView and ImageScaleView
+    - `i18n.js` - Class to provide localization support for string JSON files
+    - `loader.js` - Class to load files
+  - `sound/`
+    - `AudioLoader.js` - Class designed to work with HTML5 AudioContext
+    - `AudioManager.js` - Implements platform-aware Audio support
+  - `util/`
+    - `FragmentBin.js`
+    - `FragmentBuffer.js`
+    - `SortedLinkedList.js`
+  - `webgl/`
+    - `FontLoader.js` - Class to load fonts
+    - `Matrix2D.js` - Matrix2D class
+    - `Shaders.js` - Shaders class
+    - `TextManager.js` - Text manager
+    - `WebGLContext2D.js` - Generates a WebGL rendering context by creating our own Canvas element
+    - `WebGLTextureManager.js` - Texture manager for WebGL
+  - `widget/`
+    - `ButtonView.js`
+    - `CellView.js`
+    - `GridView.js`
+    - `ListView.js`
+    - `SliderView.js`
+    - `Spinner.js` - Spinner widget
+    - `Toast.js` - Toast widget
+  - `BaseBacking.js` - Base style class
+  - `BlendEngine.js`
+  - `Button.js` - Button with TextView
+  - `CellView.js`
+  - `Color.js` - Class to represent colours
+  - `DPRScaleView.js`
+  - `Engine.js` - Main game engine class for timestep
+  - `GestureView.js`
+  - `IView.js` - ?
+  - `ImageScaleView.js`
+  - `ImageView.js` - Import the ImageView from the Canvas/DOM rendering backend
+  - `InputPrompt.js` - Shows a native dialog that prompts the user for input
+  - `ListView.js`
+  - `ParticleEngine.js`
+  - `ReflowManager.js`
+  - `ScoreView.js` - This class is designed for high performance text rendering using images
+  - `ScrollView.js`
+  - `SpriteView.js` - SpriteView pulls out sprited images and renders them at a given FPS interval
+  - `StackView.js` - Implements a view which can switch out one of several child views to display at the front
+  - `TextEditView.js`
+  - `TextFlow.js`
+  - `TextInputView.js`
+  - `TextPromptView.js` - Implements a view that can accept input using the environment's InputPrompt
+  - `TextView.js` - TextView implementation
+  - `View.js` - View class
+  - `ViewBacking.js` - Models the style object of the canvas View
+  - `ViewDebugger.js`
+  - `ViewPool.js` - facilitates easy view re-use
+  - `__imports__.js`
+  - `animate.js` - Canvas animate namespace and functions.
+  - `effectsEngine.js`
+  - `engineInstance.js`
+  - `filter.js`
+  - `filterRenderer.js` - Renders filter effects to a canvas. Manages filtered canvas caching
+  - `init.js`
+  - `keyboardTypes.js`
+  - `launchBrowser.js` - This file bootstraps the loading screen in a web browser
+  - `legacySettings.js`
+  - `renderer.js` - Handles some rendering
+- `util/`
+  - `api/`
+    - `Promise.js` - Promise class
+    - `ff.js`
+    - `nextTick.js` - nextTick function
+  - `std/`
+    - `JSON.js`
+    - `XML.js`
+    - `base64.js`
+    - `uri.js`
+    - `utf8.js`
+    - `uuid.js`
+  - `string/`
+    - `pad.js`
+    - `timeAgo.js`
+  - `Animation.js`
+  - `ajax.js`
+  - `browser.js`
+  - `browserdetect.js`
+  - `esprima.js`
+  - `formatNumber.js`
+  - `jslint.js`
+  - `jsonSchema.js`
+  - `optparse.js`
+  - `parseJS.js`
+  - `path.js`
+  - `setProperty.js`
+  - `sizzle.js`
+  - `sprintf.js`
+  - `syntax.js`
+  - `underscore.js`
+  - `wordWrap.js`
+- `device.js` - Namespace for the current device
+- `performance.js`
+- `platformImport.js`
+- `timer.js` - Implements an independent, singleton timer for use by the environment
+- `userAgent.js` - Retrieves information from userAgent

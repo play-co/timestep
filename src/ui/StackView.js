@@ -15,32 +15,17 @@ let exports = {};
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-/**
- * @class ui.StackView;
- * Implements a view which can switch out one of several child views to display at the front.
- *
- * @doc http://doc.gameclosure.com/api/ui-stackview.html
- * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/stackview.md
- */
-import {
-  merge,
-  bind
-} from 'base';
+import { bind } from 'base';
 
 import View from 'ui/View';
-import animate from 'animate';
 
 /**
- * @extends ui.View
+ * @extends timestep.dom.View
  */
 exports = class extends View {
   constructor (opts) {
-    opts = merge(opts, { layout: 'box' });
-    super(opts);
+    super(...arguments);
     this.stack = [];
-  }
-  getStack () {
-    return this.stack;
   }
   getCurrentView () {
     if (!this.stack.length) {
@@ -48,7 +33,7 @@ exports = class extends View {
     }
     return this.stack[this.stack.length - 1];
   }
-  push (view, dontAnimate, reverse) {
+  push (view, dontAnimate) {
     // don't animate the first (base) view of a stackview unless explicitly asked to
     if (!this.stack[0] && dontAnimate !== false) {
       dontAnimate = true;
@@ -58,58 +43,50 @@ exports = class extends View {
     if (current) {
       this._hide(current, dontAnimate);
     }
-    view.style.y = 0;
-    view.style.width = this.style.width / view.style.scale;
-    view.style.height = this.style.height / view.style.scale;
+    view.style.width = this.style.width;
+    view.style.height = this.style.height;
     this.stack.push(view);
-    this._show(view, dontAnimate, reverse);
+    this._show(view, dontAnimate);
     return view;
   }
-  _hide (view, dontAnimate, reverse) {
+  _hide (view, dontAnimate, backward) {
     view.publish('ViewWillDisappear');
     if (!dontAnimate) {
-      this.getInput().blockEvents = true;
-      animate(view).then({ x: (reverse ? 1 : -1) * this.style.width }).then(
-        bind(this, function () {
-          this.removeSubview(view);
-          view.publish('ViewDidDisappear');
-          this.getInput().blockEvents = false;
-        }));
+      // Prevent touches from triggering buttons/UI on the
+      // disappearing view. Unfortunately, canHandleEvents()
+      // doesn't affect subviews, so an overlay is added here
+      // so that touches just don't go through while it animates out.
+      var overlay = new View({
+        parent: view,
+        zIndex: 100000
+      });
+      view.then({ x: (backward ? 1 : -1) * view.style.width }).then(bind(
+        this, 'removeSubview', view)).then(bind(view, 'publish',
+        'ViewDidDisappear')).then(bind(overlay, 'removeFromSuperview'));
     } else {
       this.removeSubview(view);
       view.publish('ViewDidDisappear');
     }
   }
-  _show (view, dontAnimate, reverse) {
+  _show (view, dontAnimate, backward) {
     view.publish('ViewWillAppear');
     view.style.visible = true;
     if (!dontAnimate) {
-      view.style.x = (reverse ? -1 : 1) * this.style.width;
+      view.style.x = (backward ? -1 : 1) * this.style.width;
       this.addSubview(view);
-      animate(view).then({ x: 0 }).then(bind(view, 'publish',
-        'ViewDidAppear'));
+      view.then({ x: 0 }).then(bind(view, 'publish', 'ViewDidAppear'));
     } else {
       this.addSubview(view);
       view.style.x = 0;
       view.publish('ViewDidAppear');
     }
   }
-  hasView (view) {
-    return this.stack.indexOf(view) >= 0;
-  }
-  remove (view) {
-    var i = this.stack.indexOf(view);
-    if (i >= 0) {
-      this.stack.splice(i, 1);
-    }
-  }
-  pop (dontAnimate, reverse) {
+  pop (dontAnimate) {
     if (!this.stack.length) {
       return false;
     }
     var view = this.stack.pop();
-    // reverse by default
-    this._hide(view, dontAnimate, reverse === false ? false : true);
+    this._hide(view, dontAnimate, true);
 
     if (this.stack.length) {
       this._show(this.stack[this.stack.length - 1], dontAnimate, true);

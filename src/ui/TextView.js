@@ -16,14 +16,227 @@ let exports = {};
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 /**
- * @class ui.TextView;
- * Import the Canvas/DOM implementation of TextView.
+ * @package ui.backend.dom.TextView;
  *
- * @doc http://doc.gameclosure.com/api/ui-text.html#class-ui.textview
- * @docsrc https://github.com/gameclosure/doc/blob/master/api/ui/text.md
+ * TextView implementation for DOM.
  */
-import { importUI } from 'platformImport';
-const TextView = importUI('TextView');
-exports = TextView;
+import {
+  merge,
+  isArray
+} from 'base';
 
+import View from 'ui/View';
+import device from 'device';
+
+var defaults = {
+  // layout properties...
+  wrap: false,
+  autoSize: false,
+  autoFontSize: true,
+  verticalPadding: 0,
+  horizontalPadding: 0,
+  lineHeight: 1.2,
+  // font properties...
+  color: '#000000',
+  fontFamily: device.defaultFontFamily,
+  fontWeight: '',
+  size: 128,
+  lineWidth: 2,
+  strokeColor: '',
+  shadowColor: '',
+  // alignment properties...
+  verticalAlign: 'middle',
+  horizontalAlign: 'center',
+  // misc properties...
+  backgroundColor: ''
+};
+
+var TOLERANCE = 1;
+
+/**
+ * @extends ui.View
+ */
+exports = class extends View {
+  constructor (opts) {
+    super(merge(opts, defaults));
+
+    var el = this._textNode = document.createElement('div');
+    el.className = 'view text';
+
+    // el.style.position = 'relative';
+    this.__view.getElement().appendChild(el);
+  }
+  updateOpts (opts) {
+    opts = super.updateOpts(...arguments);
+
+    var s = this.__view.getElement().style;
+
+    if (opts.horizontalPadding) {
+      if (isArray(opts.horizontalPadding)) {
+        s.paddingLeft = opts.horizontalPadding[0] + 'px';
+        s.paddingRight = opts.horizontalPadding[0] + 'px';
+      } else {
+        s.paddingLeft = opts.horizontalPadding + 'px';
+        s.paddingRight = opts.horizontalPadding + 'px';
+      }
+    }
+
+    if (opts.verticalPadding) {
+      if (isArray(opts.verticalPadding)) {
+        s.paddingTop = opts.verticalPadding[0] + 'px';
+        s.paddingBottom = opts.verticalPadding[0] + 'px';
+      } else {
+        s.paddingTop = opts.verticalPadding + 'px';
+        s.paddingBottom = opts.verticalPadding + 'px';
+      }
+    }
+
+    if (opts.color) {
+      s.color = opts.color;
+    }
+    if (opts.size) {
+      this._fontSize = opts.size;
+    }
+    if (opts.fontFamily) {
+      s.fontFamily = opts.fontFamily;
+    }
+    if (opts.horizontalAlign) {
+      s.textAlign = opts.horizontalAlign;
+    }
+    if (opts.verticalAlign) {
+      this._verticalAlign = opts.verticalAlign;
+    }
+    if (opts.fontWeight) {
+      s.fontWeight = opts.fontWeight;
+    }
+    if (opts.shadowColor) {
+      s.textShadow = opts.shadowColor + ' 2px 2px 1px';
+    }
+    if (opts.lineHeight) {
+      s.lineHeight = opts.lineHeight * opts.size + 'px';
+    }
+    if (opts.strokeColor) {
+      this._updateStroke();
+    }
+    if (!opts.wrap) {
+      s.whiteSpace = 'nowrap';
+    }
+
+    // s.display = 'table';
+    this.setText(opts.text || '');
+  }
+  getText () {
+    return this._text;
+  }
+  reflow () {
+    var opts = this._opts;
+    var node = this._textNode;
+    if (node) {
+      if (opts.autoSize) {
+        var idealHeight = node.scrollHeight;
+        if (!this.style.height || this.style.height < idealHeight) {
+          this.style.height = idealHeight;
+        }
+      }
+
+      // use binary-search to fit text into dom node
+      if (opts.autoFontSize) {
+        var step, size;
+        step = size = this._fontSize;
+
+        if (!opts.wrap) {
+          // fit width
+          do {
+            var currentWidth = node.scrollWidth;
+            var diff = currentWidth - this.style.width;
+            if (diff > TOLERANCE) {
+              size -= step /= 2;
+              node.style.fontSize = size + 'px';
+              continue;
+            }
+          } while (false);
+        }
+
+        // fit height
+        do {
+          var currentHeight = node.scrollHeight;
+          var diff = currentHeight - this.style.height;
+          if (diff > TOLERANCE) {
+            size -= step /= 2;
+            node.style.fontSize = size + 'px';
+            continue;
+          }
+        } while (false);
+
+        this._computedFontSize = size;
+        node.style.lineHeight = opts.lineHeight * size + 'px';
+      }
+
+      this._computeVerticalAlign();
+
+      if (this._strokeNode) {
+        this._strokeNode.style.width = this._fillNode.offsetWidth + 'px';
+      }
+    }
+  }
+  setText (text) {
+    if (typeof text == 'function') {
+      return text(this);
+    }
+
+    text = text != undefined ? text.toString() : '';
+
+    if (this._text != text) {
+      this._text = text;
+
+      if (this._strokeNode) {
+        this._fillNode.innerText = text;
+        this._strokeNode.innerText = text;
+      } else {
+        this._textNode.innerText = text;
+      }
+
+      this._textNode.style.fontSize = this._fontSize + 'px';
+      this.needsReflow();
+    }
+  }
+  _computeVerticalAlign () {
+    var s = this._textNode.style;
+    var opts = this._opts;
+    var fontSize = this._computedFontSize || this._fontSize;
+    var lineSize = opts.lineHeight * fontSize;
+    var numLines = Math.round(this._textNode.offsetHeight / lineSize);
+
+    var padding = this.style.padding;
+    var offset = padding.top;
+    if (opts.verticalAlign == 'middle') {
+      offset += (this.style.height - padding.top - padding.bottom - (
+        numLines > 1 ? opts.lineHeight * numLines : 1) * fontSize) / 2;
+    }
+
+    this._textNode.style.marginTop = offset + 'px';
+  }
+  _updateStroke () {
+    var opts = this._opts;
+    if (opts.strokeColor && opts.strokeWidth) {
+      if (!this._strokeNode) {
+        this._textNode.innerHTML =
+          '<span style="position:relative"><span></span><span style="position:absolute;left:0;top:1px;right:0px;z-index:-1"></span></span>';
+        this._fillNode = this._textNode.childNodes[0].childNodes[0];
+        this._strokeNode = this._textNode.childNodes[0].childNodes[1];
+      }
+
+      // this._strokeNode.style.left = -opts.strokeWidth / 2 + 'px';
+      this._strokeNode.style.webkitTextStroke = opts.strokeWidth * 1 +
+        'px ' + opts.strokeColor;
+      this.needsReflow();
+    } else if (this._strokeNode) {
+      this._strokeNode = null;
+      this._fillNode = null;
+      this.setText(this._text);
+    }
+  }
+};
+
+exports.prototype._displayStyle = 'table';
 export default exports;
