@@ -20,7 +20,10 @@ let exports = {};
  *  class instances can be very costly to garbage collect and initialize, so
  *  be good to the environment, and always recycle!
  */
-exports = class {
+class ObjectPool {
+  _ctor: any;
+  _pool: any[];
+  _freshIndex: number;
   constructor (opts) {
     this._ctor = opts.ctor;
     this._pool = [];
@@ -77,4 +80,4 @@ exports = class {
   }
 };
 
-export default exports;
+export default ObjectPool;
