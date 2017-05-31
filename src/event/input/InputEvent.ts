@@ -48,11 +48,23 @@ let exports = {};
  * @doc http://doc.gameclosure.com/api/event.html#class-event.input.inputevent
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/event.md
  */
-import Point from 'math/geom/Point';
+import Point from '../../math/geom/Point';
 import timer from 'timer';
 
-exports = class {
-  constructor (id, evtType, x, y, root, target) {
+class InputEvent {
+  id: number;
+  type: string;
+  point: object;
+  pt: Point;
+  srcPoint: Point;
+  srcPt: Point;
+  cancelled: boolean;
+  trace: object;
+  root: any;
+
+  when: any;
+
+  constructor (id: number, evtType, x: number, y: number, root, target) {
     // unique ID for a particular input - the ID should be constant for a given input
     // for example, the mouse should always have the same ID.  Each finger (touch)
     // should have the same ID throughout the touch start/move/end process
@@ -63,7 +75,7 @@ exports = class {
 
     // localized point coordinates, indexed by a view's uid (View::uid)
     // @internal --at least for now, concerns over performance.
-    this.point = this.pt = {};
+    this.point = this.pt = new Point(0, 0);
 
     // raw (x, y) coordinates
     this.srcPoint = this.srcPt = new Point(x, y);
@@ -90,6 +102,5 @@ exports = class {
 };
 exports.prototype.cancelled = false;
 exports.prototype.depth = 0;
-var InputEvent = exports;
 
-export default exports;
+export default InputEvent;

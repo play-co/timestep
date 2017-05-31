@@ -21,15 +21,33 @@ let exports = {};
  * of events onto the actual view itself, as well as determining if the view
  * is the actual target of a propagated event.
  */
-import Point from 'math/geom/Point';
-import dispatch from 'event/input/dispatch';
-import InputEvent from 'event/input/InputEvent';
+import Point from '../../math/geom/Point';
+import dispatch from './dispatch';
+import InputEvent from './InputEvent';
 
-exports = class {
+class InputHandler {
+  view: any;
+
+  startCount: number;
+  dragCount: number;
+  overCount: number;
+  canHandleEvents: boolean;
+  blockEvents: boolean;
+
+  _over: number;
+  _isDragging: boolean;
+  _isDown: boolean;
+
   constructor (view, opts) {
     this.view = view;
     this.view.subscribe('InputStart', this, 'onInputStart');
     this.update(opts);
+
+    this.startCount = 0;
+    this.dragCount = 0;
+    this.overCount = 0;
+    this.canHandleEvents = true;
+    this.blockEvents = false;
   }
   update (opts) {
     if ('canHandleEvents' in opts) {
@@ -221,11 +239,5 @@ exports = class {
     this._isDown = false;
   }
 };
-exports.prototype.startCount = 0;
-exports.prototype.dragCount = 0;
-exports.prototype.overCount = 0;
-exports.prototype.canHandleEvents = true;
-exports.prototype.blockEvents = false;
-var InputHandler = exports;
 
-export default exports;
+export default InputHandler;

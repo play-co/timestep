@@ -19,15 +19,15 @@ let exports = {};
  * @class event.input.KeyListener
  * Implements a simple Key listener.
  */
-import browser from 'util/browser';
+import browser from '../../util/browser';
 let $ = browser.$;
 
 var listener = null;
 
-exports = class {
+class KeyListener {
   constructor () {
     if (!listener) {
-      listener = new Listener();
+      listener = new Listener(undefined, undefined);
     }
   }
   getKeys () {
@@ -36,7 +36,9 @@ exports = class {
 };
 
 class Listener {
-  constructor (el, events) {
+  _el: any;
+  _keys: object;
+  constructor (el: any, events: any) {
     this._el = el = el || document;
     this._keys = {};
 
@@ -59,4 +61,4 @@ class Listener {
   }
 }
 
-export default exports;
+export default KeyListener;

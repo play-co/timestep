@@ -13,8 +13,6 @@
     - `dispatch.js` - Functions to dispatch touch events
     - `drag.js` - Contains helper functions related to dragging
     - `keys.js` - Contains list of keys
-  - `Callback.js` - Namespace shim to bring in Callback from jsio
-  - `Emitter.js` - Namespace shim to bring in PubSub from jsio
 - `math/`
   - `geom/`
     - `Circle.js`
