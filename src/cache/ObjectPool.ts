@@ -1,5 +1,3 @@
-let exports = {};
-
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -20,11 +18,18 @@ let exports = {};
  *  class instances can be very costly to garbage collect and initialize, so
  *  be good to the environment, and always recycle!
  */
-class ObjectPool {
-  _ctor: any;
-  _pool: any[];
+export interface ObjectPoolOpts {
+  ctor(): ObjectPoolObject;
+  initCount: number;
+}
+export interface ObjectPoolObject {
+  _poolIndex: number;
+}
+export default class ObjectPool {
+  _ctor: () => ObjectPoolObject;
+  _pool: ObjectPoolObject[];
   _freshIndex: number;
-  constructor (opts) {
+  constructor (opts: ObjectPoolOpts) {
     this._ctor = opts.ctor;
     this._pool = [];
     this._freshIndex = 0;
@@ -34,14 +39,14 @@ class ObjectPool {
       this.create();
     }
   }
-  create () {
+  create (): ObjectPoolObject {
     var pool = this._pool;
-    var obj = new this._ctor();
+    var obj = this._ctor();
     obj._poolIndex = pool.length;
     pool.push(obj);
     return obj;
   }
-  obtain () {
+  obtain (): ObjectPoolObject {
     var obj;
     var pool = this._pool;
     if (this._freshIndex < pool.length) {
@@ -72,12 +77,10 @@ class ObjectPool {
       fn.call(ctx, pool[i], i);
     }
   }
-  getActiveCount () {
+  getActiveCount (): number {
     return this._freshIndex;
   }
-  getTotalCount () {
+  getTotalCount (): number {
     return this._pool.length;
   }
 };
-
-export default ObjectPool;

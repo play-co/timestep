@@ -51,7 +51,7 @@ let exports = {};
 import Point from '../../math/geom/Point';
 import timer from 'timer';
 
-class InputEvent {
+export default class InputEvent {
   id: number;
   type: string;
   point: object;
@@ -63,6 +63,8 @@ class InputEvent {
   root: any;
 
   when: any;
+
+  target: any;
 
   constructor (id: number, evtType, x: number, y: number, root, target) {
     // unique ID for a particular input - the ID should be constant for a given input
@@ -100,7 +102,3 @@ class InputEvent {
       this.root, this.target);
   }
 };
-exports.prototype.cancelled = false;
-exports.prototype.depth = 0;
-
-export default InputEvent;

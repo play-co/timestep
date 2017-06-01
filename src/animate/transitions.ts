@@ -214,12 +214,12 @@ class transitions {
     }
   }
   easeInBounce (n: number) {
-    return 1 - exports.easeOutBounce(1 - n);
+    return 1 - this.easeOutBounce(1 - n);
   }
   easeInOutBounce (n: number) {
     if (n < 0.5)
-      { return exports.easeInBounce(n * 2) * 0.5; }
-    return exports.easeOutBounce(n * 2 - 1) * 0.5 + 0.5;
+      { return this.easeInBounce(n * 2) * 0.5; }
+    return this.easeOutBounce(n * 2 - 1) * 0.5 + 0.5;
   }
 }
 

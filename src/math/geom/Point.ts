@@ -6,24 +6,31 @@ class Point {
   x: number;
   y: number;
 
-  constructor (a: any, b: any) {
+  constructor ()
+  constructor (p: Point)
+  constructor (a: number, b: number)
+  constructor (a?: number | Point, b?: number) {
     switch (arguments.length) {
       case 0:
         this.x = 0;
         this.y = 0;
         break;
       case 1:
-        this.x = a.x || 0;
-        this.y = a.y || 0;
+        if (a instanceof Point) {
+          this.x = a.x || 0;
+          this.y = a.y || 0;
+        }
         break;
       case 2:
-        this.x = a || 0;
-        this.y = b || 0;
+        if (typeof a === 'number') {
+          this.x = a || 0;
+          this.y = b || 0;
+        }
         break;
     }
   }
 
-  rotate (r) {
+  rotate (r: number): Point {
     var x = this.x,
       y = this.y,
       cosr = Math.cos(r),
@@ -35,18 +42,22 @@ class Point {
     return this;
   }
 
-  add (x, y) {
+  add (x: Point)
+  add (x: number, y: number)
+  add (x: number | Point, y?: number): Point {
     if (typeof x == 'number') {
       this.x += x;
       this.y += y;
-    } else {
+    } else if (x instanceof Point) {
       this.x += x.x;
       this.y += x.y;
     }
     return this;
   }
 
-  subtract (x, y) {
+  subtract (x: Point)
+  subtract (x: number, y: number)
+  subtract (x: number | Point, y?: number): Point {
     if (typeof x == 'number') {
       this.x -= x;
       this.y -= y;
@@ -57,7 +68,7 @@ class Point {
     return this;
   }
 
-  scale (sx, sy) {
+  scale (sx: number, sy: number): Point {
     // if no scaleY specified
     if (sy === undefined)
       { sy = sx; }
@@ -67,29 +78,29 @@ class Point {
     return this;
   }
 
-  setMagnitude (m) {
+  setMagnitude (m: number): Point {
     var theta = this.getAngle();
     this.x = m * Math.cos(theta);
     this.y = m * Math.sin(theta);
     return this;
   }
 
-  normalize () {
+  normalize (): Point {
     var m = this.getMagnitude();
     this.x /= m;
     this.y /= m;
     return this;
   }
-  addMagnitude (m) {
+  addMagnitude (m): Point {
     return this.setMagnitude(this.getMagnitude() + m);
   }
-  getMagnitude () {
+  getMagnitude (): number {
     return Math.sqrt(this.x * this.x + this.y * this.y);
   }
-  getSquaredMagnitude () {
+  getSquaredMagnitude (): number {
     return this.x * this.x + this.y * this.y;
   }
-  getAngle () {
+  getAngle (): number {
     return Math.atan2(this.y, this.x);
   }
 };

@@ -1,5 +1,3 @@
-let exports = {};
-
 /**
 * Copyright (c) 2010 Rasmus Andersson http://hunch.se/
 *
@@ -36,13 +34,22 @@ let exports = {};
  *
  *  removed  <--  <--  <--  <--  <--  <--  <--  <--  <--  <--  <--  added
  */
-class LRUCache {
+export interface LRUEntry {
+  key: string;
+  value: LRUObject;
+  newer: LRUEntry;
+  older: LRUEntry;
+}
+export interface LRUObject {
+  toJSON(): string
+}
+export default class LRUCache {
   size: number;
   limit: number;
-  _keymap: { [s: string]: any; };
+  _keymap: { [key: string]: LRUEntry; };
 
-  head: any;
-  tail: any;
+  head: LRUEntry;
+  tail: LRUEntry;
 
   constructor (limit: number) {
     // Current size of the cache. (Read-only).
@@ -56,10 +63,12 @@ class LRUCache {
    * removed to make room for the new entry. Otherwise undefined is returned
    * (i.e. if there was enough room already).
    */
-  put (key: string, value: any) {
-    var entry = {
+  put (key: string, value: LRUObject) {
+    var entry: LRUEntry = {
       key: key,
-      value: value
+      value: value,
+      newer: undefined,
+      older: undefined
     };
     // Note: No protection agains replacing, and thus orphan entries. By design.
     this._keymap[key] = entry;
@@ -96,7 +105,7 @@ class LRUCache {
    *     return entry;
    *   }
    */
-  shift () {
+  shift (): LRUEntry {
     // todo: handle special case when limit == 1
     var entry = this.head;
     if (entry) {
@@ -119,16 +128,16 @@ class LRUCache {
    * Get and register recent use of <key>. Returns the value associated with <key>
    * or undefined if not in cache.
    */
-  get (key, returnEntry) {
+  get (key: string): LRUObject {
     // First, find our cache entry
     var entry = this._keymap[key];
     if (entry === undefined)
-      { return; }
+      { return undefined; }
     // Not cached. Sorry.
     // As <key> was found in the cache, register it as being requested recently
     if (entry === this.tail) {
       // Already the most recenlty used entry, so no need to update the list
-      return returnEntry ? entry : entry.value;
+      return entry.value;
     }
     // HEAD--------------TAIL
     //   <.older   .newer>
@@ -151,7 +160,46 @@ class LRUCache {
       { this.tail.newer = entry; }
     // E. <-- D
     this.tail = entry;
-    return returnEntry ? entry : entry.value;
+    return entry.value;
+  }
+
+  /**
+   * Get and register recent use of <key>. Returns the value associated with <key>
+   * or undefined if not in cache.
+   */
+  getEntry (key: string): LRUEntry {
+    // First, find our cache entry
+    var entry = this._keymap[key];
+    if (entry === undefined)
+      { return undefined; }
+    // Not cached. Sorry.
+    // As <key> was found in the cache, register it as being requested recently
+    if (entry === this.tail) {
+      // Already the most recenlty used entry, so no need to update the list
+      return entry;
+    }
+    // HEAD--------------TAIL
+    //   <.older   .newer>
+    //  <--- add direction --
+    //   A  B  C  <D>  E
+    if (entry.newer) {
+      if (entry === this.head)
+        { this.head = entry.newer; }
+      entry.newer.older = entry.older;
+    }
+    // C <-- E.
+    if (entry.older)
+      { entry.older.newer = entry.newer; }
+    // C. --> E
+    entry.newer = undefined;
+    // D --x
+    entry.older = this.tail;
+    // D. --> E
+    if (this.tail)
+      { this.tail.newer = entry; }
+    // E. <-- D
+    this.tail = entry;
+    return entry;
   }
 
   // ----------------------------------------------------------------------------
@@ -162,7 +210,7 @@ class LRUCache {
    * you do not want to chage the state of the cache, but only "peek" at it.
    * Returns the entry associated with <key> if found, or undefined if not found.
    */
-  find (key) {
+  find (key): LRUEntry {
     return this._keymap[key];
   }
 
@@ -170,8 +218,8 @@ class LRUCache {
    * Update the value of entry with <key>. Returns the old value, or undefined if
    * entry was not in the cache.
    */
-  set (key, value) {
-    var oldvalue, entry = this.get(key, true);
+  set (key: string, value: LRUObject): LRUObject {
+    var oldvalue, entry = this.getEntry(key);
     if (entry) {
       oldvalue = entry.value;
       entry.value = value;
@@ -187,7 +235,7 @@ class LRUCache {
    * Remove entry <key> from cache and return its value. Returns undefined if not
    * found.
    */
-  remove (key) {
+  remove (key): LRUObject {
     var entry = this._keymap[key];
     if (!entry)
       { return; }
@@ -228,7 +276,7 @@ class LRUCache {
    * Return an array containing all keys of entries stored in the cache object, in
    * arbitrary order.
    */
-  keys () {
+  keys (): string[] {
     if (typeof Object.keys === 'function') {
       return Object.keys(this._keymap);
     } else {
@@ -276,7 +324,7 @@ class LRUCache {
       entry = this.head;
     while (entry) {
       s.push({
-        key: entry.key.toJSON(),
+        key: JSON.stringify(entry.key),
         value: entry.value.toJSON()
       });
       entry = entry.newer;
@@ -297,5 +345,3 @@ class LRUCache {
     return s;
   }
 }
-
-export default LRUCache;
