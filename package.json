@@ -12,5 +12,9 @@
       "*": "src/"
     }
   },
-  "dependencies": {}
+  "dependencies": {},
+  "devDependencies": {
+    "tslint": "^5.4.1",
+    "typescript": "^2.3.4"
+  }
 }
