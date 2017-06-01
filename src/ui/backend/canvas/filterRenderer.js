@@ -31,6 +31,7 @@ const COMPOSITE_MULTIPLY_SUPPORTED = userAgent.browserType !== 'Internet Explore
 
 var Canvas = null;
 var noCacheCanvas = null;
+var noCacheColorCanvas = null;
 var unusedCanvas = null;
 
 var CACHE_SIZE = 1024;
@@ -47,6 +48,7 @@ class FilterRenderer {
   initialize () {
     Canvas = device.get('Canvas');
     noCacheCanvas = new Canvas({ useWebGL: CONFIG.useWebGL });
+    noCacheColorCanvas = new Canvas({ useWebGL: false });
     needsInitialization = false;
     var engine = Engine.get();
     this.useWebGL = engine.useWebGL;
@@ -73,8 +75,8 @@ class FilterRenderer {
 
     // Ugly hack, but WebGL still needs this class, for now, for masking.
     // The other filters are handled by the WebGL context itself.
-    var filterNotSupported = this.useWebGL && filterName !== 'NegativeMask' &&
-      filterName !== 'PositiveMask';
+    var filterNotSupported = ctx.canvas.isWebGL && filterName !== 'NegativeMask' && filterName !== 'PositiveMask';
+
     if (!filter || filterNotSupported || !filter.getType) {
       return null;
     }
@@ -91,7 +93,7 @@ class FilterRenderer {
     if (shouldCache) {
       resultImg = this.getCanvas(srcW, srcH);
     } else {
-      resultImg = noCacheCanvas;
+      resultImg = filterNotSupported ? noCacheCanvas : noCacheColorCanvas;
       resultImg.width = srcW;
       resultImg.height = srcH;
     }
