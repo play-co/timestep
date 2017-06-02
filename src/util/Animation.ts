@@ -1,61 +1,58 @@
-let exports = {};
+import SyncTimer from './SyncTimer';
 
-import { bind } from 'base';
 
-class SyncTimer {
-  constructor () {
-    this._items = [];
-    this._tick = bind(this, 'tick');
-    this._length = 0;
-  }
-  tick () {
-    var now = +new Date();
-    var dt = now - this._last;
-    this._last = now;
+const timer = new SyncTimer();
 
-    // items might get removed as we iterate, so this._length can change
-    for (var i = 0; i < this._length; ++i) {
-      this._items[i](dt);
-    }
-  }
-  add (cb) {
-    if (cb) {
-      this._items.push(cb);
-      ++this._length;
-      cb(0);
-      this.start();
-    }
-  }
-  remove (cb) {
-    for (var i = 0, n = this._items.length; i < n; ++i) {
-      if (this._items[i] == cb) {
-        this._items.splice(i, 1);
-        if (!--this._length) {
-          this.stop();
-        }
-        return;
-      }
-    }
-  }
-  start () {
-    if (!this._isRunning) {
-      this._isRunning = true;
-      this._last = +new Date();
-      this._timer = setInterval(this._tick, 15);
-    }
-  }
-  stop () {
-    if (this._isRunning) {
-      this._isRunning = false;
-      clearInterval(this._timer);
-    }
-  }
+
+export interface AnimationFinishCallback {
+  (): void;
 }
 
-var timer = new SyncTimer();
 
-exports = class {
-  constructor (params) {
+export interface AnimationSubjectCallback {
+  // TODO: param names should be better
+  (x: number, s: number): void;
+}
+
+
+export interface EasingFunction {
+  (n: number): number;
+}
+
+
+export interface AnimationParams {
+  start?: number;
+  end?: number;
+  transition?: any; // TODO
+  easing?: boolean;
+  subject: any; // TODO
+  duration?: number;
+  current?: number;
+  onFinish?: AnimationFinishCallback;
+}
+
+
+export default class Animation {
+  private _start: number;
+  private _end: number;
+  private _transition: EasingFunction;
+  private _easing: boolean;
+  private _subject: AnimationSubjectCallback;
+  private _duration: number;
+  private _s: number;
+  private _onFinish: AnimationFinishCallback;
+
+  private _range: number;
+  private _isAnimating: boolean;
+  private _animate: AnimationFinishCallback;
+
+  private _t0: number;
+  private _s0: number;
+  private _s1: number;
+  private _ds: number;
+  private _dt: number;
+
+  constructor (params: AnimationParams) {
     this._start = 'start' in params ? params.start : 0;
     this._end = 'end' in params ? params.end : 1;
     this._transition = params.transition || null;
@@ -67,16 +64,18 @@ exports = class {
 
     this._range = this._end - this._start;
     this._isAnimating = false;
-    this._animate = bind(this, 'animate');
-    this._timer = null;
+    this._animate = this.animate.bind(this);
   }
-  stop () {
+
+  public stop(): void {
     this.jumpTo(this._s);
   }
-  play () {
+
+  public play (): void {
     this.seekTo(this._end);
   }
-  seekTo (s, dur) {
+
+  public seekTo (s: number, dur?: number): Animation {
     if (s == this._s) {
       return;
     }
@@ -98,11 +97,13 @@ exports = class {
 
     return this;
   }
-  onFinish (onFinish) {
+
+  public onFinish (onFinish: AnimationFinishCallback): Animation {
     this._onFinish = onFinish;
     return this;
   }
-  jumpTo (s) {
+
+  public jumpTo (s: number): Animation {
     this._s1 = this._s0 = s;
     this._t0 = 0;
     this._dt = 1;
@@ -110,7 +111,8 @@ exports = class {
     this.animate(0);
     return this;
   }
-  animate (dt) {
+
+  public animate (dt: number) {
     var elapsed = this._t0 += dt;
     var dt = elapsed / this._dt;
     if (dt > 1) {
@@ -133,17 +135,20 @@ exports = class {
   }
 };
 
-exports.linear = function (n) {
+
+export const linear: EasingFunction = function(n: number): number {
   return n;
 };
-exports.easeIn = function (n) {
+
+export const easeIn: EasingFunction = function(n: number): number {
   return n * n;
 };
-exports.easeInOut = function (n) {
+
+export const easeInOut: EasingFunction = function(n: number): number {
   return (n *= 2) < 1 ? 0.5 * n * n * n : 0.5 * ((n -= 2) * n * n + 2);
 };
-exports.easeOut = function (n) {
+
+export const easeOut: EasingFunction = function (n: number): number {
   return n * (2 - n);
 };
 
-export default exports;

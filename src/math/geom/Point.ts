@@ -1,8 +1,14 @@
+export interface IPoint {
+  x: number;
+  y: number;
+}
+
+
 /**
  * @package math.geom.Point;
  * Models a Point in 2D space.
  */
-class Point {
+class Point implements IPoint {
   x: number;
   y: number;
 
