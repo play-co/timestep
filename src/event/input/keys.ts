@@ -1,5 +1,3 @@
-let exports = {};
-
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -19,7 +17,7 @@ let exports = {};
  * @module event.input.keys
  * Map browser keycodes to corresponding keys.
  */
-exports = {
+export default {
   BACKSPACE: 8,
   TAB: 9,
   ENTER: 13,
@@ -70,5 +68,3 @@ exports = {
   STOP: 178,
   PLAY_PAUSE: 179
 };
-
-export default exports;

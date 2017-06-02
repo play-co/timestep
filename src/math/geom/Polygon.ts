@@ -1,66 +1,15 @@
-let exports = {};
-
-/*
- * Find the smallest element in an array, wrt compare (avoids sorting)
- * @compare : return -1 || 0 || 1
- */
-function smallest (arr, compare) {
-  var n = arr.length;
-  if (!n) {
-    return;
-  }
-
-  var min = arr[0];
-  for (var k = 1; k < n; k++) {
-    if (compare(arr[k], min) == -1) {
-      min = arr[k];
-    }
-  }
-
-  return min;
+export interface PolygonOpts {
+  x?: number[];
+  y?: number[];
+  convex?: boolean;
 }
 
-/*
- * Sum an array of numbers
- */
-function array_sum (arr) {
-  var ans = 0;
-  for (k = 0; k < arr.length; k++) {
-    ans += arr[k];
-  }
-  return ans;
-}
+export default class Polygon {
+  convex: boolean;
+  x: number[];
+  y: number[];
 
-function len (vec) {
-  return Math.pow(vec[0] * vec[0] + vec[1] * vec[1], 0.5);
-}
-
-function normalize (v) {
-  var len = len(v);
-  return [
-    v[0] / len,
-    v[1] / len
-  ];
-}
-
-function vec_len (v) {
-  return Math.pow(v[0] * v[0] + v[1] * v[1], 0.5);
-}
-
-function sign (n) {
-  return n < 0 ? -1 : n > 0 ? 1 : 0;
-}
-
-function approx (a, b, epsilon) {
-  return Math.abs(a - b) < epsilon;
-}
-
-function norm (v) {
-  return Math.pow(v[0] * v[0] + v[1] * v[1], 0.5);
-}
-
-exports = class Polygon {
-  constructor (opts) {
+  constructor (opts: PolygonOpts) {
     this.x = opts.x;
     this.y = opts.y;
 
@@ -69,7 +18,27 @@ exports = class Polygon {
     }
   }
 
-  isConvex () {
+  private sign (n: number): number {
+    return n < 0 ? -1 : n > 0 ? 1 : 0;
+  }
+
+  private approx(a: number, b: number, epsilon: number): boolean {
+   return Math.abs(a - b) < epsilon;
+  }
+
+  private norm(v: number[]): number {
+    return Math.pow(v[0] * v[0] + v[1] * v[1], 0.5);
+  }
+
+  private array_sum(arr: number[]) : number {
+    var ans = 0;
+    for (var k = 0; k < arr.length; k++) {
+      ans += arr[k];
+    }
+    return ans;
+  }
+
+  public isConvex (): boolean {
     var x = this.x;
     var y = this.y;
     var length = x.length;
@@ -84,14 +53,14 @@ exports = class Polygon {
     var bx = x[1] - x[0];
     var by = y[1] - y[0];
 
-    var theta = Math.asin((by * ax - bx * ay) / (norm([
+    var theta = Math.asin((by * ax - bx * ay) / (this.norm([
       ax,
       ay
-    ]) * norm([
+    ]) * this.norm([
       bx,
       by
     ])));
-    var orientation = sign(theta);
+    var orientation = this.sign(theta);
 
     for (var k = 1; k < length - 1; k++) {
       ax = x[k] - x[k - 1];
@@ -99,15 +68,15 @@ exports = class Polygon {
       bx = x[k + 1] - x[k];
       by = y[k + 1] - y[k];
 
-      theta = Math.asin((by * ax - bx * ay) / (norm([
+      theta = Math.asin((by * ax - bx * ay) / (this.norm([
         ax,
         ay
-      ]) * norm([
+      ]) * this.norm([
         bx,
         by
       ])));
 
-      if (theta != 0 && orientation + sign(theta) == 0) {
+      if (theta != 0 && orientation + this.sign(theta) == 0) {
         this.convex = false;
         return false;
       }
@@ -117,15 +86,15 @@ exports = class Polygon {
     ay = y[length - 1] - y[length - 2];
     bx = x[0] - x[length - 1];
     by = y[0] - y[length - 1];
-    theta = Math.asin((by * ax - bx * ay) / (norm([
+    theta = Math.asin((by * ax - bx * ay) / (this.norm([
       ax,
       ay
-    ]) * norm([
+    ]) * this.norm([
       bx,
       by
     ])));
 
-    if (theta != 0 && orientation + sign(theta) == 0) {
+    if (theta != 0 && orientation + this.sign(theta) == 0) {
       this.convex = false;
       return false;
     }
@@ -133,16 +102,16 @@ exports = class Polygon {
     this.convex = true;
     return true;
   }
-  getCenter () {
+  public getCenter (): number[] {
     var x = this.x;
     var y = this.y;
     var center = [
-      array_sum(x) / x.length,
-      array_sum(y) / y.length
+      this.array_sum(x) / x.length,
+      this.array_sum(y) / y.length
     ];
     return center;
   }
-  containsPoint (point) {
+  public containsPoint (point: number[]): boolean {
     var x = point[0];
     var y = point[1];
     var j = 0;
@@ -165,24 +134,24 @@ exports = class Polygon {
       v2x = x2 - x;
       v2y = y2 - y;
 
-      theta += Math.asin((v1x * v2y - v1y * v2x) / (norm([
+      theta += Math.asin((v1x * v2y - v1y * v2x) / (this.norm([
         v1x,
         v1y
-      ]) * norm([
+      ]) * this.norm([
         v2x,
         v2y
       ])));
     }
 
     theta = Math.abs(theta);
-    return approx(theta, 2 * Math.PI, 0.000001);
+    return this.approx(theta, 2 * Math.PI, 0.000001);
   }
-  scale (scalar) {
+  public scale (scalar: number): void {
     var x = this.x;
     var y = this.y;
     var center = [
-      array_sum(x) / x.length,
-      array_sum(y) / y.length
+      this.array_sum(x) / x.length,
+      this.array_sum(y) / y.length
     ];
 
     for (var k = 0; k < x.length; k++) {
@@ -190,17 +159,17 @@ exports = class Polygon {
       y[k] = center[1] + (y[k] - center[1]) * scalar;
     }
   }
-  translate (displacement) {
+  public translate (displacement: number[]): void {
     for (var k = 0; k < this.x.length; k++) {
       this.x[k] += displacement[0], this.y[k] += displacement[1];
     }
   }
-  rotate (theta) {
+  public rotate (theta: number): void {
     var x = this.x;
     var y = this.y;
     var center = [
-      array_sum(x) / x.length,
-      array_sum(y) / y.length
+      this.array_sum(x) / x.length,
+      this.array_sum(y) / y.length
     ];
 
     var cos = Math.cos(theta);
@@ -216,5 +185,3 @@ exports = class Polygon {
     }
   }
 };
-
-export default exports;
