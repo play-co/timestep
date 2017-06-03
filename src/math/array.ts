@@ -1,8 +1,4 @@
-let exports = {};
-
-import util from 'math/util';
-
-
+import util from './util';
 
 /**
  * @package math.array;
@@ -12,21 +8,20 @@ import util from 'math/util';
 /**
  * Returns the weighted average
  */
-exports.weightedAverage = function (a, w, n) {
+export function weightedAverage (a: number[], w: number, n: number): number {
   n = n || a.length;
   var s = 0;
   for (var i = n - 1; i >= 0; --i) {
     s += a[i] * w;
   }
   return s / n;
-}
-;
+};
 
 
 /**
  * Subtract two arrays, (a - b)
  */
-exports.subtract = function (a, b) {
+export function subtract (a: number[], b: number[]): number[] {
   var length = a.length, diff = new Array(length);
   for (var i = 0; i < length; ++i) {
     diff[i] = a[i] - b[i];
@@ -38,22 +33,21 @@ exports.subtract = function (a, b) {
 /**
  * Average an array.
  */
-exports.average = function (a, n) {
+export function average (a: number[], n: number): number {
   n = n || a.length;
   var s = 0;
   for (var i = n - 1; i >= 0; --i) {
     s += a[i];
   }
   return s / n;
-}
-;
+};
 
 
 /**
  * Return the standard deviation of an array.
  */
-exports.stddev = function (a, n) {
-  var avg = exports.average(a, n);
+export function stddev (a: number[], n: number): number {
+  var avg = average(a, n);
   n = n || a.length;
   var s = 0;
   for (var i = n - 1; i >= 0; --i) {
@@ -61,14 +55,13 @@ exports.stddev = function (a, n) {
     s += diff * diff;
   }
   return Math.sqrt(s / (n - 1));
-}
-;
+};
 
 
 /**
  * Shuffle an array. Takes an optional random seed.
  */
-exports.shuffle = function (a, randGen) {
+export function shuffle (a: number[], randGen: number): number[] {
   var len = a.length;
   for (var i = 0; i < len; ++i) {
     var j = util.random(i, len, randGen), temp = a[j];
@@ -76,39 +69,23 @@ exports.shuffle = function (a, randGen) {
     a[i] = temp;
   }
   return a;
-}
-;
+};
 
 
 /**
  * Rotate an array's elements left.
  */
-exports.rotate = function (a, count) {
+export function rotate (a: number[], count: number): number[] {
   var len = a.length, b = new Array(len), j = count % len;
-
   if (j < 0) {
     j = j % len;
     if (j) {
       j += len;
     }
   }
-
-
-
-
   for (var i = 0; i < len; ++i) {
     b[i] = a[j];
     j = (j + 1) % len;
   }
-
-
-
-
-
-
-
-
   return b;
 };
-
-export default exports;

@@ -1,5 +1,3 @@
-let exports = {};
-
 /*
  * GCRand
  * 	A new Marsaglia's KISS -style PRNG
@@ -15,8 +13,14 @@ let exports = {};
  *
  * Technical contact: Christopher A. Taylor <chris@gameclosure.com>
  */
-class RNG {
-  constructor (seed) {
+export default class RNG {
+  x: number;
+  y: number;
+  z: number;
+  w: number;
+  c: number;
+
+  constructor (seed: number) {
     // If seed was not specified,
     if (typeof seed != 'number') {
       var mrx = Math.random() * 4294967296;
@@ -37,7 +41,7 @@ class RNG {
     this.w = 456789123 >>> 0;
     this.c = 0;
   }
-  uint32 () {
+  public uint32 (): number {
     // XOR Shift
     var x = this.x;
     x ^= x << 5;
@@ -60,19 +64,19 @@ class RNG {
 
     return x + y + w >>> 0;
   }
-  uint31 () {
+  public uint31 (): number {
     return this.uint32() >>> 1;
   }
-  random () {
+  public random (): number {
     return this.uint32() * (1 / 4294967296);
   }
-  rangeReal (a, b) {
+  public rangeReal (a: number, b: number): number {
     return this.uint32() * (1 / 4294967296) * (b - a) + a;
   }
-  rangeInteger (a, b) {
+  public rangeInteger (a: number, b: number): number {
     return this.uint32() * (1 / 4294967296) * (b - a) + a + 0.5 >>> 0;
   }
-  normal () {
+  public normal (): number {
     var u1 = 0,
       u2 = 0;
 
@@ -83,10 +87,10 @@ class RNG {
 
     return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
   }
-  gaussian (mean, stddev) {
+  public gaussian (mean, stddev): number {
     return stddev * this.normal() + mean;
   }
-  gaussianClamp (mean, stddev, clamp_lo, clamp_hi) {
+  public gaussianClamp (mean, stddev, clamp_lo, clamp_hi): number {
     var x = stddev * this.normal() + mean;
 
     // Clamp to range
@@ -101,11 +105,3 @@ class RNG {
     return x;
   }
 }
-
-/**
- * Module API.
- */
-exports = new RNG(Date.now());
-exports.RNG = RNG;
-
-export default exports;
