@@ -86,7 +86,6 @@ export default class SpriteView extends ImageView {
     this.onScreen = true;
     this.isPlaying = false;
     this.isPaused = false;
-    this.tick = null;
 
     this.resetAllAnimations(opts);
   }
@@ -305,7 +304,6 @@ export default class SpriteView extends ImageView {
 
 
 SpriteView.prototype.defaults = defaults;
-SpriteView.prototype.tick = null;
 SpriteView.allAnimations = {};
 SpriteView.getGroup = SpriteView.prototype.getGroup;
 
