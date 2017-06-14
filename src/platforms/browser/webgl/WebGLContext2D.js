@@ -161,6 +161,8 @@ class GLManager {
     this._canvas.width = this.width;
     this._canvas.height = this.height;
     this._canvas.getWebGLContext = this._canvas.getContext.bind(this._canvas, 'webgl', {
+      depth: false,
+      antialias: false,
       alpha: true,
       premultipliedAlpha: true,
       preserveDrawingBuffer: CONFIG.preserveDrawingBuffer
