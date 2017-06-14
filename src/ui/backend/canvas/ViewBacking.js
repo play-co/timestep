@@ -20,47 +20,48 @@ let exports = {};
  *
  * Models the style object of the canvas View.
  */
-import strPad from '../strPad';
 import BaseBacking from '../BaseBacking';
+import Matrix2D from '../../../platforms/browser/webgl/Matrix2D';
 
-var IDENTITY_MATRIX = {
-  a: 1,
-  b: 0,
-  c: 0,
-  d: 1,
-  tx: 0,
-  ty: 0
-};
+var IDENTITY_MATRIX = new Matrix2D();
 var sin = Math.sin;
 var cos = Math.cos;
 
 var ADD_COUNTER = 900000;
+
+function compareZOrder (a, b) {
+  var zIndexCmp = a._zIndex - b._zIndex;
+  if (zIndexCmp !== 0) {
+    return zIndexCmp;
+  }
+
+  return a._addedAt - b._addedAt;
+}
 
 exports = class extends BaseBacking {
 
   constructor (view) {
     super();
 
-    this._globalTransform = {
-      a: 1,
-      b: 0,
-      c: 0,
-      d: 1,
-      tx: 0,
-      ty: 0
-    };
+    this._globalTransform = new Matrix2D();
     this._cachedRotation = 0;
     this._cachedSin = 0;
     this._cachedCos = 1;
     this._globalOpacity = 1;
     this._view = view;
     this._superview = null;
+
+    this._needsSort = false;
+    this._visiblesNeedsSort = false;
+
     this._subviews = [];
-    this._childCount = 0;
+    this._visibleSubviews = [];
 
     // number of direct or indirect tick methods
     this._hasTick = !!view._tick;
     this._subviewsWithTicks = null;
+
+    this._addedAt = 0;
   }
 
   getSuperview () {
@@ -70,7 +71,7 @@ exports = class extends BaseBacking {
   getSubviews () {
     if (this._needsSort) {
       this._needsSort = false;
-      this._subviews.sort();
+      this._subviews.sort(compareZOrder);
     }
     var subviews = [];
     var backings = this._subviews;
@@ -138,10 +139,9 @@ exports = class extends BaseBacking {
     this._subviews[n] = backing;
 
     backing._superview = this._view;
-    backing._setAddedAt(++ADD_COUNTER);
-    this._childCount++;
+    backing._addedAt = ++ADD_COUNTER;
 
-    if (n && backing.__sortKey < this._subviews[n - 1].__sortKey) {
+    if (n && compareZOrder(backing, this._subviews[n - 1]) < 0) {
       this._needsSort = true;
     }
 
@@ -149,11 +149,19 @@ exports = class extends BaseBacking {
       this.addTickingView(backing);
     }
 
+    if (backing._visible) {
+      this.addVisibleSubview(backing);
+    }
+
     return true;
   }
 
   removeSubview (view) {
     var backing = view.__view;
+    if (backing._visible) {
+      this.removeVisibleSubview(backing);
+    }
+
     var index = this._subviews.indexOf(backing);
     if (index !== -1) {
       if (backing._hasTick || backing._subviewsWithTicks !== null) {
@@ -161,7 +169,6 @@ exports = class extends BaseBacking {
       }
 
       this._subviews.splice(index, 1);
-      this._childCount--;
 
       // this._view.needsRepaint();
       backing._superview = null;
@@ -169,6 +176,18 @@ exports = class extends BaseBacking {
     }
 
     return false;
+  }
+
+  addVisibleSubview (backing) {
+    this._visibleSubviews.push(backing);
+    this._visiblesNeedsSort = true;
+  }
+
+  removeVisibleSubview (backing) {
+    var index = this._visibleSubviews.indexOf(backing);
+    if (index !== -1) {
+      this._visibleSubviews.splice(index, 1);
+    }
   }
 
   wrapTick (dt, app) {
@@ -240,14 +259,10 @@ exports = class extends BaseBacking {
     }
   }
 
-  wrapRender (ctx, opts) {
-    if (!this.visible) {
-      return;
-    }
-
-    if (this._needsSort) {
-      this._needsSort = false;
-      this._subviews.sort();
+  wrapRender (ctx) {
+    if (this._visiblesNeedsSort) {
+      this._visiblesNeedsSort = false;
+      this._visibleSubviews.sort(compareZOrder);
     }
 
     var width = this._width;
@@ -286,21 +301,17 @@ exports = class extends BaseBacking {
       ctx.fillRect(0, 0, width, height);
     }
 
-    var viewport = opts.viewport;
-    this._view._render && this._view._render(ctx, opts);
-    this._renderSubviews(ctx, opts);
-    opts.viewport = viewport;
+    this._view._render && this._view._render(ctx);
+    
+    var subviews = this._visibleSubviews;
+    for (var i = 0; i < subviews.length; i++) {
+      subviews[i].wrapRender(ctx);
+    }
+
     ctx.clearFilter();
 
     if (saveContext) {
       ctx.restore();
-    }
-  }
-
-  _renderSubviews (ctx, opts) {
-    var subviews = this._subviews;
-    for (var i = 0; i < this._childCount; i++) {
-      subviews[i].wrapRender(ctx, opts);
     }
   }
 
@@ -316,25 +327,26 @@ exports = class extends BaseBacking {
     }
   }
 
-  _onZIndex (_, zIndex) {
-    this._sortIndex = strPad.pad(zIndex);
-
-    this._setSortKey();
+  _onZIndex () {
     this._view.needsRepaint();
 
     var superview = this._view.getSuperview();
     if (superview) {
       superview.__view._needsSort = true;
+      superview.__view._visiblesNeedsSort = true;
     }
   }
 
-  _setAddedAt (addedAt) {
-    this._addedAt = addedAt;
-    this._setSortKey();
-  }
+  _onVisible () {
+    if (this._superview === null) {
+      return;
+    }
 
-  _setSortKey () {
-    this.__sortKey = this._sortIndex + this._addedAt;
+    if (this._visible) {
+      this._superview.__view.addVisibleSubview(this);
+    } else {
+      this._superview.__view.removeVisibleSubview(this);
+    }
   }
 
   _onOffsetX (n) {
@@ -345,13 +357,8 @@ exports = class extends BaseBacking {
     this.offsetY = n * this.height / 100;
   }
 
-  toString () {
-    return this.__sortKey;
-  }
-
 };
 
-exports.prototype._sortIndex = strPad.initialValue;
 var ViewBacking = exports;
 
 export default exports;

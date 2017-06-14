@@ -234,12 +234,12 @@ exports = class extends ScrollView {
       this.publish('HeightChanged', maxY);
     }
   }
-  render (ctx, opts) {
-    var viewportChanged = super.render(ctx, opts);
+  render (ctx) {
+    var viewportChanged = super.render(ctx);
 
     if (viewportChanged || this._needsModelRender || this.model._needsSort) {
       this._needsModelRender = false;
-      this.model.render(opts.viewport);
+      this.model.render(this.getCurrentViewport());
     }
   }
 };

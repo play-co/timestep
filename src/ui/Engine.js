@@ -56,6 +56,7 @@ import { getImport } from 'platformImport';
 const KeyListener = getImport('KeyListener');
 const InputListener = getImport('Input');
 
+
 var _timers = [];
 timer.onTick = function (dt) {
   var i = _timers.length;
@@ -392,7 +393,7 @@ exports = class extends Emitter {
     }
 
     this._view.__view.constructor.absScale = 1;
-    this._view.__view.wrapRender(this._ctx, {});
+    this._view.__view.wrapRender(this._ctx);
     this.publish('Render', this._ctx);
 
     if (this._ctx) {
