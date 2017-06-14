@@ -16,37 +16,61 @@
 
 import setProperty from 'util/setProperty';
 
-// keys map to properties
-var BASE_STYLE_PROPS = {
-  'x': { value: 0 },
-  'y': { value: 0 },
-  // translate
-  'offsetX': { value: 0 },
-  'offsetY': { value: 0 },
-  // rotation and scale
-  'anchorX': { value: 0 },
-  'anchorY': { value: 0 },
-  'centerAnchor': { value: false },
-  'width': { cb: '_onResize' },
-  'height': { cb: '_onResize' },
-  'r': { value: 0 },
-  'opacity': { value: 1 },
-  'zIndex': {
-    value: 0,
-    cb: '_onZIndex'
-  },
-  'scale': { value: 1 },
-  'scaleX': { value: 1 },
-  'scaleY': { value: 1 },
-  'flipX': { value: false },
-  'flipY': { value: false },
-  'visible': { value: true },
-  'clip': { value: false },
-  'backgroundColor': { value: '' },
-  'compositeOperation': { value: '' }
-};
-
 export default class BaseBacking {
+
+  constructor () {
+    this.x = 0;
+    this.y = 0;
+    this.offsetX = 0;
+    this.offsetY = 0;
+    this.anchorX = 0;
+    this.anchorY = 0;
+    this.centerAnchor = 0;
+    this._width = 0;
+    this._height = 0;
+    this.r = 0;
+    this.opacity = 1;
+    this._zIndex = 0;
+    this.scale = 1;
+    this.scaleX = 1;
+    this.scaleY = 1;
+    this.flipX = false;
+    this.flipY = false;
+    this.visible = true;
+    this.clip = false;
+    this.backgroundColor = '';
+    this.compositeOperation = '';
+  }
+
+  get width () { return this._width;  }
+  set width (width) {
+    if (this._width === width) {
+      return;
+    }
+    this._width = width;
+    this._onResize();
+  }
+
+
+  get height () { return this._height; }
+  set height (height) {
+    if (this._height === height) {
+      return;
+    }
+    this._height = height;
+    this._onResize();
+  }
+
+
+  get zIndex () { return this._zIndex;  }
+  set zIndex (zIndex) {
+    if (this._zIndex === zIndex) {
+      return;
+    }
+    this._zIndex = zIndex;
+    this._onZIndex('zIndex', zIndex);
+  }
+
 
   localizePoint (pt) {
     pt.x -= this.x + this.anchorX + this.offsetX;
@@ -61,10 +85,32 @@ export default class BaseBacking {
   }
 
   copy () {
-    var copy = {};
+    var copy = {
+      x: this.x,
+      y: this.y,
+      offsetX: this.offsetX,
+      offsetY: this.offsetY,
+      anchorX: this.anchorX,
+      anchorY: this.anchorY,
+      centerAnchor: this.centerAnchor,
+      width: this._width,
+      height: this._height,
+      r: this.r,
+      opacity: this.opacity,
+      zIndex: this._zIndex,
+      scale: this.scale,
+      scaleX: this.scaleX,
+      scaleY: this.scaleY,
+      flipX: this.flipX,
+      flipY: this.flipY,
+      visible: this.visible,
+      clip: this.clip,
+      backgroundColor: this.backgroundColor,
+      compositeOperation: this.compositeOperation
+    };
 
-    for (var i = 0; i < styleKeyList.length; i++) {
-      var key = styleKeyList[i];
+    for (var i = 0; i < extendedStylePropList.length; i++) {
+      var key = extendedStylePropList[i];
       copy[key] = this[key];
     }
 
@@ -72,26 +118,19 @@ export default class BaseBacking {
   }
 
   update (style) {
-    for (var i = 0; i < styleKeyList.length; i++) {
-      var key = styleKeyList[i];
-      if (style[key] !== void 0) {
+    for (var key in style) {
+      if (this[key] !== void 0) {
         this[key] = style[key];
       }
     }
+
     return this;
   }
 
 };
 
-var styleKeys = BaseBacking.prototype.constructor.styleKeys = {};
-var styleKeyList = [];
-
+var extendedStylePropList = [];
 BaseBacking.prototype.constructor.addProperty = function (key, def) {
-  styleKeys[key] = true;
-  styleKeyList.push(key);
+  extendedStylePropList.push(key);
   setProperty(BaseBacking.prototype, key, def);
 };
-
-for (var key in BASE_STYLE_PROPS) {
-  BaseBacking.prototype.constructor.addProperty(key, BASE_STYLE_PROPS[key]);
-}
