@@ -57,6 +57,10 @@ exports = class extends BaseBacking {
     this._superview = null;
     this._subviews = [];
     this._childCount = 0;
+
+    // number of direct or indirect tick methods
+    this._hasTick = !!view._tick;
+    this._subviewsWithTicks = null;
   }
 
   getSuperview () {
@@ -76,6 +80,48 @@ exports = class extends BaseBacking {
     }
 
     return subviews;
+  }
+
+  onTickAdded () {
+    if (this._superview) {
+      this._superview.__view.addTickingView(this);
+    }
+  }
+
+  onTickRemoved () {
+    if (this._superview) {
+      this._superview.__view.removeTickingView(this);
+    }
+  }
+
+  addTickingView (backing) {
+    if (this._subviewsWithTicks === null) {
+      this._subviewsWithTicks = [];
+    }
+
+    var idx = this._subviewsWithTicks.indexOf(backing);
+    if (idx === -1) {
+      this._subviewsWithTicks.push(backing);
+      if (!this._hasTick && this._subviewsWithTicks.length === 1) {
+        // first time that this view needs to be registered as ticking
+        this.onTickAdded();
+      }
+    }
+  }
+
+  removeTickingView (backing) {
+    if (this._subviewsWithTicks === null) {
+      return;
+    }
+
+    var idx = this._subviewsWithTicks.indexOf(this);
+    if (idx !== -1) {
+      this._subviewsWithTicks.splice(idx, 1);
+      if (!this._hasTick && this._subviewsWithTicks.length === 0) {
+        // no more reason to be registered as ticking
+        this.onTickRemoved();
+      }
+    }
   }
 
   addSubview (view) {
@@ -99,17 +145,26 @@ exports = class extends BaseBacking {
       this._needsSort = true;
     }
 
+    if (backing._hasTick || backing._subviewsWithTicks !== null) {
+      this.addTickingView(backing);
+    }
+
     return true;
   }
 
-  removeSubview (targetView) {
-    var index = this._subviews.indexOf(targetView.__view);
-    if (index != -1) {
+  removeSubview (view) {
+    var backing = view.__view;
+    var index = this._subviews.indexOf(backing);
+    if (index !== -1) {
+      if (backing._hasTick || backing._subviewsWithTicks !== null) {
+        this.removeTickingView(backing);
+      }
+
       this._subviews.splice(index, 1);
       this._childCount--;
 
       // this._view.needsRepaint();
-      targetView.__view._superview = null;
+      backing._superview = null;
       return true;
     }
 
@@ -117,11 +172,15 @@ exports = class extends BaseBacking {
   }
 
   wrapTick (dt, app) {
-    this._view._tick && this._view._tick(dt, app);
+    if (this._hasTick) {
+      this._view.tick(dt, app);
+    }
 
-    var views = this._subviews;
-    for (var i = 0; i < this._childCount; ++i) {
-      views[i].wrapTick(dt, app);
+    var backings = this._subviewsWithTicks;
+    if (backings !== null) {
+      for (var i = 0; i < backings.length; ++i) {
+        backings[i].wrapTick(dt, app);
+      }
     }
   }
 
