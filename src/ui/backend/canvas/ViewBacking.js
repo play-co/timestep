@@ -51,14 +51,15 @@ exports = class extends BaseBacking {
     this._view = view;
     this._superview = null;
 
-    this._needsSort = false;
-    this._visiblesNeedsSort = false;
+    this._shouldSort = false;
+    this._shouldSortVisibleSubviews = false;
 
     this._subviews = [];
     this._visibleSubviews = [];
 
     // number of direct or indirect tick methods
     this._hasTick = !!view._tick;
+    this._hasRender = !!view._render;
     this._subviewsWithTicks = null;
 
     this._addedAt = 0;
@@ -69,8 +70,8 @@ exports = class extends BaseBacking {
   }
 
   getSubviews () {
-    if (this._needsSort) {
-      this._needsSort = false;
+    if (this._shouldSort) {
+      this._shouldSort = false;
       this._subviews.sort(compareZOrder);
     }
     var subviews = [];
@@ -142,7 +143,7 @@ exports = class extends BaseBacking {
     backing._addedAt = ++ADD_COUNTER;
 
     if (n && compareZOrder(backing, this._subviews[n - 1]) < 0) {
-      this._needsSort = true;
+      this._shouldSort = true;
     }
 
     if (backing._hasTick || backing._subviewsWithTicks !== null) {
@@ -180,7 +181,7 @@ exports = class extends BaseBacking {
 
   addVisibleSubview (backing) {
     this._visibleSubviews.push(backing);
-    this._visiblesNeedsSort = true;
+    this._shouldSortVisibleSubviews = true;
   }
 
   removeVisibleSubview (backing) {
@@ -260,8 +261,8 @@ exports = class extends BaseBacking {
   }
 
   wrapRender (ctx) {
-    if (this._visiblesNeedsSort) {
-      this._visiblesNeedsSort = false;
+    if (this._shouldSortVisibleSubviews) {
+      this._shouldSortVisibleSubviews = false;
       this._visibleSubviews.sort(compareZOrder);
     }
 
@@ -301,7 +302,9 @@ exports = class extends BaseBacking {
       ctx.fillRect(0, 0, width, height);
     }
 
-    this._view._render && this._view._render(ctx);
+    if (this._hasRender) {
+      this._view._render(ctx);
+    }
     
     var subviews = this._visibleSubviews;
     for (var i = 0; i < subviews.length; i++) {
@@ -332,8 +335,8 @@ exports = class extends BaseBacking {
 
     var superview = this._view.getSuperview();
     if (superview) {
-      superview.__view._needsSort = true;
-      superview.__view._visiblesNeedsSort = true;
+      superview.__view._shouldSort = true;
+      superview.__view._shouldSortVisibleSubviews = true;
     }
   }
 

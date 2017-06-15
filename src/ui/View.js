@@ -663,10 +663,23 @@ View.prototype.toString = View.prototype.getTag;
 /**
  * Adds a hook to determine when the "render" property is set.
  */
-setProperty(View.prototype, 'render', {
-  value: null,
-  cb: function () {
-    this.__view && (this.__view.hasJSRender = true);
+View.prototype._render = null;
+Object.defineProperty(View.prototype, 'render', {
+  get: function () { return this._render; },
+  set: function (render) {
+    if (this._render === render) {
+      return;
+    }
+
+    if (!render) {
+      this._render = null;
+    } else {
+      this._render = render;
+    }
+
+    if (this.__view) {
+      this.__view._hasRender = !!render;
+    }
   }
 });
 

@@ -80,6 +80,10 @@ export default class BaseBacking {
     this._onZIndex();
   }
 
+  // Abstract methods
+  _onVisible () {}
+  _onResize () {}
+  _onZIndex () {}
 
   localizePoint (pt) {
     pt.x -= this.x + this.anchorX + this.offsetX;

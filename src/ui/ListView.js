@@ -237,7 +237,7 @@ exports = class extends ScrollView {
   render (ctx) {
     var viewportChanged = super.render(ctx);
 
-    if (viewportChanged || this._needsModelRender || this.model._needsSort) {
+    if (viewportChanged || this._needsModelRender || this.model._shouldSort) {
       this._needsModelRender = false;
       this.model.render(this.getCurrentViewport());
     }

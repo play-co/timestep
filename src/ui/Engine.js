@@ -56,7 +56,6 @@ import { getImport } from 'platformImport';
 const KeyListener = getImport('KeyListener');
 const InputListener = getImport('Input');
 
-
 var _timers = [];
 timer.onTick = function (dt) {
   var i = _timers.length;

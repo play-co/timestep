@@ -123,8 +123,8 @@ var viewportStack = [];
 
 function clippedWrapRender (contentView, backing, ctx) {
   // non-native case only
-  if (backing._visiblesNeedsSort) {
-    backing._visiblesNeedsSort = false;
+  if (backing._shouldSortVisibleSubviews) {
+    backing._shouldSortVisibleSubviews = false;
     backing._visibleSubviews.sort();
   }
 
