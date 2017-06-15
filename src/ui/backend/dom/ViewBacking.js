@@ -94,6 +94,15 @@ var PAD = '00000000';
 
 var DURATION = 600;
 
+function compareZOrder (a, b) {
+  var zIndexCmp = a._zIndex - b._zIndex;
+  if (zIndexCmp !== 0) {
+    return zIndexCmp;
+  }
+
+  return a._addedAt - b._addedAt;
+}
+
 exports = class extends BaseBacking {
   constructor (view, opts) {
     super();
@@ -101,6 +110,7 @@ exports = class extends BaseBacking {
     this._view = view;
     this._subviews = [];
     this._noCanvas = opts['dom:noCanvas'];
+    this._addedAt = 0;
 
     var n = this._node = document.createElement(opts['dom:elementType'] ||
       'div');
@@ -179,8 +189,8 @@ exports = class extends BaseBacking {
       this._subviews[n] = backing;
       this._node.appendChild(node);
 
-      backing._setAddedAt(++ADD_COUNTER);
-      if (n && backing.__sortKey < this._subviews[n - 1].__sortKey) {
+      this._addedAt = ++ADD_COUNTER;
+      if (n && compareZOrder(backing, this._subviews[n - 1]) < 0) {
         this._needsSort = true;
       }
 
@@ -208,7 +218,7 @@ exports = class extends BaseBacking {
   getSubviews () {
     if (this._needsSort) {
       this._needsSort = false;
-      this._subviews.sort();
+      this._subviews.sort(compareZOrder);
     }
     var subviews = [];
     var n = this._subviews.length;
@@ -230,7 +240,7 @@ exports = class extends BaseBacking {
     }
     if (this._needsSort) {
       this._needsSort = false;
-      this._subviews.sort();
+      this._subviews.sort(compareZOrder);
     }
 
     var width = this._computed.width;
@@ -289,7 +299,7 @@ exports = class extends BaseBacking {
     var view;
     var subviews = this._subviews;
     while (view = subviews[i++]) {
-      view.wrapRender(ctx, opts);
+      view.wrapRender(ctx);
     }
   }
   localizePoint (pt) {
@@ -466,37 +476,16 @@ exports = class extends BaseBacking {
 
     return animCount;
   }
-  _onZIndex (zIndex) {
-    zIndex = ~~zIndex;
+  _onZIndex () {
+    this._zIndex = ~~this._zIndex;
 
     if (zIndex < MIN_Z) {
-      zIndex = this._zIndex = MIN_Z;
+      this._zIndex = MIN_Z;
     }
     if (zIndex > MAX_Z) {
-      zIndex = this._zIndex = MAX_Z;
+      this._zIndex = MAX_Z;
     }
-    if (zIndex < 0) {
-      zIndex *= -1;
-      this._sortIndex = '-' + PAD.substring(0, LEN_Z - ('' + zIndex).length) +
-        zIndex;
-    } else {
-      this._sortIndex = PAD.substring(0, LEN_Z - ('' + zIndex).length) +
-        zIndex;
-    }
-
-    this._setSortKey();
   }
-  _setAddedAt (addedAt) {
-    this._addedAt = addedAt;
-    this._setSortKey();
-  }
-  _setSortKey () {
-    this.__sortKey = this._sortIndex + this._addedAt;
-  }
-  toString () {
-    return this.__sortKey;
-  }
-
   _transitionEnd (evt) {
     $.stopEvent(evt);
     if (this.transitionCallback.fired()) {

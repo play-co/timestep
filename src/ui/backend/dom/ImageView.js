@@ -154,7 +154,7 @@ exports = class extends View {
 
     return el;
   }
-  _canvasRender (ctx, opts) {
+  _canvasRender (ctx) {
     var canvas = this._img.getSource();
     ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, this.style
       .width, this.style.height);

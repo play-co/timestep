@@ -119,14 +119,13 @@ var defaults = {
   layout: 'box'
 };
 
-function clippedWrapRender (contentView, backing, ctx, opts) {
-  if (!backing.visible) {
-    return;
-  }
+var viewportStack = [];
+
+function clippedWrapRender (contentView, backing, ctx) {
   // non-native case only
-  if (backing._needsSort) {
-    backing._needsSort = false;
-    backing._subviews.sort();
+  if (backing._shouldSortVisibleSubviews) {
+    backing._shouldSortVisibleSubviews = false;
+    backing._visibleSubviews.sort();
   }
 
   ctx.save();
@@ -157,25 +156,24 @@ function clippedWrapRender (contentView, backing, ctx, opts) {
       ctx.fillRect(0, 0, backing.width, backing.height);
     }
 
-    backing._view.render && backing._view.render(ctx, opts);
+    backing._view.render && backing._view.render(ctx);
 
-    var viewport = opts.viewport;
     var subviews = backing._subviews;
 
     var i = 0,
       subview;
     while (subview = subviews[i++]) {
       if (subview == contentView) {
-        clippedWrapRender(contentView, subview.__view, ctx, opts);
+        clippedWrapRender(contentView, subview.__view, ctx);
 
-        // restore the old viewport it was changed
-        opts.viewport = viewport;
+        // restoring viewport
+        viewportStack.pop();
       } else {
         var pos = subview.getPosition(viewport.src);
         getBoundingRectangle(pos);
 
         if (intersect.isRectAndRect(pos, viewport)) {
-          clippedWrapRender(contentView, subview.__view, ctx, opts);
+          clippedWrapRender(contentView, subview.__view, ctx);
         }
 
         if (DEBUG) {
@@ -193,12 +191,10 @@ function clippedWrapRender (contentView, backing, ctx, opts) {
 
 // extend the default backing ctor
 class DEFAULT_BACKING_CTOR extends View.BackingCtor {
-  wrapRender (ctx, opts) {
-    clippedWrapRender(this._view._contentView, this, ctx, opts);
+  wrapRender (ctx) {
+    clippedWrapRender(this._view._contentView, this, ctx);
 
     if (DEBUG) {
-      var viewport = opts.viewport;
-
       ctx.save();
       ctx.translate(this.x + this.anchorX, this.y + this.anchorY);
       if (this.r) {
@@ -210,9 +206,9 @@ class DEFAULT_BACKING_CTOR extends View.BackingCtor {
       ctx.translate(-this.anchorX, -this.anchorY);
 
       ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
-      ctx.fillRect(viewport.x, viewport.y, viewport.width, viewport.height);
+      ctx.fillRect(this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.height);
 
-      ctx.translate(-viewport.x, -viewport.y);
+      ctx.translate(-this._viewport.x, -this._viewport.y);
 
       ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
       for (var i = 0, bounds; bounds = _debug.bounds[i]; ++i) {
@@ -651,7 +647,10 @@ exports = class extends View {
   getFullHeight () {
     return this._contentView.style.height;
   }
-  render (ctx, opts) {
+  getCurrentViewport () {
+    return viewportStack[viewportStack.length - 1];
+  }
+  render (ctx) {
     var s = this.style;
     var cvs = this._contentView.style;
 
@@ -670,11 +669,12 @@ exports = class extends View {
     viewport.width = s.width * s.scale | 0;
     viewport.height = s.height * s.scale | 0;
 
-    if (opts.viewport) {
-      viewportIntersect(viewport, opts.viewport);
+    var currentViewPort = this.getCurrentViewport();
+    if (currentViewPort) {
+      viewportIntersect(viewport, currentViewPort);
     }
 
-    opts.viewport = viewport;
+    viewportStack.push(viewport);
 
     return viewport.x != x || viewport.y != y || viewport.width != width ||
       viewport.height != height;
