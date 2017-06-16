@@ -23,7 +23,6 @@ let exports = {};
 import BaseBacking from '../BaseBacking';
 import Matrix2D from '../../../platforms/browser/webgl/Matrix2D';
 
-var IDENTITY_MATRIX = new Matrix2D();
 var sin = Math.sin;
 var cos = Math.cos;
 
@@ -49,7 +48,6 @@ export default class ViewBacking extends BaseBacking {
     this._cachedCos = 1;
     this.__cachedWidth = null;
     this.__cachedHeight = null;
-    this._globalOpacity = 1;
     this._view = view;
     this._superview = null;
 
@@ -65,6 +63,11 @@ export default class ViewBacking extends BaseBacking {
     this._subviewsWithTicks = null;
 
     this._addedAt = 0;
+  }
+
+  get layout () { return this._view._layoutName; }
+  set layout (layoutName) {
+    this._view._setLayout(layoutName);
   }
 
   getSuperview () {
@@ -181,6 +184,15 @@ export default class ViewBacking extends BaseBacking {
     return false;
   }
 
+  _replaceSubview (subview, newSubview) {
+    var subviewIdx = this._subviews.indexOf(subview);
+    this._subviews[subviewIdx] = newSubview;
+    var visibleSubviewIdx = this._visibleSubviews.indexOf(subview);
+    if (visibleSubviewIdx !== -1) {
+      this._visibleSubviews[visibleSubviewIdx] = newSubview;
+    }
+  }
+
   addVisibleSubview (backing) {
     this._visibleSubviews.push(backing);
     this._shouldSortVisibleSubviews = true;
@@ -206,19 +218,9 @@ export default class ViewBacking extends BaseBacking {
     }
   }
 
-  updateGlobalTransform () {
+  updateGlobalTransform (pgt) {
     var flipX = this.flipX ? -1 : 1;
     var flipY = this.flipY ? -1 : 1;
-
-    var pgt;
-    var parent = this._superview && this._superview.__view;
-    if (parent) {
-      pgt = parent._globalTransform;
-      this._globalOpacity = parent._globalOpacity * this.opacity;
-    } else {
-      pgt = IDENTITY_MATRIX;
-      this._globalOpacity = this.opacity;
-    }
 
     var gt = this._globalTransform;
     var sx = this.scaleX * this.scale * flipX;
@@ -262,7 +264,7 @@ export default class ViewBacking extends BaseBacking {
     }
   }
 
-  wrapRender (ctx) {
+  wrapRender (ctx, parentTransform, parentOpacity) {
     if (this._shouldSortVisibleSubviews) {
       this._shouldSortVisibleSubviews = false;
       this._visibleSubviews.sort(compareZOrder);
@@ -279,10 +281,12 @@ export default class ViewBacking extends BaseBacking {
       ctx.save();
     }
 
-    this.updateGlobalTransform();
+    this.updateGlobalTransform(parentTransform);
     var gt = this._globalTransform;
     ctx.setTransform(gt.a, gt.b, gt.c, gt.d, gt.tx, gt.ty);
-    ctx.globalAlpha = this._globalOpacity;
+
+    var globalAlpha = this.opacity * parentOpacity;
+    ctx.globalAlpha = globalAlpha;
 
     if (this.clip) {
       ctx.clipRect(0, 0, width, height);
@@ -310,7 +314,7 @@ export default class ViewBacking extends BaseBacking {
     
     var subviews = this._visibleSubviews;
     for (var i = 0; i < subviews.length; i++) {
-      subviews[i].wrapRender(ctx);
+      subviews[i].wrapRender(ctx, gt, globalAlpha);
     }
 
     ctx.clearFilter();
@@ -354,7 +358,7 @@ export default class ViewBacking extends BaseBacking {
   }
 
   _onInLayout () {
-    var layout = this._superview && this._superview.__layout;
+    var layout = this._superview && this._superview._layout;
     if (layout) {
       if (this._inLayout) {
         layout.add(this._view);
@@ -369,7 +373,7 @@ export default class ViewBacking extends BaseBacking {
   _onLayoutChange () {
     if (this._inLayout) {
       var superview = this.getSuperview();
-      if (superview && superview.__layout) {
+      if (superview && superview._layout) {
         superview.needsReflow();
       }
     }

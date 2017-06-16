@@ -87,7 +87,7 @@ exports = class {
     this._pendingCount = 0;
   }
   add (view) {
-    if (view.reflow === view.DEFAULT_REFLOW && !view.__layout) {
+    if (view.reflow === view.DEFAULT_REFLOW && !view._layout) {
       return;
     }
 
@@ -99,7 +99,7 @@ exports = class {
       item.needsReflow = true;
 
       DEBUG_REFLOW && _debug.log('adding ' + view + ' (' + view.uid + ')' +
-        (' ' + view._layout || '') + ':', (view.style.width ===
+        (' ' + view._layoutName || '') + ':', (view.style.width ===
           undefined ? '?' : view.style.width) + 'x' + (view.style.height ===
           undefined ? '?' : view.style.height));
     }
@@ -124,14 +124,14 @@ exports = class {
       --this._pendingCount;
     }
 
-    if (view.__layout) {
-      view.__layout.reflow();
+    if (view._layout) {
+      view._layout.reflow();
     }
 
     view.reflow();
 
     // always reflow children if a layout changes sizes
-    if (view.__layout) {
+    if (view._layout) {
       var style = view.style;
       if (style.__cachedWidth !== style.width || style.__cachedHeight !==
         style.height) {

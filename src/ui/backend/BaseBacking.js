@@ -61,7 +61,6 @@ export default class BaseBacking {
     this._onResize();
   }
 
-
   get height () { return this._height; }
   set height (height) {
     if (this._height === height) {

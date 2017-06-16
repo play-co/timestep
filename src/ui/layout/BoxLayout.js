@@ -35,13 +35,13 @@ export default class BoxLayout {
     }
 
     if (superview) {
-      var notInLayout = !style.inLayout || !style.flex || superview._layout !==
+      var notInLayout = !style.inLayout || !style.flex || superview._layoutName !==
         'linear';
-      if (notInLayout || !superview.__layout.isHorizontal()) {
+      if (notInLayout || !superview._layout.isHorizontal()) {
         this.reflowX(superview);
       }
 
-      if (notInLayout || !superview.__layout.isVertical()) {
+      if (notInLayout || !superview._layout.isVertical()) {
         this.reflowY(superview);
       }
     }
@@ -108,8 +108,8 @@ export default class BoxLayout {
     var view = this._view;
     var s = view.style;
 
-    if (s.inLayout && superview._layout === 'linear') {
-      var inLinearLayout = superview.__layout.isHorizontal();
+    if (s.inLayout && superview._layoutName === 'linear') {
+      var inLinearLayout = superview._layout.isHorizontal();
       var padding = superview.style.padding;
     }
 
@@ -129,7 +129,7 @@ export default class BoxLayout {
     } else // 2. width is defined a percent
     if (svWidth && s._layoutWidthIsPercent) {
       w = availWidth / s.scale * s._layoutWidthValue;
-    } else //{ 3. width is inherited from the superview
+    } else // 3. width is inherited from the superview
     if (s.width === 0 && svWidth) {
       w = availWidth / s.scale;
     } else {
@@ -162,8 +162,8 @@ export default class BoxLayout {
     var view = this._view;
     var s = view.style;
     var superview = view.getSuperview();
-    if (s.inLayout && superview._layout === 'linear') {
-      var inLinearLayout = superview.__layout.isVertical();
+    if (s.inLayout && superview._layoutName === 'linear') {
+      var inLinearLayout = superview._layout.isVertical();
       var padding = superview.style.padding;
     }
 
@@ -180,7 +180,7 @@ export default class BoxLayout {
       h = availHeight / s.scale - (s.top || 0) - (s.bottom || 0);
     } else if (svHeight && s._layoutHeightIsPercent) {
       h = availHeight / s.scale * s._layoutHeightValue;
-    } else //{
+    } else
     if (s.height === 0 && svHeight) {
       h = availHeight / s.scale;
     } else {
