@@ -33,7 +33,11 @@ import IView from './IView';
 import Point from 'math/geom/Point';
 import Rect from 'math/geom/Rect';
 
+import BoxLayout from './layout/BoxLayout';
+import LinearLayout from './layout/LinearLayout';
+
 import ViewBacking from './backend/canvas/ViewBacking';
+import LayoutViewBacking from './layout/LayoutViewBacking';
 
 import ReflowManager from 'ui/backend/ReflowManager';
 var _reflowMgr = ReflowManager.get();
@@ -116,9 +120,12 @@ function compareSubscription (args, sub) {
   return true;
 }
 
-var DEFAULT_REFLOW = function () {};
+var layouts = {
+  'linear': LinearLayout,
+  'box': BoxLayout
+};
 
-exports = class View extends IView {
+export default class View extends IView {
   constructor (opts) {
     super();
 
@@ -140,8 +147,22 @@ exports = class View extends IView {
 
     this.__input = new InputHandler(this, opts);
 
+    var layout = opts.layout;
+    var Backing = layout ? LayoutViewBacking : opts.Backing;
+
     // set with View.setDefaultViewBacking();
-    this.__view = this.style = new (opts.Backing || _BackingCtor)(this, opts);
+    this.__view = this.style = new (Backing || _BackingCtor)(this, opts);
+
+    this._layout = ''; // name of layout
+    this.__layout = null; // layout object
+
+    if (layout) {
+      this._layout = layout;
+      var LayoutCtor = layouts[layout];
+      this.__layout = new LayoutCtor(this);
+    }
+
+    this._autoSize = false;
 
     this._filter = null;
 
@@ -202,8 +223,8 @@ exports = class View extends IView {
     this.__input.update(opts);
 
     if (opts.centerAnchor) {
-      this.style.anchorX = (this.style.width || 0) / 2;
-      this.style.anchorY = (this.style.height || 0) / 2;
+      this.style.anchorX = this.style.width / 2;
+      this.style.anchorY = this.style.height / 2;
     }
 
     if (opts.superview) {
@@ -287,14 +308,9 @@ exports = class View extends IView {
   isHandlingEvents () {
     return this.__input.canHandleEvents;
   }
-  needsRepaint () {
-    this._needsRepaint = true;
-  }
+  needsRepaint () { /* Abstract */ }
   needsReflow () {
-    if (this.reflow != DEFAULT_REFLOW || this.style.layout) {
-      _reflowMgr.add(this);
-      this._needsRepaint = true;
-    }
+    _reflowMgr.add(this);
   }
   reflowSync () {
     _reflowMgr.reflow(this);
@@ -402,7 +418,6 @@ exports = class View extends IView {
   }
   addSubview (view) {
     if (this.__view.addSubview(view)) {
-      view.needsRepaint();
 
       this._linkView(view);
 
@@ -650,10 +665,10 @@ exports = class View extends IView {
     return cls + this.uid + (this.tag ? ':' + this.tag : '');
   }
 };
-exports.prototype.reflow = DEFAULT_REFLOW;
-exports.prototype._boundingShape = {};
-var View = exports;
 
+View.prototype.DEFAULT_REFLOW  = function () {};
+View.prototype.reflow = View.prototype.DEFAULT_REFLOW;
+View.prototype._boundingShape = {};
 View.prototype.setHandleEvents = View.prototype.canHandleEvents;
 View.prototype.getEngine = View.prototype.getApp;
 View.prototype.getParents = View.prototype.getSuperviews;
@@ -709,4 +724,3 @@ View.setDefaultViewBacking = function (ViewBackingCtor) {
 // default view backing is canvas
 View.setDefaultViewBacking(ViewBacking);
 
-export default exports;

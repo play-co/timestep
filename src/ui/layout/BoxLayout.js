@@ -17,32 +17,32 @@ import { bind } from 'base';
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-exports = class {
-  constructor (opts) {
-    this._view = opts.view;
+export default class BoxLayout {
+  constructor (view) {
+    this._view = view;
 
-    this.listenSubviewResize(opts.view);
+    this.listenSubviewResize(view);
   }
   reflow () {
     var view = this._view;
-    var sv = view.getSuperview();
+    var superview = view.getSuperview();
     var style = view.style;
 
     // if wrapping content, listen for changes to subviews
-    if (style._layoutWidth == 'wrapContent' || style._layoutHeight ==
+    if (style._layoutWidth === 'wrapContent' || style._layoutHeight ===
       'wrapContent') {
       this.addSubviewListener(view);
     }
 
-    if (sv) {
-      var notInLayout = !style.inLayout || !style.flex || sv.style.layout !=
+    if (superview) {
+      var notInLayout = !style.inLayout || !style.flex || superview._layout !==
         'linear';
-      if (notInLayout || !sv.__layout.isHorizontal()) {
-        this.reflowX();
+      if (notInLayout || !superview.__layout.isHorizontal()) {
+        this.reflowX(superview);
       }
 
-      if (notInLayout || !sv.__layout.isVertical()) {
-        this.reflowY();
+      if (notInLayout || !superview.__layout.isVertical()) {
+        this.reflowY(superview);
       }
     }
   }
@@ -104,33 +104,33 @@ exports = class {
       this.__removeSuperviewResize && this.__removeSuperviewResize();
     }));
   }
-  reflowX (view) {
+  reflowX (superview) {
     var view = this._view;
     var s = view.style;
 
-    var sv = view.getSuperview();
-    if (s.inLayout && sv.style.layout == 'linear') {
-      var inLinearLayout = sv.__layout.isHorizontal();
-      var padding = sv.style.padding;
+    if (s.inLayout && superview._layout === 'linear') {
+      var inLinearLayout = superview.__layout.isHorizontal();
+      var padding = superview.style.padding;
     }
 
-    var svWidth = sv.style.width;
+    var svWidth = superview.style.width;
     var availWidth = svWidth - (padding && padding.getHorizontal() || 0);
 
     // compute the width
     var w;
-    if (s._layoutWidth == 'wrapContent') {
+    var wrapContent = s._layoutWidth === 'wrapContent'
+    if (wrapContent) {
       // find the maximal right edge
       w = this.getContentWidth() + s.padding.right;
     } else // 1. we're not in a layout and both right and left are defined
-    if (!inLinearLayout && svWidth && s.right != undefined && s.left !=
+    if (!inLinearLayout && svWidth && s.right !== undefined && s.left !==
       undefined) {
       w = availWidth / s.scale - (s.left || 0) - (s.right || 0);
     } else // 2. width is defined a percent
     if (svWidth && s._layoutWidthIsPercent) {
       w = availWidth / s.scale * s._layoutWidthValue;
-    } else // 3. width is inherited from the superview
-    if (s.width == undefined && svWidth) {
+    } else //{ 3. width is inherited from the superview
+    if (s.width === 0 && svWidth) {
       w = availWidth / s.scale;
     } else {
       w = s._width;
@@ -149,11 +149,11 @@ exports = class {
         s.x = Math.round((availWidth - s.scale * w) / 2 + (padding &&
           padding.left || 0));
       }
-      if (w !== undefined && s.left == undefined && s.right != undefined) {
+      if (w !== undefined && s.left === undefined && s.right !== undefined) {
         s.x = Math.round(availWidth - s.scale * w - s.right - (padding &&
           padding.right || 0));
       }
-      if (s.left != undefined) {
+      if (s.left !== undefined) {
         s.x = Math.round(s.left + (padding && padding.left || 0));
       }
     }
@@ -161,27 +161,27 @@ exports = class {
   reflowY () {
     var view = this._view;
     var s = view.style;
-    var sv = view.getSuperview();
-    if (s.inLayout && sv.style.layout == 'linear') {
-      var inLinearLayout = sv.__layout.isVertical();
-      var padding = sv.style.padding;
+    var superview = view.getSuperview();
+    if (s.inLayout && superview._layout === 'linear') {
+      var inLinearLayout = superview.__layout.isVertical();
+      var padding = superview.style.padding;
     }
 
-    var svHeight = sv.style.height;
+    var svHeight = superview.style.height;
     var availHeight = svHeight - (padding && padding.getVertical() || 0);
-
-    var wrapContent = s._layoutHeight == 'wrapContent';
 
     // compute the height
     var h;
+    var wrapContent = s._layoutHeight === 'wrapContent';
     if (wrapContent) {
       h = this.getContentHeight() + s.padding.bottom;
-    } else if (!inLinearLayout && svHeight && s.top != undefined && s.bottom !=
+    } else if (!inLinearLayout && svHeight && s.top !== undefined && s.bottom !==
       undefined) {
       h = availHeight / s.scale - (s.top || 0) - (s.bottom || 0);
     } else if (svHeight && s._layoutHeightIsPercent) {
       h = availHeight / s.scale * s._layoutHeightValue;
-    } else if (s.height == undefined && svHeight) {
+    } else //{
+    if (s.height === 0 && svHeight) {
       h = availHeight / s.scale;
     } else {
       h = s.height;
@@ -203,7 +203,7 @@ exports = class {
         s.y = Math.round(availHeight - s.scale * h - s.bottom - (padding &&
           padding.bottom || 0));
       }
-      if (s.top != undefined) {
+      if (s.top !== undefined) {
         s.y = Math.round(s.top + (padding && padding.top || 0));
       }
     }
@@ -238,7 +238,6 @@ exports = class {
     }
     return h;
   }
+  add () { /* Abstract */}
+  remove() { /* Abstract*/ }
 };
-var BoxLayout = exports;
-
-export default exports;

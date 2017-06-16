@@ -87,7 +87,7 @@ exports = class {
     this._pendingCount = 0;
   }
   add (view) {
-    if (!view.style.layout) {
+    if (view.reflow === view.DEFAULT_REFLOW && !view.__layout) {
       return;
     }
 
@@ -99,7 +99,7 @@ exports = class {
       item.needsReflow = true;
 
       DEBUG_REFLOW && _debug.log('adding ' + view + ' (' + view.uid + ')' +
-        (' ' + view.style.layout || '') + ':', (view.style.width ===
+        (' ' + view._layout || '') + ':', (view.style.width ===
           undefined ? '?' : view.style.width) + 'x' + (view.style.height ===
           undefined ? '?' : view.style.height));
     }
@@ -110,11 +110,11 @@ exports = class {
     }
   }
   reflow (view) {
-    if (view.style.__cachedWidth === undefined) {
+    if (view.style.__cachedWidth === null) {
       view.style.__cachedWidth = view.style.width;
     }
 
-    if (view.style.__cachedHeight === undefined) {
+    if (view.style.__cachedHeight === null) {
       view.style.__cachedHeight = view.style.height;
     }
 
@@ -128,12 +128,12 @@ exports = class {
       view.__layout.reflow();
     }
 
-    view.reflow && view.reflow();
+    view.reflow();
 
     // always reflow children if a layout changes sizes
     if (view.__layout) {
       var style = view.style;
-      if (style.__cachedWidth != style.width || style.__cachedHeight !=
+      if (style.__cachedWidth !== style.width || style.__cachedHeight !==
         style.height) {
         var subviews = view.getSubviews();
         for (var i = 0, n = subviews.length; i < n; ++i) {

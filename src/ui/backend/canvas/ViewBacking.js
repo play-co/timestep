@@ -38,7 +38,7 @@ function compareZOrder (a, b) {
   return a._addedAt - b._addedAt;
 }
 
-exports = class extends BaseBacking {
+export default class ViewBacking extends BaseBacking {
 
   constructor (view) {
     super();
@@ -47,6 +47,8 @@ exports = class extends BaseBacking {
     this._cachedRotation = 0;
     this._cachedSin = 0;
     this._cachedCos = 1;
+    this.__cachedWidth = null;
+    this.__cachedHeight = null;
     this._globalOpacity = 1;
     this._view = view;
     this._superview = null;
@@ -318,15 +320,14 @@ exports = class extends BaseBacking {
     }
   }
 
-  _onResize (prop, value, prevValue) {
-    // child view properties might be invalidated
-    this._view.needsReflow();
+  _onResize () {
+    this._onLayoutChange();
 
     // enforce center anchor on width / height change
     var s = this._view.style;
     if (s.centerAnchor) {
-      s.anchorX = (s.width || 0) / 2;
-      s.anchorY = (s.height || 0) / 2;
+      s.anchorX = (s._width || 0) / 2;
+      s.anchorY = (s._height || 0) / 2;
     }
   }
 
@@ -352,6 +353,31 @@ exports = class extends BaseBacking {
     }
   }
 
+  _onInLayout () {
+    var layout = this._superview && this._superview.__layout;
+    if (layout) {
+      if (this._inLayout) {
+        layout.add(this._view);
+      } else {
+        layout.remove(this._view);
+        this._view.needsReflow();
+      }
+    }
+  };
+
+  // trigger a reflow, optionally of the parent if the parent has layout too
+  _onLayoutChange () {
+    if (this._inLayout) {
+      var superview = this.getSuperview();
+      if (superview && superview.__layout) {
+        superview.needsReflow();
+      }
+    }
+
+    // child view properties might be invalidated
+    this._view.needsReflow();
+  };
+
   _onOffsetX (n) {
     this.offsetX = n * this.width / 100;
   }
@@ -360,8 +386,44 @@ exports = class extends BaseBacking {
     this.offsetY = n * this.height / 100;
   }
 
+  updateAspectRatio (width, height) {
+    this.aspectRatio = (width || this.width) / (height || this.height);
+  }
+
+  _onFixedAspectRatio () {
+    if (this._fixedAspectRatio) {
+      this.updateAspectRatio();
+    }
+  }
+
+  enforceAspectRatio (iw, ih, isTimeout) {
+    if (iw && ih) {
+      this.updateAspectRatio(iw, ih);
+    }
+    var parent = this._view.getSuperview();
+    var opts = this._view._opts;
+    iw = iw || opts.width;
+    ih = ih || opts.height;
+    if (opts.width) {
+      iw = opts.width;
+      ih = opts.width / this.aspectRatio;
+    } else if (opts.height) {
+      ih = opts.height;
+      iw = opts.height * this.aspectRatio;
+    } else if (parent) {
+      if (parent.style.width) {
+        iw = parent.style.width;
+        ih = iw / this.aspectRatio;
+      } else if (parent.style.height) {
+        ih = parent.style.height;
+        iw = ih * this.aspectRatio;
+      } else if (!isTimeout) {
+        setTimeout(bind(this, 'enforceAspectRatio', iw, ih, true), 0);
+      }
+    }
+    this.width = iw;
+    this.height = ih;
+  }
+
 };
 
-var ViewBacking = exports;
-
-export default exports;

@@ -171,6 +171,8 @@ exports = class extends Emitter {
       }
     }
 
+    this._needsRepaint = false;
+
     this.updateOpts(this._opts);
   }
   getOpt (key) {
