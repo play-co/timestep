@@ -67,18 +67,18 @@ function toStringSort () {
   return this.view.style._sortOrder + this.index;
 }
 
-exports = class extends BoxLayout {
-  constructor () {
-    super(...arguments);
+export default class LinearLayout extends BoxLayout {
+  constructor (view) {
+    super(view);
 
     this._view.subscribe('SubviewAdded', this, '_onSubviewAdded');
     this._view.subscribe('SubviewRemoved', this, '_onSubviewRemoved');
 
     this._views = [];
     var subviews = this._view.getSubviews();
-    for (var i = 0, view; view = subviews[i]; ++i) {
-      if (view.style.inLayout) {
-        this._views.push(this._initLayoutView(view));
+    for (var i = 0, subview; subview = subviews[i]; ++i) {
+      if (subview.style.inLayout) {
+        this._views.push(this._initLayoutView(subview));
       }
     }
 
@@ -428,18 +428,17 @@ exports = class extends BoxLayout {
   }
 };
 
-exports.prototype._events = [
+LinearLayout.prototype._events = [
   'ViewWillAppear',
   'ViewDidAppear',
   'ViewWillDisappear',
   'ViewDidDisappear'
 ];
-exports.prototype._events = [
+LinearLayout.prototype._events = [
   'ViewWillAppear',
   'ViewDidAppear',
   'ViewWillDisappear',
   'ViewDidDisappear'
 ];
-exports.prototype.add = exports.prototype.insertBefore;
+LinearLayout.prototype.add = LinearLayout.prototype.insertBefore;
 
-export default exports;

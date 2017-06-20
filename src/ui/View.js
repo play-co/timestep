@@ -33,7 +33,11 @@ import IView from './IView';
 import Point from 'math/geom/Point';
 import Rect from 'math/geom/Rect';
 
+import BoxLayout from './layout/BoxLayout';
+import LinearLayout from './layout/LinearLayout';
+
 import ViewBacking from './backend/canvas/ViewBacking';
+import LayoutViewBacking from './layout/LayoutViewBacking';
 
 import ReflowManager from 'ui/backend/ReflowManager';
 var _reflowMgr = ReflowManager.get();
@@ -116,9 +120,12 @@ function compareSubscription (args, sub) {
   return true;
 }
 
-var DEFAULT_REFLOW = function () {};
+var layoutConstructors = {
+  'linear': LinearLayout,
+  'box': BoxLayout
+};
 
-exports = class View extends IView {
+export default class View extends IView {
   constructor (opts) {
     super();
 
@@ -140,8 +147,21 @@ exports = class View extends IView {
 
     this.__input = new InputHandler(this, opts);
 
-    // set with View.setDefaultViewBacking();
-    this.__view = this.style = new (opts.Backing || _BackingCtor)(this, opts);
+    this._CustomBacking = opts.Backing || null;
+
+    var layoutName = opts.layout;
+    this._layoutName = layoutName || '';
+    this._layout = null;
+
+    var Backing = this._CustomBacking || (layoutName ? LayoutViewBacking : _BackingCtor);
+    this.__view = this.style = new Backing(this, opts);
+
+    if (layoutName) {
+      var LayoutCtor = layoutConstructors[layoutName];
+      this._layout = new LayoutCtor(this);
+    }
+
+    this._autoSize = false;
 
     this._filter = null;
 
@@ -176,6 +196,55 @@ exports = class View extends IView {
     }
   }
 
+  _setLayout (layoutName) {
+    if (layoutName && this._layout === null) {
+      if (layoutName !== this._layoutName) {
+        if (this._CustomBacking === null) {
+          this._layoutName = layoutName;
+
+          // setting layout will make the view change its backing
+          // to a LayoutViewBacking (if no custom backing is specified)
+          var backing = this.style;
+          var newBacking = new LayoutViewBacking(this);
+
+          // not only copying but replacing old backing by new backing
+          // this implies transferring all the unique properties (including subviews)
+
+          // copy
+          var copy = backing.copy();
+          newBacking.update(copy);
+
+          // transferring unique properties
+          newBacking._globalTransform = backing._globalTransform;
+          newBacking._cachedRotation = backing._cachedRotation;
+          newBacking._cachedSin = backing._cachedSin;
+          newBacking._cachedCos = backing._cachedCos;
+          newBacking.__cachedWidth = backing.__cachedWidth;
+          newBacking.__cachedHeight = backing.__cachedHeight;
+          newBacking._view = backing._view;
+          newBacking._superview = backing._superview;
+          newBacking._shouldSort = backing._shouldSort;
+          newBacking._shouldSortVisibleSubviews = backing._shouldSortVisibleSubviews;
+          newBacking._subviews = backing._subviews;
+          newBacking._visibleSubviews = backing._visibleSubviews;
+          newBacking._hasTick = backing._hasTick;
+          newBacking._hasRender = backing._hasRender;
+          newBacking._subviewsWithTicks = backing._subviewsWithTicks;
+          newBacking._addedAt = backing._addedAt;
+
+          this.__view = this.style = newBacking;
+
+          var superview = newBacking._superview;
+          if (superview) {
+            superview.__view._replaceSubview(backing, newBacking);
+          }
+        }
+
+        var LayoutCtor = layoutConstructors[layoutName];
+        this._layout = new LayoutCtor(this);
+      }
+    }
+  }
 
   updateOpts (opts) {
     opts = opts || {};
@@ -202,8 +271,8 @@ exports = class View extends IView {
     this.__input.update(opts);
 
     if (opts.centerAnchor) {
-      this.style.anchorX = (this.style.width || 0) / 2;
-      this.style.anchorY = (this.style.height || 0) / 2;
+      this.style.anchorX = this.style.width / 2;
+      this.style.anchorY = this.style.height / 2;
     }
 
     if (opts.superview) {
@@ -287,14 +356,9 @@ exports = class View extends IView {
   isHandlingEvents () {
     return this.__input.canHandleEvents;
   }
-  needsRepaint () {
-    this._needsRepaint = true;
-  }
+  needsRepaint () { /* Abstract */ }
   needsReflow () {
-    if (this.reflow != DEFAULT_REFLOW || this.style.layout) {
-      _reflowMgr.add(this);
-      this._needsRepaint = true;
-    }
+    _reflowMgr.add(this);
   }
   reflowSync () {
     _reflowMgr.reflow(this);
@@ -402,7 +466,6 @@ exports = class View extends IView {
   }
   addSubview (view) {
     if (this.__view.addSubview(view)) {
-      view.needsRepaint();
 
       this._linkView(view);
 
@@ -650,10 +713,10 @@ exports = class View extends IView {
     return cls + this.uid + (this.tag ? ':' + this.tag : '');
   }
 };
-exports.prototype.reflow = DEFAULT_REFLOW;
-exports.prototype._boundingShape = {};
-var View = exports;
 
+View.prototype.DEFAULT_REFLOW  = function () {};
+View.prototype.reflow = View.prototype.DEFAULT_REFLOW;
+View.prototype._boundingShape = {};
 View.prototype.setHandleEvents = View.prototype.canHandleEvents;
 View.prototype.getEngine = View.prototype.getApp;
 View.prototype.getParents = View.prototype.getSuperviews;
@@ -709,4 +772,3 @@ View.setDefaultViewBacking = function (ViewBackingCtor) {
 // default view backing is canvas
 View.setDefaultViewBacking(ViewBacking);
 
-export default exports;

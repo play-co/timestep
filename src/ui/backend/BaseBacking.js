@@ -14,8 +14,6 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 
-import setProperty from 'util/setProperty';
-
 export default class BaseBacking {
 
   constructor () {
@@ -25,7 +23,7 @@ export default class BaseBacking {
     this.offsetY = 0;
     this.anchorX = 0;
     this.anchorY = 0;
-    this.centerAnchor = 0;
+    this.centerAnchor = false;
     this._width = 0;
     this._height = 0;
     this.r = 0;
@@ -40,6 +38,9 @@ export default class BaseBacking {
     this.clip = false;
     this.backgroundColor = '';
     this.compositeOperation = '';
+    this._inLayout = true;
+    this._aspectRatio = 1;
+    this._fixedAspectRatio = false;
   }
 
   get visible () { return this._visible; }
@@ -60,7 +61,6 @@ export default class BaseBacking {
     this._onResize();
   }
 
-
   get height () { return this._height; }
   set height (height) {
     if (this._height === height) {
@@ -80,10 +80,40 @@ export default class BaseBacking {
     this._onZIndex();
   }
 
+  get inLayout () { return this._inLayout; }
+  set inLayout (inLayout) {
+    if (inLayout === this._inLayout) {
+      return;
+    }
+    this._inLayout = inLayout;
+    this._onInLayout();
+  }
+
+  get aspectRatio () { return this._aspectRatio; }
+  set aspectRatio (aspectRatio) {
+    if (aspectRatio === this._aspectRatio) {
+      return;
+    }
+    this._aspectRatio = aspectRatio;
+    this._onLayoutChange();
+  }
+
+  get fixedAspectRatio () { return this._fixedAspectRatio; }
+  set fixedAspectRatio (fixedAspectRatio) {
+    if (fixedAspectRatio === this._fixedAspectRatio) {
+      return;
+    }
+    this._fixedAspectRatio = fixedAspectRatio;
+    this._onFixedAspectRatio();
+  }
+
   // Abstract methods
   _onVisible () {}
   _onResize () {}
   _onZIndex () {}
+  _onInLayout() {}
+  _onLayoutChange () {}
+  _onFixedAspectRatio() {}
 
   localizePoint (pt) {
     pt.x -= this.x + this.anchorX + this.offsetX;
@@ -119,13 +149,11 @@ export default class BaseBacking {
       visible: this._visible,
       clip: this.clip,
       backgroundColor: this.backgroundColor,
-      compositeOperation: this.compositeOperation
+      compositeOperation: this.compositeOperation,
+      inLayout: this._inLayout,
+      fixedAspectRatio: this._fixedAspectRatio,
+      aspectRatio: this._aspectRatio
     };
-
-    for (var i = 0; i < extendedStylePropList.length; i++) {
-      var key = extendedStylePropList[i];
-      copy[key] = this[key];
-    }
 
     return copy;
   }
@@ -140,10 +168,4 @@ export default class BaseBacking {
     return this;
   }
 
-};
-
-var extendedStylePropList = [];
-BaseBacking.prototype.constructor.addProperty = function (key, def) {
-  extendedStylePropList.push(key);
-  setProperty(BaseBacking.prototype, key, def);
 };

@@ -39,9 +39,6 @@ import Circle from 'math/geom/Circle';
 import intersect from 'math/geom/intersect';
 
 import View from 'ui/View';
-import ReflowManager from 'ui/backend/ReflowManager';
-
-var _reflowMgr = ReflowManager.get();
 
 var DEBUG = true;
 var USE_CLIPPING = false;

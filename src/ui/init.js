@@ -14,5 +14,4 @@
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
 import View from './View';
-import BackingExtension from './layout/BackingExtension';
 import Engine from './Engine';
