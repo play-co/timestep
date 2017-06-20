@@ -248,24 +248,26 @@ export default class LayoutViewBacking extends ViewBacking {
   }
 
   update (style) {
+    super.update(style)
+
     // updating properties that are initialized as undefined
     // they need to be checked manually
-    if (style.top) { this.top = style.top; }
-    if (style.right) { this.right = style.right; }
-    if (style.bottom) { this.bottom = style.bottom; }
-    if (style.left) { this.left = style.left; }
+    if (style.top !== undefined) { this.top = style.top; }
+    if (style.right !== undefined) { this.right = style.right; }
+    if (style.bottom !== undefined) { this.bottom = style.bottom; }
+    if (style.left !== undefined) { this.left = style.left; }
 
-    if (style.minWidth) { this.minWidth = style.minWidth; }
-    if (style.minHeight) { this.minHeight = style.minHeight; }
-    if (style.maxWidth) { this.maxWidth = style.maxWidth; }
-    if (style.maxHeight) { this.maxHeight = style.maxHeight; }
+    if (style.minWidth !== undefined) { this.minWidth = style.minWidth; }
+    if (style.minHeight !== undefined) { this.minHeight = style.minHeight; }
+    if (style.maxWidth !== undefined) { this.maxWidth = style.maxWidth; }
+    if (style.maxHeight !== undefined) { this.maxHeight = style.maxHeight; }
 
-    if (style.layoutWidth) { this.layoutWidth = style.layoutWidth; }
-    if (style.layoutHeight) { this.layoutHeight = style.layoutHeight; }
+    if (style.layoutWidth !== undefined) { this.layoutWidth = style.layoutWidth; }
+    if (style.layoutHeight !== undefined) { this.layoutHeight = style.layoutHeight; }
 
-    if (style.padding) { this.padding = style.padding; }
+    if (style.padding !== undefined) { this.padding = style.padding; }
 
-    return super.update(style);
+    return this;
   }
 
   _onOrder () {

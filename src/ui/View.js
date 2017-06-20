@@ -267,6 +267,10 @@ export default class View extends IView {
       this._infinite = opts.infinite;
     }
 
+    if (opts.layout) {
+      this.__view.layout = opts.layout;
+    }
+
     this.style.update(opts);
     this.__input.update(opts);
 
