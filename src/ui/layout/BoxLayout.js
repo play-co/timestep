@@ -199,7 +199,7 @@ export default class BoxLayout {
         s.y = Math.round((availHeight - s.scale * h) / 2 + (padding &&
           padding.top || 0));
       }
-      if (h !== undefined && s.top == undefined && s.bottom != undefined) {
+      if (h !== undefined && s.top === undefined && s.bottom !== undefined) {
         s.y = Math.round(availHeight - s.scale * h - s.bottom - (padding &&
           padding.bottom || 0));
       }

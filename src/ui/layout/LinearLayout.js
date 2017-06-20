@@ -196,7 +196,7 @@ export default class LinearLayout extends BoxLayout {
   }
 
   insertBefore (view, before) {
-    if (this.getViewIndex(view) != -1) {
+    if (this.getViewIndex(view) !== -1) {
       return;
     }
 
@@ -218,7 +218,7 @@ export default class LinearLayout extends BoxLayout {
   }
 
   insertAfter (view, after) {
-    if (this.getViewIndex(view) != -1) {
+    if (this.getViewIndex(view) !== -1) {
       return;
     }
 
@@ -268,11 +268,11 @@ export default class LinearLayout extends BoxLayout {
     this._views.sort();
 
     var layoutStyle = this._view.style;
-    if (layoutStyle.direction != this._direction) {
+    if (layoutStyle.direction !== this._direction) {
       this._setDirection(layoutStyle.direction);
     }
 
-    var isVertical = this._direction == 'vertical';
+    var isVertical = this._direction === 'vertical';
     var propDim = this._propDim;
     var propDimOpp = this._propDimOpp;
     var minPropDim = this._minPropDim;
@@ -309,7 +309,7 @@ export default class LinearLayout extends BoxLayout {
       }
     }
 
-    if (flexSum && parentDim == undefined) {
+    if (flexSum && parentDim === undefined) {
       return;
     }
 
@@ -405,9 +405,9 @@ export default class LinearLayout extends BoxLayout {
 
     this._debug && this._summarize() && _debug.stepOut();
 
-    if (isVertical && layoutStyle.layoutHeight == 'wrapContent') {
+    if (isVertical && layoutStyle.layoutHeight === 'wrapContent') {
       this.reflowY();
-    } else if (!isVertical && layoutStyle.layoutWidth == 'wrapContent') {
+    } else if (!isVertical && layoutStyle.layoutWidth === 'wrapContent') {
       this.reflowX();
     }
 

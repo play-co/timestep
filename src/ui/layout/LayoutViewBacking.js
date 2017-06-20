@@ -26,7 +26,7 @@ export default class LayoutViewBacking extends ViewBacking {
     super(view);
 
     this._order = 0;
-    this._direction = false;
+    this._direction = 'vertical';
     this._flex = 0;
     this._justifyContent = 'start';
     this._centerX = false;
@@ -45,8 +45,8 @@ export default class LayoutViewBacking extends ViewBacking {
     this._layoutWidth = undefined;
     this._layoutHeight = undefined;
 
+    this._padding = undefined;
     this._margin = null;
-    this._padding = null;
 
     this._sortOrder = strPad.initialValue;
 
@@ -245,6 +245,27 @@ export default class LayoutViewBacking extends ViewBacking {
     copy.layoutHeightIsPercent = this._layoutHeightIsPercent;
 
     return copy;
+  }
+
+  update (style) {
+    // updating properties that are initialized as undefined
+    // they need to be checked manually
+    if (style.top) { this.top = style.top; }
+    if (style.right) { this.right = style.right; }
+    if (style.bottom) { this.bottom = style.bottom; }
+    if (style.left) { this.left = style.left; }
+
+    if (style.minWidth) { this.minWidth = style.minWidth; }
+    if (style.minHeight) { this.minHeight = style.minHeight; }
+    if (style.maxWidth) { this.maxWidth = style.maxWidth; }
+    if (style.maxHeight) { this.maxHeight = style.maxHeight; }
+
+    if (style.layoutWidth) { this.layoutWidth = style.layoutWidth; }
+    if (style.layoutHeight) { this.layoutHeight = style.layoutHeight; }
+
+    if (style.padding) { this.padding = style.padding; }
+
+    return super.update(style);
   }
 
   _onOrder () {
