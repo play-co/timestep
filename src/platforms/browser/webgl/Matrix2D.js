@@ -3,7 +3,7 @@ let exports = {};
 var sin = Math.sin;
 var cos = Math.cos;
 
-class Matrix2D {
+export default class Matrix2D {
   constructor () {
     this.identity();
   }
@@ -119,7 +119,4 @@ class Matrix2D {
 }
 
 var helperMatrix = new Matrix2D();
-
-exports = Matrix2D;
-
-export default exports;
+Matrix2D.ELEMENT_COUNT = 6;

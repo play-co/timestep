@@ -61,6 +61,7 @@ export default class ViewBacking extends BaseBacking {
     this._hasTick = !!view._tick;
     this._hasRender = !!view._render;
     this._subviewsWithTicks = null;
+    this._usesSeparateViewport = false;
 
     this._addedAt = 0;
   }
@@ -315,6 +316,10 @@ export default class ViewBacking extends BaseBacking {
     var subviews = this._visibleSubviews;
     for (var i = 0; i < subviews.length; i++) {
       subviews[i].wrapRender(ctx, gt, globalAlpha);
+    }
+
+    if (this._usesSeparateViewport) {
+      this._view.popViewport();
     }
 
     ctx.clearFilter();
