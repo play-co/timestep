@@ -28,7 +28,7 @@ import AnimationData from './AnimationData';
  * Graphic: an instance of a Symbol within a timeline
  *   whose frame is dependent from the frame of the timeline it belongs to.
  *
- * FlashPlayerView: an object that exposes an API to load and play Flash animations.
+ * FlashPlayerView (currently named MovieClip): an object that exposes an API to load and play Flash animations.
  *   It has a library, an FPS and a set of API to control and combine Flash animations data.
  *   It also inherits from a timestep View and be handled as such.
  *
@@ -60,8 +60,8 @@ const NULL_BOUNDS = new Rect();
 var viewCount = 0;
 var EMPTY = {};
 
-// TODO: rename file to FlashPlayerView
-export default class FlashPlayerView extends View {
+// TODO: rename to FlashPlayerView
+export default class MovieClip extends View {
 
   constructor (opts) {
     super(opts);
@@ -90,6 +90,9 @@ export default class FlashPlayerView extends View {
     this._library = null;
     this._substitutes = {};
 
+    this._originalTransforms = {};
+    this._currentSkin = null;
+
     this.animation = null;
     this.timeline = null;
 
@@ -104,7 +107,7 @@ export default class FlashPlayerView extends View {
     this.data = opts.data ? opts.data : null;
     this.buffered = opts.buffered ? opts.buffered : null;
 
-    if (this.data && opts.defaultAnimation) {
+    if (opts.defaultAnimation) {
       this.loop(opts.defaultAnimation);
     }
   }
@@ -113,9 +116,10 @@ export default class FlashPlayerView extends View {
     if (this.frameCount === 0) { return; }
     this.frame = frameIndex % this.frameCount;
     this.framesElapsed = frameIndex;
+    this._instance.frame = this.frame;
   }
 
-  render (ctx) {
+  render (ctx, transform) {
     if (!this.animation) {
       return;
     }
@@ -131,19 +135,19 @@ export default class FlashPlayerView extends View {
         this.updateCanvasBounds(bounds);
         this._ctx.clear();
         this._transform.setTo(1, 0, 0, 1, -bounds.x, -bounds.y);
-        this.animation._rendeFrame(this._ctx, this._transform, 1, this._instance, this._substitutes /*, deltaFrame */);
+        this.animation.rendeFrame(this._ctx, this._transform, 1, this._instance, this._substitutes /*, deltaFrame */);
         this._frameDirty = false;
       }
 
       ctx.drawImage(this._canvas, 0, 0, bounds.width, bounds.height, bounds.x, bounds.y, bounds.width, bounds.height);
     } else {
       // Render directly to context
-      this._transform.copy(ctx.getTransform());
-      this.animation._rendeFrame(ctx, this._transform, ctx.globalAlpha, this._instance, this._substitutes /*, deltaFrame */);
+      this._transform.copy(transform);
+      this.animation.rendeFrame(ctx, this._transform, ctx.globalAlpha, this._instance, this._substitutes /*, deltaFrame */);
     }
   }
 
-  _rendeFrame (ctx, parentTransform, parentOpacity) {
+  rendeFrame (ctx, parentTransform, parentOpacity) {
     this.style.wrapRender(ctx, parentTransform, parentOpacity);
   }
 
@@ -216,7 +220,7 @@ export default class FlashPlayerView extends View {
 
   play (animationName, callback, loop) {
     if (!this.data) {
-      this.once(FlashPlayerView.LOADED, () => {
+      this.once(MovieClip.LOADED, () => {
         this.play(animationName, callback, loop)
       });
       return;
@@ -303,9 +307,9 @@ export default class FlashPlayerView extends View {
     }
   }
 
-  addAnimationSubstitution (libraryID, newlibraryID, animationData = null, optional = false) {
+  addAnimationSubstitution (libraryID, replacementLibraryID, animationData = null, optional = false) {
     var library = animationData ? animationData.library : this._library;
-    var replacement = library[newlibraryID];
+    var replacement = library[replacementLibraryID];
     if (!optional || replacement) {
       this._substitutes[libraryID] = replacement;
       this.clearBoundsMap();
@@ -333,6 +337,49 @@ export default class FlashPlayerView extends View {
     this.clearBoundsMap();
   }
 
+  // WIP: retrocompatibility with old skinning system
+  // setSkinForChild (animationID, skinID) {
+  //   if (this.loaded) {
+  //     if (this._currentSkin !== skinID) {
+  //       var skins = this.data.skins;
+  //       for (var skinElementID in skins) {
+  //         var skin = skins[skinElementID];
+  //         var libraryID = skin.default.id;
+  //         if (skin[skinID]) {
+  //           var skinData = skin[skinID];
+  //           var replacementLibraryID = skinData.id;
+  //           var symbol = this._library[replacementLibraryID];
+  //           var transform = skinData.transform;
+
+  //           // applying all skin transforms
+  //           var timeline = symbol.timeline;
+  //           for (var f = 0; f < timeline.length; f += 1) {
+  //             var children = timeline[f];
+  //             for (var c = 0; c < children.length; c += 1) {
+  //               var child = children[c];
+  //               console.error('   * before', child.transform)
+  //               child.transform = child.transform.clone().transform(transform);
+  //               console.error('   * after', child.transform)
+  //             }
+  //           }
+
+  //           console.error(replacementLibraryID, symbol, transform)
+  //           this.addAnimationSubstitution(libraryID, replacementLibraryID);
+  //         }
+  //       }
+  //       this._currentSkin = skinID;
+  //     }
+
+  //     // libraryID = skins[libraryID].default;
+  //     // var replacementLibraryID = skins[libraryID][skinID];
+  //     // this.addAnimationSubstitution(libraryID, replacementLibraryID);
+  //   } else {
+  //     this.once(MovieClip.LOADED, () => {
+  //       this.setSkinForChild(libraryID, skinID);
+  //     })
+  //   }
+  // }
+
   setData (data) {
     if (this.data === data) { return; }
 
@@ -340,7 +387,7 @@ export default class FlashPlayerView extends View {
       this.data = data;
       this.fps = this._opts.fps || this.data.frameRate || 30;
       this._library = data.library;
-      this.emit(FlashPlayerView.LOADED);
+      this.emit(MovieClip.LOADED);
     } else {
       this.data = null;
       this.animation = null;
@@ -414,4 +461,4 @@ function returnCanvasToPool (canvas) {
   canvasPool.push(canvas);
 }
 
-FlashPlayerView.LOADED = 'loaded';
+MovieClip.LOADED = 'loaded';

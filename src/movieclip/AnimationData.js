@@ -16,24 +16,17 @@ export default class AnimationData {
   constructor (data) {
     this.url = data.url;
     this.frameRate = data.frameRate;
-    // this.skins = data.skins;
-    if (data.skins && Object.keys(data.skins).length > 0) {
-      console.error('HANDLE SKINS!!')
-    }
 
     // TODO: simplify export format by combining skins, symbols, ids and sprites
     // into a single library map object in reverse hierarchical order
     // for faster data generation
 
-    var ids = data.ids;
-    var elementCount = Matrix.ELEMENT_COUNT;
     var transformsBuffer = data.transforms;
-    var transformCount = transformsBuffer.length / elementCount;
-
+    var transformSize = 6;
+    var transformCount = transformsBuffer.length / transformSize;
     var transforms = new Array(transformCount);
-
     for (var t = 0; t < transformCount; t++) {
-      var id = t * elementCount;
+      var id = t * transformSize;
       var transform = transforms[t] = new Matrix();
       transform.a = transformsBuffer[id];
       transform.b = transformsBuffer[id + 1];
@@ -41,6 +34,18 @@ export default class AnimationData {
       transform.d = transformsBuffer[id + 3];
       transform.tx = transformsBuffer[id + 4];
       transform.ty = transformsBuffer[id + 5];
+    }
+
+    // TODO: get rid of skin system
+    this.skins = data.skins || null;
+    if (this.skins !== null) {
+      for (var elementID in this.skins) {
+        var elementData = this.skins[elementID];
+        for (var skinID in elementData) {
+          var skinData = elementData[skinID];
+          skinData.transform = transforms[skinData.transformID];
+        }
+      }
     }
 
     var symbols = data.animations;
@@ -54,6 +59,7 @@ export default class AnimationData {
     // reference to all instances
     // used to setup quick access to library elements
     var allInstances = [];
+    var ids = data.ids;
 
     // populating library with symbols
     for (var s = 0; s < this.symbolList.length; s += 1) {
@@ -71,6 +77,10 @@ export default class AnimationData {
           var libraryID = ids[instanceData[2]];
           var frame = instanceData[3];
           var alpha = instanceData[4];
+
+          if (libraryID === symbolID && this.skins !== null) {
+            libraryID = this.skins[libraryID].default.id;
+          }
 
           var instance = new Instance(libraryID, frame, transform, alpha);
           instances.push(instance);
@@ -181,7 +191,7 @@ class Sprite {
     this.bounds = new Bounds(spriteData);
   }
 
-  _rendeFrame (ctx, transform, alpha) {
+  rendeFrame (ctx, transform, alpha) {
     ctx.setTransform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
     ctx.globalAlpha = alpha;
 
@@ -220,7 +230,6 @@ class Sprite {
 
 }
 
-
 // -----------------------------------
 // Symbol
 // -----------------------------------
@@ -234,7 +243,7 @@ class Symbol {
     this.transform = new Matrix();
   }
 
-  _rendeFrame (ctx, parentTransform, parentAlpha, instance, substitutes /*, deltaFrame */) {
+  rendeFrame (ctx, parentTransform, parentAlpha, instance, substitutes /*, deltaFrame */) {
     var frame = instance.getFrame(this.duration);
 
     var children = this.timeline[frame];
@@ -250,7 +259,7 @@ class Symbol {
       // therefore this method cannot be perfectly optimized by optimizer-compilers
       // also, the lookup in the substitutes map is slow
       var element = substitutes[child.libraryID] || child.element;
-      element._rendeFrame(ctx, transform, alpha, child, substitutes);
+      element.rendeFrame(ctx, transform, alpha, child, substitutes);
     }
   }
 
