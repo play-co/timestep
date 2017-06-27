@@ -128,6 +128,8 @@ exports = class {
       view._layout.reflow();
     }
 
+    view.reflow();
+
     // always reflow children if a layout changes sizes
     if (view._layout) {
       var style = view.style;

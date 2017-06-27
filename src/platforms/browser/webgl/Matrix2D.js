@@ -119,4 +119,3 @@ export default class Matrix2D {
 }
 
 var helperMatrix = new Matrix2D();
-Matrix2D.ELEMENT_COUNT = 6;
