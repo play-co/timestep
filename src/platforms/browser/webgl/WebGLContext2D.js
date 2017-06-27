@@ -621,10 +621,6 @@ class Context2D {
     this.stack.state.transform.setTo(a, b, c, d, tx, ty);
   }
 
-  getTransform () {
-    return this.stack.state.transform;
-  }
-
   transform (a, b, c, d, tx, ty) {
     this._helperTransform.setTo(a, b, c, d, tx, ty);
     this.stack.state.transform.transform(this._helperTransform);

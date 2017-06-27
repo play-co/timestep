@@ -498,6 +498,9 @@ export default class View extends IView {
 
     return view;
   }
+  _wrapRender (ctx, transform, opacity) {
+    this.style.wrapRender(ctx, transform, opacity);
+  }
   _linkView (view) {
     // remove any current connections
     this._unlinkView(view);

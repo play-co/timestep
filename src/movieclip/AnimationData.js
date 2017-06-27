@@ -17,8 +17,8 @@ export default class AnimationData {
     this.url = data.url;
     this.frameRate = data.frameRate;
 
-    // TODO: simplify export format by combining skins, symbols, ids and sprites
-    // into a single library map object in reverse hierarchical order
+    // TODO: simplify export format of skins, symbols, ids and sprites
+    // using a reverse hierarchical ordering of symbols
     // for faster data generation
 
     var transformsBuffer = data.transforms;
@@ -191,7 +191,7 @@ class Sprite {
     this.bounds = new Bounds(spriteData);
   }
 
-  rendeFrame (ctx, transform, alpha) {
+  _wrapRender (ctx, transform, alpha) {
     ctx.setTransform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
     ctx.globalAlpha = alpha;
 
@@ -243,7 +243,7 @@ class Symbol {
     this.transform = new Matrix();
   }
 
-  rendeFrame (ctx, parentTransform, parentAlpha, instance, substitutes /*, deltaFrame */) {
+  _wrapRender (ctx, parentTransform, parentAlpha, instance, substitutes /*, deltaFrame */) {
     var frame = instance.getFrame(this.duration);
 
     var children = this.timeline[frame];
@@ -259,7 +259,7 @@ class Symbol {
       // therefore this method cannot be perfectly optimized by optimizer-compilers
       // also, the lookup in the substitutes map is slow
       var element = substitutes[child.libraryID] || child.element;
-      element.rendeFrame(ctx, transform, alpha, child, substitutes);
+      element._wrapRender(ctx, transform, alpha, child, substitutes);
     }
   }
 
