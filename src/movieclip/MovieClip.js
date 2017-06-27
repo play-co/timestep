@@ -119,7 +119,7 @@ export default class MovieClip extends View {
     this._instance.frame = this.frame;
   }
 
-  render (ctx) {
+  render (ctx, transform) {
     if (!this.animation) {
       return;
     }
@@ -142,7 +142,7 @@ export default class MovieClip extends View {
       ctx.drawImage(this._canvas, 0, 0, bounds.width, bounds.height, bounds.x, bounds.y, bounds.width, bounds.height);
     } else {
       // Render directly to context
-      this._transform.copy(ctx.getTransform());
+      this._transform.copy(transform);
       this.animation.rendeFrame(ctx, this._transform, ctx.globalAlpha, this._instance, this._substitutes /*, deltaFrame */);
     }
   }
@@ -338,47 +338,47 @@ export default class MovieClip extends View {
   }
 
   // WIP: retrocompatibility with old skinning system
-  // setSkinForChild (animationID, skinID) {
-  //   if (this.loaded) {
-  //     if (this._currentSkin !== skinID) {
-  //       var skins = this.data.skins;
-  //       for (var skinElementID in skins) {
-  //         var skin = skins[skinElementID];
-  //         var libraryID = skin.default.id;
-  //         if (skin[skinID]) {
-  //           var skinData = skin[skinID];
-  //           var replacementLibraryID = skinData.id;
-  //           var symbol = this._library[replacementLibraryID];
-  //           var transform = skinData.transform;
+  setSkinForChild (animationID, skinID) {
+    if (this.loaded) {
+      if (this._currentSkin !== skinID) {
+        var skins = this.data.skins;
+        for (var skinElementID in skins) {
+          var skin = skins[skinElementID];
+          var libraryID = skin.default.id;
+          if (skin[skinID]) {
+            var skinData = skin[skinID];
+            var replacementLibraryID = skinData.id;
+            var symbol = this._library[replacementLibraryID];
+            var transform = skinData.transform;
 
-  //           // applying all skin transforms
-  //           var timeline = symbol.timeline;
-  //           for (var f = 0; f < timeline.length; f += 1) {
-  //             var children = timeline[f];
-  //             for (var c = 0; c < children.length; c += 1) {
-  //               var child = children[c];
-  //               console.error('   * before', child.transform)
-  //               child.transform = child.transform.clone().transform(transform);
-  //               console.error('   * after', child.transform)
-  //             }
-  //           }
+            // applying all skin transforms
+            var timeline = symbol.timeline;
+            for (var f = 0; f < timeline.length; f += 1) {
+              var children = timeline[f];
+              for (var c = 0; c < children.length; c += 1) {
+                var child = children[c];
+                // console.error('   * before', child.transform)
+                child.transform = child.transform.clone().transform(transform);
+                // console.error('   * after', child.transform)
+              }
+            }
 
-  //           console.error(replacementLibraryID, symbol, transform)
-  //           this.addAnimationSubstitution(libraryID, replacementLibraryID);
-  //         }
-  //       }
-  //       this._currentSkin = skinID;
-  //     }
+            // console.error(replacementLibraryID, symbol, transform)
+            this.addAnimationSubstitution(libraryID, replacementLibraryID);
+          }
+        }
+        this._currentSkin = skinID;
+      }
 
-  //     // libraryID = skins[libraryID].default;
-  //     // var replacementLibraryID = skins[libraryID][skinID];
-  //     // this.addAnimationSubstitution(libraryID, replacementLibraryID);
-  //   } else {
-  //     this.once(MovieClip.LOADED, () => {
-  //       this.setSkinForChild(libraryID, skinID);
-  //     })
-  //   }
-  // }
+      // libraryID = skins[libraryID].default;
+      // var replacementLibraryID = skins[libraryID][skinID];
+      // this.addAnimationSubstitution(libraryID, replacementLibraryID);
+    } else {
+      this.once(MovieClip.LOADED, () => {
+        this.setSkinForChild(libraryID, skinID);
+      })
+    }
+  }
 
   setData (data) {
     if (this.data === data) { return; }

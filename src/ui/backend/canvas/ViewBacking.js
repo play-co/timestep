@@ -310,7 +310,7 @@ export default class ViewBacking extends BaseBacking {
     }
 
     if (this._hasRender) {
-      this._view._render(ctx);
+      this._view._render(ctx, gt);
     }
     
     var subviews = this._visibleSubviews;
