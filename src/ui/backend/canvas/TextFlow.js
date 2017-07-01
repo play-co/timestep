@@ -1,5 +1,3 @@
-let exports = {};
-
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -15,7 +13,6 @@ let exports = {};
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-import { bind } from 'base';
 
 import Enum from 'lib/Enum';
 import PubSub from 'lib/PubSub';
@@ -24,9 +21,10 @@ var textFlowMode = Enum('NONE', 'WRAP', 'AUTOSIZE', 'AUTOSIZE_WRAP',
   'AUTOFONTSIZE', 'AUTOFONTSIZE_WRAP', 'AUTOFONTSIZE_AUTOSIZE',
   'AUTOFONTSIZE_WRAP_AUTOSIZE');
 
-exports = class extends PubSub {
+export default class TextFlow extends PubSub {
+
   constructor (opts) {
-    super(...arguments);
+    super(opts);
 
     this._target = opts.target;
     this._lineWidth = 0;
@@ -48,6 +46,7 @@ exports = class extends PubSub {
       height: 0
     };
   }
+
   measureText (ctx, text) {
     var opts = this._opts;
 
@@ -59,6 +58,7 @@ exports = class extends PubSub {
       return ctx.measureText(text).width;
     }
   }
+
   _lineSplit (ctx) {
     var opts = this._opts;
     var spaceWidth = opts.wrapCharacter ? 0 : ctx.measureText(' ').width;
@@ -135,6 +135,7 @@ exports = class extends PubSub {
     }
     this._lineWidth -= spaceWidth;
   }
+
   _measureWords (ctx) {
     var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(' ').width;
     var currentWord = 0;
@@ -153,6 +154,7 @@ exports = class extends PubSub {
     }
     this._lineWidth -= spaceWidth;
   }
+
   _wrap (ctx, width) {
     var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(' ').width;
     var currentWidth = 0;
@@ -284,10 +286,12 @@ exports = class extends PubSub {
       }
     }
   }
+
   _getLineSize (lineCount) {
     var opts = this._opts;
     return (lineCount <= 1 ? 1 : opts.lineHeight) * opts.size;
   }
+
   _wordFlow (ctx) {
     var spaceWidth = this._opts.wrapCharacter ? 0 : ctx.measureText(' ').width;
     var lines = this._lines;
@@ -326,6 +330,7 @@ exports = class extends PubSub {
       this._maxHeight = Math.max(this._maxHeight, y);
     }
   }
+
   _checkWidth (ctx, width) {
     if (this._opts.text === '') {
       return false;
@@ -339,6 +344,7 @@ exports = class extends PubSub {
     }
     return false;
   }
+
   _checkHeight (ctx, loSize, hiSize, cb) {
     if (this._opts.text === '') {
       return;
@@ -363,6 +369,7 @@ exports = class extends PubSub {
       this._checkHeight(ctx, pivot, hiSize, cb);
     }
   }
+
   _horizontalAlign (ctx) {
     var words = this._words;
     if (words.length) {
@@ -422,6 +429,7 @@ exports = class extends PubSub {
       }
     }
   }
+
   _verticalAlign () {
     var lineCount = this._lines.length;
     var verticalAlign = this._opts.verticalAlign;
@@ -445,6 +453,7 @@ exports = class extends PubSub {
       this._offsetRect.y += offset;
     }
   }
+
   reflow (ctx, mode) {
     var opts = this._opts;
     var availableWidth = this.getAvailableWidth();
@@ -488,21 +497,22 @@ exports = class extends PubSub {
         if (this._opts.fitHeight || availableHeight < this._maxHeight) {
           this.publish('ChangeHeight', this._maxHeight + this.getVerticalPadding());
         }
-
         break;
 
       case textFlowMode.AUTOFONTSIZE:
         this._checkWidth(ctx, this._lineWidth) && this._lineSplit(ctx);
         this._lines = [this._line];
-      // Don't use the lineHeight here because it's a single line
+
+        // Don't use the lineHeight here because it's a single line
         if (opts.allowVerticalSizing && opts.size > availableHeight) {
-          var cb = bind(this, function () {
+          var cb = () => {
             this._measureWords(ctx);
             this._wordFlow(ctx);
-          });
+          };
 
           this._checkHeight(ctx, 1, opts.size, cb);
           this.publish('ChangeSize', this._heightFound, ctx);
+
           cb();
         } else {
           this._wordFlow(ctx);
@@ -515,27 +525,27 @@ exports = class extends PubSub {
 
         var lineCount = this._lines.length;
         var lineSize = this._getLineSize(lineCount);
-        if (opts.allowVerticalSizing && lineCount * lineSize >
-        availableHeight) {
-          var cb = bind(this, function () {
+        if (opts.allowVerticalSizing && lineCount * lineSize > availableHeight) {
+          var cb = () => {
             this._measureWords(ctx);
             this._wrap(ctx, availableWidth);
             this._wordFlow(ctx);
-          });
+          };
 
           this._checkHeight(ctx, 1, opts.size, cb);
           this.publish('ChangeSize', this._heightFound, ctx);
+
           cb();
         }
-
         break;
 
       case textFlowMode.AUTOFONTSIZE_WRAP_AUTOSIZE:
         this._wrap(ctx, availableWidth);
         this._wordFlow(ctx);
 
-        availableHeight < this._maxHeight && this.publish('ChangeHeight',
-        this._maxHeight + this.getVerticalPadding());
+        if (availableHeight < this._maxHeight) {
+          this.publish('ChangeHeight', this._maxHeight + this.getVerticalPadding());
+        }
         break;
     }
 
@@ -561,38 +571,57 @@ exports = class extends PubSub {
       this._offsetRect.width += strokeWidth;
     }
   }
+
   setOpts (opts) {
     this._opts = opts;
   }
+
   getWords () {
     return this._words;
   }
-  getHorizontalPadding () {
-    var padding = this._target.style.padding;
 
-    return padding.left + padding.right;
-  }
   getPaddingLeft () {
-    return this._target.style.padding.left;
+    var padding = this._target.style.padding;
+    if (padding) { return padding.left || 0; }
+    return 0;
   }
+
+  getPaddingRight () {
+    var padding = this._target.style.padding;
+    if (padding) { return padding.right || 0; }
+    return 0;
+  }
+
+  getPaddingTop () {
+    var padding = this._target.style.padding;
+    if (padding) { return padding.top || 0; }
+    return 0;
+  }
+
+  getPaddingBottom () {
+    var padding = this._target.style.padding;
+    if (padding) { return padding.bottom || 0; }
+    return 0;
+  }
+
+  getHorizontalPadding () {
+    return this.getPaddingLeft() + this.getPaddingRight();
+  }
+
+  getVerticalPadding () {
+    return this.getPaddingTop() + this.getPaddingBottom();
+  }
+
   getAvailableWidth () {
     return this._target.style.width - this.getHorizontalPadding();
   }
-  getVerticalPadding () {
-    var padding = this._target.style.padding;
 
-    return padding.top + padding.bottom;
-  }
-  getPaddingTop () {
-    return this._target.style.padding.top;
-  }
   getAvailableHeight () {
     return this._target.style.height - this.getVerticalPadding();
   }
+
   getOffsetRect () {
     return this._offsetRect;
   }
-};
-var TextFlow = exports;
 
-export default exports;
+};
