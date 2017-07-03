@@ -53,6 +53,7 @@ export const Align = {
 export const DEFAULT_TEXT_FORMAT = {
   font: null,
   size: 16,
+  autoSize: true,
   color: '#ffffff',
   align: Align.LEFT,
   leading: 0,
@@ -111,7 +112,11 @@ export default class BitmapFontTextViewBacking {
     this._color = opts.color || this._color;
 
     // Clear last font listener
+
     this._clearOnFontLoad();
+
+    this.autoSize = opts.autoSize;
+
     if (opts.font) {
       opts.font.on('loaded', this._boundOnFontLoad);
     }
@@ -119,6 +124,7 @@ export default class BitmapFontTextViewBacking {
     if (opts.text) {
       this.text = opts.text;
     }
+
     this.invalidate();
   }
 
@@ -803,6 +809,7 @@ export default class BitmapFontTextViewBacking {
   set size(value) {
     if (value === this._listener._opts.size) { return; }
     this._listener._opts.size = value;
+    this._baseSize = value;
     this.invalidate();
   }
 
@@ -838,15 +845,42 @@ export default class BitmapFontTextViewBacking {
     return baseline * fontSizeScale;
   }
 
-  get text() {
-    return this._text;
+  set autoSize(value) {
+    if (this._autoSize !== value) {
+      this._autoSize = value;
+
+      this.invalidate();
+    }
+  }
+
+  get autoSize() {
+    return this._autoSize;
   }
 
   set text(value) {
     value = '' + value;
-    if (this._text === value) { return; }
-    this._text = value;
-    this.invalidate();
+
+    if (this._text !== value) {
+      this._text = value;
+      this._listener._opts.size = this._baseSize;
+
+      this.invalidate();
+
+      if (this.autoSize && this._listener._opts.font) {
+        let viewWidth = this._listener._opts.width;
+        let textWidth = this.measureText().x;
+
+        if (viewWidth < textWidth) {
+          this._listener._opts.size = this._baseSize * (viewWidth / textWidth);
+
+          this.invalidate();
+        }
+      }
+    }
+  }
+
+  get text() {
+    return this._text;
   }
 
   get batchX() {
