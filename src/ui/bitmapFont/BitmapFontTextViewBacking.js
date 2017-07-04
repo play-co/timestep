@@ -115,7 +115,8 @@ export default class BitmapFontTextViewBacking {
 
     this._clearOnFontLoad();
 
-    this.autoSize = opts.autoSize;
+    this._autoSize = opts.autoSize;
+    this._baseSize = opts.size;
 
     if (opts.font) {
       opts.font.on('loaded', this._boundOnFontLoad);
@@ -866,7 +867,7 @@ export default class BitmapFontTextViewBacking {
 
       this.invalidate();
 
-      if (this.autoSize && this._listener._opts.font) {
+      if (this._autoSize && this._baseSize && this._listener._opts.font) {
         let viewWidth = this._listener._opts.width;
         let textWidth = this.measureText().x;
 
