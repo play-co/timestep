@@ -24,7 +24,6 @@ import { GLOBAL, CONFIG } from 'base';
  * OS version, browser version, and simulator status.
  */
 var ua = navigator && navigator.userAgent;
-var isNative = /TeaLeaf/.test(ua);
 var isIOS = /iPod|iPhone|iPad/i.test(ua);
 var isAndroid = /Android/.test(ua);
 var isMac = /Mac OS X [0-9_]+/.test(ua);
@@ -37,26 +36,14 @@ var isIE11 = /Trident/.test(ua);
 var isEdge = /Edge/.test(ua);
 var isSimulator = GLOBAL.CONFIG && !!CONFIG.simulator;
 
-var appRuntime = 'unknown';
-var deviceType = 'unknown';
+var appRuntime = 'browser';
+var deviceType = (isIOS || isAndroid) ? 'mobile' : 'desktop';
 var osType = 'unknown';
 var osVersion = 'unknown';
 var osVersionString = 'unknown';
 var browserVersion = 'unknown';
 var browserVersionString = 'unknown';
 var browserType = 'unknown';
-
-if (isNative) {
-  appRuntime = 'native';
-  deviceType = 'mobile';
-} else {
-  appRuntime = 'browser';
-  if (isIOS || isAndroid) {
-    deviceType = 'mobile';
-  } else {
-    deviceType = 'desktop';
-  }
-}
 
 if (isAndroid) {
   osType = 'Android';

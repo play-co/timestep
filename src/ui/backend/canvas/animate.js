@@ -653,7 +653,7 @@ class ViewAnimator extends Animator {
   }
 }
 
-// used to get/set native or browser ViewAnimator constructors
+// used to get/set browser ViewAnimator constructors
 exports.getViewAnimator = function () {
   return ViewAnimator;
 };

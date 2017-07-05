@@ -26,9 +26,7 @@ import {
   CONFIG
 } from 'base';
 
-import { getImport } from 'platformImport';
-
-var Timer = getImport('Timer');
+import Timer from 'platforms/browser/Timer';
 
 // ticks over 10 seconds will be considered too large to process
 exports.now = 0;
@@ -68,13 +66,13 @@ exports.debug = false;
 exports.start = function (minDt) {
   this.reset();
   this.isRunning = true;
-  getImport('Timer').start(exports.tick, minDt);
+  Timer.start(exports.tick, minDt);
 };
 
 exports.stop = function () {
   this.reset();
   this.isRunning = false;
-  getImport('Timer').stop();
+  Timer.stop();
 };
 
 exports.getTickProgress = function () {

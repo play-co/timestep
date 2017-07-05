@@ -26,10 +26,10 @@ import device from 'device';
 import Engine from 'ui/Engine';
 
 import userAgent from 'userAgent';
+import Canvas from 'platforms/browser/Canvas';
 
 const COMPOSITE_MULTIPLY_SUPPORTED = userAgent.browserType !== 'Internet Explorer';
 
-var Canvas = null;
 var noCacheCanvas = null;
 var noCacheColorCanvas = null;
 var unusedCanvas = null;
@@ -46,7 +46,6 @@ var needsInitialization = true;
 class FilterRenderer {
 
   initialize () {
-    Canvas = device.get('Canvas');
     noCacheCanvas = new Canvas({ useWebGL: CONFIG.useWebGL });
     noCacheColorCanvas = new Canvas({ useWebGL: false });
     needsInitialization = false;

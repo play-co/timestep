@@ -27,8 +27,6 @@ import { EventEmitter } from 'events';
 
 import BitmapChar from './BitmapChar';
 
-
-const NATIVESIZE = -1;
 const CHAR_SPACE = 32;
 const CHAR_TAB = 9;
 const CHAR_NEWLINE = 10;

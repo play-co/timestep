@@ -33,18 +33,13 @@ let exports = {};
 import {
   logger,
   GLOBAL,
-  CONFIG,
-  NATIVE
+  CONFIG
 } from 'base';
 
 import userAgent from 'userAgent';
 import setProperty from 'util/setProperty';
 import Emitter from 'event/Emitter';
-
-import {
-  getImport,
-  importUI
-} from './platformImport';
+import initialize from 'platforms/browser/initialize';
 
 if (typeof navigator === 'undefined' || !navigator.userAgent) {
   logger.warn(
@@ -57,20 +52,11 @@ var ua = navigator.userAgent;
 
 var MAX_DPR = 2;
 
-/**
- * @namespace
- */
-var _devices = {};
-exports.registerDevice = function (name, path) {
-  _devices[name] = path;
-};
-
-// TODO: remove this indirection
-exports.get = getImport;
-exports.importUI = importUI;
+exports.get = function () {
+  console.error('noooo!')
+}
 
 exports.isMobile = /TeaLeaf/.test(ua);
-exports.isMobileNative = exports.isMobile;
 
 logger.log(exports.isMobile ? 'on mobile device' : 'in web browser');
 
@@ -137,12 +123,9 @@ if (exports.isSimulator) {
   // Until we support more platforms, if it's not
   // iOS then it's assumed to be an Android device
   exports.isAndroidSimulator = !exports.isIOSSimulator;
-
-  exports.isNativeSimulator = /^native/.test(CONFIG.target);
 } else {
   exports.isAndroidSimulator = false;
   exports.isIOSSimulator = false;
-  exports.isNativeSimulator = false;
 }
 
 if (exports.isMobile) {
@@ -242,36 +225,9 @@ exports.getDimensions = function (isLandscape) {
  * Initialize the device. Called from somewhere else.
  */
 exports.init = function () {
-  let init = require('ui/init');
-  getImport('initialize').init();
+  initialize.init(exports);
   exports.screen.width = exports.width;
   exports.screen.height = exports.height;
-};
-
-/**
- * Event handlers
- */
-exports.setBackButtonHandler = function (handler) {
-  NATIVE && (NATIVE.onBackButton = handler);
-};
-
-exports.setRotationHandler = function (handler) {
-  NATIVE && (NATIVE.onRotation = handler);
-};
-
-/*
- * Stay awake
- */
-exports.stayAwake = function (enable) {
-  NATIVE && NATIVE.stayAwake && NATIVE.stayAwake(enable);
-};
-
-/**
- * Garbage Collection
- */
-exports.collectGarbage = function () {
-  logger.log('collecting garbage');
-  NATIVE && NATIVE.gc && NATIVE.gc.runGC();
 };
 
 export default exports;

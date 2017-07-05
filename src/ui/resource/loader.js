@@ -20,7 +20,6 @@ import {
   merge,
   GLOBAL,
   CACHE,
-  NATIVE,
   logger,
   bind
 } from 'base';
@@ -202,16 +201,12 @@ class Loader extends Emitter {
       _soundLoader = _soundManager.getAudioLoader();
     }
 
-    if (GLOBAL.NATIVE && GLOBAL.NATIVE.sound && GLOBAL.NATIVE.sound.preloadSound) {
-      return NATIVE.sound.preloadSound(src);
-    } else {
-      _soundManager.addSound(src);
-      // HACK to make the preloader continue in the browser
-      return {
-        complete: true,
-        loader: _soundLoader
-      };
-    }
+    _soundManager.addSound(src);
+    // HACK to make the preloader continue in the browser
+    return {
+      complete: true,
+      loader: _soundLoader
+    };
   }
 
   getText(url) {
@@ -384,10 +379,6 @@ class Loader extends Emitter {
           loadableResources.push(requested);
 
           this._requestedResources.push(requested);
-        }
-
-        if (type == 'image' && GLOBAL.NATIVE && NATIVE.gl) {
-          NATIVE.gl.touchTexture(resources[i]);
         }
       }
     }

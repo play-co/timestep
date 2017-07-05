@@ -15,13 +15,10 @@ let exports = {};
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-import device from 'device';
 import browser from 'util/browser';
 let $ = browser.$;
 
-device.registerDevice('browser', 'platforms.browser');
-
-exports.init = function () {
+exports.init = function (device) {
   var onResize = function () {
     var dpr = device.screen.devicePixelRatio;
     var doc = window.document;

@@ -60,7 +60,6 @@ if (DEBUG) {
   };
 }
 
-// TODO: native
 // TODO: Resize event on width/height change
 // TODO: reflow on subview visibility change
 function toStringSort () {

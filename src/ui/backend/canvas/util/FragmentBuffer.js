@@ -24,6 +24,7 @@ import {
 import device from 'device';
 import FragmentBin from './FragmentBin';
 import SortedList from './SortedLinkedList';
+import Canvas from 'platforms/browser/Canvas';
 
 var debug = false;
 
@@ -73,7 +74,6 @@ exports = class {
     window.addEventListener('pageshow', bind(this, 'clearBuffer'), false);
   }
   _build () {
-    var Canvas = device.get('Canvas');
     this._canvas = new Canvas({
       width: 1024,
       height: 1024

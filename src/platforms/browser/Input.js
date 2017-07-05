@@ -41,7 +41,7 @@ var enableLandscapeScroll = isIOSSafari;
 export default class Input {
 
   constructor (opts) {
-    if (device.simulatingMobileNative || device.simulatingMobileBrowser) {
+    if (device.simulatingMobileBrowser) {
       this._simulateMobile = true;
     }
 
@@ -155,7 +155,7 @@ export default class Input {
     this._elEvents.push($.onEvent(el, 'mousedown', this, 'handleMouse', eventTypes.START));
     this._elEvents.push($.onEvent(el, 'touchstart', this, 'handleMouse', eventTypes.START));
 
-    if (!device.isMobileBrowser && !device.isNative) {
+    if (!device.isMobileBrowser) {
       this._elEvents.push($.onEvent(el, 'mouseover', this, 'onMouseOver'));
       this._elEvents.push($.onEvent(el, 'mouseout', this, 'onMouseOut'));
     }

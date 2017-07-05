@@ -72,7 +72,6 @@ var scheduler = new EventScheduler();
  * This singleton class controls the focus of the current application. Only one
  * view can be focused at a given time.
  *
- * This doesn't correspond to native and isn't being used.
  */
 var FocusMgr = new class {
   constructor (opts) {

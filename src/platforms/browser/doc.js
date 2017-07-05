@@ -36,8 +36,7 @@ var isIOSSafari = device.iosVersion >= 7 && !device.isIpad && !device.isStandalo
 var enableLandscapeScroll = isIOSSafari && window.parent === window;
 
 var SCALING = Enum('FIXED', 'RESIZE', 'MANUAL');
-var defaultScalingMode = !device.isMobileNative || device.simulating ? SCALING.RESIZE :
-  SCALING.FIXED;
+var defaultScalingMode = SCALING.RESIZE;
 
 /**
  * @extends lib.PubSub

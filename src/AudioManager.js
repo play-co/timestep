@@ -24,8 +24,7 @@ let exports = {};
  */
 import {
   logger,
-  bind,
-  NATIVE
+  bind
 } from 'base';
 
 import device from 'device';
@@ -37,8 +36,7 @@ import AudioLoader from 'ui/backend/sound/AudioLoader';
 // or multiple sources which will be chosen at random at play time. Sounds may
 // also be given a default volume and loop boolean.
 //
-// Only one background sound can be played at a time. They are streamed, not
-// preloaded, on native.
+// Only one background sound can be played at a time.
 // define AudioContext as best as possible; it may not exist
 var AudioContext = window.AudioContext || window.webkitAudioContext;
 
@@ -182,9 +180,6 @@ class MultiSound {
             || soundManager._preload && !opts.background ? 'auto' : 'none';
 
           sources.push(audio);
-          if (audio.isBackgroundMusic && NATIVE && NATIVE.sound) {
-            NATIVE.sound.registerMusic(fullPath, audio);
-          }
         }
       }
     }
@@ -379,8 +374,7 @@ exports = class extends Emitter {
     _ctx && this.setAudioContext();
 
     // determine whether browser supports mp3 or ogg. Default to mp3 if
-    // both are supported. Native will return true for everything, but
-    // on native, we store ogg files as .mp3 files, so return .mp3...
+    // both are supported.
     if (typeof Audio !== 'undefined') {
       var sound = new Audio();
       if (sound.canPlayType('audio/mpeg')) {
@@ -588,8 +582,8 @@ exports = class extends Emitter {
     opts = opts || {};
     var isBackgroundMusic = sound.isBackgroundMusic;
     if (isBackgroundMusic) {
-      // some platforms enforce only one simultaneous background music
-      // (native) while others do not.  Enforce it always.
+      // some platforms enforce only one simultaneous background
+      // while others do not.  Enforce it always.
       if (this.currentMusic) {
         this.currentMusic.stop();
       }

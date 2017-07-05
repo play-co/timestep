@@ -24,8 +24,8 @@ import device from 'device';
 import TextView from 'ui/TextView';
 import View from 'ui/View';
 import ImageScaleView from 'ui/ImageScaleView';
+import EditText from 'platforms/browser/EditText';
 
-var EditText = device.get('EditText');
 
 var defaults = {
   color: 'black',
