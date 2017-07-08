@@ -867,15 +867,8 @@ export default class BitmapFontTextViewBacking {
 
       this.invalidate();
 
-      if (this._autoSize && this._baseSize && this._listener._opts.font) {
-        let viewWidth = this._listener._opts.width;
-        let textWidth = this.measureText().x;
-
-        if (viewWidth < textWidth) {
-          this._listener._opts.size = this._baseSize * (viewWidth / textWidth);
-
-          this.invalidate();
-        }
+      if (this._autoSize) {
+        this.updateAutoSize();
       }
     }
   }
@@ -890,6 +883,19 @@ export default class BitmapFontTextViewBacking {
 
   get verticalAlignOffsetY() {
     return this._verticalAlignOffsetY;
+  }
+
+  updateAutoSize () {
+    if (this._baseSize && this._listener._opts.font) {
+      let viewWidth = this._listener._opts.width;
+      let textWidth = this.measureText().x;
+
+      if (viewWidth < textWidth) {
+        this._listener._opts.size = this._baseSize * (viewWidth / textWidth);
+
+        this.invalidate();
+      }
+    }
   }
 }
 
