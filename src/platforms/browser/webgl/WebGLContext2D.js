@@ -30,7 +30,6 @@ import device from 'device';
 
 import loader from 'ui/resource/loader';
 import Color from 'ui/Color';
-
 import TextManager from './TextManager';
 import Shaders from './Shaders';
 import Matrix2D from './Matrix2D';

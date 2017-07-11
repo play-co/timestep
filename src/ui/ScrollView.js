@@ -126,13 +126,16 @@ var PI_2 = Math.PI / 2;
 /**
  * @extends ui.View
  */
-exports = class extends View {
+var scrollViewCount = 0;
+export default class ScrollView extends View {
   constructor (opts) {
     opts = merge(opts, defaults);
 
     opts['dom:noCanvas'] = true;
 
     super(opts);
+
+    this.style._usesSeparateViewport = true;
 
     this._acceleration = 15;
 
@@ -163,6 +166,7 @@ exports = class extends View {
 
     this._viewport = new Rect();
     this._viewport.src = this._contentView;
+    this._viewportChanged = false;
 
     super.addSubview(this._contentView);
 
@@ -548,6 +552,9 @@ exports = class extends View {
   getCurrentViewport () {
     return viewportStack[viewportStack.length - 1];
   }
+  popViewport () {
+    viewportStack.pop();
+  }
   render (ctx) {
     var s = this.style;
     var cvs = this._contentView.style;
@@ -572,10 +579,10 @@ exports = class extends View {
       viewportIntersect(viewport, currentViewPort);
     }
 
-    viewportStack.push(viewport);
+    this._viewportChanged = viewport.x != x || viewport.y != y ||
+        viewport.width != width || viewport.height != height;
 
-    return viewport.x != x || viewport.y != y || viewport.width != width ||
-      viewport.height != height;
+    viewportStack.push(viewport);
   }
   onInputScroll (evt) {
     var style = this._contentView.style;
@@ -641,7 +648,5 @@ exports = class extends View {
   }
 };
 
-exports.prototype.tag = 'ScrollView';
-exports.prototype.scrollData = [];
-
-export default exports;
+ScrollView.prototype.tag = 'ScrollView';
+ScrollView.prototype.scrollData = [];

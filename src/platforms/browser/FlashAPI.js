@@ -123,6 +123,5 @@ exports = class extends PubSub {
     this._backgroundSoundPlaying = null;
   }
 };
-var AudioAPI = exports;
 
 export default exports;

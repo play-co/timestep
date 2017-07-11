@@ -226,6 +226,5 @@ exports = class extends PubSub {
     this._audios[this._backgroundSoundPlaying].pause();
   }
 };
-var AudioAPI = exports;
 
 export default exports;
