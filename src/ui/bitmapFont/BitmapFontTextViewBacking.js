@@ -109,25 +109,34 @@ export default class BitmapFontTextViewBacking {
   }
 
   updateOpts(opts) {
-    this._color = opts.color || this._color;
-
-    // Clear last font listener
-
-    this._clearOnFontLoad();
-
-    this._autoSize = opts.autoSize;
-    this._baseSize = opts.size;
-
-    if (opts.font) {
-      opts.font.on('loaded', this._boundOnFontLoad);
+    if (typeof opts.color !== 'undefined') {
+      this._color = opts.color;
     }
 
-    if (opts.text) {
+    if (typeof opts.autoSize !== 'undefined') {
+      this._autoSize = opts.autoSize;
+    }
+
+    if (typeof opts.size !== 'undefined') {
+      this._baseSize = opts.size;
+    }
+
+    if (typeof opts.font !== 'undefined') {
+      // Clear last font listener
+
+      this._clearOnFontLoad();
+
+      if (opts.font) {
+        opts.font.on('loaded', this._boundOnFontLoad);
+      }
+    }
+
+    if (typeof opts.text !== 'undefined') {
       this.text = opts.text;
     }
 
     this.invalidate();
-  }
+   }
 
   measureText(result) {
     if (!result) {
@@ -266,20 +275,41 @@ export default class BitmapFontTextViewBacking {
   }
 
   invalidate() {
-    this._isInvalid = true;
-    // TODO: TEMPORARY, fix this
+    this._listener._opts.size = this._baseSize;
+
     this.validate();
+    this.updateAutoSize();
   }
 
   validate() {
-    if (!this._listener._opts || !this._listener._opts.font || !this._listener._opts.font.loaded) { return; }
+    if (!this._listener._opts ||
+        !this._listener._opts.font ||
+        !this._listener._opts.font.loaded) {
+      return;
+    }
+
     this._listener.updateColorFilter();
-    this._isInvalid = false;
+
     this.draw();
   }
 
+  updateAutoSize () {
+    let textWidth = this._lastLayoutWidth;
+
+    if (textWidth && this._autoSize) {
+      let viewWidth = this._listener._opts.width;
+
+      if (textWidth > viewWidth) {
+        this._listener._opts.size = this._listener._opts.size * (viewWidth / textWidth);
+
+        this.validate();
+      }
+    }
+  }
+
   draw() {
-    var isInvalid = true; //this.isInvalid();
+    var isInvalid = true;
+
     var sizeInvalid;
 
     // sometimes, we can determine that the layout will be exactly
@@ -863,10 +893,8 @@ export default class BitmapFontTextViewBacking {
 
     if (this._text !== value) {
       this._text = value;
-      this._listener._opts.size = this._baseSize;
 
       this.invalidate();
-      this.updateAutoSize();
     }
   }
 
@@ -882,20 +910,7 @@ export default class BitmapFontTextViewBacking {
     return this._verticalAlignOffsetY;
   }
 
-  updateAutoSize () {
-    if (this._autoSize && this._baseSize && this._listener._opts.font) {
-      let viewWidth = this._listener._opts.width;
-      let textWidth = this.measureText().x;
-
-      if (viewWidth < textWidth) {
-        this._listener._opts.size = this._baseSize * (viewWidth / textWidth);
-
-        this.invalidate();
-      }
-    }
-  }
 }
-
 
 class CharLocation {
   constructor() {
