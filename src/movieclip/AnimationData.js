@@ -36,18 +36,6 @@ export default class AnimationData {
       transform.ty = transformsBuffer[id + 5];
     }
 
-    // TODO: get rid of skin system
-    this.skins = data.skins || null;
-    if (this.skins !== null) {
-      for (var elementID in this.skins) {
-        var elementData = this.skins[elementID];
-        for (var skinID in elementData) {
-          var skinData = elementData[skinID];
-          skinData.transform = transforms[skinData.transformID];
-        }
-      }
-    }
-
     var symbols = data.animations;
     this.symbolList = Object.keys(symbols);
 
@@ -77,10 +65,6 @@ export default class AnimationData {
           var libraryID = ids[instanceData[2]];
           var frame = instanceData[3];
           var alpha = instanceData[4];
-
-          if (libraryID === symbolID && this.skins !== null) {
-            libraryID = this.skins[libraryID].default.id;
-          }
 
           var instance = new Instance(libraryID, frame, transform, alpha);
           instances.push(instance);
@@ -118,11 +102,11 @@ export default class AnimationData {
 const animationDataCache = {};
 const loadCallbacks = {};
 
-AnimationData.loadFromURL = function (url) {
+var getAnimation = function (url) {
   var data = animationDataCache[url];
 
   if (data) {
-    return Promise.resolve(data);
+    return data;
   }
 
   var fullPath = url + '/data.js';
@@ -132,6 +116,15 @@ AnimationData.loadFromURL = function (url) {
     var rawData = JSON.parse(dataString);
     rawData.url = url;
     data = animationDataCache[url] = new AnimationData(rawData);
+  }
+
+  return data;
+};
+AnimationData.getAnimation = getAnimation;
+
+AnimationData.loadFromURL = function (url) {
+  var data = getAnimation(url);
+  if (data) {
     return Promise.resolve(data);
   }
 
@@ -144,9 +137,10 @@ AnimationData.loadFromURL = function (url) {
 
     loadCallbacks[url] = [ { resolve, reject } ];
 
+    var fullPath = url + '/data.js';
     loader.preload(fullPath, () => {
 
-      dataString = CACHE[fullPath];
+      var dataString = CACHE[fullPath];
 
       if (dataString) {
         var rawData = JSON.parse(dataString);

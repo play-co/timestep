@@ -333,47 +333,14 @@ export default class MovieClip extends View {
     this.clearBoundsMap();
   }
 
-  // WIP: retrocompatibility with old skinning system
-  setSkinForChild (animationID, skinID) {
-    if (this.loaded) {
-      if (this._currentSkin !== skinID) {
-        var skins = this.data.skins;
-        for (var skinElementID in skins) {
-          var skin = skins[skinElementID];
-          var libraryID = skin.default.id;
-          if (skin[skinID]) {
-            var skinData = skin[skinID];
-            var replacementLibraryID = skinData.id;
-            var symbol = this._library[replacementLibraryID];
-            var transform = skinData.transform;
-
-            // applying all skin transforms
-            var timeline = symbol.timeline;
-            for (var f = 0; f < timeline.length; f += 1) {
-              var children = timeline[f];
-              for (var c = 0; c < children.length; c += 1) {
-                var child = children[c];
-                // console.error('   * before', child.transform)
-                child.transform = child.transform.clone().transform(transform);
-                // console.error('   * after', child.transform)
-              }
-            }
-
-            // console.error(replacementLibraryID, symbol, transform)
-            this.addAnimationSubstitution(libraryID, replacementLibraryID);
-          }
-        }
-        this._currentSkin = skinID;
-      }
-
-      // libraryID = skins[libraryID].default;
-      // var replacementLibraryID = skins[libraryID][skinID];
-      // this.addAnimationSubstitution(libraryID, replacementLibraryID);
-    } else {
-      this.once(MovieClip.LOADED, () => {
-        this.setSkinForChild(libraryID, skinID);
-      })
+  substituteAllAnimations (animationData) {
+    var library = animationData.library;
+    var symbolList = animationData.symbolList;
+    for (var s = 0; s < symbolList.length; s += 1) {
+      var symbolID = symbolList[s];
+      this._substitutes[symbolID] = library[symbolID];
     }
+    this.clearBoundsMap();
   }
 
   setData (data) {
@@ -458,3 +425,6 @@ function returnCanvasToPool (canvas) {
 }
 
 MovieClip.LOADED = 'loaded';
+
+MovieClip.getAnimation = AnimationData.getAnimation;
+MovieClip.loadAnimation = AnimationData.loadFromURL;

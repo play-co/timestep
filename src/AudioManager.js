@@ -212,7 +212,10 @@ class MultiSound {
   stop () {
     this._isStopped = true;
     if (this._useAudioContext) {
-      // our lastSrc setter will stop this automatically, see below
+      if (!this.isBackgroundMusic && this.lastSrc) {
+        this.lastSrc.stop();
+      }
+      // our lastSrc setter will stop this automatically for background music, see below
       this.lastSrc = null;
     } else {
       for (var i = 0, src; src = this._sources[i]; ++i) {
