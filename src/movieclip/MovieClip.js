@@ -135,7 +135,7 @@ export default class MovieClip extends View {
         this.updateCanvasBounds(bounds);
         this._ctx.clear();
         this._transform.setTo(1, 0, 0, 1, -bounds.x, -bounds.y);
-        this.animation.rendeFrame(this._ctx, this._transform, 1, this._instance, this._substitutes /*, deltaFrame */);
+        this.animation._wrapRender(this._ctx, this._transform, 1, this._instance, this._substitutes /*, deltaFrame */);
         this._frameDirty = false;
       }
 
@@ -143,12 +143,8 @@ export default class MovieClip extends View {
     } else {
       // Render directly to context
       this._transform.copy(transform);
-      this.animation.rendeFrame(ctx, this._transform, ctx.globalAlpha, this._instance, this._substitutes /*, deltaFrame */);
+      this.animation._wrapRender(ctx, this._transform, ctx.globalAlpha, this._instance, this._substitutes /*, deltaFrame */);
     }
-  }
-
-  rendeFrame (ctx, parentTransform, parentOpacity) {
-    this.style.wrapRender(ctx, parentTransform, parentOpacity);
   }
 
   getBounds (elementID) {
