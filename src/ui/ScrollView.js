@@ -312,10 +312,12 @@ export default class ScrollView extends View {
 
     var bounds = this._scrollBounds;
     var s = this._contentView.style;
+    var padding = this.style.padding || {};
+
     bounds.minX = s.x;
-    bounds.maxX = s.x + s.width + this.style.padding.right;
+    bounds.maxX = s.x + s.width + (padding.right || 0);
     bounds.minY = s.y;
-    bounds.maxY = s.y + s.height + this.style.padding.bottom;
+    bounds.maxY = s.y + s.height + (padding.bottom || 0);
   }
   buildView () {
     this._snapPixels = this._opts.snapPixels || 1 / this.getPosition().scale;

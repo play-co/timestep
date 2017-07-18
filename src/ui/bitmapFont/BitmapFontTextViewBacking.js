@@ -53,6 +53,7 @@ export const Align = {
 export const DEFAULT_TEXT_FORMAT = {
   font: null,
   size: 16,
+  autoSize: true,
   color: '#ffffff',
   align: Align.LEFT,
   leading: 0,
@@ -108,19 +109,34 @@ export default class BitmapFontTextViewBacking {
   }
 
   updateOpts(opts) {
-    this._color = opts.color || this._color;
-
-    // Clear last font listener
-    this._clearOnFontLoad();
-    if (opts.font) {
-      opts.font.on('loaded', this._boundOnFontLoad);
+    if (typeof opts.color !== 'undefined') {
+      this._color = opts.color;
     }
 
-    if (opts.text) {
+    if (typeof opts.autoSize !== 'undefined') {
+      this._autoSize = opts.autoSize;
+    }
+
+    if (typeof opts.size !== 'undefined') {
+      this._baseSize = opts.size;
+    }
+
+    if (typeof opts.font !== 'undefined') {
+      // Clear last font listener
+
+      this._clearOnFontLoad();
+
+      if (opts.font) {
+        opts.font.on('loaded', this._boundOnFontLoad);
+      }
+    }
+
+    if (typeof opts.text !== 'undefined') {
       this.text = opts.text;
     }
+
     this.invalidate();
-  }
+   }
 
   measureText(result) {
     if (!result) {
@@ -259,20 +275,41 @@ export default class BitmapFontTextViewBacking {
   }
 
   invalidate() {
-    this._isInvalid = true;
-    // TODO: TEMPORARY, fix this
+    this._listener._opts.size = this._baseSize;
+
     this.validate();
+    this.updateAutoSize();
   }
 
   validate() {
-    if (!this._listener._opts || !this._listener._opts.font || !this._listener._opts.font.loaded) { return; }
+    if (!this._listener._opts ||
+        !this._listener._opts.font ||
+        !this._listener._opts.font.loaded) {
+      return;
+    }
+
     this._listener.updateColorFilter();
-    this._isInvalid = false;
+
     this.draw();
   }
 
+  updateAutoSize () {
+    let textWidth = this._lastLayoutWidth;
+
+    if (textWidth && this._autoSize) {
+      let viewWidth = this._listener._opts.width;
+
+      if (textWidth > viewWidth) {
+        this._listener._opts.size = this._listener._opts.size * (viewWidth / textWidth);
+
+        this.validate();
+      }
+    }
+  }
+
   draw() {
-    var isInvalid = true; //this.isInvalid();
+    var isInvalid = true;
+
     var sizeInvalid;
 
     // sometimes, we can determine that the layout will be exactly
@@ -803,6 +840,7 @@ export default class BitmapFontTextViewBacking {
   set size(value) {
     if (value === this._listener._opts.size) { return; }
     this._listener._opts.size = value;
+    this._baseSize = value;
     this.invalidate();
   }
 
@@ -838,15 +876,30 @@ export default class BitmapFontTextViewBacking {
     return baseline * fontSizeScale;
   }
 
-  get text() {
-    return this._text;
+  set autoSize(value) {
+    if (this._autoSize !== value) {
+      this._autoSize = value;
+
+      this.invalidate();
+    }
+  }
+
+  get autoSize() {
+    return this._autoSize;
   }
 
   set text(value) {
     value = '' + value;
-    if (this._text === value) { return; }
-    this._text = value;
-    this.invalidate();
+
+    if (this._text !== value) {
+      this._text = value;
+
+      this.invalidate();
+    }
+  }
+
+  get text() {
+    return this._text;
   }
 
   get batchX() {
@@ -856,8 +909,8 @@ export default class BitmapFontTextViewBacking {
   get verticalAlignOffsetY() {
     return this._verticalAlignOffsetY;
   }
-}
 
+}
 
 class CharLocation {
   constructor() {
