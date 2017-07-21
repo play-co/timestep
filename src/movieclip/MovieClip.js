@@ -112,6 +112,26 @@ export default class MovieClip extends View {
     }
   }
 
+  updateOpts (opts) {
+    super.updateOpts(opts);
+
+    if (!opts) {
+      return;
+    }
+
+    if (opts.fps !== undefined) {
+      this.fps = opts.fps;
+    }
+
+    if (opts.url !== undefined) {
+      this.url = opts.url;
+    }
+
+    if (opts.buffered !== undefined) {
+      this.buffered = !!opts.buffered;
+    }
+  }
+
   goto (frameIndex) {
     if (this.frameCount === 0) { return; }
     this.frame = frameIndex % this.frameCount;
@@ -361,10 +381,10 @@ export default class MovieClip extends View {
     return this._buffered;
   }
 
-  set buffered (value) {
-    if (this._buffered === value) { return; }
+  set buffered (buffered) {
+    if (this._buffered === buffered) { return; }
 
-    this._buffered = value;
+    this._buffered = buffered;
     this._frameDirty = true;
 
     if (this.buffered) {
@@ -384,9 +404,9 @@ export default class MovieClip extends View {
     return this._fps;
   }
 
-  set fps (value) {
-    this._fps = value;
-    this._frameMS = 1000 / value;
+  set fps (fps) {
+    this._fps = fps;
+    this._frameMS = 1000 / fps;
   }
 
   get loaded () {
@@ -397,19 +417,19 @@ export default class MovieClip extends View {
     return this._url;
   }
 
-  set url (value) {
-    if (this._url === value) {
+  set url (url) {
+    if (this._url === url) {
       return;
     }
 
-    this._url = value;
+    this._url = url;
 
-    if (!value) { return; }
+    if (!url) { return; }
 
     AnimationData
-      .loadFromURL(value)
+      .loadFromURL(url)
       .then(data => {
-        if (this._url === value) {
+        if (this._url === url) {
           this.setData(data);
         }
       });
