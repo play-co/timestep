@@ -13,6 +13,8 @@ import ImageViewCache from 'ui/resource/ImageViewCache';
 
 import AnimationData from './AnimationData';
 
+var LoadRequest = loader.LoadRequest;
+
 /* TERMINOLOGY
  *
  * Sprite: an image or a rasterized Flash vectorial shape.
@@ -428,9 +430,17 @@ function returnCanvasToPool (canvas) {
   canvasPool.push(canvas);
 }
 
-function _loadAnimation (url, cb) {
-  var LoadRequest = loader.LoadRequest;
-  loader._loadAsset(new LoadRequest(url, loadAnimation, cb, null, 0, true));
+function _loadAnimation (url, cb, priority) {
+  loader._loadAsset(new LoadRequest(url, loadAnimationMethod, cb, priority, 0, true));
+}
+
+function loadAnimations (urls, cb, priority) {
+  var loadRequests = [];
+  for (var u = 0; u < urls.length; u += 1) {
+    loadRequests[u] = new LoadRequest(urls[u], loadAnimationMethod, cb, priority, u, false);
+  }
+
+  loader._loadAssets(loadRequests, cb);
 }
 
 const ANIMATION_CACHE = {};
@@ -456,7 +466,7 @@ function getAnimation (url) {
   return animationData;
 }
 
-function loadAnimation (url, cb, loader) {
+function loadAnimationMethod (url, cb, loader) {
   var jsonURL = url + '/data.js';
   loaders.loadJSON(jsonURL, jsonData => {
     if (jsonData === null) {
@@ -487,8 +497,8 @@ function loadAnimation (url, cb, loader) {
     });
   }, loader);
 }
-loadAnimation.cache = ANIMATION_CACHE;
-loader.loadMethods.loadMovieClip = loadAnimation;
+loadAnimationMethod.cache = ANIMATION_CACHE;
+loader.loadMethods.loadMovieClip = loadAnimationMethod;
 
 
 function obtainCanvasFromPool () {
@@ -500,6 +510,6 @@ function returnCanvasToPool (canvas) {
 }
 
 MovieClip.getAnimation = getAnimation;
-MovieClip.loadAnimation = loadAnimation;
+MovieClip.loadAnimations = loadAnimations;
 
 MovieClip.LOADED = 'loaded';
