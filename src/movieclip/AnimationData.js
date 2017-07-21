@@ -137,9 +137,10 @@ AnimationData.loadFromURL = function (url) {
 
     loadCallbacks[url] = [ { resolve, reject } ];
 
+    var fullPath = url + '/data.js';
     loader.preload(fullPath, () => {
 
-      dataString = CACHE[fullPath];
+      var dataString = CACHE[fullPath];
 
       if (dataString) {
         var rawData = JSON.parse(dataString);
