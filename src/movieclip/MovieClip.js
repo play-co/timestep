@@ -9,6 +9,7 @@ import View from 'ui/View';
 
 import Matrix from 'platforms/browser/webgl/Matrix2D';
 import Canvas from 'platforms/browser/Canvas';
+import ImageViewCache from 'ui/resource/ImageViewCache';
 
 import AnimationData from './AnimationData';
 
@@ -338,6 +339,16 @@ export default class MovieClip extends View {
     this.clearBoundsMap();
   }
 
+  substituteAllAnimations (animationData) {
+    var library = animationData.library;
+    var symbolList = animationData.symbolList;
+    for (var s = 0; s < symbolList.length; s += 1) {
+      var symbolID = symbolList[s];
+      this._substitutes[symbolID] = library[symbolID];
+    }
+    this.clearBoundsMap();
+  }
+
   setData (data) {
     if (this.data === data) { return; }
 
@@ -424,7 +435,25 @@ function _loadAnimation (url, cb) {
 
 const ANIMATION_CACHE = {};
 function getAnimation (url) {
-  return ANIMATION_CACHE[url];
+  var animationData = ANIMATION_CACHE[url];
+  if (!animationData) {
+    // TODO: remove this whole block of code when animations are properly preloaded
+    var fullURL = url + '/data.js';
+    var dataString = CACHE[fullURL];
+    var jsonData = JSON.parse(dataString);
+
+    var imageMap = [];
+    var spritesData = jsonData.textureOffsets;
+    for (var spriteID in spritesData) {
+      var spriteData = spritesData[spriteID];
+      var imageURL = spriteData.url;
+
+      imageMap[imageURL] = ImageViewCache.getImage(url + '/' + imageURL);
+    }
+
+    animationData = ANIMATION_CACHE[fullURL] = new AnimationData(jsonData, url, imageMap);
+  }
+  return animationData;
 }
 
 function loadAnimation (url, cb, loader) {
