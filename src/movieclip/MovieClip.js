@@ -102,10 +102,15 @@ export default class MovieClip extends View {
 
     this._nbViewSubstitutions = 0;
 
+    this._url = null;
+
     this.fps = opts.fps ? opts.fps : 30;
-    this.url = opts.url ? opts.url : null;
     this.data = opts.data ? opts.data : null;
     this.buffered = opts.buffered ? opts.buffered : null;
+
+    if (!this.data && opts.url) {
+      this.url = opts.url;
+    }
 
     if (opts.defaultAnimation) {
       this.loop(opts.defaultAnimation);
@@ -136,13 +141,14 @@ export default class MovieClip extends View {
     if (this.frameCount === 0) { return; }
     this.frame = frameIndex % this.frameCount;
     this.framesElapsed = frameIndex;
-    this._instance.frame = this.frame;
   }
 
   render (ctx, transform) {
     if (!this.animation) {
       return;
     }
+
+    this._instance.frame = this.frame;
 
     if (this._buffered && this._nbViewSubstitutions === 0) {
       // Update and render internal canvas to context
@@ -294,7 +300,6 @@ export default class MovieClip extends View {
     }
 
     if (this.frame !== currentFrame) {
-      this._instance.frame = currentFrame;
       this._frameDirty = true;
     }
   }
@@ -369,6 +374,7 @@ export default class MovieClip extends View {
     if (data) {
       this.data = data;
       this.fps = this._opts.fps || this.data.frameRate || 30;
+      this._url = data.url;
       this._library = data.library;
       this.emit(MovieClip.LOADED);
     } else {
@@ -425,6 +431,12 @@ export default class MovieClip extends View {
     this._url = url;
 
     if (!url) { return; }
+
+    var animationData = AnimationData.getAnimation(url);
+    if (animationData) {
+      this.setData(animationData);
+      return;
+    }
 
     AnimationData
       .loadFromURL(url)
