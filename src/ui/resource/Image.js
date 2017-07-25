@@ -99,7 +99,7 @@ var Canvas = device.get('Canvas');
 var _imgDataCanvas = null;
 var _imgDataCtx = null;
 
-exports = class extends PubSub {
+export default class ImageWrapper extends PubSub {
   constructor (opts) {
     super();
 
@@ -447,24 +447,23 @@ exports = class extends PubSub {
 
 };
 
-exports.__clearCache__ = function () {
+ImageWrapper.__clearCache__ = function () {
   ImageCache = {};
 };
 
-exports.prototype.getSource = exports.prototype.getSrcImg;
-exports.prototype.setSource = exports.prototype.setSrcImg;
+ImageWrapper.prototype.getSource = ImageWrapper.prototype.getSrcImg;
+ImageWrapper.prototype.setSource = ImageWrapper.prototype.setSrcImg;
 
-exports.prototype.getSourceWidth = exports.prototype.getSourceW;
-exports.prototype.getSourceHeight = exports.prototype.getSourceH;
-exports.prototype.getOrigWidth = exports.prototype.getOrigW;
-exports.prototype.getOrigHeight = exports.prototype.getOrigH;
+ImageWrapper.prototype.getSourceWidth = ImageWrapper.prototype.getSourceW;
+ImageWrapper.prototype.getSourceHeight = ImageWrapper.prototype.getSourceH;
+ImageWrapper.prototype.getOrigWidth = ImageWrapper.prototype.getOrigW;
+ImageWrapper.prototype.getOrigHeight = ImageWrapper.prototype.getOrigH;
 
-exports.prototype.setSourceWidth = exports.prototype.setSourceW;
-exports.prototype.setSourceHeight = exports.prototype.setSourceH;
+ImageWrapper.prototype.setSourceWidth = ImageWrapper.prototype.setSourceW;
+ImageWrapper.prototype.setSourceHeight = ImageWrapper.prototype.setSourceH;
 
-exports.prototype.getMap = exports.prototype.getBounds;
-exports.prototype.setMap = exports.prototype.setBounds;
+ImageWrapper.prototype.getMap = ImageWrapper.prototype.getBounds;
+ImageWrapper.prototype.setMap = ImageWrapper.prototype.setBounds;
 
-exports.prototype.isLoaded = exports.prototype.isReady;
+ImageWrapper.prototype.isLoaded = ImageWrapper.prototype.isReady;
 
-export default exports;

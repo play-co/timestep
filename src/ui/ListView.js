@@ -42,7 +42,7 @@ var FORWARD_KEYS = {
 /**
  * @extends ui.ScrollView
  */
-exports = class extends ScrollView {
+export default class ListView extends ScrollView {
   constructor (opts) {
     opts.scrollBounds = {
       minX: 0,
@@ -235,14 +235,14 @@ exports = class extends ScrollView {
     }
   }
   render (ctx) {
-    var viewportChanged = super.render(ctx);
+    super.render(ctx);
 
-    if (viewportChanged || this._needsModelRender || this.model._needsSort) {
+    if (this._viewportChanged || this._needsModelRender || this.model._needsSort) {
       this._needsModelRender = false;
       this.model.render(this.getCurrentViewport());
     }
+    this.popViewport();
   }
 };
 
-exports.prototype.tag = 'ListView';
-export default exports;
+ListView.prototype.tag = 'ListView';
