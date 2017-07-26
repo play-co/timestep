@@ -92,13 +92,19 @@ export default class ImageWrapper extends PubSub {
     this._isError = false;
 
     this._srcImg = img;
-// console.warn('request img', img, url, this._map.url)
     var loadRequestID = ++this._loadRequestID;
     if (img instanceof HTMLCanvasElement || img instanceof Canvas) {
       this._onLoad(img, loadRequestID);
     } else {
       resourceLoader._loadImage(url, img => this._onLoad(img, loadRequestID));
     }
+  }
+
+  _forceLoad (cb) {
+    resourceLoader.loadImage(this._map.url, img => {
+      this._onLoad(img, ++this._loadRequestID);
+      return cb && cb();
+    });
   }
 
   getSrcImg () {

@@ -25,8 +25,14 @@ var IMAGE_CACHE = {};
 var SOUND_CACHE = {};
 var JSON_CACHE = {};
 
+var RETRY_MAP = {
+  '598': true,
+  '599': true,
+  '429': true // TODO: handle this error in a better way but should not happen anyway
+};
+
 var NB_RETRIES = 4;
-var RETRY_TEMPO = 0; // TODO: 200 and test for error status code
+var RETRY_TEMPO = 100; // TODO: 200 and test for error status code
 exports.loadImage = function (url, cb, loader) {
   if (!url) {
     logger.warn('loader: The image url is empty.');
@@ -59,9 +65,9 @@ exports.loadImage = function (url, cb, loader) {
     return cb(this);
   };
 
-  img.onerror = function () {
-    nbRemainingTries -= 1;
-    if (nbRemainingTries > 0) {
+  img.onerror = function (error) {
+     if (RETRY_MAP[error.status] && nbRemainingTries > 0) {
+      nbRemainingTries -= 1;
       setTimeout(() => {
         this.src = url;
       }, retryTempo);
@@ -72,7 +78,10 @@ exports.loadImage = function (url, cb, loader) {
     // Resetting callbacks to avoid memory leaks
     this.onload  = null;
     this.onerror = null;
-    logger.error('Image not found: ' + url);
+    var statusCode = ' Status code: ' + error.status;
+    var reason = ' Reason: ' + error.reason;
+    var response = ' Response: ' + error.response;
+    logger.error('Image not found: ' + url + statusCode + reason + response);
     return cb(null);
   };
 
@@ -88,8 +97,8 @@ exports.loadFile = function (url, cb, loader, responseType) {
   xobj.onreadystatechange = function () {
     if (~~xobj.readyState !== 4) return;
     if (~~xobj.status !== 200 && ~~xobj.status !== 0) {
-      nbRemainingTries -= 1;
-      if (nbRemainingTries > 0) {
+      if (RETRY_MAP[xobj.status] && nbRemainingTries > 0) {
+        nbRemainingTries -= 1;
         // Retrying
         setTimeout(() => {
           xobj.open('GET', url, true, loader._user, loader._password);
@@ -98,9 +107,13 @@ exports.loadFile = function (url, cb, loader, responseType) {
         retryTempo *= 2;
         return;
       }
+
       xobj.onreadystatechange = null;
       
-      logger.error('Failed to load file (' + url + '), xhr error:' + xobj.status);
+      var statusCode = ' Status code: ' + xobj.status;
+      var reason = ' Reason: ' + xobj.reason;
+      var response = ' Response: ' + xobj.response;
+      logger.error('Failed to load file: ' + url + statusCode + reason + response);
       return cb(null);
     }
 

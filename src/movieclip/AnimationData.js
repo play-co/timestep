@@ -117,7 +117,9 @@ class Sprite {
     ctx.globalAlpha = alpha;
 
     var bounds = this.bounds;
-    this.image.renderShort(ctx, bounds.x, bounds.y, bounds.width, bounds.height);
+    if (this.image) {
+      this.image.renderShort(ctx, bounds.x, bounds.y, bounds.width, bounds.height);
+    }
   }
 
   expandBoundingBox (boundingBox, transform) {

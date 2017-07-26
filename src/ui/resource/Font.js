@@ -1,5 +1,3 @@
-let exports = {};
-
 import { merge } from 'base';
 
 /**
@@ -116,7 +114,7 @@ var defaults = {
   weight: ''
 };
 
-exports = class {
+export default class Font {
   constructor (opts) {
     if (typeof opts === 'string') {
       _cache[opts] = this;
@@ -153,7 +151,6 @@ exports = class {
     return this._weight;
   }
 };
-var Font = exports;
 
 Font.parse = function (str) {
   if (str in _cache) {
@@ -166,5 +163,3 @@ Font.parse = function (str) {
 Font.prototype.constructor.setDefaultFontFamily = function (fontFamily) {
   _defaultFontFamily = fontFamily;
 };
-
-export default exports;

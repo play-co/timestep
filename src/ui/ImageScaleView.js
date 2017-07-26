@@ -246,9 +246,15 @@ var debugColors = [
   '#0000FF'
 ];
 
-exports = class extends View {
+export default class ImageScaleView extends View {
   constructor (opts) {
     super(merge(opts, defaults));
+  }
+  _forceLoad () {
+    if (this._img) {
+      this._img._forceLoad();
+      this._loaded = true;
+    }
   }
   getScaleMethod () {
     return this._scaleMethod;
@@ -720,7 +726,5 @@ exports = class extends View {
   }
 };
 
-exports.prototype.getOrigWidth = exports.prototype.getOrigW;
-exports.prototype.getOrigHeight = exports.prototype.getOrigH;
-
-export default exports;
+ImageScaleView.prototype.getOrigWidth = ImageScaleView.prototype.getOrigW;
+ImageScaleView.prototype.getOrigHeight = ImageScaleView.prototype.getOrigH;

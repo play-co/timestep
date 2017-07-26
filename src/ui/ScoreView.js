@@ -1,4 +1,3 @@
-let exports = {};
 
 /**
  * @license
@@ -28,10 +27,7 @@ import ImageView from 'ui/ImageView';
 import Image from 'ui/resource/Image';
 import filter from 'ui/filter';
 
-var min = Math.min;
-var max = Math.max;
-
-exports = class ScoreView extends View {
+export default class ScoreView extends View {
   constructor (opts) {
     opts.blockEvents = true;
     super(opts);
@@ -133,7 +129,7 @@ exports = class ScoreView extends View {
     } else if (this._horizontalAlign === 'right') {
       offsetX = width - textWidth;
     }
-    offsetX = max(0, offsetX * this._container.style.scale);
+    offsetX = Math.max(0, offsetX * this._container.style.scale);
 
     var scaledHeight = height * this._container.style.scale;
     if (this._verticalAlign === 'middle') {
@@ -141,7 +137,7 @@ exports = class ScoreView extends View {
     } else if (this._verticalAlign === 'bottom') {
       offsetY = height - scaledHeight;
     }
-    offsetY = max(0, offsetY / this._container.style.scale);
+    offsetY = Math.max(0, offsetY / this._container.style.scale);
 
     while (textLength > this._imageViews.length) {
       var newView = new ImageView({ superview: this._container });
@@ -224,4 +220,3 @@ exports = class ScoreView extends View {
   }
 };
 
-export default exports;

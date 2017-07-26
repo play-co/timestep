@@ -22,6 +22,7 @@ let exports = {};
  */
 
 import Matrix2D from 'platforms/browser/webgl/Matrix2D';
+// import Engine from 'Engine';
 
 var sin = Math.sin;
 var cos = Math.cos;
@@ -36,6 +37,10 @@ function compareZOrder (a, b) {
 
   return a._addedAt - b._addedAt;
 }
+
+setInterval(() => {
+
+}, 5000);
 
 export default class ViewBacking {
 
@@ -450,10 +455,17 @@ export default class ViewBacking {
       ctx.fillRect(0, 0, width, height);
     }
 
+    
+    if (!this._view._loaded) {
+      // works for now because all assets are cached forever!
+      // TODO: implement a more performant and sustainable solution
+      this._view._forceLoad();
+    }
+
     if (this._hasRender) {
       this._view._render(ctx, gt);
     }
-    
+
     var subviews = this._visibleSubviews;
     for (var i = 0; i < subviews.length; i++) {
       subviews[i].wrapRender(ctx, gt, globalAlpha);

@@ -37,6 +37,13 @@ var _host = window.location.hostname;
 
 export default class ImageView extends View {
 
+  _forceLoad () {
+    if (this._img) {
+      this._img._forceLoad();
+      this._loaded = true;
+    }
+  }
+
   getImage () {
     return this._img;
   }

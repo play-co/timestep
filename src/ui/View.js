@@ -132,6 +132,8 @@ export default class View extends IView {
       opts = {};
     }
 
+    this.__root = null;
+
     // TODO: remove this eventually
     // Things like TextView will fail if it is not present
     this._opts = this._opts || {};
@@ -168,6 +170,9 @@ export default class View extends IView {
 
     this._tick = null;
 
+    // whether assets associated with the view is loaded
+    this._loaded = false;
+
     this.updateOpts(opts);
   }
 
@@ -193,6 +198,13 @@ export default class View extends IView {
         this.__view.onTickRemoved();
       }
     }
+  }
+
+  _forceLoad () {
+    if (this.style._hasRender) {
+      console.error('Unsupported dynamic loading for:', this);
+    }
+    this._loaded = true;
   }
 
   _setLayout (layoutName) {
