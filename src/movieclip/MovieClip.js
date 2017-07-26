@@ -161,7 +161,7 @@ export default class MovieClip extends View {
         this.updateCanvasBounds(bounds);
         this._ctx.clear();
         this._transform.setTo(1, 0, 0, 1, -bounds.x, -bounds.y);
-        this.animation._wrapRender(this._ctx, this._transform, 1, this._instance, this._substitutes /*, deltaFrame */);
+        this.animation._wrapRender(this._ctx, this._transform, 1, this._instance, this._substitutes, this.framesElapsed);
         this._frameDirty = false;
       }
 
@@ -169,7 +169,7 @@ export default class MovieClip extends View {
     } else {
       // Render directly to context
       this._transform.copy(transform);
-      this.animation._wrapRender(ctx, this._transform, ctx.globalAlpha, this._instance, this._substitutes /*, deltaFrame */);
+      this.animation._wrapRender(ctx, this._transform, ctx.globalAlpha, this._instance, this._substitutes, this.framesElapsed);
     }
   }
 
@@ -218,7 +218,7 @@ export default class MovieClip extends View {
     var timeline = animation.timeline;
     for (var frame = 0; frame < timeline.length; frame++) {
       this._instance.frame = frame;
-      animation.expandBoundingBox(this._bbox, transform, this._instance, this._substitutes);
+      animation.expandBoundingBox(this._bbox, transform, this._instance, this._substitutes, 1);
     }
 
     this._instance.frame = actualFrame;
