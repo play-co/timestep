@@ -57,8 +57,6 @@ class BBox {
 
 }
 
-var Instance = AnimationData.Instance;
-
 const canvasPool = [];
 
 const IDENTITY_MATRIX = new Matrix();
@@ -85,7 +83,7 @@ export default class MovieClip extends View {
     this.frameCount = 0;
     this.isPlaying = false;
     this._animationName = '';
-    this._instance = new Instance('', 0, IDENTITY_MATRIX, 1);
+    this._instance = new AnimationData.Instance('', 0, IDENTITY_MATRIX, 1);
 
     this._callback = null;
     this._boundsMap = {};
@@ -110,13 +108,38 @@ export default class MovieClip extends View {
 
     this._nbViewSubstitutions = 0;
 
+    this._url = null;
+
     this.fps = opts.fps ? opts.fps : 30;
     this.data = opts.data ? opts.data : null;
-    this.url = opts.url ? opts.url : null;
     this.buffered = opts.buffered ? opts.buffered : null;
+
+    if (!this.data && opts.url) {
+       this.url = opts.url;
+    }
 
     if (opts.defaultAnimation) {
       this.loop(opts.defaultAnimation);
+    }
+  }
+
+  updateOpts (opts) {
+    super.updateOpts(opts);
+
+    if (!opts) {
+      return;
+    }
+
+    if (opts.fps !== undefined) {
+      this.fps = opts.fps;
+    }
+
+    if (opts.url !== undefined) {
+      this.url = opts.url;
+    }
+
+    if (opts.buffered !== undefined) {
+      this.buffered = !!opts.buffered;
     }
   }
 
@@ -124,13 +147,14 @@ export default class MovieClip extends View {
     if (this.frameCount === 0) { return; }
     this.frame = frameIndex % this.frameCount;
     this.framesElapsed = frameIndex;
-    this._instance.frame = this.frame;
   }
 
   render (ctx, transform) {
     if (!this.animation) {
       return;
     }
+
+    this._instance.frame = this.frame;
 
     if (this._buffered && this._nbViewSubstitutions === 0) {
       // Update and render internal canvas to context
@@ -202,8 +226,6 @@ export default class MovieClip extends View {
       this._instance.frame = frame;
       animation.expandBoundingBox(this._bbox, transform, this._instance, this._substitutes);
     }
-
-    this._instance.frame = actualFrame;
   }
 
   expandBoundingBox (boundingBox, transform, child, substitutes) {
@@ -233,7 +255,6 @@ export default class MovieClip extends View {
     this._frameDirty = animationName !== this._animationName;
     this._animationName = animationName;
     this._instance.libraryID = animationName;
-    this._instance.frame = 0;
     this.looping = loop || false;
     this.isPlaying = true;
     this.animation = this._library[animationName];
@@ -282,7 +303,6 @@ export default class MovieClip extends View {
     }
 
     if (this.frame !== currentFrame) {
-      this._instance.frame = currentFrame;
       this._frameDirty = true;
     }
   }
@@ -413,6 +433,12 @@ export default class MovieClip extends View {
     }
 
     this._url = url;
+    var animationData = getAnimation(url);
+    if (animationData) {
+      this.setData(animationData);
+      return;
+    }
+
     _loadAnimation(url, data => {
       if (this._url !== url) {
         return;
@@ -430,17 +456,20 @@ function returnCanvasToPool (canvas) {
   canvasPool.push(canvas);
 }
 
-function _loadAnimation (url, cb, priority) {
-  loader._loadAsset(new LoadRequest(url, loadAnimationMethod, cb, priority, 0, true));
+function _loadAnimation (url, cb, priority, explicit) {
+  loader._loadAsset(url, loadAnimationMethod, cb, priority, explicit);
+}
+
+function loadAnimation (url, cb, priority) {
+  _loadAnimation(url, cb, priority, true);
+}
+
+function _loadAnimations (urls, cb, priority, explicit) {
+  loader._loadAssets(urls, loadAnimationMethod, cb, priority, explicit);
 }
 
 function loadAnimations (urls, cb, priority) {
-  var loadRequests = [];
-  for (var u = 0; u < urls.length; u += 1) {
-    loadRequests[u] = new LoadRequest(urls[u], loadAnimationMethod, cb, priority, u, false);
-  }
-
-  loader._loadAssets(loadRequests, cb);
+  _loadAnimations(urls, cb, priority, true);
 }
 
 const ANIMATION_CACHE = {};
@@ -449,6 +478,7 @@ function getAnimation (url) {
   if (!animationData) {
     // TODO: remove this whole block of code when animations are properly preloaded
     var fullURL = url + '/data.js';
+
     var dataString = CACHE[fullURL];
     var jsonData = JSON.parse(dataString);
 
@@ -510,6 +540,8 @@ function returnCanvasToPool (canvas) {
 }
 
 MovieClip.getAnimation = getAnimation;
+MovieClip.loadAnimation = loadAnimation;
 MovieClip.loadAnimations = loadAnimations;
+MovieClip.animationLoader = loadAnimationMethod;
 
 MovieClip.LOADED = 'loaded';

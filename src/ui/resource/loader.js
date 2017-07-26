@@ -42,6 +42,18 @@ if (_resolution === 'LOW') {
   LOW_RES_ENABLED = false;
 }
 
+// TODO: add http2 detection (following piece of code only works in chrome apparently)
+// Detection for HTTP2 client support
+// We suppose that server will provide assets over HTTP2
+// see https://stackoverflow.com/questions/36041204/detect-connection-protocol-http-2-spdy-from-javascript
+// var IS_HTTP2 = false;
+// if (performance && performance.timing) {
+//   IS_HTTP2 = performance.timing.nextHopProtocol === 'h2';
+// }
+// if (!IS_HTTP2 && chrome && chrome.loadTimes) {
+//   IS_HTTP2 = chrome.loadTimes().connectionInfo === 'h2';
+// }
+
 
 var PRIORITY_LOW = 1;
 var PRIORITY_MEDIUM = 2;
@@ -51,28 +63,28 @@ var PRIORITY_MEDIUM = 2;
 var MAX_PARALLEL_LOADINGS = 7;
 
 class LoadRequest {
-  constructor (url, loadMethod, cb, priority, index, isImplicit) {
+  constructor (url, loadMethod, cb, index) {
     this.url = url;
     this.loadMethod = loadMethod;
     this.cb = cb;
-    this.priority = priority;
     this.index = index;
-    this.isImplicit = isImplicit;
   }
 }
 
 class LoadRequestGroup {
-  constructor (loader, loadRequests, cb) {
+  constructor (loader, urls, loadMethods, cb, priority) {
     this.loader = loader;
-    this.loadRequests = loadRequests;
+    this.urls = urls;
+    this.loadMethods = loadMethods;
     this.cb = cb;
+    this.priority = priority;
   }
 
   load (cb) {
-    this.loader._loadAssets(this.loadRequests, () => {
+    this.loader._loadAssets(this.urls, this.loadMethods, () => {
       if (this.cb) { this.cb(); }
       return cb && cb();
-    });
+    }, this.priority, true);
   }
 }
 
@@ -255,13 +267,6 @@ class Loader extends Emitter {
     return map;
   }
 
-  _initiateAssetLoading (loadRequest) {
-    var url = loadRequest.url;
-    var loadMethod = loadRequest.loadMethod;
-    var cache = loadMethod.cache;
-    loadMethod(url, (asset) => this._onAssetLoaded(asset, url, cache), this);
-  }
-
   _onAssetLoaded (asset, url, cache) {
     // Adding asset to cache
     if (cache) {
@@ -288,6 +293,14 @@ class Loader extends Emitter {
     this._initiateAssetsLoading();
   }
 
+  _initiateAssetLoading (loadRequest) {
+    var url = loadRequest.url;
+    var loadMethod = loadRequest.loadMethod;
+    var cache = loadMethod.cache;
+console.error('LOADING', url)
+    loadMethod(url, (asset) => this._onAssetLoaded(asset, url, cache), this);
+  }
+
   _initiateAssetsLoading () {
     while (this._nbAssetsLoading < MAX_PARALLEL_LOADINGS && this._requestBacklog.length > 0) {
       // getting the element that was inserted first
@@ -308,25 +321,25 @@ class Loader extends Emitter {
     }
   }
 
-  _loadAsset (loadRequest) {
-    var url = loadRequest.url;
-
-    var cache = loadRequest.loadMethod.cache;
+  _loadAsset (url, loadMethod, cb, priority, isExplicit, index) {
+    var cache = loadMethod.cache;
     if (cache) {
       var asset = cache[url];
       if (asset) {
-        var cb = loadRequest.cb;
-        return cb && cb(asset, loadRequest.index);
+console.warn('FROM CACHE', url)
+        return cb && cb(asset, index);
       }
     }
+console.warn('REQUESTING', url, priority)
 
+    var loadRequest = new LoadRequest(url, loadMethod, cb, index);
     if (this._loadRequests[url]) {
       this._loadRequests[url].push(loadRequest);
     } else {
       this._loadRequests[url] = [loadRequest];
     }
 
-    if (loadRequest.isImplicit && this._waitForExplicitRequest[url]) {
+    if (!isExplicit && this._waitForExplicitRequest[url]) {
       return;
     }
 
@@ -335,7 +348,6 @@ class Loader extends Emitter {
       this._nbRequestedResources += 1;
       this._currentRequests[url] = true;
 
-      var priority = loadRequest.priority;
       if (priority === PRIORITY_LOW) {
         // low priority assets can start loading only if nothing else is loading
         if (this._nbAssetsLoading === 0) {
@@ -356,14 +368,14 @@ class Loader extends Emitter {
     }
   }
 
-  _loadAssets (loadRequests, cb) {
+  _loadAssets (urls, loadMethod, cb, priority, isExplicit) {
     var assets = [];
-    if (loadRequests.length === 0) {
+    if (urls.length === 0) {
       return cb && cb(assets);
     }
 
     var nbRequestsSatisfied = 0;
-    var nbRequests = loadRequests.length;
+    var nbRequests = urls.length;
     function onRequestSatisfied(asset, index) {
       assets[index] = asset;
       nbRequestsSatisfied += 1;
@@ -372,84 +384,112 @@ class Loader extends Emitter {
       }
     }
 
-    for (var r = 0; r < loadRequests.length; r += 1) {
-      var loadRequest = loadRequests[r];
-      loadRequest.cb = onRequestSatisfied;
-      this._loadAsset(loadRequest);
+    if (loadMethod instanceof Array) {
+      for (var u = 0; u < urls.length; u += 1) {
+        this._loadAsset(urls[u], loadMethod[u], onRequestSatisfied, priority, isExplicit, u);
+      }
+    } else {
+      for (var u = 0; u < urls.length; u += 1) {
+        this._loadAsset(urls[u], loadMethod, onRequestSatisfied, priority, isExplicit, u);
+      }
     }
   }
 
-  _loadSound (url, cb, priority) {
-    this._loadAsset(new LoadRequest(url, loadSound, cb, priority, 0, true));
+  _loadSound (url, cb, priority, isExplicit) {
+    this._loadAsset(url, loadSound, cb, priority, isExplicit);
   }
 
-  _loadImage (url, cb, priority) {
+  loadSound (url, cb, priority) {
+    this._loadSound(url, cb, priority, true);
+  }
+
+  _loadImage (url, cb, priority, isExplicit) {
     url = this._getImageURL(url);
-    this._loadAsset(new LoadRequest(url, loadImage, cb, priority, 0, true));
+    this._loadAsset(url, loadImage, cb, priority, isExplicit);
   }
 
-  _loadImages (urls, cb, priority) {
-    var loadRequests = [];
+  loadImage (url, cb, priority) {
+    this._loadImage(url, cb, priority, true);
+  }
+
+  _loadSounds (urls, cb, priority, isExplicit) {
+    this._loadAssets(urls, loadSound, cb, priority, isExplicit);
+  }
+
+  loadSounds (urls, cb, priority) {
+    this._loadSounds(urls, cb, priority, true);
+  }
+
+  _loadImages (urls, cb, priority, isExplicit) {
+    var imageURLs = new Array(urls.length);
     for (var u = 0; u < urls.length; u += 1) {
-      var url = this._getImageURL(urls[u]);
-      loadRequests[u] = new LoadRequest(url, loadImage, cb, priority, u, true);
+      imageURLs[u] = this._getImageURL(urls[u]);
     }
-
-    this._loadAssets(loadRequests, cb);
+    this._loadAssets(imageURLs, loadImage, cb, priority, isExplicit);
   }
 
-  _createLoadRequest (url, cb, priority, index, blockImplicitRequests) {
-    // TODO: refactor this logic ?
-    // type checking => method not fully optimized
-    var loadMethod;
-    if (typeof url !== 'string') {
-      priority = url.priority || priority;
-      blockImplicitRequests = url.blockImplicitRequests || blockImplicitRequests;
-      loadMethod = url.loadMethod;
-      url = url.url;
-    }
+  loadImages (urls, cb, priority, isExplicit) {
+    this._loadImages(urls, cb, priority, true);
+  }
 
-    if (!loadMethod) {
-      // Resolving loading method using extension
-      // N.B only works for file types listed in loadMethods
-      var extension = url.substring(url.lastIndexOf('.')).split('|')[0];
-      loadMethod = loadMethodsByExtension[extension];
-    }
-
-    // resolving url if image, might correspond to a spritesheet
-    if (loadMethod === loadImage) {
-      url = this._getImageURL(url);
-    }
-
-    if (blockImplicitRequests) {
-      this._waitForExplicitRequest[url] = true;
-    }
-
-    return new LoadRequest(url, loadMethod, cb, priority, index, false);
+  _getLoadMethod (url) {
+    // Resolving loading method using extension
+    // N.B only works for file types listed in loadMethods
+    var extension = url.substring(url.lastIndexOf('.')).split('|')[0];
+    return loadMethodsByExtension[extension];
   }
 
   loadAsset (url, cb, priority) {
-    this._loadAsset(this._createLoadRequest(url, cb, priority));
-  }
-
-  _createLoadRequests(urls, priority, blockImplicitRequests) {
-    var loadRequests = new Array(urls.length);
-    for (var u = 0; u < urls.length; u += 1) {
-      // TODO: add logic to let user specify per asset callback (=> refactoring of _loadAssets)
-      loadRequests[u] = this._createLoadRequest(urls[u], null, priority, u, blockImplicitRequests);
+    var loadMethod = this._getLoadMethod(url);
+    if (loadMethod === loadImage) {
+      url = this._getImageURL(url);
     }
-
-    return loadRequests;
+    this._loadAsset(url, loadMethod, cb, priority, true);
   }
 
   loadAssets (urls, cb, priority) {
-    var loadRequests = this._createLoadRequests(urls, priority);
-    this._loadAssets(loadRequests, cb);
+    var assetURLs = new Array(urls.length);
+    var loadMethods = new Array(urls.length);
+    for (var u = 0; u < urls.length; u += 1) {
+      var url = urls[u];
+      var loadMethod = this._getLoadMethod(url);
+      assetURLs[u] = (loadMethod === loadImage) ? this._getImageURL(url) : url;
+      loadMethods[u] = loadMethod;
+    }
+    this._loadAssets(assetURLs, loadMethods, cb, priority, true);
   }
 
   createGroup (urls, cb, blockImplicitRequests, priority) {
-    var loadRequests = this._createLoadRequests(urls, priority, blockImplicitRequests);
-    return new LoadRequestGroup(this, loadRequests, cb);
+    var loadMethods = new Array(urls.length);
+    for (var u = 0; u < urls.length; u += 1) {
+      var url = urls[u];
+      // TODO: refactor this logic ?
+      // type checking => method not fully optimized
+      var loadMethod;
+      if (typeof url !== 'string') {
+        priority = url.priority || priority;
+        blockImplicitRequests = url.blockImplicitRequests || blockImplicitRequests;
+        loadMethod = url.loadMethod;
+        url = url.url;
+      }
+
+      if (!loadMethod) {
+        loadMethod = this._getLoadMethod(url);
+      }
+
+      if (loadMethod === loadImage) {
+        url = this._getImageURL(url);
+      }
+
+      urls[u] = url;
+      loadMethods[u] = loadMethod
+
+      if (blockImplicitRequests) {
+        this._waitForExplicitRequest[url] = true;
+      }
+    }
+
+    return new LoadRequestGroup(this, urls, loadMethods, cb, priority);
   }
 
   _getImageURL (id) {
@@ -530,8 +570,6 @@ Loader.prototype.IMAGE_LOADED = 'imageLoaded';
 Loader.prototype.PRIORITY_LOW = PRIORITY_LOW;
 Loader.prototype.PRIORITY_MEDIUM = PRIORITY_MEDIUM;
 // Loader.prototype.PRIORITY_HIGH = PRIORITY_HIGH;
-
-Loader.prototype.LoadRequest = LoadRequest;
 
 var loadMethods = {};
 loadMethods.loadImage = loadImage;
