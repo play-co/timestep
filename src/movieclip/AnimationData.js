@@ -44,17 +44,6 @@ export default class AnimationData {
     this.animations = this.library;
     this.animationList = this.symbolList;
 
-    // hack #1
-    // with the current export format it is not possible to determine
-    // whether an instance of a symbol is a movie clip or a graphic
-    // therefore we consider any element that can be substituted,
-    // or used as a substitute, as a movie clip
-    var movieClips = {};
-    for (var s = 0; s < this.symbolList.length; s += 1) {
-      var symbolID = this.symbolList[s];
-      movieClips[symbolID] = (symbolID.indexOf('notforexport') === -1);
-    }
-
     // reference to all instances
     // used to setup quick access to library elements
     var allInstances = [];
@@ -77,11 +66,7 @@ export default class AnimationData {
           var frame = instanceData[3];
           var alpha = instanceData[4];
 
-          // using hack #1
-          // whether the instance is a movie clip should be attached to the instance!
-          var isMovieClip = movieClips[libraryID];
-
-          var instance = new Instance(libraryID, frame, transform, alpha, isMovieClip);
+          var instance = new Instance(libraryID, frame, transform, alpha);
           instances.push(instance);
           allInstances.push(instance);
         }
@@ -253,9 +238,7 @@ class Symbol {
     this.transform = new Matrix();
   }
 
-  _wrapRender (ctx, parentTransform, parentAlpha, instance, substitutes, elapsedFrames) {
-    var frame = instance.getFrame(this.duration, elapsedFrames);
-
+  _wrapRender (ctx, parentTransform, parentAlpha, frame, elapsedFrames, substitutes) {
     var children = this.timeline[frame];
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
@@ -265,18 +248,30 @@ class Symbol {
       transform.copy(parentTransform);
       transform.transform(child.transform);
 
+
+      var childFrame;
+      var element = substitutes[child.libraryID];
+      if (element) {
+        // hack
+        // with the current export format it is not possible to determine
+        // whether an instance of a symbol is a movie clip or a graphic
+        // therefore we consider any element that is substituted
+        // as behaving as a movieclip with an independant timeline
+        childFrame = child.getFrame(element.duration, elapsedFrames);
+      } else {
+        element = child.element;
+        childFrame = child.getFrame(element.duration, child.frame);
+      }
+
       // n.b element can be of 3 different types: Symnbol, Sprite or FlashPlayerView
       // therefore this method cannot be perfectly optimized by optimizer-compilers
       // also, the lookup in the substitutes map is slow
-      var element = substitutes[child.libraryID] || child.element;
-      element._wrapRender(ctx, transform, alpha, child, substitutes, elapsedFrames);
+      element._wrapRender(ctx, transform, alpha, childFrame, elapsedFrames, substitutes);
     }
   }
 
-  expandBoundingBox (boundingBox, parentTransform, instance, substitutes, elapsedFrames) {
+  expandBoundingBox (boundingBox, parentTransform, frame, elapsedFrames, substitutes, currentBounds) {
     // TODO: if instance is movie clip, the bounds should include all its frames
-    var frame = instance.getFrame(this.duration, elapsedFrames);
-
     var children = this.timeline[frame];
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
@@ -289,8 +284,15 @@ class Symbol {
       transform.copy(parentTransform);
       transform.transform(child.transform);
 
-      var element = substitutes[child.libraryID] || child.element;
-      element.expandBoundingBox(boundingBox, transform, child, substitutes, elapsedFrames);
+      var childFrame;
+      var element = substitutes[child.libraryID];
+      if (element) {
+        childFrame = child.getFrame(element.duration, elapsedFrames);
+      } else {
+        element = child.element;
+        childFrame = child.getFrame(element.duration, child.frame);
+      }
+      element.expandBoundingBox(boundingBox, transform, childFrame, elapsedFrames, substitutes, currentBounds);
     }
   }
 
@@ -302,7 +304,7 @@ class Symbol {
 
 class Instance {
 
-  constructor (libraryID, frame, transform, alpha, isMovieClip) {
+  constructor (libraryID, frame, transform, alpha) {
     // TODO: support all types of identifications
     this.libraryID = libraryID; // id of instantiated element in the library
     // this.instanceName = instanceName; // Optional, only movie clips can have it
@@ -315,8 +317,7 @@ class Instance {
 
     this.element = null;
 
-    this.isMovieClip = isMovieClip || false;
-
+    // this.isMovieClip = isMovieClip;
     // TODO: Handle graphic playing options
     // this.singleFrame = false;
     // this.firstFrame = 0;
@@ -327,23 +328,13 @@ class Instance {
     this.element = library[this.libraryID];
   }
 
-  getFrame (duration, elapsedFrames) {
-    if (this.isMovieClip) {
-      // TODO: consider starting frame of instance
-      // var frame = elapsedFrames - this.startingFrame;
-      var frame = elapsedFrames;
-      if (frame >= duration) {
-        frame = frame % duration;
-      }
-      return frame;
-    }
-
+  getFrame (duration, frame) {
     // instance of graphic
-    if (this.frame >= duration) {
-      return this.frame % duration;
+    if (frame >= duration) {
+      return frame % duration;
     }
 
-    return this.frame;
+    return frame;
 
     // TODO: Handle all playing options
     // if (this.singleFrame) {
