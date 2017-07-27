@@ -122,7 +122,7 @@ export default class ViewBacking extends BaseBacking {
       return;
     }
 
-    var idx = this._subviewsWithTicks.indexOf(this);
+    var idx = this._subviewsWithTicks.indexOf(backing);
     if (idx !== -1) {
       this._subviewsWithTicks.splice(idx, 1);
       if (!this._hasTick && this._subviewsWithTicks.length === 0) {
@@ -312,7 +312,7 @@ export default class ViewBacking extends BaseBacking {
     if (this._hasRender) {
       this._view._render(ctx, gt);
     }
-    
+
     var subviews = this._visibleSubviews;
     for (var i = 0; i < subviews.length; i++) {
       subviews[i].wrapRender(ctx, gt, globalAlpha);
@@ -435,4 +435,3 @@ export default class ViewBacking extends BaseBacking {
   }
 
 };
-
