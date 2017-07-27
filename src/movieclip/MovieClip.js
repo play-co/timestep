@@ -169,17 +169,14 @@ export default class MovieClip extends View {
   }
 
   getBounds (elementID) {
-    if (!elementID) {
-      var animationBounds = this._boundsMap[this._animationName];
-      if (animationBounds) {
-        return animationBounds;
-      }
-
-      elementID = this._animationName;
+    var animationBounds = this._boundsMap[this._animationName];
+    if (animationBounds) {
+      return animationBounds;
     }
 
-    var animation = this._substitutes[elementID] || this._library[elementID];
-    this.updateBoundingBox(animation, IDENTITY_MATRIX);
+    var animation = this.animation;
+    elementID = elementID || null;
+    this.updateBoundingBox(animation, elementID, IDENTITY_MATRIX);
 
     var bounds = new Rect(0, 0, Infinity, Infinity);
     bounds.x = Math.floor(this._bbox.left);
@@ -187,7 +184,7 @@ export default class MovieClip extends View {
     bounds.width = Math.ceil(this._bbox.right - this._bbox.left);
     bounds.height = Math.ceil(this._bbox.bottom - this._bbox.top);
 
-    if (elementID === this._animationName) {
+    if (elementID === null) {
       this._boundsMap[this._animationName] = bounds;
     }
 
@@ -199,18 +196,18 @@ export default class MovieClip extends View {
   }
 
   getCurrentBounds (elementID) {
+    elementID = elementID || null;
     var animation = this.animation;
-    if (elementID) {
-      animation = this._substitutes[elementID] || this._library[elementID];
-    }
 
-    this.updateCurrentBoundingBox(animation);
+    this.updateCurrentBoundingBox(animation, elementID, IDENTITY_MATRIX);
 
+    var left = Math.floor(this._bbox.left);
+    var top = Math.floor(this._bbox.top);
     var bounds = new Rect(
-      Math.floor(this._bbox.left),
-      Math.floor(this._bbox.top),
-      Math.ceil(this._bbox.right - this._bbox.left),
-      Math.ceil(this._bbox.bottom - this._bbox.top)
+      left,
+      top,
+      Math.ceil(this._bbox.right - left),
+      Math.ceil(this._bbox.bottom - top)
     );
 
     if (bounds.width === -Infinity) { bounds.width = 0; }
@@ -219,7 +216,7 @@ export default class MovieClip extends View {
     return bounds;
   }
 
-  updateBoundingBox (animation, transform) {
+  updateBoundingBox (animation, elementID, transform) {
     this._bbox.reset();
     if (!animation || !animation.timeline) {
       return;
@@ -228,30 +225,30 @@ export default class MovieClip extends View {
     var actualFrame = this.frame;
     var timeline = animation.timeline;
     for (var frame = 0; frame < timeline.length; frame++) {
-      animation.expandBoundingBox(this._bbox, transform, frame, frame, this._substitutes);
+      animation.expandBoundingBox(this._bbox, elementID, transform, frame, frame, this._substitutes);
     }
   }
 
-  expandBoundingBox (boundingBox, transform, frame, framesElapsed, substitutes, currentBounds) {
+  expandBoundingBox (boundingBox, elementID, transform, frame, framesElapsed, substitutes, currentBounds) {
     if (currentBounds) {
-      this.updateCurrentBoundingBox(this.animation);
+      this.updateCurrentBoundingBox(this.animation, elementID, transform);
     } else {
-      this.updateBoundingBox(this.animation, transform);
+      this.updateBoundingBox(this.animation, elementID, transform);
     }
 
     boundingBox.left = Math.min(this._bbox.left, boundingBox.left);
     boundingBox.top = Math.min(this._bbox.top, boundingBox.top);
     boundingBox.right = Math.max(this._bbox.right, boundingBox.right);
-    boundingBox.bottom = Math.max(this._bbox.bottom, boundingBox.left);
+    boundingBox.bottom = Math.max(this._bbox.bottom, boundingBox.bottom);
   }
 
-  updateCurrentBoundingBox (animation) {
+  updateCurrentBoundingBox (animation, elementID, transform) {
     this._bbox.reset();
     if (!animation) {
       return;
     }
 
-    animation.expandBoundingBox(this._bbox, IDENTITY_MATRIX, this.frame, this.framesElapsed, this._substitutes, true);
+    animation.expandBoundingBox(this._bbox, elementID, transform, this.frame, this.framesElapsed, this._substitutes, true);
   }
 
   clearBoundsMap () {

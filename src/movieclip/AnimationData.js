@@ -193,7 +193,11 @@ class Sprite {
     this.image.renderShort(ctx, bounds.x, bounds.y, bounds.width, bounds.height);
   }
 
-  expandBoundingBox (boundingBox, transform) {
+  expandBoundingBox (boundingBox, elementID, transform) {
+    if (elementID !== null) {
+      return;
+    }
+
     var left = this.bounds.x;
     var right = this.bounds.x + this.bounds.width;
     var top = this.bounds.y;
@@ -270,7 +274,7 @@ class Symbol {
     }
   }
 
-  expandBoundingBox (boundingBox, parentTransform, frame, elapsedFrames, substitutes, currentBounds) {
+  expandBoundingBox (boundingBox, elementID, parentTransform, frame, elapsedFrames, substitutes, currentBounds) {
     // TODO: if instance is movie clip, the bounds should include all its frames
     var children = this.timeline[frame];
     for (var i = 0; i < children.length; i++) {
@@ -285,14 +289,17 @@ class Symbol {
       transform.transform(child.transform);
 
       var childFrame;
-      var element = substitutes[child.libraryID];
+      var childID = child.libraryID;
+      var element = substitutes[childID];
       if (element) {
         childFrame = child.getFrame(element.duration, elapsedFrames);
       } else {
         element = child.element;
         childFrame = child.getFrame(element.duration, child.frame);
       }
-      element.expandBoundingBox(boundingBox, transform, childFrame, elapsedFrames, substitutes, currentBounds);
+
+      var searchedElementID = (elementID === childID) ? null : elementID;
+      element.expandBoundingBox(boundingBox, searchedElementID, transform, childFrame, elapsedFrames, substitutes, currentBounds);
     }
   }
 
