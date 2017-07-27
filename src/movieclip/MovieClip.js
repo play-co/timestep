@@ -168,20 +168,14 @@ export default class MovieClip extends View {
     }
   }
 
-  getBounds (elementID, parentElementID) {
-    var animation;
-    if (parentElementID) {
-      animation = this._substitutes[parentElementID] || this._library[parentElementID];
-    } else {
-      var animationBounds = this._boundsMap[elementID || this._animationName];
-      if (animationBounds) {
-        return animationBounds;
-      }
-
-      elementID = elementID || null;
-      animation = this.animation;
+  getBounds (elementID) {
+    var animationBounds = this._boundsMap[this._animationName];
+    if (animationBounds) {
+      return animationBounds;
     }
 
+    var animation = this.animation;
+    elementID = elementID || null;
     this.updateBoundingBox(animation, elementID, IDENTITY_MATRIX);
 
     var bounds = new Rect(0, 0, Infinity, Infinity);
@@ -190,8 +184,8 @@ export default class MovieClip extends View {
     bounds.width = Math.ceil(this._bbox.right - this._bbox.left);
     bounds.height = Math.ceil(this._bbox.bottom - this._bbox.top);
 
-    if (animation === this.animation) {
-      this._boundsMap[elementID || this._animationName] = bounds;
+    if (elementID === null) {
+      this._boundsMap[this._animationName] = bounds;
     }
 
     // TODO: bounds with negative dimensions should be compatible with timestep engine
@@ -201,16 +195,11 @@ export default class MovieClip extends View {
     return bounds;
   }
 
-  getCurrentBounds (elementID, parentElementID) {
-    var animation;
-    if (parentElementID) {
-      animation = this._substitutes[parentElementID] || this._library[parentElementID];
-    } else {
-      elementID = elementID || null;
-      animation = this.animation;
-    }
+  getCurrentBounds (elementID) {
+    elementID = elementID || null;
+    var animation = this.animation;
 
-    this.updateCurrentBoundingBox(animation, elementID);
+    this.updateCurrentBoundingBox(animation, elementID, IDENTITY_MATRIX);
 
     var left = Math.floor(this._bbox.left);
     var top = Math.floor(this._bbox.top);
@@ -242,7 +231,7 @@ export default class MovieClip extends View {
 
   expandBoundingBox (boundingBox, elementID, transform, frame, framesElapsed, substitutes, currentBounds) {
     if (currentBounds) {
-      this.updateCurrentBoundingBox(this.animation, elementID);
+      this.updateCurrentBoundingBox(this.animation, elementID, transform);
     } else {
       this.updateBoundingBox(this.animation, elementID, transform);
     }
@@ -253,13 +242,13 @@ export default class MovieClip extends View {
     boundingBox.bottom = Math.max(this._bbox.bottom, boundingBox.bottom);
   }
 
-  updateCurrentBoundingBox (animation, elementID) {
+  updateCurrentBoundingBox (animation, elementID, transform) {
     this._bbox.reset();
     if (!animation) {
       return;
     }
 
-    animation.expandBoundingBox(this._bbox, elementID, IDENTITY_MATRIX, this.frame, this.framesElapsed, this._substitutes, true);
+    animation.expandBoundingBox(this._bbox, elementID, transform, this.frame, this.framesElapsed, this._substitutes, true);
   }
 
   clearBoundsMap () {
