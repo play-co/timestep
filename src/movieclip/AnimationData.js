@@ -358,4 +358,5 @@ class Instance {
 
 }
 
-AnimationData.Instance = Instance;
+var emptyTimeline = [[]];
+AnimationData.EMPTY_SYMBOL = new Symbol(emptyTimeline);
