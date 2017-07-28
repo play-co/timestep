@@ -473,3 +473,5 @@ MovieClip.LOADED = 'loaded';
 
 MovieClip.getAnimation = AnimationData.getAnimation;
 MovieClip.loadAnimation = AnimationData.loadFromURL;
+
+MovieClip.EMPTY_SYMBOL = AnimationData.EMPTY_SYMBOL;
