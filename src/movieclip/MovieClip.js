@@ -83,7 +83,6 @@ export default class MovieClip extends View {
     this.frameCount = 0;
     this.isPlaying = false;
     this._animationName = '';
-    this._instance = new AnimationData.Instance('', 0, IDENTITY_MATRIX, 1);
 
     this._callback = null;
     this._boundsMap = {};
@@ -115,7 +114,7 @@ export default class MovieClip extends View {
     this.buffered = opts.buffered ? opts.buffered : null;
 
     if (!this.data && opts.url) {
-       this.url = opts.url;
+      this.url = opts.url;
     }
 
     if (opts.defaultAnimation) {
@@ -166,8 +165,6 @@ export default class MovieClip extends View {
       return;
     }
 
-    this._instance.frame = this.frame;
-
     if (this._buffered && this._nbViewSubstitutions === 0) {
       // Update and render internal canvas to context
       var bounds = this.getBounds();
@@ -179,7 +176,7 @@ export default class MovieClip extends View {
         this.updateCanvasBounds(bounds);
         this._ctx.clear();
         this._transform.setTo(1, 0, 0, 1, -bounds.x, -bounds.y);
-        this.animation._wrapRender(this._ctx, this._transform, 1, this._instance, this._substitutes /*, deltaFrame */);
+        this.animation._wrapRender(this._ctx, this._transform, 1, this.frame, this.framesElapsed, this._substitutes);
         this._frameDirty = false;
       }
 
@@ -187,40 +184,29 @@ export default class MovieClip extends View {
     } else {
       // Render directly to context
       this._transform.copy(transform);
-      this.animation._wrapRender(ctx, this._transform, ctx.globalAlpha, this._instance, this._substitutes /*, deltaFrame */);
+      this.animation._wrapRender(ctx, this._transform, ctx.globalAlpha, this.frame, this.framesElapsed, this._substitutes);
     }
   }
 
   getBounds (elementID) {
-    if (!this.loaded) {
-      return NULL_BOUNDS;
+    var animationBounds = this._boundsMap[this._animationName];
+    if (animationBounds) {
+      return animationBounds;
     }
 
-    if (!elementID) {
-      var animationBounds = this._boundsMap[this._animationName];
-      if (animationBounds) {
-        return animationBounds;
-      }
-
-      elementID = this._animationName;
-    }
-
-    var animation = this._substitutes[elementID] || this._library[elementID];
-    if (!animation || animation.animation === null) {
-      return NULL_BOUNDS;
-    }
+    var animation = this.animation;
+    elementID = elementID || null;
+    this.updateBoundingBox(animation, elementID, IDENTITY_MATRIX);
 
     var bounds = new Rect(0, 0, Infinity, Infinity);
-    if (elementID === this._animationName) {
-      this._boundsMap[this._animationName] = bounds;
-    }
-
-    this.updateBoundingBox(animation, IDENTITY_MATRIX);
-
     bounds.x = Math.floor(this._bbox.left);
     bounds.y = Math.floor(this._bbox.top);
     bounds.width = Math.ceil(this._bbox.right - this._bbox.left);
     bounds.height = Math.ceil(this._bbox.bottom - this._bbox.top);
+
+    if (elementID === null) {
+      this._boundsMap[this._animationName] = bounds;
+    }
 
     // TODO: bounds with negative dimensions should be compatible with timestep engine
     if (bounds.width === -Infinity) { bounds.width = 0; }
@@ -229,27 +215,60 @@ export default class MovieClip extends View {
     return bounds;
   }
 
-  updateBoundingBox (animation, transform) {
+  getCurrentBounds (elementID) {
+    elementID = elementID || null;
+    var animation = this.animation;
+
+    this.updateCurrentBoundingBox(animation, elementID, IDENTITY_MATRIX);
+
+    var left = Math.floor(this._bbox.left);
+    var top = Math.floor(this._bbox.top);
+    var bounds = new Rect(
+      left,
+      top,
+      Math.ceil(this._bbox.right - left),
+      Math.ceil(this._bbox.bottom - top)
+    );
+
+    if (bounds.width === -Infinity) { bounds.width = 0; }
+    if (bounds.height === -Infinity) { bounds.height = 0; }
+
+    return bounds;
+  }
+
+  updateBoundingBox (animation, elementID, transform) {
     this._bbox.reset();
+    if (!animation || !animation.timeline) {
+      return;
+    }
 
     var actualFrame = this.frame;
     var timeline = animation.timeline;
     for (var frame = 0; frame < timeline.length; frame++) {
-      this._instance.frame = frame;
-      animation.expandBoundingBox(this._bbox, transform, this._instance, this._substitutes);
+      animation.expandBoundingBox(this._bbox, elementID, transform, frame, frame, this._substitutes);
     }
   }
 
-  expandBoundingBox (boundingBox, transform, child, substitutes) {
-    if (!this.animation) {
-      return;
+  expandBoundingBox (boundingBox, elementID, transform, frame, framesElapsed, substitutes, currentBounds) {
+    if (currentBounds) {
+      this.updateCurrentBoundingBox(this.animation, elementID, transform);
+    } else {
+      this.updateBoundingBox(this.animation, elementID, transform);
     }
 
-    this.updateBoundingBox(this.animation, transform);
     boundingBox.left = Math.min(this._bbox.left, boundingBox.left);
     boundingBox.top = Math.min(this._bbox.top, boundingBox.top);
     boundingBox.right = Math.max(this._bbox.right, boundingBox.right);
-    boundingBox.bottom = Math.max(this._bbox.bottom, boundingBox.left);
+    boundingBox.bottom = Math.max(this._bbox.bottom, boundingBox.bottom);
+  }
+
+  updateCurrentBoundingBox (animation, elementID, transform) {
+    this._bbox.reset();
+    if (!animation) {
+      return;
+    }
+
+    animation.expandBoundingBox(this._bbox, elementID, transform, this.frame, this.framesElapsed, this._substitutes, true);
   }
 
   clearBoundsMap () {
@@ -266,7 +285,6 @@ export default class MovieClip extends View {
 
     this._frameDirty = animationName !== this._animationName;
     this._animationName = animationName;
-    this._instance.libraryID = animationName;
     this.looping = loop || false;
     this.isPlaying = true;
     this.animation = this._library[animationName];
@@ -390,6 +408,7 @@ export default class MovieClip extends View {
       this.data = data;
       this._url = data.url;
       this.fps = this._opts.fps || this.data.frameRate || 30;
+      this._url = data.url;
       this._library = data.library;
       this.emit(MovieClip.LOADED);
     } else {
@@ -402,10 +421,10 @@ export default class MovieClip extends View {
     return this._buffered;
   }
 
-  set buffered (value) {
-    if (this._buffered === value) { return; }
+  set buffered (buffered) {
+    if (this._buffered === buffered) { return; }
 
-    this._buffered = value;
+    this._buffered = buffered;
     this._frameDirty = true;
 
     if (this.buffered) {
@@ -425,9 +444,9 @@ export default class MovieClip extends View {
     return this._fps;
   }
 
-  set fps (value) {
-    this._fps = value;
-    this._frameMS = 1000 / value;
+  set fps (fps) {
+    this._fps = fps;
+    this._frameMS = 1000 / fps;
   }
 
   get loaded () {
@@ -439,7 +458,6 @@ export default class MovieClip extends View {
   }
 
   set url (url) {
-    if (!url) { return; }
     if (this._url === url) {
       return;
     }
@@ -562,3 +580,4 @@ MovieClip.loadAnimations = loadAnimations;
 MovieClip.animationLoader = loadAnimationMethod;
 
 MovieClip.LOADED = 'loaded';
+MovieClip.EMPTY_SYMBOL = AnimationData.EMPTY_SYMBOL;

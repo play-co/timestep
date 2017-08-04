@@ -122,7 +122,11 @@ class Sprite {
     }
   }
 
-  expandBoundingBox (boundingBox, transform) {
+  expandBoundingBox (boundingBox, elementID, transform) {
+    if (elementID !== null) {
+      return;
+    }
+
     var left = this.bounds.x;
     var right = this.bounds.x + this.bounds.width;
     var top = this.bounds.y;
@@ -162,13 +166,12 @@ class Symbol {
   constructor (timeline) {
     this.timeline = timeline;
     this.duration = timeline.length;
+    // this.className = className // unique symbol identifier, aka actionscript linkage
 
     this.transform = new Matrix();
   }
 
-  _wrapRender (ctx, parentTransform, parentAlpha, instance, substitutes /*, deltaFrame */) {
-    var frame = instance.getFrame(this.duration);
-
+  _wrapRender (ctx, parentTransform, parentAlpha, frame, elapsedFrames, substitutes) {
     var children = this.timeline[frame];
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
@@ -178,18 +181,30 @@ class Symbol {
       transform.copy(parentTransform);
       transform.transform(child.transform);
 
+
+      var childFrame;
+      var element = substitutes[child.libraryID];
+      if (element) {
+        // hack
+        // with the current export format it is not possible to determine
+        // whether an instance of a symbol is a movie clip or a graphic
+        // therefore we consider any element that is substituted
+        // as behaving as a movieclip with an independant timeline
+        childFrame = child.getFrame(element.duration, elapsedFrames);
+      } else {
+        element = child.element;
+        childFrame = child.getFrame(element.duration, child.frame);
+      }
+
       // n.b element can be of 3 different types: Symnbol, Sprite or FlashPlayerView
       // therefore this method cannot be perfectly optimized by optimizer-compilers
       // also, the lookup in the substitutes map is slow
-      var element = substitutes[child.libraryID] || child.element;
-      element._wrapRender(ctx, transform, alpha, child, substitutes);
+      element._wrapRender(ctx, transform, alpha, childFrame, elapsedFrames, substitutes);
     }
   }
 
-  expandBoundingBox (boundingBox, parentTransform, instance, substitutes /*, deltaFrame */) {
+  expandBoundingBox (boundingBox, elementID, parentTransform, frame, elapsedFrames, substitutes, currentBounds) {
     // TODO: if instance is movie clip, the bounds should include all its frames
-    var frame = instance.getFrame(this.duration /*, deltaFrame */);
-
     var children = this.timeline[frame];
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
@@ -202,8 +217,18 @@ class Symbol {
       transform.copy(parentTransform);
       transform.transform(child.transform);
 
-      var element = substitutes[child.libraryID] || child.element;
-      element.expandBoundingBox(boundingBox, transform, child, substitutes /*, deltaFrame */);
+      var childFrame;
+      var childID = child.libraryID;
+      var element = substitutes[childID];
+      if (element) {
+        childFrame = child.getFrame(element.duration, elapsedFrames);
+      } else {
+        element = child.element;
+        childFrame = child.getFrame(element.duration, child.frame);
+      }
+
+      var searchedElementID = (elementID === childID) ? null : elementID;
+      element.expandBoundingBox(boundingBox, searchedElementID, transform, childFrame, elapsedFrames, substitutes, currentBounds);
     }
   }
 
@@ -219,7 +244,6 @@ class Instance {
     // TODO: support all types of identifications
     this.libraryID = libraryID; // id of instantiated element in the library
     // this.instanceName = instanceName; // Optional, only movie clips can have it
-    // this.className = className; // Optinal, aka ActionScript linkage
 
     this.frame = frame;
     this.transform = transform;
@@ -229,8 +253,7 @@ class Instance {
 
     this.element = null;
 
-    // TODO: Handle movie clips (non-graphics)
-    // this.isGraphic = true;
+    // this.isMovieClip = isMovieClip;
     // TODO: Handle graphic playing options
     // this.singleFrame = false;
     // this.firstFrame = 0;
@@ -241,33 +264,28 @@ class Instance {
     this.element = library[this.libraryID];
   }
 
-  getFrame (duration /*, deltaFrame */) {
-    if (this.frame >= duration) {
-      return this.frame % duration;
+  getFrame (duration, frame) {
+    // instance of graphic
+    if (frame >= duration) {
+      return frame % duration;
     }
 
-    return this.frame;
+    return frame;
+
     // TODO: Handle all playing options
-    // if (this.isGraphic) {
-    //   if (this.singleFrame) {
-    //     return this.firstFrame;
-    //   }
-
-    //   var frame = this.firstFrame + this.frame;
-    //   if (frame >= duration) {
-    //     return this.loop ? frame % duration : duration;
-    //   }
-
-    //   return frame;
+    // if (this.singleFrame) {
+    //   return this.firstFrame;
     // }
 
-    // this.frame += deltaFrame;
-    // if (this.frame >= duration) {
-    //   this.frame = this.frame % duration;
+    // var frame = this.firstFrame + this.frame;
+    // if (frame >= duration) {
+    //   return this.loop ? frame % duration : duration;
     // }
-    // return this.frame;
+
+    // return frame;
   }
 
 }
 
-AnimationData.Instance = Instance;
+var emptyTimeline = [[]];
+AnimationData.EMPTY_SYMBOL = new Symbol(emptyTimeline);
