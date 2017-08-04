@@ -140,11 +140,6 @@ exports = class extends Emitter {
       height: opts.height
     });
 
-    // __root is a pointer to the Engine instance that a view
-    // is currently attached to.  If __root is null, the view
-    // is not currently in a view hierarchy.
-    this._view.__root = this;
-
     this._events = [];
 
     if (KeyListener) {

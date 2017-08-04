@@ -1,4 +1,3 @@
-let exports = {};
 
 /**
  * @license
@@ -23,6 +22,5 @@ let exports = {};
  * @docsrc https://github.com/gameclosure/doc/blob/master/api/animate.md
  */
 import animate from 'ui/backend/canvas/animate';
-exports = animate;
 
-export default exports;
+export default animate;

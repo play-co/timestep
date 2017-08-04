@@ -63,21 +63,63 @@ var PRIORITY_MEDIUM = 2;
 var MAX_PARALLEL_LOADINGS = 7;
 
 class LoadRequest {
-  constructor (url, loadMethod, cb, index) {
+  constructor (url, loadMethod, cb, priority, isExplicit, index) {
     this.url = url;
     this.loadMethod = loadMethod;
     this.cb = cb;
     this.index = index;
+    this.isExplicit = isExplicit;
   }
 }
 
 class LoadRequestGroup {
-  constructor (loader, urls, loadMethods, cb, priority) {
+  constructor (loader, cb, blockImplicitRequests, priority) {
     this.loader = loader;
-    this.urls = urls;
-    this.loadMethods = loadMethods;
+    this.urls = [];
+    this.loadMethods = [];
     this.cb = cb;
     this.priority = priority;
+    this.blockImplicitRequests = blockImplicitRequests;
+  }
+
+  addAsset (url) {
+    var priority;
+    var loadMethod;
+    var blockImplicitRequests;
+    // TODO: refactor this logic ?
+    // type checking => method not fully optimized
+    if (typeof url !== 'string') {
+      priority = url.priority;
+      blockImplicitRequests = url.blockImplicitRequests;
+      loadMethod = url.loadMethod;
+      url = url.url;
+    }
+
+    if (priority === undefined) { priority = this.priority; }
+    if (blockImplicitRequests === undefined) { blockImplicitRequests = this.blockImplicitRequests; }
+    if (!loadMethod) { loadMethod = this.loader._getLoadMethod(url); }
+
+    if (loadMethod === loadImage) {
+      url = this.loader._getImageURL(url);
+    }
+
+    this.urls.push(url);
+    this.loadMethods.push(loadMethod);
+
+    if (blockImplicitRequests) {
+      this.loader._waitForExplicitRequest[url] = true;
+    }
+
+    return url;
+  }
+
+  removeAsset (url) {
+    // TODO: optimize, bad algorithm complexity
+    var idx = this.urls.indexOf(url);
+    if (idx !== -1) {
+      this.urls.splice(idx, 1);
+      this.loadMethods.splice(idx, 1);
+    }
   }
 
   load (cb) {
@@ -111,6 +153,8 @@ var loadMethodsByExtension = {
   '.css': loadFile,
   '.html': loadFile
 };
+
+var implicitRequests = [];
 
 class Loader extends Emitter {
   constructor () {
@@ -297,8 +341,10 @@ class Loader extends Emitter {
     var url = loadRequest.url;
     var loadMethod = loadRequest.loadMethod;
     var cache = loadMethod.cache;
-console.error('LOADING', url)
-    loadMethod(url, (asset) => this._onAssetLoaded(asset, url, cache), this);
+    var priority = loadMethod.prioirty;
+    var isExplicit = loadMethod.isExplicit;
+// console.error('LOADING', url)
+    loadMethod(url, (asset) => this._onAssetLoaded(asset, url, cache), this, priority, isExplicit);
   }
 
   _initiateAssetsLoading () {
@@ -322,17 +368,21 @@ console.error('LOADING', url)
   }
 
   _loadAsset (url, loadMethod, cb, priority, isExplicit, index) {
+    if (!url) {
+      return cb && cb(null, index);
+    }
+
     var cache = loadMethod.cache;
     if (cache) {
       var asset = cache[url];
       if (asset) {
-console.warn('FROM CACHE', url)
+// console.error('HITTING CACHE', url)
         return cb && cb(asset, index);
       }
     }
-console.warn('REQUESTING', url, priority)
+// console.warn('REQUESTING', url, priority)
 
-    var loadRequest = new LoadRequest(url, loadMethod, cb, index);
+    var loadRequest = new LoadRequest(url, loadMethod, cb, priority, isExplicit, index);
     if (this._loadRequests[url]) {
       this._loadRequests[url].push(loadRequest);
     } else {
@@ -341,6 +391,11 @@ console.warn('REQUESTING', url, priority)
 
     if (!isExplicit && this._waitForExplicitRequest[url]) {
       return;
+    }
+
+    if (!isExplicit) {
+      implicitRequests.push(url);
+console.warn('Asset lazy loading:', url)
     }
 
     if (!this._currentRequests[url]) {
@@ -460,36 +515,13 @@ console.warn('REQUESTING', url, priority)
   }
 
   createGroup (urls, cb, blockImplicitRequests, priority) {
-    var loadMethods = new Array(urls.length);
+    var group = new LoadRequestGroup(this, cb, blockImplicitRequests, priority);
+
     for (var u = 0; u < urls.length; u += 1) {
-      var url = urls[u];
-      // TODO: refactor this logic ?
-      // type checking => method not fully optimized
-      var loadMethod;
-      if (typeof url !== 'string') {
-        priority = url.priority || priority;
-        blockImplicitRequests = url.blockImplicitRequests || blockImplicitRequests;
-        loadMethod = url.loadMethod;
-        url = url.url;
-      }
-
-      if (!loadMethod) {
-        loadMethod = this._getLoadMethod(url);
-      }
-
-      if (loadMethod === loadImage) {
-        url = this._getImageURL(url);
-      }
-
-      urls[u] = url;
-      loadMethods[u] = loadMethod
-
-      if (blockImplicitRequests) {
-        this._waitForExplicitRequest[url] = true;
-      }
+      group.addAsset(urls[u]);
     }
 
-    return new LoadRequestGroup(this, urls, loadMethods, cb, priority);
+    return group;
   }
 
   _getImageURL (id) {
@@ -563,6 +595,10 @@ console.warn('REQUESTING', url, priority)
   setCredentials (user, password) {
     this._user = user;
     this._password = password || null;
+  }
+
+  getImplicitRequests () {
+    return implicitRequests;
   }
 }
 
