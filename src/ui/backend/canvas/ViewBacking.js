@@ -268,7 +268,7 @@ export default class ViewBacking {
       return;
     }
 
-    var idx = this._subviewsWithTicks.indexOf(this);
+    var idx = this._subviewsWithTicks.indexOf(backing);
     if (idx !== -1) {
       this._subviewsWithTicks.splice(idx, 1);
       if (!this._hasTick && this._subviewsWithTicks.length === 0) {
@@ -588,4 +588,3 @@ export default class ViewBacking {
   }
 
 };
-
