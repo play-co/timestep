@@ -200,10 +200,27 @@ export default class View extends IView {
     }
   }
 
-  _forceLoad () {
-    if (this.style._hasRender) {
-      console.error('Unsupported dynamic loading for:', this);
+  _addAssetsToList () {
+    /* VIRTUAL */
+    // Should return assets associated with this view
+  }
+
+  _getAssets (assetURLs) {
+    this._addAssetsToList(assetURLs);
+
+    var subviewBackings = this.style._subviews;
+    for (var i = 0; i < subviewBackings.length; i++) {
+      subviewBackings[i]._view._getAssets(assetURLs);
     }
+  }
+
+  getAssets () {
+    var assetURLs = [];
+    this._getAssets(assetURLs);
+    return assetURLs;
+  }
+
+  _forceLoad () {
     this._loaded = true;
   }
 

@@ -198,7 +198,6 @@ export default class BitmapFontTextViewBacking {
 
       var charData = font.getChar(charID);
       if (!charData) {
-        debugger
         console.warn('Missing character ' + String.fromCharCode(charID) + ' in font ' + font.name + '.');
         continue;
       }

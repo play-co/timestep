@@ -101,10 +101,14 @@ export default class ImageWrapper extends PubSub {
   }
 
   _forceLoad (cb) {
-    resourceLoader.loadImage(this._map.url, img => {
+    resourceLoader.loadImage(this._originalURL, img => {
       this._onLoad(img, ++this._loadRequestID);
       return cb && cb();
     });
+  }
+
+  _addAssetsToList (assetURLs) {
+    assetURLs.push(this._originalURL);
   }
 
   getSrcImg () {

@@ -22,7 +22,6 @@ let exports = {};
  */
 
 import Matrix2D from 'platforms/browser/webgl/Matrix2D';
-// import Engine from 'Engine';
 
 var sin = Math.sin;
 var cos = Math.cos;
@@ -37,10 +36,6 @@ function compareZOrder (a, b) {
 
   return a._addedAt - b._addedAt;
 }
-
-setInterval(() => {
-
-}, 5000);
 
 export default class ViewBacking {
 

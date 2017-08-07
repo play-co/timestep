@@ -109,6 +109,7 @@ class LoadRequestGroup {
     if (blockImplicitRequests) {
       this.loader._waitForExplicitRequest[url] = true;
     }
+    this.loader._priorities[url] = priority;
 
     return url;
   }
@@ -123,9 +124,9 @@ class LoadRequestGroup {
   }
 
   load (cb) {
-    this.loader._loadAssets(this.urls, this.loadMethods, () => {
-      if (this.cb) { this.cb(); }
-      return cb && cb();
+    this.loader._loadAssets(this.urls, this.loadMethods, (assets) => {
+      if (this.cb) { this.cb(assets); }
+      return cb && cb(assets);
     }, this.priority, true);
   }
 }
@@ -174,6 +175,7 @@ class Loader extends Emitter {
     this._originalMap = {};
     this._audioMap = {};
     this._waitForExplicitRequest = {};
+    this._priorities = {};
 
     this._nbRequestedResources = 0;
     this._currentRequests = {};
@@ -343,7 +345,7 @@ class Loader extends Emitter {
     var cache = loadMethod.cache;
     var priority = loadMethod.prioirty;
     var isExplicit = loadMethod.isExplicit;
-// console.error('LOADING', url)
+// console.error('Loading', url)
     loadMethod(url, (asset) => this._onAssetLoaded(asset, url, cache), this, priority, isExplicit);
   }
 
@@ -376,11 +378,15 @@ class Loader extends Emitter {
     if (cache) {
       var asset = cache[url];
       if (asset) {
-// console.error('HITTING CACHE', url)
+// console.error('Hitting Cache', url)
         return cb && cb(asset, index);
       }
     }
-// console.warn('REQUESTING', url, priority)
+
+    if (priority === null || priority === undefined) {
+      priority = this._priorities[url];
+    }
+// console.warn('Requesting', url, priority)
 
     var loadRequest = new LoadRequest(url, loadMethod, cb, priority, isExplicit, index);
     if (this._loadRequests[url]) {
@@ -395,7 +401,6 @@ class Loader extends Emitter {
 
     if (!isExplicit) {
       implicitRequests.push(url);
-console.warn('Asset lazy loading:', url)
     }
 
     if (!this._currentRequests[url]) {

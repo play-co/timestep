@@ -64,6 +64,12 @@ class BitmapFont extends EventEmitter {
     }
   }
 
+  _addAssetsToList (assetURLs) {
+    if (this.texture) {
+      this.texture._addAssetsToList(assetURLs);
+    }
+  }
+
   parsedata(data) {
     const isDevkitImage = !!this.texture.getMap;
     let scale = 1;

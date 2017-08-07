@@ -268,7 +268,7 @@ class MultiSound {
         if (!this._paths[index]) {
           debugger
         }
-        loader._loadSound(this._paths[index], sound => {
+        loader.loadSound(this._paths[index], sound => {
           this._sounds[index] = sound;
           // handle async pause and stop
           if (!this._isPaused && !this._isStopped) {

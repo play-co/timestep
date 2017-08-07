@@ -44,6 +44,12 @@ export default class ImageView extends View {
     }
   }
 
+  _addAssetsToList (assetURLs) {
+    if (this._img) {
+      this._img._addAssetsToList(assetURLs);
+    }
+  }
+
   getImage () {
     return this._img;
   }

@@ -131,6 +131,13 @@ export default class MovieClip extends View {
         }
         this.setData(data);
       });
+      this._loaded = true;
+    }
+  }
+
+  _addAssetsToList (assetURLs) {
+    if (this._url) {
+      assetURLs.push({ url: this._url, loadMethod: loadAnimationMethod });
     }
   }
 
@@ -288,6 +295,9 @@ export default class MovieClip extends View {
     this.looping = loop || false;
     this.isPlaying = true;
     this.animation = this._library[animationName];
+    if (!this.animation) {
+      debugger
+    }
     this.timeline = this.animation.timeline;
     this.frameCount = this.animation.duration;
     this.frame = 0;
@@ -414,6 +424,7 @@ export default class MovieClip extends View {
     } else {
       this.data = null;
       this.animation = null;
+      this._loaded = false;
     }
   }
 
@@ -469,6 +480,8 @@ export default class MovieClip extends View {
       return;
     }
 
+    this.setData(null);
+    // transition period during which no animation data is attached to this view
     _loadAnimation(url, data => {
       if (this._url !== url) {
         return;
