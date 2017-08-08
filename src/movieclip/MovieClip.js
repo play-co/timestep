@@ -543,6 +543,7 @@ function getAnimation (url) {
 
 function loadAnimationMethod (url, cb, loader, priority, isExplicit) {
   var jsonURL = url + '/data.js';
+
   loaders.loadJSON(jsonURL, jsonData => {
     if (jsonData === null) {
       return cb && cb(null);
@@ -558,10 +559,13 @@ function loadAnimationMethod (url, cb, loader, priority, isExplicit) {
       imageURLs.push(url + '/' + imageName);
     }
 
-    loader.loadImages(imageURLs.reduce((urls, url) => {
+    var uniqueImageURLs = [];
+    imageURLs.reduce((urls, url) => {
       if (urls.indexOf(url) === -1) { urls.push(url); }
       return urls;
-    }, []), images => {
+    }, uniqueImageURLs);
+
+    loader.loadImages(uniqueImageURLs, images => {
       var imageMap = {};
       for (var i = 0; i < images.length; i += 1) {
         imageMap[imageNames[i]] = new Image({

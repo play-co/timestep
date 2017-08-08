@@ -60,7 +60,7 @@ var PRIORITY_MEDIUM = 2;
 // TODO: implement high priority assets?
 // var PRIORITY_HIGH = 3;
 
-var MAX_PARALLEL_LOADINGS = 7;
+var MAX_PARALLEL_LOADINGS = 12;
 
 class LoadRequest {
   constructor (url, loadMethod, cb, priority, isExplicit, index) {
@@ -343,9 +343,9 @@ class Loader extends Emitter {
     var url = loadRequest.url;
     var loadMethod = loadRequest.loadMethod;
     var cache = loadMethod.cache;
-    var priority = loadMethod.prioirty;
-    var isExplicit = loadMethod.isExplicit;
-// console.error('Loading', url)
+    var priority = loadRequest.prioirty;
+    var isExplicit = loadRequest.isExplicit;
+// console.error('Loading', url, isExplicit)
     loadMethod(url, (asset) => this._onAssetLoaded(asset, url, cache), this, priority, isExplicit);
   }
 
@@ -386,7 +386,7 @@ class Loader extends Emitter {
     if (priority === null || priority === undefined) {
       priority = this._priorities[url];
     }
-// console.warn('Requesting', url, priority)
+// console.warn('Requesting', url, priority, isExplicit)
 
     var loadRequest = new LoadRequest(url, loadMethod, cb, priority, isExplicit, index);
     if (this._loadRequests[url]) {
