@@ -4,6 +4,7 @@ import loader from 'ui/resource/loader';
 
 class AssetGroup {
 	constructor (assetURLs, dependency, priority) {
+		this._assetURLs = assetURLs;
 		this._dependency = dependency || null;
 		this._loader = loader.createGroup(assetURLs, null, true, priority);
 		this._loaded = false;
