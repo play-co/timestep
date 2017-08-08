@@ -18,7 +18,7 @@ import i18n from './i18n';
 import Emitter from 'event/Emitter';
 import userAgent from 'userAgent';
 import loaders from 'ui/resource/primitiveLoaders';
-import { isArray } from 'base';
+import { isArray, logger } from 'base';
 
 var LOW_RES_KEY = 'low_res_';
 var LOW_RES_ENABLED = false;
@@ -42,33 +42,10 @@ if (_resolution === 'LOW') {
   LOW_RES_ENABLED = false;
 }
 
-// TODO: add http2 detection (following piece of code only works in chrome apparently)
-// Detection for HTTP2 client support
-// We suppose that server will provide assets over HTTP2
-// see https://stackoverflow.com/questions/36041204/detect-connection-protocol-http-2-spdy-from-javascript
-// var IS_HTTP2 = false;
-// if (performance && performance.timing) {
-//   IS_HTTP2 = performance.timing.nextHopProtocol === 'h2';
-// }
-// if (!IS_HTTP2 && chrome && chrome.loadTimes) {
-//   IS_HTTP2 = chrome.loadTimes().connectionInfo === 'h2';
-// }
-
-
-var PRIORITY_LOW = 1;
-var PRIORITY_MEDIUM = 2;
-// TODO: implement high priority assets?
-// var PRIORITY_HIGH = 3;
-
-var MAX_PARALLEL_LOADINGS = 12;
-
-class LoadRequest {
-  constructor (url, loadMethod, cb, priority, isExplicit, index) {
-    this.url = url;
-    this.loadMethod = loadMethod;
+class AssetCallback {
+  constructor (cb, index) {
     this.cb = cb;
     this.index = index;
-    this.isExplicit = isExplicit;
   }
 }
 
@@ -155,7 +132,7 @@ var loadMethodsByExtension = {
   '.html': loadFile
 };
 
-var implicitRequests = [];
+var unblockedImplicitRequests = [];
 
 class Loader extends Emitter {
   constructor () {
@@ -166,11 +143,6 @@ class Loader extends Emitter {
     this._user = null;
     this._password = null;
 
-    this._loadRequests = {}; // Loading informations of all the assets that were required to load
-    this._requestBacklog = []; // Assets waiting to start loading
-    this._lowPriorityBackLog = [];
-    this._nbAssetsLoading = 0; // Number of assets currently being loaded
-
     this._map = {};
     this._originalMap = {};
     this._audioMap = {};
@@ -179,21 +151,12 @@ class Loader extends Emitter {
 
     this._nbRequestedResources = 0;
     this._currentRequests = {};
+    this._assetCallbacks = {};
   }
 
   get nextProgress () {
     // returns progress that will be achieve once next asset is loaded
-    var nbAssets = this._nbRequestedResources;
-    if (nbAssets === 0) {
-      return 1;
-    }
-
-    var nbAssetsRemaining = this._lowPriorityBackLog.length + this._requestBacklog.length + this._nbAssetsLoading;
-    if (nbAssetsRemaining === 0) {
-      return 1;
-    }
-
-    return (nbAssets - nbAssetsRemaining + 1) / nbAssets;
+    return Math.min(1, this.progress + 1 / this._nbRequestedResources);
   }
 
   get progress () {
@@ -202,8 +165,8 @@ class Loader extends Emitter {
       return 1;
     }
 
-    var nbAssetsRemaining = this._lowPriorityBackLog.length + this._requestBacklog.length + this._nbAssetsLoading;
-    return (nbAssets - nbAssetsRemaining) / nbAssets;
+    var nbAssetsRemaining = Object.keys(this._currentRequests).length;
+    return nbAssetsRemaining / nbAssets;
   }
 
   addAudioMap (map) {
@@ -319,58 +282,23 @@ class Loader extends Emitter {
       cache[url] = asset;
     }
 
-    var requestsData = this._loadRequests[url];
-    for (var a = 0; a < requestsData.length; a += 1) {
-      var requestData = requestsData[a];
-      var cb  = requestData.cb;
-      if (cb) {
-        cb(asset, requestData.index);
+    var callbacksData = this._assetCallbacks[url];
+    if (callbacksData) {
+      for (var c = 0; c < callbacksData.length; c += 1) {
+        var callbackData = callbacksData[c];
+        callbackData.cb(asset, callbackData.index);
       }
+      delete this._assetCallbacks[url];
     }
 
-    // Deleting reference to assets data
-    delete this._loadRequests[url];
+    // Asset no longer a request
     delete this._currentRequests[url];
 
-    // One less asset loading
-    this._nbAssetsLoading -= 1;
-
-    // Assets might be waiting to start loading
-    this._initiateAssetsLoading();
-  }
-
-  _initiateAssetLoading (loadRequest) {
-    var url = loadRequest.url;
-    var loadMethod = loadRequest.loadMethod;
-    var cache = loadMethod.cache;
-    var priority = loadRequest.prioirty;
-    var isExplicit = loadRequest.isExplicit;
-// console.error('Loading', url, isExplicit)
-    loadMethod(url, (asset) => this._onAssetLoaded(asset, url, cache), this, priority, isExplicit);
-  }
-
-  _initiateAssetsLoading () {
-    while (this._nbAssetsLoading < MAX_PARALLEL_LOADINGS && this._requestBacklog.length > 0) {
-      // getting the element that was inserted first
-      this._nbAssetsLoading += 1;
-      this._initiateAssetLoading(this._requestBacklog.shift());
-    }
-
-    // TODO: implement mechanism to take advantage of HTTP2
-    // if HTTP2:
-    // the idea is to always have one (and only one) low priority asset loading
-    // if the limit on the number of concurrent assets loading allows it
-    // if HTTP1:
-    // only load low priority assets if nothing else is loading
-
-    if (this._nbAssetsLoading === 0 && this._lowPriorityBackLog.length > 0) {
-      this._nbAssetsLoading += 1;
-      this._initiateAssetLoading(this._lowPriorityBackLog.shift());
-    }
   }
 
   _loadAsset (url, loadMethod, cb, priority, isExplicit, index) {
     if (!url) {
+      logger.warn('loader: The image url is empty.');
       return cb && cb(null, index);
     }
 
@@ -388,11 +316,14 @@ class Loader extends Emitter {
     }
 // console.warn('Requesting', url, priority, isExplicit)
 
-    var loadRequest = new LoadRequest(url, loadMethod, cb, priority, isExplicit, index);
-    if (this._loadRequests[url]) {
-      this._loadRequests[url].push(loadRequest);
-    } else {
-      this._loadRequests[url] = [loadRequest];
+    if (cb) {
+      var callbackData = new AssetCallback(cb, index);
+      var assetRequests = this._assetCallbacks[url];
+      if (assetRequests) {
+        assetRequests.push(callbackData);
+      } else {
+        this._assetCallbacks[url] = [callbackData];
+      }
     }
 
     if (!isExplicit && this._waitForExplicitRequest[url]) {
@@ -400,31 +331,13 @@ class Loader extends Emitter {
     }
 
     if (!isExplicit) {
-      implicitRequests.push(url);
+      unblockedImplicitRequests.push(url);
     }
 
     if (!this._currentRequests[url]) {
-      // Asset not requested yet
-      this._nbRequestedResources += 1;
       this._currentRequests[url] = true;
-
-      if (priority === PRIORITY_LOW) {
-        // low priority assets can start loading only if nothing else is loading
-        if (this._nbAssetsLoading === 0) {
-          this._nbAssetsLoading += 1;
-          this._initiateAssetLoading(loadRequest);
-        } else {
-          this._lowPriorityBackLog.push(loadRequest);
-        }
-      } else {
-        if (this._nbAssetsLoading < MAX_PARALLEL_LOADINGS) {
-          this._nbAssetsLoading += 1;
-          this._initiateAssetLoading(loadRequest);
-        } else {
-          this._requestBacklog.push(loadRequest);
-        }
-      }
-
+      this._nbRequestedResources += 1;
+      loadMethod(url, (asset) => this._onAssetLoaded(asset, url, cache), this, priority, isExplicit);
     }
   }
 
@@ -602,15 +515,15 @@ class Loader extends Emitter {
     this._password = password || null;
   }
 
-  getImplicitRequests () {
-    return implicitRequests;
+  getUnblockedImplicitRequests () {
+    return unblockedImplicitRequests;
   }
 }
 
 Loader.prototype.IMAGE_LOADED = 'imageLoaded';
-Loader.prototype.PRIORITY_LOW = PRIORITY_LOW;
-Loader.prototype.PRIORITY_MEDIUM = PRIORITY_MEDIUM;
-// Loader.prototype.PRIORITY_HIGH = PRIORITY_HIGH;
+Loader.prototype.PRIORITY_LOW = loaders.PRIORITY_LOW;
+Loader.prototype.PRIORITY_MEDIUM = loaders.PRIORITY_MEDIUM;
+// Loader.prototype.PRIORITY_HIGH = loaders.PRIORITY_HIGH;
 
 var loadMethods = {};
 loadMethods.loadImage = loadImage;

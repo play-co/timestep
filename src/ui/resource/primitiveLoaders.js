@@ -33,12 +33,80 @@ var RETRY_MAP = {
 
 var NB_RETRIES = 4;
 var RETRY_TEMPO = 100; // TODO: 200 and test for error status code
-exports.loadImage = function (url, cb, loader) {
-  if (!url) {
-    logger.warn('loader: The image url is empty.');
-    return cb(null);
+var MAX_PARALLEL_LOADINGS = 7;
+
+// TODO: add http2 detection (following piece of code only works in chrome apparently)
+// Detection for HTTP2 client support
+// We suppose that server will provide assets over HTTP2
+// see https://stackoverflow.com/questions/36041204/detect-connection-protocol-http-2-spdy-from-javascript
+// var IS_HTTP2 = false;
+// if (performance && performance.timing) {
+//   IS_HTTP2 = performance.timing.nextHopProtocol === 'h2';
+// }
+// if (!IS_HTTP2 && chrome && chrome.loadTimes) {
+//   IS_HTTP2 = chrome.loadTimes().connectionInfo === 'h2';
+// }
+
+
+var PRIORITY_LOW = 1;
+var PRIORITY_MEDIUM = 2;
+// TODO: implement high priority assets?
+// var PRIORITY_HIGH = 3;
+
+exports.PRIORITY_LOW = PRIORITY_LOW;
+exports.PRIORITY_MEDIUM = PRIORITY_MEDIUM;
+// exports.PRIORITY_HIGH = PRIORITY_HIGH;
+
+
+var pendingRequests = [];
+var pendingRequestsLowPriority = [];
+var nbAssetsLoading = 0;
+
+function pendRequest (priority, request) {
+  if (nbAssetsLoading === MAX_PARALLEL_LOADINGS) {
+    pendingRequests.push(request);
+    return;
   }
 
+  // TODO: implement mechanism to take advantage of HTTP2
+  // if HTTP2:
+  // the idea is to always have one (and only one) low priority asset loading
+  // if the limit on the number of concurrent assets loading allows it
+  // if HTTP1:
+  // only load low priority assets if nothing else is loading
+  if (priority === PRIORITY_LOW && nbAssetsLoading > 0) {
+    pendingRequestsLowPriority.push(request);
+    return;
+  }
+
+  nbAssetsLoading += 1;
+  request();
+}
+
+function onRequestComplete (cb, asset) {
+  cb(asset);
+
+  if (pendingRequests.length > 0) {
+    pendingRequests.pop()();
+    return;
+  }
+
+  if (nbAssetsLoading === 0 && pendingRequestsLowPriority.length > 0) {
+    pendingRequestsLowPriority.pop()();
+    return;
+  }
+
+  // no request made, one less asset loading
+  nbAssetsLoading -= 1;
+}
+
+exports.loadImage = function (url, cb, loader, priority, isExplicit) {
+  pendRequest(priority, () => {
+    _loadImage(url, cb, loader, priority, isExplicit);
+  });
+}
+
+function _loadImage (url, cb, loader, priority, isExplicit) {
   var img = new Image();
   if (loader._crossOrigin) {
     img.crossOrigin = loader._crossOrigin;
@@ -62,7 +130,7 @@ exports.loadImage = function (url, cb, loader) {
     // emitting event
     loader.emit(loader.IMAGE_LOADED, this, url);
 
-    return cb(this);
+    return onRequestComplete(cb, this);
   };
 
   img.onerror = function (error) {
@@ -82,15 +150,24 @@ exports.loadImage = function (url, cb, loader) {
     var reason = ' Reason: ' + error.reason;
     var response = ' Response: ' + error.response;
     logger.error('Image not found: ' + url + statusCode + reason + response);
-    return cb(null);
+    return onRequestComplete(cb, null);
   };
 
   img.src = url;
 }
 exports.loadImage.cache = IMAGE_CACHE;
 
-exports.loadFile = function (url, cb, loader, responseType) {
+exports.loadFile = function (url, cb, loader, priority, isExplicit, responseType) {
+  pendRequest(priority, () => {
+    _loadFile(url, cb, loader, priority, isExplicit, responseType);
+  });
+};
+
+function _loadFile (url, cb, loader, priority, isExplicit, responseType) {
   var xobj = new XMLHttpRequest();
+  if (responseType) {
+    xobj.responseType = responseType;
+  }
 
   var nbRemainingTries = NB_RETRIES;
   var retryTempo = RETRY_TEMPO;
@@ -114,25 +191,22 @@ exports.loadFile = function (url, cb, loader, responseType) {
       var reason = ' Reason: ' + xobj.reason;
       var response = ' Response: ' + xobj.response;
       logger.error('Failed to load file: ' + url + statusCode + reason + response);
-      return cb(null);
+      return onRequestComplete(cb, null);
     }
 
     xobj.onreadystatechange = null;
     var file = xobj.response;
-    return cb(file);
+    return onRequestComplete(cb, file);
   };
 
   xobj.withCredentials = true;
   xobj.open('GET', url, true, loader._user, loader._password);
-  if (responseType) {
-    xobj.responseType = responseType;
-  }
   xobj.send();
 }
 var loadFile = exports.loadFile;
 exports.loadFile.cache = FILE_CACHE;
 
-exports.loadJSON = function (url, cb, loader) {
+exports.loadJSON = function (url, cb, loader, priority, isExplicit) {
   loadFile(url, (fileContent) => {
     if (fileContent === null) {
       return cb(null);
@@ -146,11 +220,11 @@ exports.loadJSON = function (url, cb, loader) {
       json = null;
     }
     return cb(json);
-  }, loader);
+  }, loader, priority, isExplicit);
 }
 exports.loadJSON.cache = JSON_CACHE;
 
-exports.loadSound = function (url, cb, loader) {
+exports.loadSound = function (url, cb, loader, priority, isExplicit) {
   loadFile(url, sound => {
     if (sound === null) {
       return cb && cb(null);
@@ -159,7 +233,7 @@ exports.loadSound = function (url, cb, loader) {
     audioContext.decodeAudioData(sound, soundBuffer => {
       return cb && cb(soundBuffer);
     });
-  }, loader, 'arraybuffer');
+  }, loader, priority, isExplicit, 'arraybuffer');
 }
 exports.loadSound.cache = SOUND_CACHE;
 
