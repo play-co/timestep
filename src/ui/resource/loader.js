@@ -49,65 +49,6 @@ class AssetCallback {
   }
 }
 
-class LoadRequestGroup {
-  constructor (loader, cb, blockImplicitRequests, priority) {
-    this.loader = loader;
-    this.urls = [];
-    this.loadMethods = [];
-    this.cb = cb;
-    this.priority = priority;
-    this.blockImplicitRequests = blockImplicitRequests;
-  }
-
-  addAsset (url) {
-    var priority;
-    var loadMethod;
-    var blockImplicitRequests;
-    // TODO: refactor this logic ?
-    // type checking => method not fully optimized
-    if (typeof url !== 'string') {
-      priority = url.priority;
-      blockImplicitRequests = url.blockImplicitRequests;
-      loadMethod = url.loadMethod;
-      url = url.url;
-    }
-
-    if (priority === undefined) { priority = this.priority; }
-    if (blockImplicitRequests === undefined) { blockImplicitRequests = this.blockImplicitRequests; }
-    if (!loadMethod) { loadMethod = this.loader._getLoadMethod(url); }
-
-    if (loadMethod === loadImage) {
-      url = this.loader._getImageURL(url);
-    }
-
-    this.urls.push(url);
-    this.loadMethods.push(loadMethod);
-
-    if (blockImplicitRequests) {
-      this.loader._waitForExplicitRequest[url] = true;
-    }
-    this.loader._priorities[url] = priority;
-
-    return url;
-  }
-
-  removeAsset (url) {
-    // TODO: optimize, bad algorithm complexity
-    var idx = this.urls.indexOf(url);
-    if (idx !== -1) {
-      this.urls.splice(idx, 1);
-      this.loadMethods.splice(idx, 1);
-    }
-  }
-
-  load (cb) {
-    this.loader._loadAssets(this.urls, this.loadMethods, (assets) => {
-      if (this.cb) { this.cb(assets); }
-      return cb && cb(assets);
-    }, this.priority, true);
-  }
-}
-
 var loadFile = loaders.loadFile;
 var loadJSON = loaders.loadJSON;
 var loadImage = loaders.loadImage;
@@ -281,6 +222,7 @@ class Loader extends Emitter {
     if (cache) {
       cache[url] = asset;
     }
+// console.error('Loaded', url)
 
     var callbacksData = this._assetCallbacks[url];
     if (callbacksData) {
@@ -430,16 +372,6 @@ class Loader extends Emitter {
       loadMethods[u] = loadMethod;
     }
     this._loadAssets(assetURLs, loadMethods, cb, priority, true);
-  }
-
-  createGroup (urls, cb, blockImplicitRequests, priority) {
-    var group = new LoadRequestGroup(this, cb, blockImplicitRequests, priority);
-
-    for (var u = 0; u < urls.length; u += 1) {
-      group.addAsset(urls[u]);
-    }
-
-    return group;
   }
 
   _getImageURL (id) {

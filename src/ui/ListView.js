@@ -239,7 +239,6 @@ export default class ListView extends ScrollView {
 
     if (this._viewportChanged || this._needsModelRender || this.model._needsSort) {
       this._needsModelRender = false;
-      console.error('this.model', this.model)
       this.model.render(this.getCurrentViewport());
     }
     this.popViewport();
