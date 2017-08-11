@@ -17,7 +17,7 @@ class AssetGroup {
     this._loaded = false;
 
     for (var u = 0; u < assetURLs.length; u += 1) {
-      this._addAsset(assetURLs[u]);
+      this.addAsset(assetURLs[u]);
     }
   }
 
@@ -32,13 +32,13 @@ class AssetGroup {
       generatedAssetURLs = new Array(contextualAssetsURLs.length);
       for (var u = 0; u < contextualAssetsURLs.length; u += 1) {
         var url = contextualAssetsURLs[u];
-        generatedAssetURLs[u] = this._addAsset(url);
+        generatedAssetURLs[u] = this.addAsset(url);
       }
     }
 
     loader._loadAssets(this._urls, this._loadMethods,
       (assets) => {
-        var assetsByID = this._assetsById;
+        var assetsByID = this._assetsById = {};
         for (var a = 0; a < assets.length; a += 1) {
           var id = this._ids[a];
           var url = this._urls[a];
@@ -88,7 +88,7 @@ class AssetGroup {
     // TODO: recursively unload unused dependencies
   // }
 
-  _addAsset (url) {
+  addAsset (url) {
     var id;
     var priority;
     var loadMethod;

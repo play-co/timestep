@@ -87,12 +87,12 @@ function onRequestComplete (cb, asset) {
   cb(asset);
 
   if (pendingRequests.length > 0) {
-    pendingRequests.pop()();
+    pendingRequests.shift()();
     return;
   }
 
   if (nbAssetsLoading === 0 && pendingRequestsLowPriority.length > 0) {
-    pendingRequestsLowPriority.pop()();
+    pendingRequestsLowPriority.shift()();
     return;
   }
 
