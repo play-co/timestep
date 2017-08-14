@@ -93,6 +93,12 @@ class Loader extends Emitter {
     this._nbRequestedResources = 0;
     this._currentRequests = {};
     this._assetCallbacks = {};
+
+    this._logRequests = false;
+  }
+
+  toggleRequests () {
+    this._logRequests = !this._logRequests;
   }
 
   get nextProgress () {
@@ -222,7 +228,10 @@ class Loader extends Emitter {
     if (cache) {
       cache[url] = asset;
     }
-// console.error('Loaded', url)
+
+    if (this._logRequests) {
+      console.warn('Asset Loaded:', url);
+    }
 
     var callbacksData = this._assetCallbacks[url];
     if (callbacksData) {
@@ -248,7 +257,6 @@ class Loader extends Emitter {
     if (cache) {
       var asset = cache[url];
       if (asset) {
-// console.error('Hitting Cache', url)
         return cb && cb(asset, index);
       }
     }
@@ -256,7 +264,10 @@ class Loader extends Emitter {
     if (priority === null || priority === undefined) {
       priority = this._priorities[url];
     }
-// console.warn('Requesting', url, priority, isExplicit)
+
+    if (this._logRequests) {
+      console.warn('Asset Requested:', url);
+    }
 
     if (cb) {
       var callbackData = new AssetCallback(cb, index);
@@ -270,6 +281,10 @@ class Loader extends Emitter {
 
     if (!isExplicit && this._waitForExplicitRequest[url]) {
       return;
+    }
+
+    if (this._logRequests) {
+      console.warn('Asset Request went through:', url);
     }
 
     if (!isExplicit) {

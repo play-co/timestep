@@ -200,9 +200,9 @@ export default class View extends IView {
     }
   }
 
-  _addAssetsToList () {
+  _addAssetsToList (/* assetURLs */) {
     /* VIRTUAL */
-    // Should return assets associated with this view
+    // Should add urls of assets associated with this view to global array of asset urls
   }
 
   _getAssets (assetURLs) {
@@ -210,7 +210,10 @@ export default class View extends IView {
 
     var subviewBackings = this.style._subviews;
     for (var i = 0; i < subviewBackings.length; i++) {
-      subviewBackings[i]._view._getAssets(assetURLs);
+      var subviewBacking = subviewBackings[i];
+      if (subviewBacking._visible) {
+        subviewBacking._view._getAssets(assetURLs);
+      }
     }
   }
 
