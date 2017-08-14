@@ -44,7 +44,7 @@ function adjustMiddleSlice (slices) {
 }
 
 function renderCoverOrContain (ctx, opts) {
-  if (!this._img) {
+  if (!this._img || !this._img.isReady()) {
     return;
   }
 
@@ -149,13 +149,13 @@ function renderCoverOrContain (ctx, opts) {
 
 var renderFunctions = {
   'none': function (ctx, opts) {
-    if (!this._img) { return; }
+    if (!this._img || !this._img.isReady()) { return; }
 
     var s = this.style;
     this._img.renderShort(ctx, 0, 0, s.width, s.height);
   },
   'stretch': function (ctx, opts) {
-    if (!this._img) { return; }
+    if (!this._img || !this._img.isReady()) { return; }
 
     var s = this.style;
     this._img.renderShort(ctx, 0, 0, s.width, s.height);
@@ -163,7 +163,7 @@ var renderFunctions = {
   'contain': renderCoverOrContain,
   'cover': renderCoverOrContain,
   'tile': function (ctx, opts) {
-    if (!this._img) {
+    if (!this._img || !this._img.isReady()) {
       return;
     }
 
@@ -217,7 +217,7 @@ var renderFunctions = {
     }
   },
   'slice': function (ctx, opts) {
-    if (!this._img) {
+    if (!this._img || !this._img.isReady()) {
       return;
     }
 
