@@ -54,6 +54,13 @@ class BitmapFontTextView extends View {
     this._backing.updateOpts(opts);
   };
 
+  _addAssetsToList (assetURLs) {
+    var font = this._opts.font;
+    if (font) {
+      font._addAssetsToList(assetURLs);
+    }
+  }
+
   _forceLoad () {
     var font = this._opts.font;
     if (font) {

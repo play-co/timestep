@@ -73,8 +73,6 @@ var loadMethodsByExtension = {
   '.html': loadFile
 };
 
-var unblockedImplicitRequests = [];
-
 class Loader extends Emitter {
   constructor () {
     super();
@@ -100,10 +98,6 @@ class Loader extends Emitter {
 
   setAssetCrossOrigin (url, crossOrigin) {
     this._assetCrossOrigins[url] = crossOrigin;
-  }
-
-  blockImplicitFolderRequests (folder) {
-    this._waitForExplicitRequestToFolders.push(folder);
   }
 
   toggleRequests () {
@@ -299,10 +293,6 @@ class Loader extends Emitter {
       console.warn('Asset Request went through:', url);
     }
 
-    if (!isExplicit) {
-      unblockedImplicitRequests.push(url);
-    }
-
     if (!this._currentRequests[url]) {
       this._currentRequests[url] = true;
       this._nbRequestedResources += 1;
@@ -478,9 +468,6 @@ class Loader extends Emitter {
     this._password = password || null;
   }
 
-  getUnblockedImplicitRequests () {
-    return unblockedImplicitRequests;
-  }
 }
 
 Loader.prototype.IMAGE_LOADED = 'imageLoaded';
