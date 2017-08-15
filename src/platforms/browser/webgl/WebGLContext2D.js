@@ -801,9 +801,10 @@ class Context2D {
       return;
     }
 
-if (!image) {
-  return;
-}
+    if (!image) {
+      return;
+    }
+
     var flip = !!image.__glFlip;
     var state = this.stack.state;
     var alpha = state.globalAlpha;

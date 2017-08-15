@@ -378,7 +378,11 @@ class Loader extends Emitter {
     // Resolving loading method using extension
     // N.B only works for file types listed in loadMethods
     var extension = url.substring(url.lastIndexOf('.')).split('|')[0];
-    return loadMethodsByExtension[extension];
+    var loadMethod = loadMethodsByExtension[extension];
+    if (!loadMethod) {
+      console.error('Load method not found:', url)
+    }
+    return loadMethod;
   }
 
   loadAsset (url, cb, priority) {
