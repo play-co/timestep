@@ -70,8 +70,6 @@ export default class ImageWrapper extends PubSub {
       opts = {};
     }
 
-    this._crossOrigin = opts.crossOrigin !== undefined ? opts.crossOrigin : 'use-credentials';
-
     this._cb = new Callback();
     this._map = new ImageMap(this, 0, 0, -1, -1, 0, 0, 0, 0, opts.url || '');
     this._originalURL = opts.url || '';
@@ -82,12 +80,16 @@ export default class ImageWrapper extends PubSub {
     resourceLoader._updateImageMap(this._map, opts.url, opts.sourceX, opts.sourceY,
       opts.sourceW, opts.sourceH);
 
+    if (opts.crossOrigin) {
+      resourceLoader.setAssetCrossOrigin(this._map.url, opts.crossOrigin);
+    }
+
     // srcImage can be null, then setSrcImg will create one
     // (use the map's URL in case it was updated to a spritesheet)
-    this._setSrcImg(opts.srcImage, this._map.url, opts.forceReload);
+    this._setSrcImg(opts.srcImage, this._map.url);
   }
 
-  _setSrcImg (img, url, forceReload) {
+  _setSrcImg (img, url) {
     this._cb.reset();
     this._isError = false;
 
@@ -186,9 +188,9 @@ export default class ImageWrapper extends PubSub {
   setMarginLeft (n) {
     this._map.marginLeft = n;
   }
-  setURL (url, forceReload) {
+  setURL (url) {
     resourceLoader._updateImageMap(this._map, url);
-    this._setSrcImg(null, this._map.url, forceReload);
+    this._setSrcImg(null, this._map.url);
   }
   getWidth () {
     var map = this._map;

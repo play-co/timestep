@@ -108,7 +108,9 @@ exports.loadImage = function (url, cb, loader, priority, isExplicit) {
 
 function _loadImage (url, cb, loader, priority, isExplicit) {
   var img = new Image();
-  if (loader._crossOrigin) {
+  if (loader._assetCrossOrigins[url]) {
+    img.crossOrigin = loader._assetCrossOrigins[url];
+  } else if (loader._crossOrigin) {
     img.crossOrigin = loader._crossOrigin;
   } else {
     img.crossOrigin = 'use-credentials';

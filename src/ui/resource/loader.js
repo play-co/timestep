@@ -87,14 +87,23 @@ class Loader extends Emitter {
     this._map = {};
     this._originalMap = {};
     this._audioMap = {};
-    this._waitForExplicitRequest = {};
     this._priorities = {};
 
     this._nbRequestedResources = 0;
     this._currentRequests = {};
     this._assetCallbacks = {};
+    this._assetCrossOrigins = {};
 
     this._logRequests = false;
+
+  }
+
+  setAssetCrossOrigin (url, crossOrigin) {
+    this._assetCrossOrigins[url] = crossOrigin;
+  }
+
+  blockImplicitFolderRequests (folder) {
+    this._waitForExplicitRequestToFolders.push(folder);
   }
 
   toggleRequests () {
@@ -151,7 +160,8 @@ class Loader extends Emitter {
       var sheet = sheets[name];
       for (var i = 0; i < sheet.length; i += 1) {
         var info = sheet[i];
-        this._map[info.f] = {
+        var assetID = info.f;
+        this._map[assetID] = {
           sheet: name,
           x: info.x || 0,
           y: info.y || 0,
@@ -163,6 +173,7 @@ class Loader extends Emitter {
           marginBottom: info.b || 0,
           marginLeft: info.l || 0
         };
+
       }
     }
 
@@ -279,7 +290,8 @@ class Loader extends Emitter {
       }
     }
 
-    if (!isExplicit && this._waitForExplicitRequest[url]) {
+    if (!isExplicit) {
+      // Only explicit load requests go through
       return;
     }
 

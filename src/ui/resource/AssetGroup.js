@@ -113,7 +113,6 @@ class AssetGroup {
     this._loadMethods.push(loadMethod);
     this._ids.push(id ? id : null);
 
-    loader._waitForExplicitRequest[url] = true;
     loader._priorities[url] = priority;
 
     return url;
