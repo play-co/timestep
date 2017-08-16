@@ -356,11 +356,8 @@ class Loader extends Emitter {
   _getLoadMethod (url) {
     // Resolving loading method using extension
     // N.B only works for file types listed in loadMethods
-    var extension = url.substring(url.lastIndexOf('.')).split('|')[0];
+    var extension = url.substring(url.lastIndexOf('.')).split('?')[0];
     var loadMethod = loadMethodsByExtension[extension];
-    if (!loadMethod) {
-      logger.error('Load method not found:', url)
-    }
     return loadMethod;
   }
 
@@ -457,12 +454,19 @@ class Loader extends Emitter {
     this._password = password || null;
   }
 
+  setLowResEnabled (value) {
+    LOW_RES_ENABLED = value;
+    Loader.prototype.LOW_RES_ENABLED = value;
+  }
+
 }
 
 Loader.prototype.IMAGE_LOADED = 'imageLoaded';
 Loader.prototype.PRIORITY_LOW = loaders.PRIORITY_LOW;
 Loader.prototype.PRIORITY_MEDIUM = loaders.PRIORITY_MEDIUM;
 // Loader.prototype.PRIORITY_HIGH = loaders.PRIORITY_HIGH;
+
+Loader.prototype.LOW_RES_ENABLED = LOW_RES_ENABLED;
 
 var loadMethods = {};
 loadMethods.loadImage = loadImage;
