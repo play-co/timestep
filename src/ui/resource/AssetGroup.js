@@ -30,6 +30,10 @@ class AssetGroup {
     }
   }
 
+  get loaded () {
+    return this._loaded;
+  }
+
   get nextProgress () {
     // returns progress that will be achieved once next asset is loaded
     var progressStats = new ProgressStats();
@@ -67,6 +71,7 @@ class AssetGroup {
       }
     }
 
+    this._loaded = false;
     this._progress = 0;
     this._nbRequests = this._urls.length;
     loader._loadAssets(this._urls, this._loadMethods,
