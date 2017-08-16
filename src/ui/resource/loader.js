@@ -220,7 +220,7 @@ class Loader extends Emitter {
     }
 
     if (this._logRequests) {
-      console.warn('Asset Loaded:', url);
+      logger.warn('Asset Loaded:', url);
     }
 
     var callbacksData = this._assetCallbacks[url];
@@ -256,7 +256,7 @@ class Loader extends Emitter {
     }
 
     if (this._logRequests) {
-      console.warn('Asset Requested:', url);
+      logger.warn('Asset Requested:', url);
     }
 
     if (cb) {
@@ -275,7 +275,7 @@ class Loader extends Emitter {
     }
 
     if (this._logRequests) {
-      console.warn('Asset Request went through:', url);
+      logger.warn('Asset Request went through:', url);
     }
 
     if (!this._currentRequests[url]) {
@@ -359,7 +359,7 @@ class Loader extends Emitter {
     var extension = url.substring(url.lastIndexOf('.')).split('|')[0];
     var loadMethod = loadMethodsByExtension[extension];
     if (!loadMethod) {
-      console.error('Load method not found:', url)
+      logger.error('Load method not found:', url)
     }
     return loadMethod;
   }
