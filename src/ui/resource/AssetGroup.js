@@ -4,6 +4,13 @@ import loaders from 'ui/resource/primitiveLoaders';
 
 var loadImage = loaders.loadImage;
 
+class ProgressStats {
+  constructor () {
+    this.nbLoaded = 0;
+    this.total = 0;
+  }
+}
+
 class AssetGroup {
   constructor (assetURLs, dependency, priority) {
     this._dependency = dependency || null;
@@ -15,9 +22,33 @@ class AssetGroup {
     this._priority = priority;
     this._assetsById = {};
     this._loaded = false;
+    this._progress = 0;
+    this._nbRequests = 0;
 
     for (var u = 0; u < assetURLs.length; u += 1) {
       this.addAsset(assetURLs[u]);
+    }
+  }
+
+  get nextProgress () {
+    // returns progress that will be achieved once next asset is loaded
+    var progressStats = new ProgressStats();
+    this._updateProgress(progressStats);
+    return Math.min(1, (progressStats.nbLoaded + 1) / progressStats.total);
+  }
+
+  get progress () {
+    var progressStats = new ProgressStats();
+    this._updateProgress(progressStats);
+    return progressStats.nbLoaded / progressStats.total;
+  }
+
+  _updateProgress (progressStats) {
+    progressStats.nbLoaded += this._progress;
+    progressStats.total += this._nbRequests;
+
+    if (this._dependency) {
+      this._dependency._updateProgress(progressStats);
     }
   }
 
@@ -36,6 +67,8 @@ class AssetGroup {
       }
     }
 
+    this._progress = 0;
+    this._nbRequests = this._urls.length;
     loader._loadAssets(this._urls, this._loadMethods,
       (assets) => {
         var assetsByID = this._assetsById = {};
@@ -63,7 +96,7 @@ class AssetGroup {
         this._loaded = true;
 
         return cb && cb(assetsByID);
-      }, this._priority, true);
+      }, this._priority, true, () => { this._progress += 1; });
   }
 
   load (cb, contextualAssetsURLs) {

@@ -104,21 +104,6 @@ class Loader extends Emitter {
     this._logRequests = !this._logRequests;
   }
 
-  get nextProgress () {
-    // returns progress that will be achieve once next asset is loaded
-    return Math.min(1, this.progress + 1 / this._nbRequestedResources);
-  }
-
-  get progress () {
-    var nbAssets = this._nbRequestedResources;
-    if (nbAssets === 0) {
-      return 1;
-    }
-
-    var nbAssetsRemaining = Object.keys(this._currentRequests).length;
-    return nbAssetsRemaining / nbAssets;
-  }
-
   addAudioMap (map) {
     for (var name in map) {
       this._audioMap[name] = true;
@@ -300,7 +285,7 @@ class Loader extends Emitter {
     }
   }
 
-  _loadAssets (urls, loadMethod, cb, priority, isExplicit) {
+  _loadAssets (urls, loadMethod, cb, priority, isExplicit, onAssetLoaded) {
     var assets = [];
     if (urls.length === 0) {
       return cb && cb(assets);
@@ -311,6 +296,10 @@ class Loader extends Emitter {
     function onRequestSatisfied(asset, index) {
       assets[index] = asset;
       nbRequestsSatisfied += 1;
+      if (onAssetLoaded) {
+        onAssetLoaded(asset, index);
+      }
+
       if (nbRequestsSatisfied === nbRequests) {
         return cb && cb(assets);
       }
