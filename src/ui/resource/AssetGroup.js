@@ -140,6 +140,11 @@ class AssetGroup {
       url = url.url;
     }
 
+    // TODO: remove this logic and properly create loading group in game
+    if (loader.LOW_RES_ENABLED && url.indexOf('spritesheets/') === 0) {
+      url = 'spritesheets/low_res_' + url.substr(13);
+    }
+
     if (priority === undefined) { priority = this._priority; }
     if (!loadMethod) { loadMethod = loader._getLoadMethod(url); }
 
