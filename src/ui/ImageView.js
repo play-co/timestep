@@ -77,6 +77,7 @@ export default class ImageView extends View {
   setImage (img, opts) {
     var forceReload = opts && opts.forceReload;
     if (typeof img === 'string') {
+      this._loaded = false;
       img = ImageViewCache.getImage(img, forceReload);
     } else if (forceReload) {
       img.reload();
