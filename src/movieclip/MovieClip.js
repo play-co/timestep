@@ -137,6 +137,15 @@ export default class MovieClip extends View {
 
   _addAssetsToList (assetURLs) {
     if (this._url) {
+      // checking if url already presents
+      for (var u = 0; u < assetURLs.length; u += 1) {
+        var url = assetURLs[u];
+        if (typeof url === 'object' && url.url === this._url) {
+          // already presents!
+          return;
+        }
+      }
+
       assetURLs.push({ url: this._url, loadMethod: loadAnimationMethod });
     }
   }

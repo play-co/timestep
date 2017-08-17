@@ -150,6 +150,10 @@ export default class BitmapFontTextViewBacking {
     }
 
     var font = this._listener._opts.font;
+    if (!font.loaded) {
+      return result;
+    }
+
     var customSize = this._listener._opts.size;
     var customLetterSpacing = this._listener._opts.letterSpacing;
     var isKerningEnabled = this._listener._opts.isKerningEnabled;

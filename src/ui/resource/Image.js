@@ -110,7 +110,10 @@ export default class ImageWrapper extends PubSub {
   }
 
   _addAssetsToList (assetURLs) {
-    assetURLs.push(this._originalURL);
+    var url = this._originalURL;
+    if (assetURLs.indexOf(url) === -1) {
+      assetURLs.push(url);
+    }
   }
 
   getSrcImg () {
