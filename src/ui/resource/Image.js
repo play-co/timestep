@@ -76,13 +76,10 @@ export default class ImageWrapper extends PubSub {
     this._scale = opts.scale || 1;
     this._isError = false;
     this._loadRequestID = 0;
+    this._crossOrigin = opts.crossOrigin;
 
     resourceLoader._updateImageMap(this._map, opts.url, opts.sourceX, opts.sourceY,
       opts.sourceW, opts.sourceH);
-
-    if (opts.crossOrigin) {
-      resourceLoader.setAssetCrossOrigin(this._map.url, opts.crossOrigin);
-    }
 
     // srcImage can be null, then setSrcImg will create one
     // (use the map's URL in case it was updated to a spritesheet)
@@ -98,6 +95,10 @@ export default class ImageWrapper extends PubSub {
     if (img instanceof HTMLCanvasElement || img instanceof Canvas) {
       this._onLoad(img, loadRequestID);
     } else {
+      if (this._crossOrigin) {
+        resourceLoader.setAssetCrossOrigin(url, this._crossOrigin);
+      }
+
       resourceLoader._loadImage(url, img => this._onLoad(img, loadRequestID));
     }
   }

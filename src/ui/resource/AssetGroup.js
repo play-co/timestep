@@ -140,8 +140,11 @@ class AssetGroup {
       url = url.url;
     }
 
+    // Ugly temporary fix to properly load low res spritesheets
     // TODO: remove this logic and properly create loading group in game
-    if (loader.LOW_RES_ENABLED && url.indexOf('spritesheets/') === 0) {
+    if (loader.LOW_RES_ENABLED
+      && url.indexOf('spritesheets/') === 0
+      && url.indexOf('spritesheets/low_res_') === -1) {
       url = 'spritesheets/low_res_' + url.substr(13);
     }
 
