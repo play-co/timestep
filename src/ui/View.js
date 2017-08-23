@@ -461,6 +461,9 @@ export default class View extends IView {
   getSubviews () {
     return this.__view.getSubviews();
   }
+  getVisibleViewBackings () {
+    return this.__view._visibleSubviews;
+  }
   getSuperview () {
     return this.__view.getSuperview();
   }
