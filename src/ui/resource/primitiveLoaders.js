@@ -31,7 +31,7 @@ var RETRY_MAP = {
   '429': true // TODO: handle this error in a better way but should not happen anyway
 };
 
-var NB_RETRIES = 4;
+var RETRY_COUNT = 4;
 var RETRY_TEMPO = 100; // TODO: 200 and test for error status code
 var MAX_PARALLEL_LOADINGS = 7;
 
@@ -119,18 +119,38 @@ function _loadImage (url, cb, loader, priority, isExplicit) {
   // }
   img.crossOrigin = 'anonymous';
 
-  var nbRemainingTries = NB_RETRIES;
+  var remainingTriesCount = RETRY_COUNT;
   var retryTempo = RETRY_TEMPO;
   img.onload = function () {
+
+    // Some browsers fire the load event before the image width is
+    // available.
+    // Solution: Wait up to 5 frames for the width.
+    // Note that an image with zero-width should be considered an error.
+    if (!this.width) {
+      var failCount = 0;
+      var intervalHandle = setInterval(() => {
+        if (this.width) {
+          clearInterval(intervalHandle);
+          this.onload();
+          return;
+        }
+
+        failCount += 1;
+        if (failCount === 5) {
+          clearInterval(intervalHandle);
+          this.onload  = null;
+          this.onerror = null;
+          logger.error('Image has invalid dimension: ' + url);
+          return onRequestComplete(cb, null);
+        }
+      }, 0);
+      return;
+    }
+
     // Resetting callbacks to avoid memory leaks
     this.onload  = null;
     this.onerror = null;
-
-    // TODO: check image width?
-    // Some browsers fire the load event before the image width is
-    // available.
-    // Solution: Wait up to 3 frames for the width.
-    // Note that an image with zero-width should be considered an error.
 
     // emitting event
     loader.emit(loader.IMAGE_LOADED, this, url);
@@ -139,8 +159,8 @@ function _loadImage (url, cb, loader, priority, isExplicit) {
   };
 
   img.onerror = function (error) {
-     if (RETRY_MAP[error.status] && nbRemainingTries > 0) {
-      nbRemainingTries -= 1;
+     if (RETRY_MAP[error.status] && remainingTriesCount > 0) {
+      remainingTriesCount -= 1;
       setTimeout(() => {
         this.src = url;
       }, retryTempo);
@@ -174,13 +194,13 @@ function _loadFile (url, cb, loader, priority, isExplicit, responseType) {
     xobj.responseType = responseType;
   }
 
-  var nbRemainingTries = NB_RETRIES;
+  var remainingTriesCount = RETRY_COUNT;
   var retryTempo = RETRY_TEMPO;
   xobj.onreadystatechange = function () {
     if (~~xobj.readyState !== 4) return;
     if (~~xobj.status !== 200 && ~~xobj.status !== 0) {
-      if (RETRY_MAP[xobj.status] && nbRemainingTries > 0) {
-        nbRemainingTries -= 1;
+      if (RETRY_MAP[xobj.status] && remainingTriesCount > 0) {
+        remainingTriesCount -= 1;
         // Retrying
         setTimeout(() => {
           xobj.open('GET', url, true, loader._user, loader._password);
