@@ -139,10 +139,8 @@ function _loadImage (url, cb, loader, priority, isExplicit) {
         failCount += 1;
         if (failCount === 5) {
           clearInterval(intervalHandle);
-          this.onload  = null;
-          this.onerror = null;
-          logger.error('Image has invalid dimension: ' + url);
-          return onRequestComplete(cb, null);
+          this.onerror({ reason: 'image has no dimension', status: 200 });
+          return;
         }
       }, 0);
       return;
