@@ -305,7 +305,11 @@ export default class MovieClip extends View {
       this._playOnLoadCallback = () => {
         // we scheduled with once, so we can remove this before calling play
         this._playOnLoadCallback = null;
-        this.play(animationName, callback, loop);
+
+        // make sure this animation exists in the current data
+        if (this._library[animationName]) {
+          this.play(animationName, callback, loop);
+        }
       };
 
       this.once(MovieClip.LOADED, this._playOnLoadCallback);
