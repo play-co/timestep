@@ -82,6 +82,7 @@ export default class MovieClip extends View {
     this.looping = false;
     this.frameCount = 0;
     this.isPlaying = false;
+    this._playOnLoadCallback = null;
     this._animationName = '';
 
     this._callback = null;
@@ -292,10 +293,26 @@ export default class MovieClip extends View {
   }
 
   play (animationName, callback, loop) {
+    // be sure to remove any pending play callbacks
+    if (this._playOnLoadCallback) {
+      this.removeListener(MovieClip.LOADED, this._playOnLoadCallback);
+      this._playOnLoadCallback = null;
+    }
+
+    // if data is not set, we should play as soon as data is loaded
     if (!this.data) {
-      this.once(MovieClip.LOADED, () => {
-        this.play(animationName, callback, loop)
-      });
+      // save a reference to our callback so we can unschedule it if necessary
+      this._playOnLoadCallback = () => {
+        // we scheduled with once, so we can remove this before calling play
+        this._playOnLoadCallback = null;
+
+        // make sure this animation exists in the current data
+        if (this._library[animationName]) {
+          this.play(animationName, callback, loop);
+        }
+      };
+
+      this.once(MovieClip.LOADED, this._playOnLoadCallback);
       return;
     }
 
@@ -304,9 +321,6 @@ export default class MovieClip extends View {
     this.looping = loop || false;
     this.isPlaying = true;
     this.animation = this._library[animationName];
-    if (!this.animation) {
-      debugger
-    }
     this.timeline = this.animation.timeline;
     this.frameCount = this.animation.duration;
     this.frame = 0;
