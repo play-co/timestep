@@ -33,6 +33,7 @@ var RETRY_MAP = {
 
 var RETRY_COUNT = 4;
 var RETRY_TEMPO = 100; // TODO: 200 and test for error status code
+var OFFLINE_RETRY_TEMPO = 200;
 var MAX_PARALLEL_LOADINGS = 7;
 
 // TODO: add http2 detection (following piece of code only works in chrome apparently)
@@ -56,7 +57,6 @@ var PRIORITY_MEDIUM = 2;
 exports.PRIORITY_LOW = PRIORITY_LOW;
 exports.PRIORITY_MEDIUM = PRIORITY_MEDIUM;
 // exports.PRIORITY_HIGH = PRIORITY_HIGH;
-
 
 var pendingRequests = [];
 var pendingRequestsLowPriority = [];
@@ -99,6 +99,7 @@ function onRequestComplete (cb, asset) {
   // no request made, one less asset loading
   nbAssetsLoading -= 1;
 }
+
 
 exports.loadImage = function (url, cb, loader, priority, isExplicit) {
   pendRequest(priority, () => {
@@ -157,7 +158,15 @@ function _loadImage (url, cb, loader, priority, isExplicit) {
   };
 
   img.onerror = function (error) {
-     if (RETRY_MAP[error.status] && remainingTriesCount > 0) {
+    if (!window.navigator.onLine) {
+      // Retrying without decreasing retry count
+      setTimeout(() => {
+        this.src = url;
+      }, OFFLINE_RETRY_TEMPO);
+      return;
+    }
+
+    if (RETRY_MAP[error.status] && remainingTriesCount > 0) {
       remainingTriesCount -= 1;
       setTimeout(() => {
         this.src = url;
@@ -197,6 +206,15 @@ function _loadFile (url, cb, loader, priority, isExplicit, responseType) {
   xobj.onreadystatechange = function () {
     if (~~xobj.readyState !== 4) return;
     if (~~xobj.status !== 200 && ~~xobj.status !== 0) {
+      if (!window.navigator.onLine) {
+        // Retrying without decreasing retry count
+        setTimeout(() => {
+          xobj.open('GET', url, true, loader._user, loader._password);
+          xobj.send();
+        }, OFFLINE_RETRY_TEMPO);
+        return;
+      }
+
       if (RETRY_MAP[xobj.status] && remainingTriesCount > 0) {
         remainingTriesCount -= 1;
         // Retrying
