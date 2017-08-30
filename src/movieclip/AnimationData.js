@@ -1,8 +1,6 @@
 
 import Matrix from 'platforms/browser/webgl/Matrix2D';
 
-const NULL_ANIMATION = '__none';
-
 // -----------------------------------
 // AnimationData
 // -----------------------------------
@@ -11,80 +9,98 @@ export default class AnimationData {
 
   constructor (data, url, images) {
     this.url = url;
-    this.frameRate = data.frameRate;
 
-    // TODO: simplify export format of skins, symbols, ids and sprites
-    // using a reverse hierarchical ordering of symbols
-    // for faster data generation
+    // parsing meta
+    // example of meta data:
+    // "meta": {
+    //   "app": "https://www.npmjs.com/package/jeff",
+    //   "version": "0.3.0",
+    //   "frameRate": 24,
+    //   "frameSize": {
+    //       "left": 0,
+    //       "right": 1000,
+    //       "top": 0,
+    //       "bottom": 1500
+    //   },
+    //   "scale": 1,
+    //   "filtering": ["linear", "linear"],
+    //   "mipmapCompatible": true,
+    //   "prerendered": false
+    // }
 
-    var transformsBuffer = data.transforms;
-    var transformSize = 6;
-    var transformCount = transformsBuffer.length / transformSize;
-    var transforms = new Array(transformCount);
-    for (var t = 0; t < transformCount; t++) {
-      var id = t * transformSize;
-      var transform = transforms[t] = new Matrix();
-      transform.a = transformsBuffer[id];
-      transform.b = transformsBuffer[id + 1];
-      transform.c = transformsBuffer[id + 2];
-      transform.d = transformsBuffer[id + 3];
-      transform.tx = transformsBuffer[id + 4];
-      transform.ty = transformsBuffer[id + 5];
-    }
+    var meta = data.meta;
+    this.frameRate = meta.frameRate;
 
-    var symbols = data.animations;
+    // Pool of transformation and color matrices
+    var transforms = data.transforms;
+    var colors = data.colors;
+
+    var symbols = data.symbols;
     this.symbolList = Object.keys(symbols);
 
+    // Exposed symbols can either be substituted or used as substitutes
     this.library = {};
+
+    // Map of all the Flash elements in the animation data
+    var elements = {};
+
     // TODO: remove these properties, is used in Cats PropView & CatView
     this.animations = this.library;
     this.animationList = this.symbolList;
 
-    // reference to all instances
-    // used to setup quick access to library elements
-    var allInstances = [];
-    var ids = data.ids;
 
-    // populating library with symbols
+    // populating library and list of elements with sprites
+    var spritesData = data.sprites;
+    for (var spriteID in spritesData) {
+      var spriteData = spritesData[spriteID];
+      var image = images[spriteData.image];
+      var sprite = new Sprite(image, spriteData);
+      elements[spriteID] = sprite;
+
+      var libraryID = spriteData.className;
+      if (libraryID) {
+        this.library[libraryID] = sprite;
+      }
+    }
+
+
+    // populating library and list of elements with symbols
     for (var s = 0; s < this.symbolList.length; s += 1) {
       var symbolID = this.symbolList[s];
-      var frames = symbols[symbolID];
+      var symbolData = symbols[symbolID];
+      var children = symbolData.children;
+      var frameCount = symbolData.frameCount;
 
-      var timeline = [];
-      for (var f = 0; f < frames.length; f += 1) {
-        var instancesData = frames[f];
-        var instances = timeline[f] = [];
-        for (var i = 0; i < instancesData.length; i += 1) {
-          var instanceData = instancesData[i];
-          var transform = transforms[instanceData[0]];
-          // var instanceType = instanceData[1]; // TODO: remove type info from export data
-          var libraryID = ids[instanceData[2]];
-          var frame = instanceData[3];
-          var alpha = instanceData[4];
+      var timeline = new Array(frameCount);
+      for (var f = 0; f < timeline.length; f += 1) {
+        timeline[f] = [];
+      }
 
-          var instance = new Instance(libraryID, frame, transform, alpha);
-          instances.push(instance);
-          allInstances.push(instance);
+      for (var c = 0; c < children.length; c += 1) {
+        var instanceData = children[c];
+        var frames = instanceData.frames;
+        var instanceFirstFrame = frames[0];
+        var instanceFrameCount = frames[1] - instanceFirstFrame + 1;
+        var instanceTransforms = instanceData.transforms;
+        var instanceColors = instanceData.colors;
+        var libraryID = instanceData.id;
+
+        for (var frame = 0; frame < instanceFrameCount; frame += 1) {
+          var transform = transforms[instanceTransforms[frame]];
+          var color = colors[instanceColors[frame]];
+
+          var instance = new Instance(elements[libraryID], frame, transform, color);
+          timeline[instanceFirstFrame + frame].push(instance);
         }
       }
 
-      this.library[symbolID] = new Symbol(timeline);
-    }
+      var symbol = new Symbol(timeline);
+      elements[symbolID] = symbol;
 
-    // adding a null animation to the library
-    var emptyTimeline = [[]]; 
-    this.library[NULL_ANIMATION] = new Symbol(emptyTimeline);
-
-    // populating library with sprites
-    var spritesData = data.textureOffsets;
-    for (var spriteID in spritesData) {
-      var spriteData = spritesData[spriteID];
-      var image = images[spriteData.url];
-      this.library[spriteID] = new Sprite(image, spriteData);
-    }
-
-    for (var i = 0; i < allInstances.length; i += 1) {
-      allInstances[i].linkElement(this.library);
+      var libraryID = symbolData.className;
+      if (libraryID) {
+        this.library[libraryID] = symbol;
+      }
     }
   }
 
@@ -99,8 +115,8 @@ class Bounds {
   constructor (boundsData) {
     this.x = boundsData.x;
     this.y = boundsData.y;
-    this.width = boundsData.width;
-    this.height = boundsData.height;
+    this.w = boundsData.w;
+    this.h = boundsData.h;
   }
 
 }
@@ -118,7 +134,7 @@ class Sprite {
 
     var bounds = this.bounds;
     if (this.image) {
-      this.image.renderShort(ctx, bounds.x, bounds.y, bounds.width, bounds.height);
+      this.image.renderShort(ctx, bounds.x, bounds.y, bounds.w, bounds.h);
     }
   }
 
@@ -128,9 +144,9 @@ class Sprite {
     }
 
     var left = this.bounds.x;
-    var right = this.bounds.x + this.bounds.width;
+    var right = this.bounds.x + this.bounds.w;
     var top = this.bounds.y;
-    var bottom = this.bounds.y + this.bounds.height;
+    var bottom = this.bounds.y + this.bounds.h;
 
     var a = transform.a;
     var b = transform.b;
@@ -161,13 +177,19 @@ class Sprite {
 // Symbol
 // -----------------------------------
 
+// function getFrame (frameCount, frame) {
+//   if (frame >= frameCount) {
+//     return frame % frameCount;
+//   }
+
+//   return frame;
+// }
+
 class Symbol {
 
   constructor (timeline) {
     this.timeline = timeline;
-    this.duration = timeline.length;
-    // this.className = className // unique symbol identifier, aka actionscript linkage
-
+    this.frameCount = timeline.length;
     this.transform = new Matrix();
   }
 
@@ -181,30 +203,33 @@ class Symbol {
       transform.copy(parentTransform);
       transform.transform(child.transform);
 
+      var libraryID = child.libraryID;
 
-      var childFrame;
-      var element = substitutes[child.libraryID];
-      if (element) {
-        // hack
-        // with the current export format it is not possible to determine
-        // whether an instance of a symbol is a movie clip or a graphic
-        // therefore we consider any element that is substituted
-        // as behaving as a movieclip with an independant timeline
-        childFrame = child.getFrame(element.duration, elapsedFrames);
-      } else {
-        element = child.element;
-        childFrame = child.getFrame(element.duration, child.frame);
+      // var childFrame;
+      // // Lookup in the substitutes map is slow, trying to avoid it
+      // var element = (libraryID !== null) && substitutes[libraryID];
+      // if (element) {
+      //   childFrame = getFrame(element.frameCount, elapsedFrames);
+      // } else {
+      //   element = child.element;
+      //   childFrame = getFrame(element.frameCount, child.frame);
+      // }
+
+      // Lookup in the substitutes map is slow, trying to avoid it
+      var element = (libraryID !== null) && substitutes[libraryID] || child.element;
+      var childFrame = child.frame;
+      var frameCount = element.frameCount;
+      if (childFrame >= frameCount) {
+        frameCount = childFrame % frameCount;
       }
 
-      // n.b element can be of 3 different types: Symnbol, Sprite or FlashPlayerView
+      // n.b element can be of 3 different types: Symbol, Sprite or MovieClip
       // therefore this method cannot be perfectly optimized by optimizer-compilers
-      // also, the lookup in the substitutes map is slow
       element._wrapRender(ctx, transform, alpha, childFrame, elapsedFrames, substitutes);
     }
   }
 
   expandBoundingBox (boundingBox, elementID, parentTransform, frame, elapsedFrames, substitutes, currentBounds) {
-    // TODO: if instance is movie clip, the bounds should include all its frames
     var children = this.timeline[frame];
     for (var i = 0; i < children.length; i++) {
       var child = children[i];
@@ -217,15 +242,19 @@ class Symbol {
       transform.copy(parentTransform);
       transform.transform(child.transform);
 
-      var childFrame;
-      var childID = child.libraryID;
-      var element = substitutes[childID];
-      if (element) {
-        childFrame = child.getFrame(element.duration, elapsedFrames);
-      } else {
-        element = child.element;
-        childFrame = child.getFrame(element.duration, child.frame);
-      }
+      var libraryID = child.libraryID;
+
+      // var childFrame;
+      // var element = (libraryID !== null) && substitutes[libraryID];
+      // if (element) {
+      //   childFrame = getFrame(element.frameCount, elapsedFrames);
+      // } else {
+      //   element = child.element;
+      //   childFrame = getFrame(element.frameCount, child.frame);
+      // }
+
+      var element = (libraryID !== null) && substitutes[libraryID] || child.element;
+      var childFrame = getFrame(element.frameCount, child.frame);
 
       var searchedElementID = (elementID === childID) ? null : elementID;
       element.expandBoundingBox(boundingBox, searchedElementID, transform, childFrame, elapsedFrames, substitutes, currentBounds);
@@ -240,49 +269,27 @@ class Symbol {
 
 class Instance {
 
-  constructor (libraryID, frame, transform, alpha) {
-    // TODO: support all types of identifications
-    this.libraryID = libraryID; // id of instantiated element in the library
-    // this.instanceName = instanceName; // Optional, only movie clips can have it
+  constructor (element, frame, transform, color) {
+    this.element = element;
+
+    // Optional identifiers
+    this.libraryID = element.className || null; // unique symbol identifier (aka actionscript linkage)
+    // this.instanceName = instanceName; // unique instance identifier
 
     this.frame = frame;
     this.transform = transform;
-    this.alpha = alpha;
+    this.alpha = color[3];
     // TODO: replace alpha with full color transform
-    // this.colorTransform = null;
-
-    this.element = null;
-
-    // this.isMovieClip = isMovieClip;
-    // TODO: Handle graphic playing options
-    // this.singleFrame = false;
-    // this.firstFrame = 0;
-    // this.loop = true;
+    // this.color = null;
   }
 
-  linkElement (library) {
-    this.element = library[this.libraryID];
-  }
-
-  getFrame (duration, frame) {
+  getFrame (frameCount, frame) {
     // instance of graphic
-    if (frame >= duration) {
-      return frame % duration;
+    if (frame >= frameCount) {
+      return frame % frameCount;
     }
 
     return frame;
-
-    // TODO: Handle all playing options
-    // if (this.singleFrame) {
-    //   return this.firstFrame;
-    // }
-
-    // var frame = this.firstFrame + this.frame;
-    // if (frame >= duration) {
-    //   return this.loop ? frame % duration : duration;
-    // }
-
-    // return frame;
   }
 
 }
