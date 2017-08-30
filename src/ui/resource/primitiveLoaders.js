@@ -110,15 +110,13 @@ exports.loadImage = function (url, cb, loader, priority, isExplicit) {
 function _loadImage (url, cb, loader, priority, isExplicit) {
   var img = new Image();
 
-  // TODO: properly set crossOrigin
-  // if (loader._assetCrossOrigins[url]) {
-  //   img.crossOrigin = loader._assetCrossOrigins[url];
-  // } else if (loader._crossOrigin) {
-  //   img.crossOrigin = loader._crossOrigin;
-  // } else {
-  //   img.crossOrigin = 'use-credentials';
-  // }
-  img.crossOrigin = 'anonymous';
+  if (loader._assetCrossOrigins[url]) {
+    img.crossOrigin = loader._assetCrossOrigins[url];
+  } else if (loader._crossOrigin) {
+    img.crossOrigin = loader._crossOrigin;
+  } else {
+    img.crossOrigin = 'use-credentials';
+  }
 
   var remainingTriesCount = RETRY_COUNT;
   var retryTempo = RETRY_TEMPO;

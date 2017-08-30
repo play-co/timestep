@@ -90,15 +90,15 @@ export default class ImageWrapper extends PubSub {
     this._cb.reset();
     this._isError = false;
 
+    if (url && this._crossOrigin) {
+      resourceLoader.setAssetCrossOrigin(url, this._crossOrigin);
+    }
+
     this._srcImg = img;
     var loadRequestID = ++this._loadRequestID;
     if (img instanceof HTMLCanvasElement || img instanceof Canvas) {
       this._onLoad(img, loadRequestID);
     } else {
-      if (this._crossOrigin) {
-        resourceLoader.setAssetCrossOrigin(url, this._crossOrigin);
-      }
-
       resourceLoader._loadImage(url, img => this._onLoad(img, loadRequestID));
     }
   }
