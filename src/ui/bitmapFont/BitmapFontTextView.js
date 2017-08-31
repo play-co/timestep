@@ -22,21 +22,16 @@
  * ------------------------------------------------------------------------------
  */
 
-import _ from 'lodash';
+import { merge } from 'base';
 
-import View from '../View';
-import ImageView from '../ImageView';
+import View from 'ui/View';
+import ImageView from 'ui/ImageView';
 import filter from '../filter';
 
-import ViewPool from '../ViewPool';
+import ViewPool from 'ui/ViewPool';
 
 
-import {
-  default as BitmapFontTextViewBacking,
-  EVENTS as BFTVB_EVENTS,
-  Align,
-  DEFAULT_TEXT_FORMAT
-} from './BitmapFontTextViewBacking';
+import BitmapFontTextViewBacking from 'ui/bitmapFont/BitmapFontTextViewBacking';
 
 
 const CHARACTER_VIEW_POOL = new ViewPool({ ctor: ImageView });
@@ -44,25 +39,21 @@ const CHARACTER_VIEW_POOL = new ViewPool({ ctor: ImageView });
 
 class BitmapFontTextView extends View {
   constructor(opts) {
-    opts = _.merge({}, DEFAULT_TEXT_FORMAT, opts);
     super(opts);
 
-    this.colorFilter = new filter.MultiplyFilter(opts.color);
-
-    this._backing = new BitmapFontTextViewBacking(opts);
-    this._backing.setListener(this);
-    this._backing.updateOpts(opts);
+    this._backing = new BitmapFontTextViewBacking(merge({ listener: this }, opts));
+    this.colorFilter = new filter.MultiplyFilter(this._backing.color);
   };
 
   _addAssetsToList (assetURLs) {
-    var font = this._opts.font;
+    var font = this._backing.font;
     if (font) {
       font._addAssetsToList(assetURLs);
     }
   }
 
   _forceLoad () {
-    var font = this._opts.font;
+    var font = this._backing.font;
     if (font) {
       if (!font.loaded) {
         font._forceLoad(() => {
@@ -73,34 +64,34 @@ class BitmapFontTextView extends View {
     }
   }
 
-  getHeight() {
+  getHeight () {
     return this.style.height;
   }
 
-  updateOpts(opts) {
+  updateOpts (opts) {
     super.updateOpts(opts);
     if (this._backing) {
       this._backing.updateOpts(opts);
     }
   }
 
-  updateColorFilter() {
+  updateColorFilter () {
     if (this.colorFilter) {
       this.colorFilter.update(this._backing.color);
     }
   }
 
-  clearCharacterView(charView) {
+  clearCharacterView (charView) {
     charView.removeFromSuperview();
     CHARACTER_VIEW_POOL.releaseView(charView);
   }
 
-  updateCharacterView(charView) {
+  updateCharacterView (charView) {
     charView.style.x += this._backing.batchX;
     charView.style.y += this._backing.verticalAlignOffsetY;
   }
 
-  makeCharacterView(charData, x, y, scale) {
+  makeCharacterView (charData, x, y, scale) {
     var charView = CHARACTER_VIEW_POOL.obtainView({
       superview: this,
       x: x,
@@ -116,76 +107,77 @@ class BitmapFontTextView extends View {
     return charView;
   }
 
-  invalidate() {
+  render (context, transform) {
+    console.error('rendering bitmap font', transform)
+  }
+
+  invalidate () {
     this._backing.invalidate();
   }
 
-  get maxWidth() {
+  get maxWidth () {
     return this._backing.maxWidth;
   }
 
-  set maxWidth(value) {
+  set maxWidth (value) {
     this._backing.maxWidth = value;
   }
 
-  get numLines() {
+  get numLines () {
     return this._backing.numLines;
   }
 
-  get truncateToFit() {
+  get truncateToFit () {
     return this._backing.truncateToFit;
   }
 
-  set truncateToFit(value) {
+  set truncateToFit (value) {
     this._backing.truncateToFit = value;
   }
 
-  get truncationText() {
+  get truncationText () {
     return this._backing.truncationText;
   }
 
-  set truncationText(value) {
+  set truncationText (value) {
     this._backing.truncationText = value;
   }
 
-  get font() {
+  get font () {
     return this._backing.font;
   }
 
-  set font(value) {
+  set font (value) {
     this._backing.font = value;
   }
 
-  get size() {
+  get size () {
     return this._backing.size;
   }
 
-  set size(value) {
+  set size (value) {
     this._backing.size = value;
   }
 
-  get color() {
+  get color () {
     return this._backing.color;
   }
 
-  set color(value) {
+  set color (value) {
     this._backing.color = value;
   }
 
-  get baseline() {
+  get baseline () {
     return this._backing.baseline;
   }
 
-  get text() {
+  get text () {
     return this._backing.text;
   }
 
-  set text(value) {
+  set text (value) {
     this._backing.text = value;
   }
 }
-
-
-export { Align }
 
 export default BitmapFontTextView;

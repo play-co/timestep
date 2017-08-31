@@ -22,38 +22,26 @@
  * ------------------------------------------------------------------------------
  */
 
-import _ from 'lodash';
+import { merge } from 'base';
 
-import {
-  default as BitmapFontTextViewBacking,
-  DEFAULT_TEXT_FORMAT
-} from './BitmapFontTextViewBacking';
+import BitmapFontTextViewBacking from 'ui/bitmapFont/BitmapFontTextViewBacking';
 
 
 class BitmapFontTextView {
 
   constructor(opts) {
-    opts = _.merge({}, DEFAULT_TEXT_FORMAT, opts);
-    this._opts = opts;
+    this._x = opts.x;
+    this._y = opts.y;
 
     this.colorFilter = null;
-
-    this._backing = new BitmapFontTextViewBacking(opts);
-    this._backing.setListener(this);
+    this._backing = new BitmapFontTextViewBacking(merge({ listener: this }, opts));
   }
 
   getHeight() {
-    return this._opts.height;
+    return this._backing._height;
   }
 
   updateOpts(opts) {
-    this._opts = opts;
-
-    if (opts.font) {
-      opts.font.once('loaded', () => this.invalidate());
-    }
-    this.invalidate();
-
     this._backing.updateOpts(opts);
   }
 
@@ -82,7 +70,7 @@ class BitmapFontTextView {
 
   render(context) {
     context.save();
-    context.translate(this._opts.x, this._opts.y);
+    context.translate(this._x, this._y);
 
     for (let i = 0; i < this._backing._activeCharacterCount; i++) {
       const charView = this._backing._activeCharacters[i];

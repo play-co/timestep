@@ -23,9 +23,6 @@ let exports = {};
 
 import Matrix2D from 'platforms/browser/webgl/Matrix2D';
 
-var sin = Math.sin;
-var cos = Math.cos;
-
 var ADD_COUNTER = 900000;
 
 function compareZOrder (a, b) {
@@ -384,8 +381,8 @@ export default class ViewBacking {
     } else {
       if (this.r !== this._cachedRotation) {
         this._cachedRotation = this.r;
-        this._cachedSin = sin(this.r);
-        this._cachedCos = cos(this.r);
+        this._cachedSin = Math.sin(this.r);
+        this._cachedCos = Math.cos(this.r);
       }
       var a = this._cachedCos * sx;
       var b = this._cachedSin * sx;

@@ -22,7 +22,6 @@
  * ------------------------------------------------------------------------------
  */
 
-
 const CHARACTER_ID_SPACE = 32;
 const CHARACTER_ID_TAB = 9;
 const CHARACTER_ID_LINE_FEED = 10;
@@ -39,7 +38,7 @@ const HELPER_RESULT = {
   height: 0
 };
 
-export const Align = {
+const Align = {
   CENTER: 'center',
   END: 'end',
   JUSTIFY: 'justify',
@@ -50,7 +49,7 @@ export const Align = {
   TOP: 'top'
 };
 
-export const DEFAULT_TEXT_FORMAT = {
+const DEFAULT_TEXT_FORMAT = {
   font: null,
   size: 16,
   autoSize: true,
@@ -61,11 +60,6 @@ export const DEFAULT_TEXT_FORMAT = {
   isKerningEnabled: true,
   verticalAlign: Align.TOP
 };
-
-export const EVENTS = {
-  CLEAR_CHARACTER: 'CLEAR_CHARACTER'
-};
-
 
 export default class BitmapFontTextViewBacking {
   constructor(opts) {
@@ -79,51 +73,45 @@ export default class BitmapFontTextViewBacking {
     this._lastLayoutHeight = 0;
     this._lastLayoutIsTruncated = false;
     this.wordWrap = !!opts.wordWrap;
-    this._color = '';
+
+    this._font = DEFAULT_TEXT_FORMAT.font;
+    this._size = DEFAULT_TEXT_FORMAT.size;
+    this._autoSize = DEFAULT_TEXT_FORMAT.autoSize;
+    this._color = DEFAULT_TEXT_FORMAT.color;
+    this._align = DEFAULT_TEXT_FORMAT.align;
+    this._leading = DEFAULT_TEXT_FORMAT.leading;
+    this._letterSpacing = DEFAULT_TEXT_FORMAT.letterSpacing;
+    this._isKerningEnabled = DEFAULT_TEXT_FORMAT.isKerningEnabled;
+    this._verticalAlign = DEFAULT_TEXT_FORMAT.verticalAlign;
+
+    this._width = opts.width;
+
+    this._text = null;
+    this._listener = null;
 
     this._activeCharacters = [];
     this._activeCharacterCount = 0;
 
-    this._listener = null;
-
     this._boundOnFontLoad = this._onFontLoad.bind(this);
+    this.updateOpts(opts);
   }
 
-  _onFontLoad() {
+  _onFontLoad () {
     this._clearOnFontLoad();
     this.invalidate();
   }
 
-  _clearOnFontLoad() {
-    if (
-      this._listener
-      && this._listener._opts
-      && this._listener._opts.font
-    ) {
-      this._listener._opts.font.removeListener('loaded', this._boundOnFontLoad);
+  _clearOnFontLoad () {
+    if (this._font) {
+      this._font.removeListener('loaded', this._boundOnFontLoad);
     }
   }
 
-  setListener(listener) {
-    this._listener = listener;
-  }
-
-  updateOpts(opts) {
-    if (typeof opts.color !== 'undefined') {
-      this._color = opts.color;
-    }
-
-    if (typeof opts.autoSize !== 'undefined') {
-      this._autoSize = opts.autoSize;
-    }
-
-    if (typeof opts.size !== 'undefined') {
-      this._baseSize = opts.size;
-    }
-
-    if (typeof opts.font !== 'undefined') {
+  updateOpts (opts) {
+    if (opts.font !== undefined) {
       // Clear last font listener
 
+      this._font = opts.font;
       this._clearOnFontLoad();
 
       if (opts.font) {
@@ -131,40 +119,47 @@ export default class BitmapFontTextViewBacking {
       }
     }
 
-    if (typeof opts.text !== 'undefined') {
-      this.text = opts.text;
-    }
+    if (opts.size !== undefined) { this._size = opts.size; }
+    if (opts.autoSize !== undefined) { this._autoSize = opts.autoSize; }
+    if (opts.color !== undefined) { this._color = opts.color; }
+    if (opts.align !== undefined) { this._align = opts.align; }
+    if (opts.leading !== undefined) { this._leading = opts.leading; }
+    if (opts.letterSpacing !== undefined) { this._letterSpacing = opts.letterSpacing; }
+    if (opts.isKerningEnabled !== undefined) { this._isKerningEnabled = opts.isKerningEnabled; }
+    if (opts.verticalAlign !== undefined) { this._verticalAlign = opts.verticalAlign; }
+    if (opts.text !== undefined) { this._text = opts.text; }
+    if (opts.listener !== undefined) { this._listener = opts.listener; }
 
     this.invalidate();
    }
 
-  measureText(result) {
+  measureText (result) {
     if (!result) {
       result = { x: 0, y: 0 };
     }
 
-    if (!this._listener._opts || !this._text) {
+    if (!this._text) {
       result.x = 0;
       result.y = 0;
       return result;
     }
 
-    var font = this._listener._opts.font;
+    var font = this._font;
     if (!font.loaded) {
       return result;
     }
 
-    var customSize = this._listener._opts.size;
-    var customLetterSpacing = this._listener._opts.letterSpacing;
-    var isKerningEnabled = this._listener._opts.isKerningEnabled;
+    var customSize = this._size;
+    var customLetterSpacing = this._letterSpacing;
+    var isKerningEnabled = this._isKerningEnabled;
     var scale = customSize / font.size;
 
     if (scale !== scale) { // isNaN
       scale = 1;
     }
 
-    var lineHeight = font.lineHeight * scale + this._listener._opts.leading;
-    var maxLineWidth = this._listener._opts.width;
+    var lineHeight = font.lineHeight * scale + this._leading;
+    var maxLineWidth = this._width;
 
     if (maxLineWidth !== maxLineWidth) { // isNaN
       maxLineWidth = this._explicitMaxWidth;
@@ -183,7 +178,7 @@ export default class BitmapFontTextViewBacking {
 
     for (let i = 0; i < charCount; i++) {
       var charID = this._text.charCodeAt(i);
-      if (charID == CHARACTER_ID_LINE_FEED || charID == CHARACTER_ID_CARRIAGE_RETURN) { //new line \n or \r
+      if (charID == CHARACTER_ID_LINE_FEED || charID == CHARACTER_ID_CARRIAGE_RETURN) { // new line \n or \r
         currentX = currentX - customLetterSpacing;
         if (currentX < 0) {
           currentX = 0;
@@ -229,8 +224,8 @@ export default class BitmapFontTextViewBacking {
         }
 
         if (!currentCharIsWhitespace && wordCountForLine > 0 && (currentX + xAdvance) > maxLineWidth) {
-          //we're just reusing this variable to avoid creating a
-          //new one. it'll be reset to 0 in a moment.
+          // we're just reusing this variable to avoid creating a
+          // new one. it'll be reset to 0 in a moment.
           widthOfWhitespaceAfterWord = startXOfPreviousWord - widthOfWhitespaceAfterWord;
           if (maxX < widthOfWhitespaceAfterWord) {
             maxX = widthOfWhitespaceAfterWord;
@@ -253,16 +248,16 @@ export default class BitmapFontTextViewBacking {
       currentX = 0;
     }
 
-    //if the text ends in extra whitespace, the currentX value will be
-    //larger than the max line width. we'll remove that and add extra
-    //lines.
+    // if the text ends in extra whitespace, the currentX value will be
+    // larger than the max line width. we'll remove that and add extra
+    // lines.
 
     if (this.wordWrap) {
       while (currentX > maxLineWidth) {
         currentX -= maxLineWidth;
         currentY += lineHeight;
         if (maxLineWidth === 0) {
-          //we don't want to get stuck in an infinite loop!
+          // we don't want to get stuck in an infinite loop!
           break;
         }
       }
@@ -273,22 +268,18 @@ export default class BitmapFontTextViewBacking {
     }
 
     result.x = maxX;
-    result.y = currentY + lineHeight - this._listener._opts.leading;
+    result.y = currentY + lineHeight - this._leading;
 
     return result;
   }
 
-  invalidate() {
-    this._listener._opts.size = this._baseSize;
-
+  invalidate () {
     this.validate();
     this.updateAutoSize();
   }
 
-  validate() {
-    if (!this._listener._opts ||
-        !this._listener._opts.font ||
-        !this._listener._opts.font.loaded) {
+  validate () {
+    if (!this._font || !this._font.loaded) {
       return;
     }
 
@@ -301,10 +292,10 @@ export default class BitmapFontTextViewBacking {
     let textWidth = this._lastLayoutWidth;
 
     if (textWidth && this._autoSize) {
-      let viewWidth = this._listener._opts.width;
+      let viewWidth = this._width;
 
       if (textWidth > viewWidth) {
-        this._listener._opts.size = this._listener._opts.size * (viewWidth / textWidth);
+        this._size = this._size * (viewWidth / textWidth);
 
         this.validate();
       }
@@ -319,7 +310,7 @@ export default class BitmapFontTextViewBacking {
     // sometimes, we can determine that the layout will be exactly
     // the same without needing to update. this will result in much
     // better performance.
-    var newWidth = this._listener._opts.width;
+    var newWidth = this._width;
     if (newWidth !== newWidth) { // isNaN
       newWidth = this._explicitMaxWidth;
     }
@@ -343,14 +334,14 @@ export default class BitmapFontTextViewBacking {
       sizeInvalid = sizeInvalid || (this._lastLayoutIsTruncated && newWidth !== this._lastLayoutWidth);
 
       //... or the text is aligned
-      sizeInvalid = sizeInvalid || this._listener._opts.align !== Align.LEFT;
+      sizeInvalid = sizeInvalid || this._align !== Align.LEFT;
     }
 
     if (isInvalid || sizeInvalid) {
       this._clearCharacterViews();
       this._activeCharacterCount = 0;
 
-      if (!this._listener._opts || this._text === null) {
+      if (this._text === null) {
         return;
       }
 
@@ -360,11 +351,9 @@ export default class BitmapFontTextViewBacking {
       this._lastLayoutIsTruncated = HELPER_RESULT.isTruncated;
     }
 
-    // this._listener._opts.width = this._lastLayoutWidth;
-    // this._listener._opts.height = this._lastLayoutHeight;
   }
 
-  _clearCharacterViews() {
+  _clearCharacterViews () {
     for (let i = this._activeCharacterCount - 1; i >= 0; i--) {
       var charView = this._activeCharacters[i];
       this._activeCharacters[i] = null;
@@ -372,31 +361,31 @@ export default class BitmapFontTextViewBacking {
     }
   }
 
-  layoutCharacters(result = new MeasureTextResult()) {
+  layoutCharacters (result = new MeasureTextResult()) {
     this._numLines = 1;
-    var font = this._listener._opts.font;
-    var customSize = this._listener._opts.size;
-    var customLetterSpacing = this._listener._opts.letterSpacing;
-    var isKerningEnabled = this._listener._opts.isKerningEnabled;
+    var font = this._font;
+    var customSize = this._size;
+    var customLetterSpacing = this._letterSpacing;
+    var isKerningEnabled = this._isKerningEnabled;
     var scale = customSize / font.size;
 
     if (scale !== scale) { // isNaN
       scale = 1;
     }
 
-    var lineHeight = font.lineHeight * scale + this._listener._opts.leading;
+    var lineHeight = font.lineHeight * scale + this._leading;
     var offsetX = font.offsetX * scale;
     var offsetY = font.offsetY * scale;
 
-    var hasExplicitWidth = this._listener._opts.width === this._listener._opts.width; //!isNaN
-    var isAligned = this._listener._opts.align != Align.LEFT;
-    var maxLineWidth = hasExplicitWidth ? this._listener._opts.width : this._explicitMaxWidth;
+    var hasExplicitWidth = this._width === this._width; //!isNaN
+    var isAligned = this._align != Align.LEFT;
+    var maxLineWidth = hasExplicitWidth ? this._width : this._explicitMaxWidth;
 
     if (isAligned && maxLineWidth == Number.POSITIVE_INFINITY) {
       //we need to measure the text to get the maximum line width
       //so that we can align the text
       // this.measureText(HELPER_POINT);
-      maxLineWidth = this._listener._opts.width;
+      maxLineWidth = this._width;
     }
 
     var textToDraw = this._text;
@@ -565,7 +554,7 @@ export default class BitmapFontTextViewBacking {
     }
 
     if (isAligned && !hasExplicitWidth) {
-      var align = this._listener._opts.align;
+      var align = this._align;
       if (align == Align.CENTER) {
         this._batchX = (maxX - maxLineWidth) / 2;
       }
@@ -581,18 +570,18 @@ export default class BitmapFontTextViewBacking {
     this._updateCharacterViews();
 
     result.width = maxX;
-    result.height = currentY + lineHeight - this._listener._opts.leading;
+    result.height = currentY + lineHeight - this._leading;
     return result;
   }
 
-  _updateCharacterViews() {
+  _updateCharacterViews () {
     for (var i = 0; i < this._activeCharacterCount; i++) {
       var charView = this._activeCharacters[i];
       this._listener.updateCharacterView(charView);
     }
   }
 
-  trimBuffer(skipCount) {
+  trimBuffer (skipCount) {
     var countToRemove = 0;
     var charCount = CHARACTER_BUFFER.length - skipCount;
     for (var i = charCount - 1; i >= 0; i--) {
@@ -610,8 +599,8 @@ export default class BitmapFontTextViewBacking {
     }
   }
 
-  alignBuffer(maxLineWidth, currentLineWidth, skipCount) {
-    var align = this._listener._opts.align;
+  alignBuffer (maxLineWidth, currentLineWidth, skipCount) {
+    var align = this._align;
     if (align == Align.CENTER) {
       this.moveBufferedCharacters(Math.round((maxLineWidth - currentLineWidth) / 2), 0, skipCount);
     } else if (align == Align.RIGHT) {
@@ -619,7 +608,7 @@ export default class BitmapFontTextViewBacking {
     }
   }
 
-  addBufferToBatch(skipCount) {
+  addBufferToBatch (skipCount) {
     var charCount = CHARACTER_BUFFER.length - skipCount;
     var pushIndex = CHAR_LOCATION_POOL.length;
     for (let i = 0; i < charCount; i++) {
@@ -636,7 +625,7 @@ export default class BitmapFontTextViewBacking {
     }
   }
 
-  moveBufferedCharacters(xOffset, yOffset, skipCount) {
+  moveBufferedCharacters (xOffset, yOffset, skipCount) {
     var charCount = CHARACTER_BUFFER.length - skipCount;
     for (let i = 0; i < charCount; i++) {
       var charLocation = CHARACTER_BUFFER[i];
@@ -645,7 +634,7 @@ export default class BitmapFontTextViewBacking {
     }
   }
 
-  addCharacterToBatch(charData, x, y, scale) {
+  addCharacterToBatch (charData, x, y, scale) {
     // console.log('addCharacterToBatch', 'charData=', charData, 'x=', x, 'y=', y, 'scale=', scale)
     if (!charData.textureData) { return; }
 
@@ -654,7 +643,7 @@ export default class BitmapFontTextViewBacking {
     this._activeCharacterCount++;
   }
 
-  getTruncatedText(width) {
+  getTruncatedText (width) {
     if (!this._text) {
       // this shouldn't be called if _text is null, but just in case...
       return '';
@@ -665,10 +654,10 @@ export default class BitmapFontTextViewBacking {
       return this._text;
     }
 
-    var font = this._listener._opts.font;
-    var customSize = this._listener._opts.size;
-    var customLetterSpacing = this._listener._opts.letterSpacing;
-    var isKerningEnabled = this._listener._opts.isKerningEnabled;
+    var font = this._font;
+    var customSize = this._size;
+    var customLetterSpacing = this._letterSpacing;
+    var isKerningEnabled = this._isKerningEnabled;
     var scale = customSize / font.size;
     if (scale !== scale) { // isNaN
       scale = 1;
@@ -753,35 +742,35 @@ export default class BitmapFontTextViewBacking {
     return this._text;
   }
 
-  getVerticalAlignOffsetY() {
-    var font = this._listener._opts.font;
-    var customSize = this._listener._opts.size;
+  getVerticalAlignOffsetY () {
+    var font = this._font;
+    var customSize = this._size;
     var scale = customSize / font.size;
 
     if (scale !== scale) { // isNaN
       scale = 1;
     }
 
-    var lineHeight = font.lineHeight * scale + this._listener._opts.leading;
+    var lineHeight = font.lineHeight * scale + this._leading;
     var textHeight = this._numLines * lineHeight;
 
     if (textHeight > this._listener.getHeight()) {
       return 0;
     }
 
-    if (this._listener._opts.verticalAlign === Align.BOTTOM) {
+    if (this._verticalAlign === Align.BOTTOM) {
       return (this._listener.getHeight() - textHeight);
-    } else if (this._listener._opts.verticalAlign === Align.CENTER) {
+    } else if (this._verticalAlign === Align.CENTER) {
       return (this._listener.getHeight() - textHeight) / 2;
     }
     return 0;
   }
 
-  get maxWidth() {
+  get maxWidth () {
     return this._maxWidth;
   }
 
-  set maxWidth(value) {
+  set maxWidth (value) {
 
     if (value < 0) { value = 0; }
     if (this._explicitMaxWidth === value) { return; }
@@ -795,7 +784,7 @@ export default class BitmapFontTextViewBacking {
     var oldValue = this._explicitMaxWidth;
     this._explicitMaxWidth = value;
 
-    if (needsInvalidate || this._listener._opts.width !== this._listener._opts.width && // isNaN
+    if (needsInvalidate || this._width !== this._width && // isNaN
       (this.actualWidth > value || this.actualWidth === oldValue)) {
       //only invalidate if this change might affect the width
       this.invalidate();
@@ -806,66 +795,59 @@ export default class BitmapFontTextViewBacking {
     return this._numLines;
   }
 
-  get truncateToFit() {
+  get truncateToFit () {
     return this._truncateToFit;
   }
 
-  set truncateToFit(value) {
+  set truncateToFit (value) {
     if (this._truncateToFit === value) { return; }
     this._truncateToFit = value;
     this.invalidate();
   }
 
-  get truncationText() {
+  get truncationText () {
     return this._truncationText;
   }
 
-  set truncationText(value) {
+  set truncationText (value) {
     if (this._truncationText === value) { return; }
     this._truncationText = value;
     this.invalidate();
   }
 
-  get font() {
-    return this._listener._opts.font;
+  get font () {
+    return this._font;
   }
 
-  set font(value) {
-    if (value === this._listener._opts.font) { return; }
-    this._listener._opts.font = value;
+  set font (value) {
+    if (value === this._font) { return; }
+    this._font = value;
     this.invalidate();
   }
 
-  get size() {
-    return this._listener._opts.size;
+  get size () {
+    return this._size;
   }
 
-  set size(value) {
-    if (value === this._listener._opts.size) { return; }
-    this._listener._opts.size = value;
-    this._baseSize = value;
+  set size (value) {
+    if (value === this._size) { return; }
+    this._size = value;
     this.invalidate();
   }
 
-  get color() {
+  get color () {
     return this._color;
   }
 
-  set color(value) {
+  set color (value) {
     if (value === this._color) { return; }
     this._color = value;
-    this._listener._opts.color = value;
     this.invalidate();
   }
 
-  get baseline() {
-
-    if (this._listener._opts === null) {
-      return 0;
-    }
-
-    var font = this._listener._opts.font;
-    var formatSize = this._listener._opts.size;
+  get baseline () {
+    var font = this._font;
+    var formatSize = this._size;
     var baseline = font.baseline;
     var fontSizeScale = formatSize / font.size;
     if (fontSizeScale !== fontSizeScale) { // isNaN
@@ -879,7 +861,7 @@ export default class BitmapFontTextViewBacking {
     return baseline * fontSizeScale;
   }
 
-  set autoSize(value) {
+  set autoSize (value) {
     if (this._autoSize !== value) {
       this._autoSize = value;
 
@@ -887,11 +869,11 @@ export default class BitmapFontTextViewBacking {
     }
   }
 
-  get autoSize() {
+  get autoSize () {
     return this._autoSize;
   }
 
-  set text(value) {
+  set text (value) {
     value = '' + value;
 
     if (this._text !== value) {
@@ -900,22 +882,22 @@ export default class BitmapFontTextViewBacking {
     }
   }
 
-  get text() {
+  get text () {
     return this._text;
   }
 
-  get batchX() {
+  get batchX () {
     return this._batchX;
   }
 
-  get verticalAlignOffsetY() {
+  get verticalAlignOffsetY () {
     return this._verticalAlignOffsetY;
   }
 
 }
 
 class CharLocation {
-  constructor() {
+  constructor () {
     this.char = '';
     this.scale = 1;
     this.x = 0;

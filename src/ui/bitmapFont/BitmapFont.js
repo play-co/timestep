@@ -49,10 +49,11 @@ class BitmapFont extends EventEmitter {
     this._imageCtor = texture.constructor;
     this.texture = texture;
 
+    var font = data.font;
     if (this.texture.doOnLoad) {
-      this.texture.doOnLoad(() => this.parsedata(data));
+      this.texture.doOnLoad(() => this.parsedata(font));
     } else {
-      this.parsedata(data);
+      this.parsedata(font);
     }
 
     this.setMaxListeners(100);
@@ -70,7 +71,7 @@ class BitmapFont extends EventEmitter {
     }
   }
 
-  parsedata(data) {
+  parsedata (font) {
     const isDevkitImage = !!this.texture.getMap;
     let scale = 1;
     if (isDevkitImage) {
@@ -78,8 +79,8 @@ class BitmapFont extends EventEmitter {
       scale = map.scale;
     }
 
-    var fontInfo = data.font.info[0].$;
-    var fontCommon = data.font.common[0].$;
+    var fontInfo = font.info[0].$;
+    var fontCommon = font.common[0].$;
 
     this.name = fontInfo.face;
     this.size = parseFloat(fontInfo.size);
@@ -91,7 +92,7 @@ class BitmapFont extends EventEmitter {
       this.size = (this.size === 0 ? 16 : -this.size);
     }
 
-    var characterData = data.font.chars[0].char;
+    var characterData = font.chars[0].char;
 
     for (let i = 0, len = characterData.length; i < len; i++) {
       var charElement = characterData[i].$;
@@ -134,7 +135,7 @@ class BitmapFont extends EventEmitter {
       this.addChar(id, new BitmapChar(id, textureDataFinal, xOffset, yOffset, xAdvance));
     }
 
-    var kerningData = data.font.kernings && data.font.kernings[0].kerning ? data.font.kernings[0].kerning : [];
+    var kerningData = font.kernings && font.kernings[0].kerning ? font.kernings[0].kerning : [];
 
     for (let i = 0, len = kerningData.length; i < len; i++) {
       var kerningElement = kerningData[i].$;
@@ -151,15 +152,15 @@ class BitmapFont extends EventEmitter {
     this.emit(BitmapFont.LOADED);
   }
 
-  getChar(charID) {
+  getChar (charID) {
     return this.chars[charID];
   }
 
-  addChar(charID, bitmapChar) {
+  addChar (charID, bitmapChar) {
     this.chars[charID] = bitmapChar;
   }
 
-  getCharIDs(out = []) {
+  getCharIDs (out = []) {
     for (var key in this.chars) {
       out[out.length] = Number(key);
     }
@@ -168,7 +169,7 @@ class BitmapFont extends EventEmitter {
   }
 
   /** Checks whether a provided string can be displayed with the font. */
-  hasChars(text) {
+  hasChars (text) {
 
     if (!text) { return true; }
 
@@ -192,7 +193,7 @@ class BitmapFont extends EventEmitter {
     * in one reference with the other. This is useful for bitmap fonts with all
     * lowercase or all uppercase characters.
     */
-  fillInCases() {
+  fillInCases () {
 
     // Get string of characters from map of character codes
     var characters = Object.keys(this.chars)

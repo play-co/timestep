@@ -70,6 +70,36 @@ timer.onTick = function (dt) {
   }
 };
 
+// var interval = 5000;
+// var timePerFrame = 0;
+// var sampleIdx = 0;
+// setInterval(function() {
+//   sampleIdx += 1;
+//   var entries = window.performance.getEntriesByName('timePerFrame');
+//   var total = 0;
+//   var nbSamples = interval * 60 / 1000;
+//   var start = Math.max(0, entries.length - nbSamples);
+//   for (var i = start; i < entries.length; i += 1) {
+//     total += entries[i].duration;
+//   }
+//   timePerFrame = total / (entries.length - start);
+//   var log = '* sample after ' + (sampleIdx * interval / 1000) + 's';
+//   log += '  ms/frame = ' + timePerFrame.toFixed(2);
+//   console.error(log);
+// }, interval);
+
+// var _timers = [];
+// timer.onTick = function (dt) {
+// performance.mark('start');
+//   var i = _timers.length;
+//   while (i--) {
+//     _timers[i](dt);
+//   }
+// performance.mark('end');
+// performance.measure('timePerFrame', 'start', 'end');
+// };
+
+
 var __instance = null;
 
 /**
