@@ -31,8 +31,9 @@ var RETRY_MAP = {
   '429': true // TODO: handle this error in a better way but should not happen anyway
 };
 
-var NB_RETRIES = 4;
+var RETRY_COUNT = 4;
 var RETRY_TEMPO = 100; // TODO: 200 and test for error status code
+var OFFLINE_RETRY_TEMPO = 200;
 var MAX_PARALLEL_LOADINGS = 7;
 
 // TODO: add http2 detection (following piece of code only works in chrome apparently)
@@ -56,7 +57,6 @@ var PRIORITY_MEDIUM = 2;
 exports.PRIORITY_LOW = PRIORITY_LOW;
 exports.PRIORITY_MEDIUM = PRIORITY_MEDIUM;
 // exports.PRIORITY_HIGH = PRIORITY_HIGH;
-
 
 var pendingRequests = [];
 var pendingRequestsLowPriority = [];
@@ -100,6 +100,7 @@ function onRequestComplete (cb, asset) {
   nbAssetsLoading -= 1;
 }
 
+
 exports.loadImage = function (url, cb, loader, priority, isExplicit) {
   pendRequest(priority, () => {
     _loadImage(url, cb, loader, priority, isExplicit);
@@ -119,18 +120,36 @@ function _loadImage (url, cb, loader, priority, isExplicit) {
   // }
   img.crossOrigin = 'anonymous';
 
-  var nbRemainingTries = NB_RETRIES;
+  var remainingTriesCount = RETRY_COUNT;
   var retryTempo = RETRY_TEMPO;
   img.onload = function () {
+
+    // Some browsers fire the load event before the image width is
+    // available.
+    // Solution: Wait up to 5 frames for the width.
+    // Note that an image with zero-width should be considered an error.
+    if (!this.width) {
+      var failCount = 0;
+      var intervalHandle = setInterval(() => {
+        if (this.width) {
+          clearInterval(intervalHandle);
+          this.onload();
+          return;
+        }
+
+        failCount += 1;
+        if (failCount === 5) {
+          clearInterval(intervalHandle);
+          this.onerror({ reason: 'image has no dimension', status: 200 });
+          return;
+        }
+      }, 0);
+      return;
+    }
+
     // Resetting callbacks to avoid memory leaks
     this.onload  = null;
     this.onerror = null;
-
-    // TODO: check image width?
-    // Some browsers fire the load event before the image width is
-    // available.
-    // Solution: Wait up to 3 frames for the width.
-    // Note that an image with zero-width should be considered an error.
 
     // emitting event
     loader.emit(loader.IMAGE_LOADED, this, url);
@@ -139,8 +158,16 @@ function _loadImage (url, cb, loader, priority, isExplicit) {
   };
 
   img.onerror = function (error) {
-     if (RETRY_MAP[error.status] && nbRemainingTries > 0) {
-      nbRemainingTries -= 1;
+    if (!window.navigator.onLine) {
+      // Retrying without decreasing retry count
+      setTimeout(() => {
+        this.src = url;
+      }, OFFLINE_RETRY_TEMPO);
+      return;
+    }
+
+    if (RETRY_MAP[error.status] && remainingTriesCount > 0) {
+      remainingTriesCount -= 1;
       setTimeout(() => {
         this.src = url;
       }, retryTempo);
@@ -155,6 +182,7 @@ function _loadImage (url, cb, loader, priority, isExplicit) {
     var reason = ' Reason: ' + error.reason;
     var response = ' Response: ' + error.response;
     logger.error('Image not found: ' + url + statusCode + reason + response);
+    loader._missingAssets[url] = true;
     return onRequestComplete(cb, null);
   };
 
@@ -174,13 +202,22 @@ function _loadFile (url, cb, loader, priority, isExplicit, responseType) {
     xobj.responseType = responseType;
   }
 
-  var nbRemainingTries = NB_RETRIES;
+  var remainingTriesCount = RETRY_COUNT;
   var retryTempo = RETRY_TEMPO;
   xobj.onreadystatechange = function () {
     if (~~xobj.readyState !== 4) return;
     if (~~xobj.status !== 200 && ~~xobj.status !== 0) {
-      if (RETRY_MAP[xobj.status] && nbRemainingTries > 0) {
-        nbRemainingTries -= 1;
+      if (!window.navigator.onLine) {
+        // Retrying without decreasing retry count
+        setTimeout(() => {
+          xobj.open('GET', url, true, loader._user, loader._password);
+          xobj.send();
+        }, OFFLINE_RETRY_TEMPO);
+        return;
+      }
+
+      if (RETRY_MAP[xobj.status] && remainingTriesCount > 0) {
+        remainingTriesCount -= 1;
         // Retrying
         setTimeout(() => {
           xobj.open('GET', url, true, loader._user, loader._password);
@@ -196,6 +233,11 @@ function _loadFile (url, cb, loader, priority, isExplicit, responseType) {
       var reason = ' Reason: ' + xobj.reason;
       var response = ' Response: ' + xobj.response;
       logger.error('Failed to load file: ' + url + statusCode + reason + response);
+
+      if (~~xobj.status === 404) {
+        loader._missingAssets[url] = true;
+      }
+
       return onRequestComplete(cb, null);
     }
 

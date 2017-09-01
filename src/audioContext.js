@@ -1,3 +1,5 @@
+import { logger } from 'base';
+
 // Only one background sound can be played at a time.
 // define AudioContext as best as possible; it may not exist
 var AudioContext = window.AudioContext || window.webkitAudioContext;
