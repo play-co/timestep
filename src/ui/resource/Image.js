@@ -80,6 +80,7 @@ export default class ImageWrapper extends PubSub {
 
     resourceLoader._updateImageMap(this._map, opts.url, opts.sourceX, opts.sourceY,
       opts.sourceW, opts.sourceH);
+    this._onMapUpdate();
 
     // srcImage can be null, then setSrcImg will create one
     // (use the map's URL in case it was updated to a spritesheet)
@@ -144,6 +145,26 @@ export default class ImageWrapper extends PubSub {
     }
   }
 
+  _onMapUpdate () {
+    var map = this._map;
+    this._x = map.x;
+    this._y = map.y;
+    this._width = map.width;
+    this._height = map.height;
+
+    var marginLeft = map.marginLeft;
+    var marginTop = map.marginTop;
+
+    var xRatio = 1 / (marginLeft + this._width + map.marginRight);
+    var yRatio = 1 / (marginTop + this._height + map.marginBottom);
+
+    this._marginLeftRatio = marginLeft * xRatio;
+    this._marginRightRatio = marginTop * yRatio;
+
+    this._widthRatio = this._width * xRatio;
+    this._heightRatio = this._height * yRatio;
+  }
+
   getURL () {
     return this._map.url;
   }
@@ -170,27 +191,35 @@ export default class ImageWrapper extends PubSub {
   }
   setSourceX (x) {
     this._map.x = x;
+    this._onMapUpdate();
   }
   setSourceY (y) {
     this._map.y = y;
+    this._onMapUpdate();
   }
   setSourceW (w) {
     this._map.width = w;
+    this._onMapUpdate();
   }
   setSourceH (h) {
     this._map.height = h;
+    this._onMapUpdate();
   }
   setMarginTop (n) {
     this._map.marginTop = n;
+    this._onMapUpdate();
   }
   setMarginRight (n) {
     this._map.marginRight = n;
+    this._onMapUpdate();
   }
   setMarginBottom (n) {
     this._map.marginBottom = n;
+    this._onMapUpdate();
   }
   setMarginLeft (n) {
     this._map.marginLeft = n;
+    this._onMapUpdate();
   }
   setURL (url) {
     resourceLoader._updateImageMap(this._map, url);
@@ -219,6 +248,7 @@ export default class ImageWrapper extends PubSub {
     map.marginRight = marginRight || 0;
     map.marginBottom = marginBottom || 0;
     map.marginLeft = marginLeft || 0;
+    this._onMapUpdate();
     this.emit('changeBounds');
   }
   doOnLoad () {
@@ -268,6 +298,7 @@ export default class ImageWrapper extends PubSub {
     }
 
     map.url = image.src;
+    this._onMapUpdate();
     this._cb.fire(null, this);
   }
   isError () {
@@ -281,21 +312,12 @@ export default class ImageWrapper extends PubSub {
    * Easy-to-use 5 param render function that relies on the internal _map
    */
   renderShort (ctx, destX, destY, destW, destH) {
-    if (!this.isReady()) { return; }
+    destX += destW * this._marginLeftRatio;
+    destY += destH * this._marginRightRatio;
+    destW *= this._widthRatio;
+    destH *= this._heightRatio;
 
-    var map = this._map;
-    var srcX = map.x;
-    var srcY = map.y;
-    var srcW = map.width;
-    var srcH = map.height;
-    var scaleX = destW / (map.marginLeft + srcW + map.marginRight);
-    var scaleY = destH / (map.marginTop + srcH + map.marginBottom);
-    destX += scaleX * map.marginLeft;
-    destY += scaleY * map.marginTop;
-    destW = scaleX * srcW;
-    destH = scaleY * srcH;
-
-    this.render(ctx, srcX, srcY, srcW, srcH, destX, destY, destW, destH);
+    this.render(ctx, this._x, this._y, this._width, this._height, destX, destY, destW, destH);
   }
 
   /**
