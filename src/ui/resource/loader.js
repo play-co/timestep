@@ -91,6 +91,7 @@ class Loader extends Emitter {
     this._currentRequests = {};
     this._assetCallbacks = {};
     this._assetCrossOrigins = {};
+    this._missingAssets = {};
 
     this._logRequests = false;
 
@@ -240,6 +241,10 @@ class Loader extends Emitter {
   _loadAsset (url, loadMethod, cb, priority, isExplicit, index) {
     if (!url) {
       logger.warn('loader: The image url is empty.');
+      return cb && cb(null, index);
+    }
+
+    if (this._missingAssets[url]) {
       return cb && cb(null, index);
     }
 

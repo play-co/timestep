@@ -182,6 +182,7 @@ function _loadImage (url, cb, loader, priority, isExplicit) {
     var reason = ' Reason: ' + error.reason;
     var response = ' Response: ' + error.response;
     logger.error('Image not found: ' + url + statusCode + reason + response);
+    loader._missingAssets[url] = true;
     return onRequestComplete(cb, null);
   };
 
@@ -232,6 +233,11 @@ function _loadFile (url, cb, loader, priority, isExplicit, responseType) {
       var reason = ' Reason: ' + xobj.reason;
       var response = ' Response: ' + xobj.response;
       logger.error('Failed to load file: ' + url + statusCode + reason + response);
+
+      if (~~xobj.status === 404) {
+        loader._missingAssets[url] = true;
+      }
+
       return onRequestComplete(cb, null);
     }
 
