@@ -19,6 +19,8 @@ import audioContext from 'audioContext';
 
 // TODO: is this file where caches should be initialized and populated?
 import { CACHE, logger } from 'base';
+import WebGLContext2D from 'platforms/browser/webgl/WebGLContext2D';
+
 var FILE_CACHE = CACHE;
 
 var IMAGE_CACHE = {};
@@ -61,6 +63,17 @@ exports.PRIORITY_MEDIUM = PRIORITY_MEDIUM;
 var pendingRequests = [];
 var pendingRequestsLowPriority = [];
 var nbAssetsLoading = 0;
+
+var webglSupported = WebGLContext2D.isSupported;
+
+class TextureWrapper {
+  constructor (image, texture, width, height) {
+    this.image = image;
+    this.texture = texture;
+    this.width = width;
+    this.height = height;
+  }
+}
 
 function pendRequest (priority, request) {
   if (nbAssetsLoading === MAX_PARALLEL_LOADINGS) {
@@ -151,10 +164,15 @@ function _loadImage (url, cb, loader, priority, isExplicit) {
     this.onload  = null;
     this.onerror = null;
 
-    // emitting event
-    loader.emit(loader.IMAGE_LOADED, this, url);
+    var image;
+    if (webglSupported) {
+      var texture = WebGLContext2D.createTexture(this);
+      image = new TextureWrapper(this, texture, this.width, this.height);
+    } else {
+      image = this;
+    }
 
-    return onRequestComplete(cb, this);
+    return onRequestComplete(cb, image);
   };
 
   img.onerror = function (error) {

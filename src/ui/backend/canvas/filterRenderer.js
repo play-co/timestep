@@ -64,7 +64,7 @@ class FilterRenderer {
     pendingChecks = {};
   }
 
-  renderFilter (ctx, srcImg, srcX, srcY, srcW, srcH) {
+  renderFilter (ctx, image, srcX, srcY, srcW, srcH) {
     if (needsInitialization) {
       this.initialize();
     }
@@ -74,14 +74,14 @@ class FilterRenderer {
 
     // Ugly hack, but WebGL still needs this class, for now, for masking.
     // The other filters are handled by the WebGL context itself.
-    var filterNotSupported = ctx.canvas.isWebGL && filterName !== 'NegativeMask' && filterName !== 'PositiveMask';
+    var filterNotSupported = ctx.isWebGL && filterName !== 'NegativeMask' && filterName !== 'PositiveMask';
 
     if (!filter || filterNotSupported || !filter.getType) {
       return null;
     }
 
     if (this.useCache) {
-      var cacheKey = this.getCacheKey(srcImg.getURL(), srcX, srcY, srcW, srcH, filter);
+      var cacheKey = this.getCacheKey(image.getURL(), srcX, srcY, srcW, srcH, filter);
       var resultImg = this.cache.get(cacheKey);
       if (resultImg) {
         return resultImg;
@@ -99,27 +99,27 @@ class FilterRenderer {
 
     switch (filterName) {
       case 'LinearAdd':
-        this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter, 'lighter', resultImg);
+        this.renderColorFilter(ctx, image, srcX, srcY, srcW, srcH, filter, 'lighter', resultImg);
         break;
 
       case 'Tint':
-        this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter, 'source-over', resultImg);
+        this.renderColorFilter(ctx, image, srcX, srcY, srcW, srcH, filter, 'source-over', resultImg);
         break;
 
       case 'Multiply':
         if (COMPOSITE_MULTIPLY_SUPPORTED) {
-          this.renderColorFilter(ctx, srcImg, srcX, srcY, srcW, srcH, filter, 'multiply', resultImg);
+          this.renderColorFilter(ctx, image, srcX, srcY, srcW, srcH, filter, 'multiply', resultImg);
         } else {
-          this.renderMultiply(ctx, srcImg, srcX, srcY, srcW, srcH, filter, resultImg);
+          this.renderMultiply(ctx, image, srcX, srcY, srcW, srcH, filter, resultImg);
         }
         break;
 
       case 'NegativeMask':
-        this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(), 'source-in', resultImg);
+        this.renderMask(ctx, image, srcX, srcY, srcW, srcH, filter.getMask(), 'source-in', resultImg);
         break;
 
       case 'PositiveMask':
-        this.renderMask(ctx, srcImg, srcX, srcY, srcW, srcH, filter.getMask(), 'source-out', resultImg);
+        this.renderMask(ctx, image, srcX, srcY, srcW, srcH, filter.getMask(), 'source-out', resultImg);
         break;
     }
 
@@ -136,27 +136,27 @@ class FilterRenderer {
     return currentFrame - checkFrame > CACHE_FRAME_THRESHOLD;
   }
 
-  renderColorFilter (ctx, srcImg, srcX, srcY, srcW, srcH, filter, op, destCanvas) {
+  renderColorFilter (ctx, image, srcX, srcY, srcW, srcH, filter, op, destCanvas) {
     var result = destCanvas;
     var resultCtx = result.getContext('2d');
     // render the base image
     resultCtx.globalCompositeOperation = 'source-over';
-    srcImg.render(resultCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
+    image.render(resultCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
     // render the filter color
     resultCtx.globalCompositeOperation = op;
     resultCtx.fillStyle = filter.getColorString();
     resultCtx.fillRect(0, 0, srcW, srcH);
     // use our base image to cut out the image shape from the rect
     resultCtx.globalCompositeOperation = 'destination-in';
-    srcImg.render(resultCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
+    image.render(resultCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
     return result;
   }
 
-  renderMultiply (ctx, srcImg, srcX, srcY, srcW, srcH, filter, destCanvas) {
+  renderMultiply (ctx, image, srcX, srcY, srcW, srcH, filter, destCanvas) {
     var color = filter.get();
     var result = destCanvas;
     var resultCtx = result.getContext('2d');
-    var imgData = srcImg.getImageData(srcX, srcY, srcW, srcH);
+    var imgData = image.getImageData(srcX, srcY, srcW, srcH);
     var data = imgData.data;
     // simplified multiply math outside of the massive for loop
     var a = color.a;
@@ -173,7 +173,7 @@ class FilterRenderer {
     return result;
   }
 
-  renderMask (ctx, srcImg, srcX, srcY, srcW, srcH, mask, op, destCanvas) {
+  renderMask (ctx, image, srcX, srcY, srcW, srcH, mask, op, destCanvas) {
     var result = destCanvas;
     var resultCtx = result.getContext('2d');
     // render the mask image
@@ -186,7 +186,7 @@ class FilterRenderer {
       srcH);
     // render the base image
     resultCtx.globalCompositeOperation = op;
-    srcImg.render(resultCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
+    image.render(resultCtx, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
     return result;
   }
 

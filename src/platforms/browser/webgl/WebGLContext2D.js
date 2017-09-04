@@ -1,5 +1,3 @@
-let exports = {};
-
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -28,13 +26,11 @@ import {
 
 import device from 'device';
 
-import loader from 'ui/resource/loader';
 import Color from 'ui/Color';
 import TextManager from './TextManager';
 import Shaders from './Shaders';
 import Matrix2D from './Matrix2D';
 import WebGLTextureManager from './WebGLTextureManager';
-
 
 
 class ContextStateStack {
@@ -170,7 +166,7 @@ class GLManager {
     this._indexCache = new Uint16Array(MAX_BATCH_SIZE * 6);
     this._vertexCache = new ArrayBuffer(MAX_BATCH_SIZE * STRIDE * 4);
     this._vertices = new Float32Array(this._vertexCache);
-    this._colors = new Uint8Array(this._vertexCache);
+    this._colors = new Uint32Array(this._vertexCache);
 
     var indexCount = MAX_BATCH_SIZE * 6;
     for (var i = 0, j = 0; i < indexCount; i += 6, j += 4) {
@@ -186,7 +182,7 @@ class GLManager {
 
     for (var i = 0; i <= MAX_BATCH_SIZE; i++) {
       this._batchQueue[i] = {
-        textureId: 0,
+        texture: null,
         index: 0,
         clip: false,
         filter: null,
@@ -204,10 +200,6 @@ class GLManager {
     this.initGL();
     this._primaryContext = new Context2D(this, this._canvas);
     this.activate(this._primaryContext);
-
-    loader.on(loader.IMAGE_LOADED, function (image) {
-      this.createOrUpdateTexture(image, image.__GL_ID, true);
-    }.bind(this));
 
     this.contextActive = true;
 
@@ -395,7 +387,7 @@ class GLManager {
   }
 
   flush () {
-    if (this._batchIndex === -1 || !this.gl) {
+    if (this._batchIndex === -1) {
       return;
     }
 
@@ -411,14 +403,11 @@ class GLManager {
       } else {
         this.disableScissor();
       }
-      var textureId = curQueueObj.textureId;
-      if (textureId !== -1) {
-        var texture = this.textureManager.getTexture(textureId);
-        if (!texture) {
-          continue;
-        }
+      var texture = curQueueObj.texture;
+      if (texture) {
         gl.bindTexture(gl.TEXTURE_2D, texture);
       }
+
       this.setActiveCompositeOperation(curQueueObj.globalCompositeOperation);
       this.setActiveRenderMode(curQueueObj.renderMode);
       var start = curQueueObj.index;
@@ -430,33 +419,12 @@ class GLManager {
     this._batchIndex = -1;
   }
 
-  createOrUpdateTexture (image, id, drawImmediately) {
-    var gl = this.gl;
-
-    if (!gl) {
-      return -1;
-    }
-
-    id = this.textureManager.createOrUpdateTexture(image, id);
-
-    if (drawImmediately) {
-      var currentAlpha = this._primaryContext.globalAlpha;
-      // Draw single, transparent pixel of image to ensure upload to buffer
-      this._primaryContext.globalAlpha = 0.00001;
-      this._primaryContext.drawImage(image, 0, 0, 1, 1, 0, 0, 1, 1);
-      this.flush();
-      this._primaryContext.globalAlpha = currentAlpha;
-    }
-
-    return id;
+  createTexture (image) {
+    return this.textureManager.createTexture(image);
   }
 
-  getTexture (id) {
-    return this.textureManager.getTexture(id);
-  }
-
-  deleteTexture (id) {
-    this.textureManager.deleteTexture(id);
+  deleteTexture (image) {
+    this.textureManager.deleteTexture(image.texture);
   }
 
   deleteTextureForImage (image) {
@@ -464,10 +432,6 @@ class GLManager {
   }
 
   enableScissor (x, y, width, height) {
-    if (!this.gl) {
-      return;
-    }
-
     var gl = this.gl;
     if (!this._scissorEnabled) {
       gl.enable(gl.SCISSOR_TEST);
@@ -486,10 +450,6 @@ class GLManager {
   }
 
   disableScissor () {
-    if (!this.gl) {
-      return;
-    }
-
     if (this._scissorEnabled) {
       var gl = this.gl;
       this._scissorEnabled = false;
@@ -497,7 +457,7 @@ class GLManager {
     }
   }
 
-  addToBatch (state, textureId) {
+  addToBatch (state, texture) {
     if (this._drawIndex >= MAX_BATCH_SIZE - 1) {
       this.flush();
     }
@@ -511,8 +471,8 @@ class GLManager {
       ? this._batchQueue[this._batchIndex]
       : null;
     var stateChanged = !queuedState
-      || queuedState.textureId !== textureId
-      || textureId === -1 && queuedState.fillStyle !== state.fillStyle
+      || queuedState.texture !== texture
+      || !texture && queuedState.fillStyle !== state.fillStyle
       || queuedState.globalCompositeOperation !== state.globalCompositeOperation
       || queuedState.filter !== filter || queuedState.clip !== clip
       || queuedState.clipRect.x !== clipRect.x
@@ -522,7 +482,7 @@ class GLManager {
 
     if (stateChanged) {
       var queueObject = this._batchQueue[++this._batchIndex];
-      queueObject.textureId = textureId;
+      queueObject.texture = texture;
       queueObject.index = this._drawIndex;
       queueObject.globalCompositeOperation = state.globalCompositeOperation;
       queueObject.filter = filter;
@@ -532,7 +492,7 @@ class GLManager {
       queueObject.clipRect.width = clipRect.width;
       queueObject.clipRect.height = clipRect.height;
 
-      if (textureId === -1) {
+      if (!texture) {
         queueObject.renderMode = RENDER_MODES.Rect;
       } else if (filter) {
         queueObject.renderMode = RENDER_MODES[filter.getType()];
@@ -550,21 +510,19 @@ class GLManager {
   }
 
   activate (ctx, forceActivate) {
-    var gl = this.gl;
     var sameContext = ctx === this._activeCtx;
-
     if (sameContext && !forceActivate) {
       return;
     }
 
     if (!sameContext) {
       this.flush();
-      gl.finish();
+      this.gl.finish();
       this._activeCtx = ctx;
     }
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, ctx.frameBuffer);
-    gl.viewport(0, 0, ctx.width, ctx.height);
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, ctx.frameBuffer);
+    this.gl.viewport(0, 0, ctx.width, ctx.height);
     this._activeRenderMode = -1;
   }
 }
@@ -593,17 +551,13 @@ class Context2D {
     this.font = '11px ' + device.defaultFontFamily;
     this.frameBuffer = null;
     this.filter = null;
+    this.isWebGL = true;
   }
 
   createOffscreenFrameBuffer () {
     var gl = this._manager.gl;
-    if (!gl) {
-      return;
-    }
-
     var activeCtx = this._manager._activeCtx;
-    var id = this._manager.createOrUpdateTexture(this.canvas);
-    this._texture = this._manager.getTexture(id);
+    this._texture = this._manager.createTexture(this.canvas);
     this.frameBuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer);
     gl.bindTexture(gl.TEXTURE_2D, this._texture);
@@ -766,9 +720,6 @@ class Context2D {
   roundRect (x, y, width, height, radius) {}
 
   fillText (text, x, y) {
-    if (!this._manager.gl) {
-      return;
-    }
     var textData = this._manager.textManager.get(this, text, false);
     if (!textData) {
       return;
@@ -779,9 +730,6 @@ class Context2D {
   }
 
   strokeText (text, x, y) {
-    if (!this._manager.gl) {
-      return;
-    }
     var textData = this._manager.textManager.get(this, text, true);
     if (!textData) {
       return;
@@ -797,15 +745,10 @@ class Context2D {
   }
 
   drawImage (image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
-    if (!this._manager.gl) {
-      return;
-    }
-
     if (!image) {
       return;
     }
 
-    var flip = !!image.__glFlip;
     var state = this.stack.state;
     var alpha = state.globalAlpha;
     if (alpha === 0) {
@@ -815,17 +758,7 @@ class Context2D {
     var manager = this._manager;
     manager.activate(this);
 
-    var glId = image.__GL_ID;
-    if (glId === undefined || image.__needsUpload) {
-      // Invalid image? Early out if so.
-      if (image.width === 0 || image.height === 0 || !image.complete) {
-        return;
-      }
-      image.__needsUpload = false;
-      glId = manager.createOrUpdateTexture(image, glId);
-    }
-
-    var drawIndex = manager.addToBatch(this.stack.state, glId);
+    var drawIndex = manager.addToBatch(this.stack.state, image.texture);
     var width = this.width;
     var height = this.height;
     var imageWidth = image.width;
@@ -835,34 +768,6 @@ class Context2D {
     var syH = sy + sHeight;
     var dxW = dx + dWidth;
     var dyH = dy + dHeight;
-
-    if (flip) {
-      sy = imageHeight - sy;
-      syH = sy - sHeight;
-    }
-
-    var needsTrim = sx < 0 || sxW > imageWidth || sy < 0 || syH > imageHeight;
-
-    if (needsTrim) {
-      var newSX = max(0, sx);
-      var newSY = max(0, sy);
-      var newSXW = min(sxW, imageWidth);
-      var newSYH = min(syH, imageHeight);
-      var scaleX = dWidth / sWidth;
-      var scaleY = dHeight / sHeight;
-      var trimLeft = (newSX - sx) * scaleX;
-      var trimRight = (sxW - newSXW) * scaleX;
-      var trimTop = (newSY - sy) * scaleY;
-      var trimBottom = (syH - newSYH) * scaleY;
-      dx += trimLeft;
-      dxW -= trimRight;
-      dy += trimTop;
-      dyH -= trimBottom;
-      sx = newSX;
-      sy = newSY;
-      sxW = newSXW;
-      syH = newSYH;
-    }
 
     // Calculate 4 vertex positions
     var x0 = dx * m.a + dy * m.c + m.tx;
@@ -919,15 +824,9 @@ class Context2D {
 
     if (state.filter) {
       var color = state.filter.get();
-      var ci = drawIndex * 4 * STRIDE;
       var cc = manager._colors;
-      cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = color.r;
-      // R
-      cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = color.g;
-      // G
-      cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = color.b;
-      // B
-      cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255;
+      var packedColor = (color.r & 0xff) + ((color.g & 0xff) << 8) + ((color.b & 0xff) << 16) + (((color.a * 255) & 0xff) << 24);
+      cc[i + 5] = cc[i + 11] = cc[i + 17] = cc[i + 23] = packedColor;
     }
   }
 
@@ -966,7 +865,7 @@ class Context2D {
 
     var manager = this._manager;
     manager.activate(this);
-    var drawIndex = manager.addToBatch(this.stack.state, -1);
+    var drawIndex = manager.addToBatch(this.stack.state, null);
 
     // TODO: remove private access to _vertices
     var vc = manager._vertices;
@@ -988,15 +887,9 @@ class Context2D {
     vc[i + 19] = y3;
     vc[i + 22] = this.globalAlpha;
 
-    var ci = drawIndex * 4 * STRIDE;
     var cc = manager._colors;
-    cc[ci + 20] = cc[ci + 44] = cc[ci + 68] = cc[ci + 92] = color.r;
-    // R
-    cc[ci + 21] = cc[ci + 45] = cc[ci + 69] = cc[ci + 93] = color.g;
-    // G
-    cc[ci + 22] = cc[ci + 46] = cc[ci + 70] = cc[ci + 94] = color.b;
-    // B
-    cc[ci + 23] = cc[ci + 47] = cc[ci + 71] = cc[ci + 95] = color.a * 255;
+    var packedColor = (color.r & 0xff) + ((color.g & 0xff) << 8) + ((color.b & 0xff) << 16) + (((color.a * 255) & 0xff) << 24);
+    cc[i + 5] = cc[i + 11] = cc[i + 17] = cc[i + 23] = packedColor;
   }
 
   deleteTextureForImage (canvas) {
@@ -1030,6 +923,5 @@ for (var i = 0; i < contextProperties.length; i++) {
   createContextProperty(Context2D.prototype, contextProperties[i]);
 }
 
-exports = new GLManager();
-
-export default exports;
+var glManager = new GLManager();
+export default glManager;

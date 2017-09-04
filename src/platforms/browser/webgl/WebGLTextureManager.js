@@ -39,101 +39,43 @@ export default class WebGLTextureManager extends PubSub {
     this.reloadTextures();
   }
 
-  getTexture (id) {
-    var textureData = this.textureDataCache.get(id);
-    return textureData
-      ? textureData.texture
-      : null;
-  }
-
-  getTextureData (id) {
-    var textureData = this.textureDataCache.get(id);
-    return textureData || null;
-  }
-
   deleteTextureForImage (image) {
+    console.error('deleteTextureForImage')
     if (image.__GL_ID !== undefined) {
       this.deleteTexture(image.__GL_ID);
     }
   }
 
-  deleteTexture (id) {
+  deleteTexture (textureData) {
     this.emit(WebGLTextureManager.TEXTURE_REMOVED);
-    var textureData = this.textureDataCache.remove(id);
     if (textureData) {
       this.gl.deleteTexture(textureData.texture);
-      this.removeFromByteCount(textureData.width, textureData.height);
-      textureData.image.__GL_ID = undefined;
     }
   }
 
-  createOrUpdateTexture (image, id) {
-    var gl = this.gl;
-    if (!gl) {
-      return -1;
-    }
-
+  createTexture (image) {
     var width = image.width;
     var height = image.height;
-
-    if (!image.dispose) {
-      image.dispose = bind(this, function () {
-        this.deleteTextureForImage(image);
-      });
-    }
 
     if (width === 0 || height === 0) {
       throw new Error('Image cannot have a width or height of 0.');
     }
 
-    if (id === undefined) {
-      id = image.__GL_ID !== undefined
-        ? image.__GL_ID
-        : CACHE_UID++;
-    }
+    var gl = this.gl;
+    var texture = gl.createTexture();
+    var textureData = {
+      image: image,
+      isImg: image instanceof Image,
+      isCanvas: image instanceof HTMLCanvasElement,
+      width: width,
+      height: height,
+      texture: texture
+    };
 
-    image.__GL_ID = id;
-
-    var textureDataEntry = this.textureDataCache.find(id);
-    var textureData = textureDataEntry
-      ? textureDataEntry.value
-      : null;
-    var needsAddByteCount = false;
-
-    // No data exists for id, create new entry
-    if (!textureData) {
-      textureData = {
-        image: image,
-        isImg: image instanceof Image,
-        isCanvas: image instanceof HTMLCanvasElement,
-        width: width,
-        height: height,
-        texture: gl.createTexture()
-      };
-
-      gl.bindTexture(gl.TEXTURE_2D, textureData.texture);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      this.textureDataCache.put(id, textureData);
-      needsAddByteCount = true;
-    } else {
-      gl.bindTexture(gl.TEXTURE_2D, textureData.texture);
-    }
-
-    if (textureData.width !== width || textureData.height !== height) {
-      this.removeFromByteCount(textureData.width, textureData.height);
-      textureData.width = width;
-      textureData.height = height;
-      needsAddByteCount = true;
-    }
-
-    if (textureData.image !== image) {
-      textureData.image.__GL_ID = undefined;
-      textureData.image = image;
-      textureData.isImg = image instanceof Image;
-      textureData.isCanvas = image instanceof HTMLCanvasElement;
-    }
+    gl.bindTexture(gl.TEXTURE_2D, textureData.texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
     if (textureData.isImg || textureData.isCanvas) {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
@@ -141,11 +83,11 @@ export default class WebGLTextureManager extends PubSub {
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
     }
 
-    if (needsAddByteCount) {
-      this.addToByteCount(width, height);
-    }
+    var cacheKey = CACHE_UID++;
+    this.textureDataCache.put(cacheKey, textureData);
+    this.addToByteCount(width, height);
 
-    return id;
+    return texture;
   }
 
   reloadTextures () {
@@ -177,7 +119,9 @@ export default class WebGLTextureManager extends PubSub {
           this.textureDataCache.get(oldestTextureEntry.key);
           continue;
         }
-        this.deleteTexture(oldestTextureEntry.key);
+        var textureData = oldestTextureEntry.value;
+        this.deleteTexture(textureData.texture);
+        this.removeFromByteCount(textureData.width, textureData.height);
       }
     }
   }

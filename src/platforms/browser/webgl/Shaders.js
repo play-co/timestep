@@ -2,38 +2,60 @@ let exports = {};
 
 var STRIDE = 24;
 
+var vertexShaderDefault = [
+  'precision mediump float;',
+  'attribute vec2 aTextureCoord;',
+  'attribute vec2 aPosition;',
+  'attribute float aAlpha;',
+  'uniform vec2 uResolution;',
+  'varying vec2 vTextureCoord;',
+  'varying float vAlpha;',
+  'void main() {',
+  ' vTextureCoord = aTextureCoord;',
+  ' vAlpha = aAlpha;',
+  ' vec2 clipSpace = (aPosition / uResolution) * 2.0 - 1.0;',
+  ' gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);',
+  '}'
+].join('\n');
+
+var vertexShaderWithColor = [
+  'precision mediump float;',
+  'attribute vec2 aTextureCoord;',
+  'attribute vec2 aPosition;',
+  'attribute vec4 aColor;',
+  'attribute float aAlpha;',
+  'uniform vec2 uResolution;',
+  'varying vec2 vTextureCoord;',
+  'varying float vAlpha;',
+  'varying vec4 vColor;',
+  'void main() {',
+  ' vTextureCoord = aTextureCoord;',
+  ' vColor = aColor;',
+  ' vAlpha = aAlpha;',
+  ' vec2 clipSpace = (aPosition / uResolution) * 2.0 - 1.0;',
+  ' gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);',
+  '}'
+].join('\n');
+
+vertexShaderDefault = vertexShaderWithColor;
+
+var fragmentShaderDefault = [
+  'precision mediump float;',
+  'varying vec2 vTextureCoord;',
+  'varying float vAlpha;',
+  'uniform sampler2D uSampler;',
+  'void main(void) {',
+  ' gl_FragColor = texture2D(uSampler, vTextureCoord) * vAlpha;',
+  '}'
+].join('\n');
+
 class Shader {
   constructor (opts) {
     var gl = this._gl = opts.gl;
 
-    this._vertexSrc = opts.vertexSrc || [
-      'precision mediump float;',
-      'attribute vec2 aTextureCoord;',
-      'attribute vec2 aPosition;',
-      'attribute vec4 aColor;',
-      'attribute float aAlpha;',
-      'uniform vec2 uResolution;',
-      'varying vec2 vTextureCoord;',
-      'varying float vAlpha;',
-      'varying vec4 vColor;',
-      'void main() {',
-      ' vTextureCoord = aTextureCoord;',
-      ' vColor = aColor;',
-      ' vAlpha = aAlpha;',
-      ' vec2 clipSpace = (aPosition / uResolution) * 2.0 - 1.0;',
-      ' gl_Position = vec4(clipSpace * vec2(1.0, -1.0), 0.0, 1.0);',
-      '}'
-    ].join('\n');
+    this._vertexSrc = opts.vertexSrc || vertexShaderDefault;
 
-    this._fragmentSrc = opts.fragmentSrc || [
-      'precision mediump float;',
-      'varying vec2 vTextureCoord;',
-      'varying float vAlpha;',
-      'uniform sampler2D uSampler;',
-      'void main(void) {',
-      ' gl_FragColor = texture2D(uSampler, vTextureCoord) * vAlpha;',
-      '}'
-    ].join('\n');
+    this._fragmentSrc = opts.fragmentSrc || fragmentShaderDefault;
 
     var useTexture = opts.useTexture !== undefined ? opts.useTexture : true;
 
@@ -42,7 +64,14 @@ class Shader {
       aPosition: 0,
       aAlpha: 0,
       aColor: 0
-    };
+    }
+
+    var attributes = opts.attributes;
+    if (attributes) {
+      for (var a = 0; a < attributes.length; a += 1) {
+        this.attributes[attributes[a]] = 0;
+      }
+    }
 
     this.uniforms = {
       uSampler: useTexture ? 0 : -1,
@@ -136,6 +165,8 @@ class LinearAddShader extends Shader {
       ' gl_FragColor = vec4(vSample.rgb + (vColor.rgb * vColor.a * vSample.a), vSample.a) * vAlpha;',
       '}'
     ].join('\n');
+    opts.vertexSrc = vertexShaderWithColor;
+    opts.attributes = ['aColor'];
     super(opts);
   }
 }
@@ -153,6 +184,8 @@ class TintShader extends Shader {
       ' gl_FragColor = vec4((vSample.rgb * (1.0 - vColor.a) + (vColor.rgb * vColor.a)) * vSample.a * vAlpha, vSample.a * vAlpha);',
       '}'
     ].join('\n');
+    opts.vertexSrc = vertexShaderWithColor;
+    opts.attributes = ['aColor'];
     super(opts);
   }
 }
@@ -170,6 +203,8 @@ class MultiplyShader extends Shader {
       ' gl_FragColor = vec4(vSample.rgb * (vColor.rgb * vColor.a), vSample.a) * vAlpha;',
       '}'
     ].join('\n');
+    opts.vertexSrc = vertexShaderWithColor;
+    opts.attributes = ['aColor'];
     super(opts);
   }
 }
@@ -185,6 +220,8 @@ class RectShader extends Shader {
       '}'
     ].join('\n');
     opts.useTexture = false;
+    opts.vertexSrc = vertexShaderWithColor;
+    opts.attributes = ['aColor'];
     super(opts);
   }
 }

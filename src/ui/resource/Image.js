@@ -326,7 +326,7 @@ export default class ImageWrapper extends PubSub {
   render (ctx, srcX, srcY, srcW, srcH, destX, destY, destW, destH) {
     if (!this.isReady()) { return; }
 
-    var srcImg = this._srcImg;
+    var srcImg = ctx.isWebGL ? this._srcImg : this._srcImg.image;
 
     if (ctx.filter) {
       var filterImg = filterRenderer.renderFilter(ctx, this, srcX, srcY, srcW, srcH);

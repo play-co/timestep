@@ -15,7 +15,6 @@
  */
 
 import i18n from './i18n';
-import Emitter from 'event/Emitter';
 import userAgent from 'userAgent';
 import loaders from 'ui/resource/primitiveLoaders';
 import { isArray, logger } from 'base';
@@ -73,14 +72,11 @@ var loadMethodsByExtension = {
   '.html': loadFile
 };
 
-class Loader extends Emitter {
+class Loader {
   constructor () {
-    super();
-
-    this._crossOrigin = undefined;
-
     this._user = null;
     this._password = null;
+    this._crossOrigin = undefined;
 
     this._map = {};
     this._originalMap = {};
@@ -466,7 +462,6 @@ class Loader extends Emitter {
 
 }
 
-Loader.prototype.IMAGE_LOADED = 'imageLoaded';
 Loader.prototype.PRIORITY_LOW = loaders.PRIORITY_LOW;
 Loader.prototype.PRIORITY_MEDIUM = loaders.PRIORITY_MEDIUM;
 // Loader.prototype.PRIORITY_HIGH = loaders.PRIORITY_HIGH;
