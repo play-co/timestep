@@ -262,11 +262,11 @@ export default class MovieClip extends View {
     var actualFrame = this.frame;
     var timeline = animation.timeline;
     for (var frame = 0; frame < timeline.length; frame++) {
-      animation.expandBoundingBox(this._bbox, elementID, transform, frame, frame, this._substitutes);
+      animation._expandBoundingBox(this._bbox, elementID, transform, false, frame, frame, this._substitutes);
     }
   }
 
-  expandBoundingBox (boundingBox, elementID, transform, frame, framesElapsed, substitutes, currentBounds) {
+  _expandBoundingBox (boundingBox, elementID, transform, currentBounds, frame, framesElapsed, substitutes) {
     if (currentBounds) {
       this.updateCurrentBoundingBox(this.animation, elementID, transform);
     } else {
@@ -285,7 +285,7 @@ export default class MovieClip extends View {
       return;
     }
 
-    animation.expandBoundingBox(this._bbox, elementID, transform, this.frame, this.framesElapsed, this._substitutes, true);
+    animation._expandBoundingBox(this._bbox, elementID, transform, true, this.frame, this.framesElapsed, this._substitutes);
   }
 
   clearBoundsMap () {

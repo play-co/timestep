@@ -122,7 +122,7 @@ class Sprite {
     }
   }
 
-  expandBoundingBox (boundingBox, elementID, transform) {
+  _expandBoundingBox (boundingBox, elementID, transform) {
     if (elementID !== null) {
       return;
     }
@@ -203,7 +203,7 @@ class Symbol {
     }
   }
 
-  expandBoundingBox (boundingBox, elementID, parentTransform, frame, elapsedFrames, substitutes, currentBounds) {
+  _expandBoundingBox (boundingBox, elementID, parentTransform, currentBounds, frame, elapsedFrames, substitutes) {
     // TODO: if instance is movie clip, the bounds should include all its frames
     var children = this.timeline[frame];
     for (var i = 0; i < children.length; i++) {
@@ -228,7 +228,7 @@ class Symbol {
       }
 
       var searchedElementID = (elementID === childID) ? null : elementID;
-      element.expandBoundingBox(boundingBox, searchedElementID, transform, childFrame, elapsedFrames, substitutes, currentBounds);
+      element._expandBoundingBox(boundingBox, searchedElementID, transform, currentBounds, childFrame, elapsedFrames, substitutes);
     }
   }
 

@@ -535,6 +535,39 @@ export default class View extends IView {
   _wrapRender (ctx, transform, opacity) {
     this.style.wrapRender(ctx, transform, opacity);
   }
+  _expandBoundingBox (boundingBox, elementID, transform) {
+    if (elementID !== null) {
+      return;
+    }
+
+    // Expanding bounding box
+    var style = this.__view;
+    style.updateGlobalTransform(transform);
+    var globalTransform = style._globalTransform;
+
+    var right = style.width;
+    var bottom = style.height;
+
+    var a = globalTransform.a;
+    var b = globalTransform.b;
+    var c = globalTransform.c;
+    var d = globalTransform.d;
+    var tx = globalTransform.tx;
+    var ty = globalTransform.ty;
+
+    var x1 = right * a + tx;
+    var y1 = right * b + ty;
+    var x2 = bottom * c + tx;
+    var y2 = bottom * d + ty;
+    var x3 = right * a + x2;
+    var y3 = right * b + y2;
+
+    boundingBox.left = Math.min(boundingBox.left, tx, x1, x2, x3);
+    boundingBox.top = Math.min(boundingBox.top, ty, y1, y2, y3);
+
+    boundingBox.right = Math.max(boundingBox.right, tx, x1, x2, x3);
+    boundingBox.bottom = Math.max(boundingBox.bottom, ty, y1, y2, y3);
+  }
   _linkView (view) {
     // remove any current connections
     this._unlinkView(view);
