@@ -27,8 +27,6 @@ import { EventEmitter } from 'events';
 
 import BitmapChar from './BitmapChar';
 
-
-const NATIVESIZE = -1;
 const CHAR_SPACE = 32;
 const CHAR_TAB = 9;
 const CHAR_NEWLINE = 10;
@@ -44,7 +42,7 @@ class BitmapFont extends EventEmitter {
     this.offsetX = 0;
     this.offsetY = 0;
     this.padding = 0;
-    this.name = "unknown";
+    this.name = 'unknown';
     this.chars = {};
     this.loaded = false;
 
@@ -58,6 +56,18 @@ class BitmapFont extends EventEmitter {
     }
 
     this.setMaxListeners(100);
+  }
+
+  _forceLoad (cb) {
+    if (this.texture) {
+      this.texture._forceLoad(cb);
+    }
+  }
+
+  _addAssetsToList (assetURLs) {
+    if (this.texture) {
+      this.texture._addAssetsToList(assetURLs);
+    }
   }
 
   parsedata(data) {
@@ -77,7 +87,7 @@ class BitmapFont extends EventEmitter {
     this.baseline = parseFloat(fontCommon.base);
 
     if (this.size <= 0) {
-      console.warn("Warning: invalid font size in '" + this.name + "' font.");
+      console.warn('Warning: invalid font size in "' + this.name + '" font.');
       this.size = (this.size === 0 ? 16 : -this.size);
     }
 

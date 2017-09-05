@@ -1,11 +1,19 @@
+import { CACHE } from 'base';
+import Promise from 'bluebird';
+import loader from 'ui/resource/loader';
+import loaders from 'ui/resource/primitiveLoaders'
+import Image from 'ui/resource/Image';
 
-import device from 'device';
 import Rect from 'math/geom/Rect';
 import View from 'ui/View';
 
 import Matrix from 'platforms/browser/webgl/Matrix2D';
+import Canvas from 'platforms/browser/Canvas';
+import ImageViewCache from 'ui/resource/ImageViewCache';
 
 import AnimationData from './AnimationData';
+
+var LoadRequest = loader.LoadRequest;
 
 /* TERMINOLOGY
  *
@@ -49,7 +57,6 @@ class BBox {
 
 }
 
-const Canvas = device.get('Canvas');
 const canvasPool = [];
 
 const IDENTITY_MATRIX = new Matrix();
@@ -75,6 +82,7 @@ export default class MovieClip extends View {
     this.looping = false;
     this.frameCount = 0;
     this.isPlaying = false;
+    this._playOnLoadCallback = null;
     this._animationName = '';
 
     this._callback = null;
@@ -83,6 +91,7 @@ export default class MovieClip extends View {
     this._canvas = null;
     this._ctx = null;
     this._frameDirty = true;
+    this.speed = 1;
 
     this._library = null;
     this._substitutes = {};
@@ -111,6 +120,34 @@ export default class MovieClip extends View {
 
     if (opts.defaultAnimation) {
       this.loop(opts.defaultAnimation);
+    }
+  }
+
+  _forceLoad () {
+    if (this._url) {
+      var url = this._url;
+      loadAnimation(url, data => {
+        if (this._url !== url) {
+          return;
+        }
+        this.setData(data);
+      });
+      this._loaded = true;
+    }
+  }
+
+  _addAssetsToList (assetURLs) {
+    if (this._url) {
+      // checking if url already presents
+      for (var u = 0; u < assetURLs.length; u += 1) {
+        var url = assetURLs[u];
+        if (typeof url === 'object' && url.url === this._url) {
+          // already presents!
+          return;
+        }
+      }
+
+      assetURLs.push({ url: this._url, loadMethod: loadAnimationMethod });
     }
   }
 
@@ -225,11 +262,11 @@ export default class MovieClip extends View {
     var actualFrame = this.frame;
     var timeline = animation.timeline;
     for (var frame = 0; frame < timeline.length; frame++) {
-      animation.expandBoundingBox(this._bbox, elementID, transform, frame, frame, this._substitutes);
+      animation._expandBoundingBox(this._bbox, elementID, transform, false, frame, frame, this._substitutes);
     }
   }
 
-  expandBoundingBox (boundingBox, elementID, transform, frame, framesElapsed, substitutes, currentBounds) {
+  _expandBoundingBox (boundingBox, elementID, transform, currentBounds, frame, framesElapsed, substitutes) {
     if (currentBounds) {
       this.updateCurrentBoundingBox(this.animation, elementID, transform);
     } else {
@@ -248,7 +285,7 @@ export default class MovieClip extends View {
       return;
     }
 
-    animation.expandBoundingBox(this._bbox, elementID, transform, this.frame, this.framesElapsed, this._substitutes, true);
+    animation._expandBoundingBox(this._bbox, elementID, transform, true, this.frame, this.framesElapsed, this._substitutes);
   }
 
   clearBoundsMap () {
@@ -256,10 +293,26 @@ export default class MovieClip extends View {
   }
 
   play (animationName, callback, loop) {
+    // be sure to remove any pending play callbacks
+    if (this._playOnLoadCallback) {
+      this.removeListener(MovieClip.LOADED, this._playOnLoadCallback);
+      this._playOnLoadCallback = null;
+    }
+
+    // if data is not set, we should play as soon as data is loaded
     if (!this.data) {
-      this.once(MovieClip.LOADED, () => {
-        this.play(animationName, callback, loop)
-      });
+      // save a reference to our callback so we can unschedule it if necessary
+      this._playOnLoadCallback = () => {
+        // we scheduled with once, so we can remove this before calling play
+        this._playOnLoadCallback = null;
+
+        // make sure this animation exists in the current data
+        if (this._library[animationName]) {
+          this.play(animationName, callback, loop);
+        }
+      };
+
+      this.once(MovieClip.LOADED, this._playOnLoadCallback);
       return;
     }
 
@@ -288,7 +341,7 @@ export default class MovieClip extends View {
       return;
     }
 
-    this._elapsed += dt;
+    this._elapsed += dt * this.speed;
 
     var currentFrame = this.frame;
 
@@ -386,6 +439,7 @@ export default class MovieClip extends View {
 
     if (data) {
       this.data = data;
+      this._url = data.url;
       this.fps = this._opts.fps || this.data.frameRate || 30;
       this._url = data.url;
       this._library = data.library;
@@ -393,6 +447,7 @@ export default class MovieClip extends View {
     } else {
       this.data = null;
       this.animation = null;
+      this._loaded = false;
     }
   }
 
@@ -442,22 +497,20 @@ export default class MovieClip extends View {
     }
 
     this._url = url;
-
-    if (!url) { return; }
-
-    var animationData = AnimationData.getAnimation(url);
+    var animationData = getAnimation(url);
     if (animationData) {
       this.setData(animationData);
       return;
     }
 
-    AnimationData
-      .loadFromURL(url)
-      .then(data => {
-        if (this._url === url) {
-          this.setData(data);
-        }
-      });
+    this.setData(null);
+    // transition period during which no animation data is attached to this view
+    _loadAnimation(url, data => {
+      if (this._url !== url) {
+        return;
+      }
+      this.setData(data);
+    });
   }
 }
 
@@ -469,7 +522,102 @@ function returnCanvasToPool (canvas) {
   canvasPool.push(canvas);
 }
 
-MovieClip.LOADED = 'loaded';
+function _loadAnimation (url, cb, priority, explicit) {
+  loader._loadAsset(url, loadAnimationMethod, cb, priority, explicit);
+}
 
-MovieClip.getAnimation = AnimationData.getAnimation;
-MovieClip.loadAnimation = AnimationData.loadFromURL;
+function loadAnimation (url, cb, priority) {
+  _loadAnimation(url, cb, priority, true);
+}
+
+function _loadAnimations (urls, cb, priority, explicit) {
+  loader._loadAssets(urls, loadAnimationMethod, cb, priority, explicit);
+}
+
+function loadAnimations (urls, cb, priority) {
+  _loadAnimations(urls, cb, priority, true);
+}
+
+const ANIMATION_CACHE = {};
+function getAnimation (url) {
+  var animationData = ANIMATION_CACHE[url];
+  if (!animationData) {
+    // TODO: remove this whole block of code when animations are properly preloaded
+    var fullURL = url + '/data.js';
+
+    var dataString = CACHE[fullURL];
+    if (dataString) {
+      var jsonData = JSON.parse(dataString);
+
+      var imageMap = [];
+      var spritesData = jsonData.textureOffsets;
+      for (var spriteID in spritesData) {
+        var spriteData = spritesData[spriteID];
+        var imageURL = spriteData.url;
+
+        imageMap[imageURL] = ImageViewCache.getImage(url + '/' + imageURL);
+      }
+
+      animationData = ANIMATION_CACHE[fullURL] = new AnimationData(jsonData, url, imageMap);
+    }
+  }
+  return animationData;
+}
+
+function loadAnimationMethod (url, cb, loader, priority, isExplicit) {
+  var jsonURL = url + '/data.js';
+
+  loaders.loadJSON(jsonURL, jsonData => {
+    if (jsonData === null) {
+      return cb && cb(null);
+    }
+
+    var imageURLs = [];
+    var spritesData = jsonData.textureOffsets;
+    var imageNames = [];
+    for (var spriteID in spritesData) {
+      var spriteData = spritesData[spriteID];
+      var imageName = spriteData.url;
+      imageNames.push(imageName);
+      imageURLs.push(url + '/' + imageName);
+    }
+
+    var uniqueImageURLs = [];
+    imageURLs.reduce((urls, url) => {
+      if (urls.indexOf(url) === -1) { urls.push(url); }
+      return urls;
+    }, uniqueImageURLs);
+
+    loader.loadImages(uniqueImageURLs, images => {
+      var imageMap = {};
+      for (var i = 0; i < images.length; i += 1) {
+        imageMap[imageNames[i]] = new Image({
+          srcImage: images[i],
+          url: imageURLs[i]
+        });
+      }
+
+      var animationData = new AnimationData(jsonData, url, imageMap);
+      return cb && cb(animationData);
+    }, priority, isExplicit);
+  }, loader, priority, isExplicit);
+}
+loadAnimationMethod.cache = ANIMATION_CACHE;
+loader.loadMethods.loadMovieClip = loadAnimationMethod;
+
+
+function obtainCanvasFromPool () {
+  return (canvasPool.length > 0) ? canvasPool.pop() : new Canvas({ useWebGL: true });
+}
+
+function returnCanvasToPool (canvas) {
+  canvasPool.push(canvas);
+}
+
+MovieClip.getAnimation = getAnimation;
+MovieClip.loadAnimation = loadAnimation;
+MovieClip.loadAnimations = loadAnimations;
+MovieClip.animationLoader = loadAnimationMethod;
+
+MovieClip.LOADED = 'loaded';
+MovieClip.EMPTY_SYMBOL = AnimationData.EMPTY_SYMBOL;

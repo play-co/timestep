@@ -41,9 +41,7 @@ import intersect from 'math/geom/intersect';
 import View from 'ui/View';
 
 var DEBUG = true;
-var USE_CLIPPING = false;
 
-// var USE_CLIPPING = !device.useDOM && !device.isMobile;
 if (DEBUG) {
   var _debug = { bounds: [] };
 }
@@ -117,106 +115,6 @@ var defaults = {
 };
 
 var viewportStack = [];
-
-function clippedWrapRender (contentView, backing, ctx) {
-  // non-native case only
-  if (backing._shouldSortVisibleSubviews) {
-    backing._shouldSortVisibleSubviews = false;
-    backing._visibleSubviews.sort();
-  }
-
-  ctx.save();
-  ctx.translate(backing.x + backing.anchorX, backing.y + backing.anchorY);
-
-  if (backing.r) {
-    ctx.rotate(backing.r);
-  }
-
-  // clip this render to be within its view;
-  if (backing.scale != 1) {
-    ctx.scale(backing.scale, backing.scale);
-  }
-  if (backing.opacity != 1) {
-    ctx.globalAlpha *= backing.opacity;
-  }
-
-  ctx.translate(-backing.anchorX, -backing.anchorY);
-
-  // if (backing._circle) { ctx.translate(-backing.width / 2, -backing.height / 2); }
-  if (backing.clip) {
-    ctx.clipRect(0, 0, backing.width, backing.height);
-  }
-
-  try {
-    if (backing.backgroundColor) {
-      ctx.fillStyle = backing.backgroundColor;
-      ctx.fillRect(0, 0, backing.width, backing.height);
-    }
-
-    backing._view.render && backing._view.render(ctx);
-
-    var subviews = backing._subviews;
-
-    var i = 0,
-      subview;
-    while (subview = subviews[i++]) {
-      if (subview === contentView) {
-        viewportStack.push(contentView._viewport);
-
-        clippedWrapRender(contentView, subview.__view, ctx);
-
-        viewportStack.pop();
-      } else {
-        var pos = subview.getPosition(viewport.src);
-        getBoundingRectangle(pos);
-
-        if (intersect.isRectAndRect(pos, viewport)) {
-          clippedWrapRender(contentView, subview.__view, ctx);
-        }
-
-        if (DEBUG) {
-          _debug.bounds.push(pos);
-        }
-      }
-    }
-  } catch (e) {
-    logger.error(backing._view, e.message, e.stack);
-  } finally {
-    // ctx.clearFilters();
-    ctx.restore();
-  }
-}
-
-// extend the default backing ctor
-class DEFAULT_BACKING_CTOR extends View.BackingCtor {
-  wrapRender (ctx) {
-    clippedWrapRender(this._view._contentView, this, ctx);
-
-    if (DEBUG) {
-      ctx.save();
-      ctx.translate(this.x + this.anchorX, this.y + this.anchorY);
-      if (this.r) {
-        ctx.rotate(this.r);
-      }
-      if (this.scale != 1) {
-        ctx.scale(this.scale, this.scale);
-      }
-      ctx.translate(-this.anchorX, -this.anchorY);
-
-      ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
-      ctx.fillRect(this._viewport.x, this._viewport.y, this._viewport.width, this._viewport.height);
-
-      ctx.translate(-this._viewport.x, -this._viewport.y);
-
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-      for (var i = 0, bounds; bounds = _debug.bounds[i]; ++i) {
-        ctx.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
-      }
-      _debug.bounds = [];
-      ctx.restore();
-    }
-  }
-}
 
 var PI_2 = Math.PI / 2;
 
@@ -752,7 +650,3 @@ export default class ScrollView extends View {
 
 ScrollView.prototype.tag = 'ScrollView';
 ScrollView.prototype.scrollData = [];
-if (USE_CLIPPING) {
-  // extend the default backing ctor
-  ScrollView.prototype.BackingCtor = DEFAULT_BACKING_CTOR;
-}

@@ -24,38 +24,18 @@ let exports = {};
  */
 import {
   logger,
-  bind,
-  NATIVE
+  bind
 } from 'base';
 
+import _ctx from 'audioContext';
 import device from 'device';
 import utilPath from 'util/path';
 import Emitter from 'event/Emitter';
-import AudioLoader from 'ui/backend/sound/AudioLoader';
+import loader from 'ui/resource/loader';
 
 // An API for playing named sounds. Sounds can be given a single file source
 // or multiple sources which will be chosen at random at play time. Sounds may
 // also be given a default volume and loop boolean.
-//
-// Only one background sound can be played at a time. They are streamed, not
-// preloaded, on native.
-// define AudioContext as best as possible; it may not exist
-var AudioContext = window.AudioContext || window.webkitAudioContext;
-
-// global private variables
-var _ctx = null;
-
-// use an AudioContext if available, otherwise fallback to Audio
-if (AudioContext) {
-  try {
-    _ctx = new AudioContext();
-  } catch (e) {
-    // most commonly due to hardware limits on AudioContext instances
-    logger.warn('HTML5 AudioContext init failed, falling back to Audio!');
-  }
-} else {
-  logger.warn('HTML5 AudioContext not supported, falling back to Audio!');
-}
 
 var _muteAll = false;
 var _registeredAudioManagers = [];
@@ -126,16 +106,17 @@ class MultiSound {
   constructor (soundManager, name, opts) {
     opts = typeof opts === 'string' ? { sources: [opts] } : opts || {};
 
+    var srcList = opts.sources || [name];
+
     this._soundManager = soundManager;
     this._name = name;
     this._isPaused = false;
     this._isStopped = false;
     this._lastSrc = null;
     this._sources = [];
-    this._paths = [];
+    this._paths = new Array(srcList.length);
 
     this._useAudioContext = false;
-    this._loader = null;
     this._gainNode = null;
 
     this.loop = opts.loop !== undefined ? opts.loop : opts.background;
@@ -144,9 +125,7 @@ class MultiSound {
     // if a list of file names is given in sources, load them as alternative
     // clips for this sound. Else, assume the only clip for this sound
     // is the file with its same name
-    var srcList = opts.sources || [name];
     var sources = this._sources;
-    var paths = this._paths;
     var basePath = soundManager.getPath();
     var ext = soundManager.getExt();
     var extTestExp = new RegExp(ext + '$', 'i');
@@ -155,20 +134,20 @@ class MultiSound {
 
     if (_ctx) {
       this._useAudioContext = true;
-      this._loader = soundManager.getAudioLoader();
       this._gainNode = _ctx.createGain();
       this._gainNode.connect(_ctx.destination);
       this._gainNode.gain.value = volume;
     }
 
-    for (var i = 0, src; src = srcList[i]; ++i) {
+    for (var i = 0; i < srcList.length ; ++i) {
+      var src = srcList[i];
       // file paths are relative to the base path
       var fullPath = utilPath.join(basePath, opts.path, src);
       // append the extension if not already provided
       if (!extTestExp.test(fullPath)) {
         fullPath += ext;
       }
-      paths.push(fullPath);
+      this._paths[i] = fullPath;
 
       // prefer AudioContext over Audio
       if (!this._useAudioContext) {
@@ -181,13 +160,12 @@ class MultiSound {
           audio.preload = audio.readyState !== 4
             || soundManager._preload && !opts.background ? 'auto' : 'none';
 
-          sources.push(audio);
-          if (audio.isBackgroundMusic && NATIVE && NATIVE.sound) {
-            NATIVE.sound.registerMusic(fullPath, audio);
-          }
+          this._sources.push(audio);
         }
       }
     }
+
+    this._sounds = new Array(this._paths.length);
   }
 
   getVolume () {
@@ -282,19 +260,21 @@ class MultiSound {
     var duration = opts.duration ? opts.duration * 1000 : undefined;
 
     if (this._useAudioContext) {
-      var loader = this._loader;
       var index = Math.random() * this._paths.length | 0;
-      var path = this._paths[index];
-      var buffer = loader.getBuffer(path);
-      if (!buffer) {
-        loader.doOnLoad(path, bind(this, function (buffers) {
+      var sound = this._sounds[index];
+      if (sound) {
+        this._playFromBuffer(sound, loop, time, duration);
+      } else {
+        if (!this._paths[index]) {
+          debugger
+        }
+        loader.loadSound(this._paths[index], sound => {
+          this._sounds[index] = sound;
           // handle async pause and stop
           if (!this._isPaused && !this._isStopped) {
-            this._playFromBuffer(buffers[0], loop, time, duration);
+            this._playFromBuffer(sound, loop, time, duration);
           }
-        }));
-      } else {
-        this._playFromBuffer(buffer, loop, time, duration);
+        });
       }
     } else {
       var src = this._getRandom();
@@ -362,7 +342,6 @@ exports = class extends Emitter {
     opts = opts || {};
     super(opts);
 
-    this._loader = null;
     this.setPath(opts.path);
     this._map = opts.files || opts.map;
     this._preload = opts.preload;
@@ -378,12 +357,8 @@ exports = class extends Emitter {
 
     opts.persist && this.persistState(opts.persist);
 
-    // pass the global AudioContext instance to AudioLoaders
-    _ctx && this.setAudioContext();
-
     // determine whether browser supports mp3 or ogg. Default to mp3 if
-    // both are supported. Native will return true for everything, but
-    // on native, we store ogg files as .mp3 files, so return .mp3...
+    // both are supported.
     if (typeof Audio !== 'undefined') {
       var sound = new Audio();
       if (sound.canPlayType('audio/mpeg')) {
@@ -411,31 +386,9 @@ exports = class extends Emitter {
       var urls = [];
       for (var key in this._sounds) {
         var sound = this._sounds[key];
-        urls = urls.concat(sound._paths);
+        loader._loadSound(sound._paths);
       }
-      this.preloadSounds(urls);
     }
-  }
-
-  getAudioContext () {
-    return _ctx;
-  }
-
-  setAudioContext () {
-    if (this._loader) {
-      this._loader.setAudioContext(_ctx);
-    } else {
-      this._loader = new AudioLoader({ ctx: _ctx });
-    }
-  }
-
-  getAudioLoader () {
-    return this._loader;
-  }
-
-  preloadSounds (urls) {
-    // used for AudioContext only
-    this._loader && this._loader.load(urls);
   }
 
   getExt () {
@@ -591,8 +544,8 @@ exports = class extends Emitter {
     opts = opts || {};
     var isBackgroundMusic = sound.isBackgroundMusic;
     if (isBackgroundMusic) {
-      // some platforms enforce only one simultaneous background music
-      // (native) while others do not.  Enforce it always.
+      // some platforms enforce only one simultaneous background
+      // while others do not.  Enforce it always.
       if (this.currentMusic) {
         this.currentMusic.stop();
       }

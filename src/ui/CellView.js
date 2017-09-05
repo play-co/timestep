@@ -1,4 +1,3 @@
-let exports = {};
 
 /**
  * @license
@@ -28,7 +27,7 @@ import Cell from 'squill/models/Cell';
 /**
  * @extends ui.View
  */
-exports = class extends View {
+export default class CellView extends View {
   constructor (opts) {
     opts = merge(opts, { layout: 'box' });
     super(opts);
@@ -95,7 +94,5 @@ exports = class extends View {
   }
 };
 
-exports.prototype.tag = 'CellView';
-exports.prototype.onClick = exports.prototype.onInputSelect;
-
-export default exports;
+CellView.prototype.tag = 'CellView';
+CellView.prototype.onClick = CellView.prototype.onInputSelect;

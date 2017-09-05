@@ -44,7 +44,7 @@ function adjustMiddleSlice (slices) {
 }
 
 function renderCoverOrContain (ctx, opts) {
-  if (!this._img) {
+  if (!this._img || !this._img.isReady()) {
     return;
   }
 
@@ -149,13 +149,13 @@ function renderCoverOrContain (ctx, opts) {
 
 var renderFunctions = {
   'none': function (ctx, opts) {
-    if (!this._img) { return; }
+    if (!this._img || !this._img.isReady()) { return; }
 
     var s = this.style;
     this._img.renderShort(ctx, 0, 0, s.width, s.height);
   },
   'stretch': function (ctx, opts) {
-    if (!this._img) { return; }
+    if (!this._img || !this._img.isReady()) { return; }
 
     var s = this.style;
     this._img.renderShort(ctx, 0, 0, s.width, s.height);
@@ -163,7 +163,7 @@ var renderFunctions = {
   'contain': renderCoverOrContain,
   'cover': renderCoverOrContain,
   'tile': function (ctx, opts) {
-    if (!this._img) {
+    if (!this._img || !this._img.isReady()) {
       return;
     }
 
@@ -217,7 +217,7 @@ var renderFunctions = {
     }
   },
   'slice': function (ctx, opts) {
-    if (!this._img) {
+    if (!this._img || !this._img.isReady()) {
       return;
     }
 
@@ -246,9 +246,22 @@ var debugColors = [
   '#0000FF'
 ];
 
-exports = class extends View {
+export default class ImageScaleView extends View {
   constructor (opts) {
     super(merge(opts, defaults));
+  }
+  _forceLoad () {
+    if (this._img) {
+      this._img._forceLoad(() => {
+        this.setImage(this._img, this._opts);
+      });
+      this._loaded = true;
+    }
+  }
+  _addAssetsToList (assetURLs) {
+    if (this._img) {
+      this._img._addAssetsToList(assetURLs);
+    }
   }
   getScaleMethod () {
     return this._scaleMethod;
@@ -570,6 +583,7 @@ exports = class extends View {
   }
   setImage (img, opts) {
     this._renderCacheKey = {};
+    this._loaded = false;
 
     var autoSized = false;
     var sw, sh, iw, ih, bounds;
@@ -610,6 +624,8 @@ exports = class extends View {
       }
     }
 
+    this._img = img;
+
     if (img && !bounds) {
       if (!img.isError()) {
         img.doOnLoad(this, 'setImage', img);
@@ -628,7 +644,7 @@ exports = class extends View {
       }
     }
 
-    viewOpts.image = this._img = img;
+    viewOpts.image = img;
 
     if (img) {
       if (this._isSlice) {
@@ -650,19 +666,17 @@ exports = class extends View {
           sourceSlicesVer[1] *= sourceScaleY;
           sourceSlicesVer[2] = sourceSlicesVer[2] * sourceScaleY - bounds.marginBottom;
         }
-        [
-          0,
-          2
-        ].forEach(function (num) {
-          if (sourceSlicesHor && sourceSlicesHor[num] < 0) {
-            sourceSlicesHor[1] += sourceSlicesHor[num];
-            sourceSlicesHor[num] = 0;
+
+        for (var i = 0; i <= 2; i += 2) {
+          if (sourceSlicesHor && sourceSlicesHor[i] < 0) {
+            sourceSlicesHor[1] += sourceSlicesHor[i];
+            sourceSlicesHor[i] = 0;
           }
-          if (sourceSlicesVer && sourceSlicesVer[num] < 0) {
-            sourceSlicesVer[1] += sourceSlicesVer[num];
-            sourceSlicesVer[num] = 0;
+          if (sourceSlicesVer && sourceSlicesVer[i] < 0) {
+            sourceSlicesVer[1] += sourceSlicesVer[i];
+            sourceSlicesVer[i] = 0;
           }
-        });
+        };
       }
 
       if (viewOpts.autoSize && !autoSized) {
@@ -720,7 +734,5 @@ exports = class extends View {
   }
 };
 
-exports.prototype.getOrigWidth = exports.prototype.getOrigW;
-exports.prototype.getOrigHeight = exports.prototype.getOrigH;
-
-export default exports;
+ImageScaleView.prototype.getOrigWidth = ImageScaleView.prototype.getOrigW;
+ImageScaleView.prototype.getOrigHeight = ImageScaleView.prototype.getOrigH;

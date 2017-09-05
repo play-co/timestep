@@ -28,8 +28,7 @@ import {
 
 import device from 'device';
 import View from 'ui/View';
-
-var TextBox = device.get('TextBox');
+import TextBox from 'platforms/browser/TextBox';
 
 exports = class extends View {
   constructor (opts) {

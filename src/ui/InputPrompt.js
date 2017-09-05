@@ -15,7 +15,7 @@ let exports = {};
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-/* globals NATIVE, DEBUG, jsio */
+/* globals DEBUG, jsio */
 import { merge } from 'base';
 
 import device from 'device';
@@ -23,8 +23,7 @@ import deprecated from './debug/deprecated';
 import debugTypes from './debug/types';
 
 import keyboardTypes from './keyboardTypes';
-
-var inputDialog = device.get('inputDialog');
+import inputDialog from 'platforms/browser/inputDialog';
 
 /**
  * @class InputPrompt

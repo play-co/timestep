@@ -35,7 +35,7 @@ import animate from 'animate';
  */
 exports = class extends View {
   constructor (opts) {
-    opts = merge(opts, { layout: 'box' });
+    opts = merge(opts);
     super(opts);
     this.stack = [];
   }

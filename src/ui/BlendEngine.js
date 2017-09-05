@@ -31,7 +31,7 @@ import View from 'ui/View';
 import Image from 'ui/resource/Image';
 import performance from 'performance';
 import userAgent from 'userAgent';
-var Canvas = device.get('Canvas');
+import Canvas from 'platforms/browser/Canvas';
 
 // Math references
 var sin = Math.sin;

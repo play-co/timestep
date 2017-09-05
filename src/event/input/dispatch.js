@@ -96,7 +96,7 @@ exports.traceEvt = function (view, evt, pt) {
 
 
 
-
+  // TODO: optimize by maintaining a list of visible subviews that can handle events
   var canHandleEvents = view.getInput().canHandleEvents;
   if (canHandleEvents) {
     evt.depth++;
@@ -107,9 +107,9 @@ exports.traceEvt = function (view, evt, pt) {
 
 
 
-  var subviews = view.getSubviews();
-  for (var i = subviews.length - 1; i >= 0; --i) {
-    if (subviews[i].style.visible && exports.traceEvt(subviews[i], evt, localPt)) {
+  var subviewBackings = view.getVisibleViewBackings();
+  for (var i = subviewBackings.length - 1; i >= 0; --i) {
+    if (exports.traceEvt(subviewBackings[i]._view, evt, localPt)) {
       return true;
     }
   }

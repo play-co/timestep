@@ -30,7 +30,7 @@ import {
 import TextView from 'ui/TextView';
 import device from 'device';
 
-var InputPrompt = device.get('InputPrompt');
+import InputPrompt from 'platforms/browser/InputPrompt';
 
 var defaults = {
   prompt: '',

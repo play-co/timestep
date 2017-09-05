@@ -173,7 +173,7 @@ exports.applyResourceMap = function (map, language) {
     if (langIndex === 0) {
       path = 'resources' + key.substring(langRes.length);
       localizedMap[path] = map[key];
-    } else if (Object.keys(localizedMap).indexOf(path) < 0) {
+    } else if (localizedMap[path] === undefined) {
       // without this block, the same name default resource would replace the localized resource
       localizedMap[path] = map[key];
     }

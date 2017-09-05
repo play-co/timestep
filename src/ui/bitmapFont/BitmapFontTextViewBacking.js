@@ -74,7 +74,7 @@ export default class BitmapFontTextViewBacking {
     this._maxWidth = 0;
     this._numLines = 0;
     this._truncateToFit = opts.truncateToFit || false;
-    this._truncationText = "...";
+    this._truncationText = '...';
     this._lastLayoutWidth = 0;
     this._lastLayoutHeight = 0;
     this._lastLayoutIsTruncated = false;
@@ -150,6 +150,10 @@ export default class BitmapFontTextViewBacking {
     }
 
     var font = this._listener._opts.font;
+    if (!font.loaded) {
+      return result;
+    }
+
     var customSize = this._listener._opts.size;
     var customLetterSpacing = this._listener._opts.letterSpacing;
     var isKerningEnabled = this._listener._opts.isKerningEnabled;
@@ -174,8 +178,8 @@ export default class BitmapFontTextViewBacking {
     var startXOfPreviousWord = 0;
     var widthOfWhitespaceAfterWord = 0;
     var wordCountForLine = 0;
-    var line = "";
-    var word = "";
+    var line = '';
+    var word = '';
 
     for (let i = 0; i < charCount; i++) {
       var charID = this._text.charCodeAt(i);
@@ -198,7 +202,7 @@ export default class BitmapFontTextViewBacking {
 
       var charData = font.getChar(charID);
       if (!charData) {
-        console.warn("Missing character " + String.fromCharCode(charID) + " in font " + font.name + ".");
+        console.warn('Missing character ' + String.fromCharCode(charID) + ' in font ' + font.name + '.');
         continue;
       }
 
@@ -221,7 +225,7 @@ export default class BitmapFontTextViewBacking {
           startXOfPreviousWord = currentX;
           wordCountForLine++;
           line += word;
-          word = "";
+          word = '';
         }
 
         if (!currentCharIsWhitespace && wordCountForLine > 0 && (currentX + xAdvance) > maxLineWidth) {
@@ -237,7 +241,7 @@ export default class BitmapFontTextViewBacking {
           startXOfPreviousWord = 0;
           widthOfWhitespaceAfterWord = 0;
           wordCountForLine = 0;
-          line = "";
+          line = '';
         }
       }
       currentX += xAdvance + customLetterSpacing;
@@ -307,7 +311,7 @@ export default class BitmapFontTextViewBacking {
     }
   }
 
-  draw() {
+  draw () {
     var isInvalid = true;
 
     var sizeInvalid;
@@ -370,7 +374,6 @@ export default class BitmapFontTextViewBacking {
 
   layoutCharacters(result = new MeasureTextResult()) {
     this._numLines = 1;
-
     var font = this._listener._opts.font;
     var customSize = this._listener._opts.size;
     var customLetterSpacing = this._listener._opts.letterSpacing;
@@ -449,7 +452,7 @@ export default class BitmapFontTextViewBacking {
 
       var charData = font.getChar(charID);
       if (!charData) {
-        console.warn("Missing character " + String.fromCharCode(charID) + " in font " + font.name + ".");
+        console.warn('Missing character ' + String.fromCharCode(charID) + ' in font ' + font.name + '.');
         continue;
       }
 
@@ -583,8 +586,8 @@ export default class BitmapFontTextViewBacking {
   }
 
   _updateCharacterViews() {
-    for (let i = 0; i < this._activeCharacterCount; i++) {
-      let charView = this._activeCharacters[i];
+    for (var i = 0; i < this._activeCharacterCount; i++) {
+      var charView = this._activeCharacters[i];
       this._listener.updateCharacterView(charView);
     }
   }
@@ -596,7 +599,7 @@ export default class BitmapFontTextViewBacking {
       var charLocation = CHARACTER_BUFFER[i];
       var charData = charLocation.char;
       var charID = charData.charID;
-      if (charID == CHARACTER_ID_SPACE || charID == CHARACTER_ID_TAB) {
+      if (charID === CHARACTER_ID_SPACE || charID === CHARACTER_ID_TAB) {
         countToRemove++;
       } else {
         break;
@@ -654,7 +657,7 @@ export default class BitmapFontTextViewBacking {
   getTruncatedText(width) {
     if (!this._text) {
       // this shouldn't be called if _text is null, but just in case...
-      return "";
+      return '';
     }
 
     // if the width is infinity or the string is multiline, don't allow truncation
@@ -786,7 +789,7 @@ export default class BitmapFontTextViewBacking {
     var needsInvalidate = value > this._explicitMaxWidth && this._lastLayoutIsTruncated;
 
     if (value !== value) { // isNaN
-      throw new Error("maxWidth cannot be NaN");
+      throw new Error('maxWidth cannot be NaN');
     }
 
     var oldValue = this._explicitMaxWidth;
@@ -893,7 +896,6 @@ export default class BitmapFontTextViewBacking {
 
     if (this._text !== value) {
       this._text = value;
-
       this.invalidate();
     }
   }

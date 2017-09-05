@@ -30,7 +30,6 @@ import device from 'device';
 
 import loader from 'ui/resource/loader';
 import Color from 'ui/Color';
-
 import TextManager from './TextManager';
 import Shaders from './Shaders';
 import Matrix2D from './Matrix2D';
@@ -799,6 +798,10 @@ class Context2D {
 
   drawImage (image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight) {
     if (!this._manager.gl) {
+      return;
+    }
+
+    if (!image) {
       return;
     }
 

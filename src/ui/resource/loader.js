@@ -1,5 +1,3 @@
-let exports = {};
-
 /**
  * @license
  * This file is part of the Game Closure SDK.
@@ -15,21 +13,12 @@ let exports = {};
  * You should have received a copy of the Mozilla Public License v. 2.0
  * along with the Game Closure SDK.  If not, see <http://mozilla.org/MPL/2.0/>.
  */
-import {
-  isArray,
-  merge,
-  GLOBAL,
-  CACHE,
-  NATIVE,
-  logger,
-  bind
-} from 'base';
 
 import i18n from './i18n';
-import Callback from 'lib/Callback';
 import Emitter from 'event/Emitter';
-import AudioManager from 'AudioManager';
 import userAgent from 'userAgent';
+import loaders from 'ui/resource/primitiveLoaders';
+import { isArray, logger } from 'base';
 
 var LOW_RES_KEY = 'low_res_';
 var LOW_RES_ENABLED = false;
@@ -53,40 +42,73 @@ if (_resolution === 'LOW') {
   LOW_RES_ENABLED = false;
 }
 
+class AssetCallback {
+  constructor (cb, index) {
+    this.cb = cb;
+    this.index = index;
+  }
+}
 
-
-var _cache = {};
-
-var MIME = {
-  '.js': 'text',
-  '.png': 'image',
-  '.jpg': 'image',
-  '.bmp': 'image',
-  '.css': 'css',
-  '.html': 'html',
-  '.mp3': 'audio',
-  '.ogg': 'audio',
-  '.mp4': 'audio',
-  '.3gp': 'audio',
-  '.m4a': 'audio',
-  '.aac': 'audio',
-  '.flac': 'audio',
-  '.mkv': 'audio',
-  '.wav': 'audio'
+var loadFile = loaders.loadFile;
+var loadJSON = loaders.loadJSON;
+var loadImage = loaders.loadImage;
+var loadSound = loaders.loadSound;
+var loadMethodsByExtension = {
+  '.js': loadFile,
+  '.json': loadJSON,
+  '.png': loadImage,
+  '.jpg': loadImage,
+  '.bmp': loadImage,
+  '.mp3': loadSound,
+  '.ogg': loadSound,
+  '.mp4': loadSound,
+  '.3gp': loadSound,
+  '.m4a': loadSound,
+  '.aac': loadSound,
+  '.flac': loadSound,
+  '.mkv': loadSound,
+  '.wav': loadSound,
+  // untested
+  '.css': loadFile,
+  '.html': loadFile
 };
 
-var globalItemsToLoad = 0;
-var globalItemsLoaded = 0;
-
-var _soundManager = null;
-var _soundLoader = null;
-
-
-
 class Loader extends Emitter {
+  constructor () {
+    super();
 
-  get progress () {
-    return globalItemsToLoad > 0 ? globalItemsLoaded / globalItemsToLoad : 1;
+    this._crossOrigin = undefined;
+
+    this._user = null;
+    this._password = null;
+
+    this._map = {};
+    this._originalMap = {};
+    this._audioMap = {};
+    this._priorities = {};
+
+    this._nbRequestedResources = 0;
+    this._currentRequests = {};
+    this._assetCallbacks = {};
+    this._assetCrossOrigins = {};
+    this._missingAssets = {};
+
+    this._logRequests = false;
+
+  }
+
+  setAssetCrossOrigin (url, crossOrigin) {
+    this._assetCrossOrigins[url] = crossOrigin;
+  }
+
+  toggleRequests () {
+    this._logRequests = !this._logRequests;
+  }
+
+  addAudioMap (map) {
+    for (var name in map) {
+      this._audioMap[name] = true;
+    }
   }
 
   has (src) {
@@ -110,19 +132,16 @@ class Loader extends Emitter {
     }
   }
 
-  get (file) {
-    return 'resources/images/' + file;
-  }
-
   addSheets (sheets) {
-    Object.keys(sheets).forEach(function (name) {
-      // exclude sheets of the resolution not in use
+    for (var name in sheets) {
       var isLowRes = name.indexOf(LOW_RES_KEY) >= 0;
-      if (LOW_RES_ENABLED !== isLowRes) { return; }
+      if (LOW_RES_ENABLED !== isLowRes) { continue; }
 
       var sheet = sheets[name];
-      sheet.forEach(function (info) {
-        this._map[info.f] = {
+      for (var i = 0; i < sheet.length; i += 1) {
+        var info = sheet[i];
+        var assetID = info.f;
+        this._map[assetID] = {
           sheet: name,
           x: info.x || 0,
           y: info.y || 0,
@@ -134,135 +153,11 @@ class Loader extends Emitter {
           marginBottom: info.b || 0,
           marginLeft: info.l || 0
         };
-      }, this);
-    }, this);
+
+      }
+    }
 
     this._originalMap = this._map;
-  }
-
-  addAudioMap (map) {
-    Object.keys(map).forEach(function (name) {
-      this._audioMap[name] = true;
-    }, this);
-  }
-
-  preload (pathPrefix, opts, cb) {
-    if (typeof opts == 'function') {
-      cb = opts;
-      opts = undefined;
-    }
-
-    // process an array of items, where cb is run at completion of the final one
-    if (isArray(pathPrefix)) {
-      var chainCb = new Callback();
-      pathPrefix.forEach(function (prefix) {
-        if (prefix) {
-          this.preload(prefix, opts, chainCb.chain());
-        }
-      }, this);
-      cb && chainCb.run(cb);
-      return chainCb;
-    } else {
-      pathPrefix = pathPrefix.replace(/^\//, '');
-      // remove leading slash
-      // if an item is found in the map, add that item's sheet to the group.
-      // If there is no sheet in the map (i.e. for sounds), load that file directly.
-      var preloadSheets = {};
-      var map = this._map;
-      for (var uri in map) {
-        if (uri.indexOf(pathPrefix) === 0) {
-          // sprites have sheet; sounds are just by the filename key itself
-          preloadSheets[map[uri] && map[uri].sheet || uri] = true;
-        }
-      }
-
-      var audioMap = this._audioMap;
-      var audioToLoad = {};
-      for (var uri in audioMap) {
-        if (uri.indexOf(pathPrefix) === 0) {
-          audioToLoad[uri] = true;
-        }
-      }
-      var files = Object.keys(preloadSheets);
-      files = files.concat(Object.keys(audioToLoad));
-      // If no files were specified by the preload command,
-      if (files.length == 0) {
-        files = [pathPrefix];
-      }
-
-      var callback = this._loadGroup(merge({ resources: files }, opts));
-      cb && callback.run(cb);
-      return callback;
-    }
-  }
-
-  getSound (src) {
-    if (!_soundManager) {
-      _soundManager = new AudioManager({ preload: true });
-      _soundLoader = _soundManager.getAudioLoader();
-    }
-
-    if (GLOBAL.NATIVE && GLOBAL.NATIVE.sound && GLOBAL.NATIVE.sound.preloadSound) {
-      return NATIVE.sound.preloadSound(src);
-    } else {
-      _soundManager.addSound(src);
-      // HACK to make the preloader continue in the browser
-      return {
-        complete: true,
-        loader: _soundLoader
-      };
-    }
-  }
-
-  getText(url) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.onreadystatechange = function() {
-      if (this.readyState === 4 && this.status === 200) {
-        CACHE[url] = this.responseText;
-      }
-    };
-    xhr.send();
-    return xhr;
-  }
-
-  getImagePaths (prefix) {
-    prefix = prefix.replace(/^\//, '');
-    // remove leading slash
-    var images = [];
-    var map = this._map;
-    for (var uri in map) {
-      if (uri.indexOf(prefix) == 0) {
-        images.push(uri);
-      }
-    }
-    return images;
-  }
-
-  getImage (src, noWarn) {
-    // create the image
-    var img = new Image();
-    img.crossOrigin = 'use-credentials';
-
-    // find the base64 image if it exists
-    if (Image.get) {
-      var b64 = Image.get(src);
-      if (b64 instanceof Image) {
-        return b64;
-      }
-    }
-
-    if (b64) {
-      img.src = b64;
-      Image.set(src, img);
-    } else {
-      if (!noWarn) {
-        logger.warn('Preload Warning:', src, 'not properly cached!');
-      }
-      img.src = src;
-    }
-
-    return img;
   }
 
   _updateImageMap (map, url, x, y, w, h) {
@@ -319,274 +214,270 @@ class Loader extends Emitter {
     return map;
   }
 
-  _getRaw (type, src, copy, noWarn) {
-    // always return the cached copy unless specifically requested not to
-    if (!copy && _cache[src]) {
-      return _cache[src];
+  _onAssetLoaded (asset, url, cache) {
+    // Adding asset to cache
+    if (cache) {
+      cache[url] = asset;
     }
-    var res = null;
 
-    switch (type) {
-
-      case 'audio':
-        res = this.getSound(src);
-        break;
-
-      case 'image':
-        res = this.getImage(src, noWarn);
-        break;
-
-      case 'text':
-        res = this.getText(src);
-        break;
-
-      default:
-        logger.error('Preload Error: Unknown Type', type);
+    if (this._logRequests) {
+      logger.warn('Asset Loaded:', url);
     }
-    return _cache[src] = res;
+
+    var callbacksData = this._assetCallbacks[url];
+    if (callbacksData) {
+      for (var c = 0; c < callbacksData.length; c += 1) {
+        var callbackData = callbacksData[c];
+        callbackData.cb(asset, callbackData.index);
+      }
+      delete this._assetCallbacks[url];
+    }
+
+    // Asset no longer a request
+    delete this._currentRequests[url];
+
   }
 
-  _loadGroup (opts, cb) {
-    var timeout = opts.timeout;
-    var callback = new Callback();
-    var that = this;
+  _loadAsset (url, loadMethod, cb, priority, isExplicit, index) {
+    if (!url) {
+      logger.warn('loader: The image url is empty.');
+      return cb && cb(null, index);
+    }
 
-    // compute a list of images using file extensions
-    var resources = opts.resources || [];
-    var n = resources.length || 0;
-    var loadableResources = [];
+    if (this._missingAssets[url]) {
+      return cb && cb(null, index);
+    }
 
-    for (var i = 0; i < n; ++i) {
-      var ext = resources[i].substring(resources[i].lastIndexOf('.')).split('|')[0];
-      var type = MIME[ext];
-      var found = false;
-      var foundCount = 0;
+    var cache = loadMethod.cache;
+    if (cache) {
+      var asset = cache[url];
+      if (asset) {
+        return cb && cb(asset, index);
+      }
+    }
 
-      var requested;
+    if (priority === null || priority === undefined) {
+      priority = this._priorities[url];
+    }
 
-      for (var j = 0; j < this._requestedResources.length; j++) {
-        requested = this._requestedResources[j];
+    if (this._logRequests) {
+      logger.warn('Asset Requested:', url);
+    }
 
-        if (requested.type === type && requested.resource === resources[i]) {
-          found = true;
-          foundCount++;
-          break;
-        }
+    if (cb) {
+      var callbackData = new AssetCallback(cb, index);
+      var assetRequests = this._assetCallbacks[url];
+      if (assetRequests) {
+        assetRequests.push(callbackData);
+      } else {
+        this._assetCallbacks[url] = [callbackData];
+      }
+    }
+
+    if (!isExplicit) {
+      // Only explicit load requests go through
+      return;
+    }
+
+    if (this._logRequests) {
+      logger.warn('Asset Request went through:', url);
+    }
+
+    if (!this._currentRequests[url]) {
+      this._currentRequests[url] = true;
+      this._nbRequestedResources += 1;
+      loadMethod(url, (asset) => this._onAssetLoaded(asset, url, cache), this, priority, isExplicit);
+    }
+  }
+
+  _loadAssets (urls, loadMethod, cb, priority, isExplicit, onAssetLoaded) {
+    var assets = [];
+    if (urls.length === 0) {
+      return cb && cb(assets);
+    }
+
+    var nbRequestsSatisfied = 0;
+    var nbRequests = urls.length;
+    function onRequestSatisfied(asset, index) {
+      assets[index] = asset;
+      nbRequestsSatisfied += 1;
+      if (onAssetLoaded) {
+        onAssetLoaded(asset, index);
       }
 
-      if (!found) {
-        if (type === 'image' || type === 'audio' || type === 'text') {
-          requested = {
-            type: type,
-            resource: resources[i]
-          };
+      if (nbRequestsSatisfied === nbRequests) {
+        return cb && cb(assets);
+      }
+    }
 
-          loadableResources.push(requested);
+    if (loadMethod instanceof Array) {
+      for (var u = 0; u < urls.length; u += 1) {
+        this._loadAsset(urls[u], loadMethod[u], onRequestSatisfied, priority, isExplicit, u);
+      }
+    } else {
+      for (var u = 0; u < urls.length; u += 1) {
+        this._loadAsset(urls[u], loadMethod, onRequestSatisfied, priority, isExplicit, u);
+      }
+    }
+  }
 
-          this._requestedResources.push(requested);
-        }
+  _loadSound (url, cb, priority, isExplicit) {
+    this._loadAsset(url, loadSound, cb, priority, isExplicit);
+  }
 
-        if (type == 'image' && GLOBAL.NATIVE && NATIVE.gl) {
-          NATIVE.gl.touchTexture(resources[i]);
+  loadSound (url, cb, priority) {
+    this._loadSound(url, cb, priority, true);
+  }
+
+  _loadImage (url, cb, priority, isExplicit) {
+    url = this._getImageURL(url);
+    this._loadAsset(url, loadImage, cb, priority, isExplicit);
+  }
+
+  loadImage (url, cb, priority) {
+    this._loadImage(url, cb, priority, true);
+  }
+
+  _loadSounds (urls, cb, priority, isExplicit) {
+    this._loadAssets(urls, loadSound, cb, priority, isExplicit);
+  }
+
+  loadSounds (urls, cb, priority) {
+    this._loadSounds(urls, cb, priority, true);
+  }
+
+  _loadImages (urls, cb, priority, isExplicit) {
+    var imageURLs = new Array(urls.length);
+    for (var u = 0; u < urls.length; u += 1) {
+      imageURLs[u] = this._getImageURL(urls[u]);
+    }
+    this._loadAssets(imageURLs, loadImage, cb, priority, isExplicit);
+  }
+
+  loadImages (urls, cb, priority, isExplicit) {
+    this._loadImages(urls, cb, priority, true);
+  }
+
+  _getLoadMethod (url) {
+    // Resolving loading method using extension
+    // N.B only works for file types listed in loadMethods
+    var extension = url.substring(url.lastIndexOf('.')).split('?')[0];
+    var loadMethod = loadMethodsByExtension[extension];
+    return loadMethod;
+  }
+
+  loadAsset (url, cb, priority) {
+    var loadMethod = this._getLoadMethod(url);
+    if (loadMethod === loadImage) {
+      url = this._getImageURL(url);
+    }
+    this._loadAsset(url, loadMethod, cb, priority, true);
+  }
+
+  loadAssets (urls, cb, priority) {
+    var assetURLs = new Array(urls.length);
+    var loadMethods = new Array(urls.length);
+    for (var u = 0; u < urls.length; u += 1) {
+      var url = urls[u];
+      var loadMethod = this._getLoadMethod(url);
+      assetURLs[u] = (loadMethod === loadImage) ? this._getImageURL(url) : url;
+      loadMethods[u] = loadMethod;
+    }
+    this._loadAssets(assetURLs, loadMethods, cb, priority, true);
+  }
+
+  _getImageURL (id) {
+    var spritesheet = this._map[id];
+    if (spritesheet) {
+      var sheet = spritesheet.sheet;
+      if (sheet) {
+        return sheet;
+      }
+    }
+
+    return id;
+  }
+
+  constructURLs (pathPrefix) {
+    var urls;
+    if (isArray(pathPrefix)) {
+      urls = [];
+      for (var p = 0; p < pathPrefix.length; p += 1) {
+        Array.prototype.push.apply(urls, this.constructURLs(pathPrefix[p]));
+      }
+      return urls;
+    }
+
+    var urlsMap = {};
+
+    // remove leading slash
+    pathPrefix = pathPrefix.replace(/^\//, '');
+
+    // if an item is found in the map, add that item's sheet to the list of urls.
+    // If there is no sheet in the map (i.e. for sounds), add that file directly.
+
+    // sprites have sheet
+    var imageMap = this._map;
+    for (var uri in imageMap) {
+      if (uri.indexOf(pathPrefix) === 0) {
+        var url = this._getImageURL(uri);
+        if (!urlsMap[url]) {
+          urlsMap[url] = true;
         }
       }
     }
 
-    // If no resources were loadable...
-    if (!loadableResources.length) {
-      if (!foundCount) {
-        logger.warn('Preload Fail: No Loadable Resources Found');
+    // sounds are just by the filename key itself
+    var audioMap = this._audioMap;
+    for (var uri in audioMap) {
+      if (uri.indexOf(pathPrefix) === 0) {
+        if (!urlsMap[uri]) {
+          urlsMap[uri] = true;
+        }
       }
-
-      if (cb) {
-        callback.run(cb);
-      }
-
-      callback.fire();
-
-      return callback;
     }
 
-    // do the preload asynchronously (note that base64 is synchronous, only downloads are asynchronous)
-    var nextIndexToLoad = 0;
-    var numResources = loadableResources.length;
-    globalItemsToLoad += numResources;
-    var parallel = Math.min(numResources, opts.parallel || 5);
-    // how many should we try to download at a time?
-    var numLoaded = 0;
+    urls = Object.keys(urlsMap);
+    if (urls.length === 0) {
+      return [pathPrefix];
+    }
 
-    var loadResource = bind(this, function () {
-      var currentIndex = nextIndexToLoad++;
-      var src = loadableResources[currentIndex];
-      var res;
-      if (src) {
-        res = this._getRaw(src.type, src.resource, false, true);
-      } else {
-        // End of resource list, done!
-        return;
-      }
+    return urls;
+  }
 
-      var next = function (failed) {
-        // If already complete, stub this out
-        if (numLoaded >= numResources) {
-          return;
-        }
+  preload (pathPrefix, cb) {
+    var urls = this.constructURLs(pathPrefix);
+    this.loadAssets(urls, cb);
+  }
 
-        // Set stubs for the reload and load events so that code
-        // elsewhere can blindly call these without causing problems.
-        // An alternative would be to set these to null but not every
-        // piece of code that uses this does the right checks.
-        res.onreload = res.onload = res.onerror = function () {};
+  setCrossOrigin (value) {
+    this._crossOrigin = value;
+  }
 
-        // The number of loads (success or failure) has increased.
-        ++numLoaded;
-        ++globalItemsLoaded;
+  setCredentials (user, password) {
+    this._user = user;
+    this._password = password || null;
+  }
 
-        // REALLY hacky progress tracker
-        if (globalItemsLoaded === globalItemsToLoad) {
-          globalItemsLoaded = globalItemsToLoad = 0;
-        }
-
-        // If we have loaded all of the resources,
-        if (numLoaded >= numResources) {
-          // Call the progress callback with isComplete == true
-          cb && cb(src, failed, true, numLoaded, numResources);
-
-          // If a timeout was set, clear it
-          if (_timeout) {
-            clearTimeout(_timeout);
-          }
-
-          // Fire the completion callback chain
-          logger.log('Preload Complete:', src.resource);
-          callback.fire();
-        } else {
-          // Call the progress callback with the current progress
-          cb && cb(src, failed, false, numLoaded, numResources);
-
-          // Restart on next image in list
-          setTimeout(loadResource, 0);
-        }
-      };
-
-      // IF this is the type of resource that has a reload method,
-      if (res.reload && res.complete) {
-        // Use the magic of closures to create a chain of onreload
-        // completion callbacks.  This is really important because
-        // we can be be preloading the same resource twice, and we can
-        // also be simultaneously preloading two groups at once.
-        var prevOnLoad = res.onreload;
-        var prevOnError = res.onerror;
-
-        // When the resource completes loading, either with success
-        // or failure:
-        res.onreload = function () {
-          // If previous callback exists, run it first in a chain
-          prevOnLoad && prevOnLoad();
-
-          // React to successful load of this resource
-          next(false);
-        };
-
-        res.onerror = function () {
-          // If previous callback exists, run it first in a chain
-          prevOnError && prevOnError();
-
-          // React to failed load of this resource
-          next(true);
-        };
-
-        // Start it reloading
-        res.reload();
-      } else if (res.complete) {
-        if (res.loader) {
-          // real sound loading with AudioContext ...
-          res.loader.load([src.resource], next);
-        } else {
-          // Let subscribers know an image was loaded
-          if (src.type === 'image') {
-            that.emit(Loader.IMAGE_LOADED, res, src);
-          }
-          // Since the resource has already completed loading, go
-          // ahead and invoke the next callback indicating the previous
-          // success or failure.
-          next(res.failed === true);
-        }
-      } else {
-        // The comments above about onreload callback chaining equally
-        // apply here.  See above.
-        var prevOnLoad = res.onload;
-        var prevOnError = res.onerror;
-
-        // When the resource completes loading, either with success
-        // or failure:
-        res.onload = function () {
-          // If previous callback exists, run it first in a chain
-          prevOnLoad && prevOnLoad();
-
-          // Reset fail flag
-          res.failed = false;
-
-          // Let subscribers know an image was loaded
-          if (src.type === 'image') {
-            that.emit(Loader.IMAGE_LOADED, res, src);
-          }
-
-          // React to successful load of this resource
-          next(false);
-        };
-
-        res.onerror = function () {
-          // If previous callback exists, run it first in a chain
-          prevOnError && prevOnError();
-
-          // Set fail flag
-          res.failed = true;
-
-          // React to failed load of this resource
-          next(true);
-        };
-      }
-    });
-
-    var _timeout = null;
-    setTimeout(function () {
-      // spin up n simultaneous loaders!
-      for (var i = 0; i < parallel; ++i) {
-        loadResource();
-      }
-
-      // register timeout call
-      if (timeout) {
-        _timeout = setTimeout(function () {
-          logger.warn('Preload Timeout: Something Failed to Load');
-          callback.fire();
-          numLoaded = numResources;
-        }, timeout);
-      }
-    }, 0);
-    return callback;
+  setLowResEnabled (value) {
+    LOW_RES_ENABLED = value;
+    Loader.prototype.LOW_RES_ENABLED = value;
   }
 
 }
 
+Loader.prototype.IMAGE_LOADED = 'imageLoaded';
+Loader.prototype.PRIORITY_LOW = loaders.PRIORITY_LOW;
+Loader.prototype.PRIORITY_MEDIUM = loaders.PRIORITY_MEDIUM;
+// Loader.prototype.PRIORITY_HIGH = loaders.PRIORITY_HIGH;
 
+Loader.prototype.LOW_RES_ENABLED = LOW_RES_ENABLED;
 
-Loader.prototype._map = {};
-Loader.prototype._originalMap = {};
-Loader.prototype._audioMap = {};
-Loader.prototype._requestedResources = [];
-Loader.IMAGE_LOADED = 'imageLoaded';
+var loadMethods = {};
+loadMethods.loadImage = loadImage;
+loadMethods.loadJSON = loadJSON;
+loadMethods.loadSound = loadSound;
+loadMethods.loadFile = loadFile;
+Loader.prototype.loadMethods = loadMethods;
 
-exports = new Loader();
-
-exports.IMAGE_LOADED = Loader.IMAGE_LOADED;
-exports.LOW_RES_ENABLED = LOW_RES_ENABLED;
-exports.LOW_RES_KEY = LOW_RES_KEY;
-
-exports.setLowResEnabled = function (value) {
-  LOW_RES_ENABLED = value;
-  exports.LOW_RES_ENABLED = value;
-};
-
-export default exports;
+export default new Loader();

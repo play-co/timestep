@@ -1,9 +1,5 @@
-import { CACHE } from 'base';
-import Promise from 'bluebird';
-import loader from 'ui/resource/loader';
-import Rect from 'math/geom/Rect';
+
 import Matrix from 'platforms/browser/webgl/Matrix2D';
-import ImageViewCache from 'ui/resource/ImageViewCache';
 
 const NULL_ANIMATION = '__none';
 
@@ -13,8 +9,8 @@ const NULL_ANIMATION = '__none';
 
 export default class AnimationData {
 
-  constructor (data) {
-    this.url = data.url;
+  constructor (data, url, images) {
+    this.url = url;
     this.frameRate = data.frameRate;
 
     // TODO: simplify export format of skins, symbols, ids and sprites
@@ -83,7 +79,7 @@ export default class AnimationData {
     var spritesData = data.textureOffsets;
     for (var spriteID in spritesData) {
       var spriteData = spritesData[spriteID];
-      var image = ImageViewCache.getImage(this.url + '/' + spriteData.url);
+      var image = images[spriteData.url];
       this.library[spriteID] = new Sprite(image, spriteData);
     }
 
@@ -93,75 +89,6 @@ export default class AnimationData {
   }
 
 }
-
-
-// -----------------------------------
-// AnimationData Loader
-// -----------------------------------
-
-const animationDataCache = {};
-const loadCallbacks = {};
-
-var getAnimation = function (url) {
-  var data = animationDataCache[url];
-
-  if (data) {
-    return data;
-  }
-
-  var fullPath = url + '/data.js';
-  var dataString = CACHE[fullPath];
-
-  if (dataString) {
-    var rawData = JSON.parse(dataString);
-    rawData.url = url;
-    data = animationDataCache[url] = new AnimationData(rawData);
-  }
-
-  return data;
-};
-AnimationData.getAnimation = getAnimation;
-
-AnimationData.loadFromURL = function (url) {
-  var data = getAnimation(url);
-  if (data) {
-    return Promise.resolve(data);
-  }
-
-  return new Promise((resolve, reject) => {
-
-    if (loadCallbacks[url]) {
-      loadCallbacks[url].push({ resolve, reject });
-      return;
-    }
-
-    loadCallbacks[url] = [ { resolve, reject } ];
-
-    var fullPath = url + '/data.js';
-    loader.preload(fullPath, () => {
-
-      var dataString = CACHE[fullPath];
-
-      if (dataString) {
-        var rawData = JSON.parse(dataString);
-        rawData.url = url;
-        data = animationDataCache[url] = new AnimationData(rawData);
-      }
-
-      var callbacks = loadCallbacks[url];
-
-      for (var i = 0, len = callbacks.length; i < len; i++) {
-        var method = data ? callbacks[i].resolve : callbacks[i].reject;
-        var param = data || new Error('Could not load data.');
-        method(param);
-      }
-
-      // Don't keep around references to callbacks
-      callbacks.length = 0;
-    });
-
-  });
-};
 
 // -----------------------------------
 // Sprite
@@ -190,10 +117,12 @@ class Sprite {
     ctx.globalAlpha = alpha;
 
     var bounds = this.bounds;
-    this.image.renderShort(ctx, bounds.x, bounds.y, bounds.width, bounds.height);
+    if (this.image) {
+      this.image.renderShort(ctx, bounds.x, bounds.y, bounds.width, bounds.height);
+    }
   }
 
-  expandBoundingBox (boundingBox, elementID, transform) {
+  _expandBoundingBox (boundingBox, elementID, transform) {
     if (elementID !== null) {
       return;
     }
@@ -274,7 +203,7 @@ class Symbol {
     }
   }
 
-  expandBoundingBox (boundingBox, elementID, parentTransform, frame, elapsedFrames, substitutes, currentBounds) {
+  _expandBoundingBox (boundingBox, elementID, parentTransform, currentBounds, frame, elapsedFrames, substitutes) {
     // TODO: if instance is movie clip, the bounds should include all its frames
     var children = this.timeline[frame];
     for (var i = 0; i < children.length; i++) {
@@ -299,7 +228,7 @@ class Symbol {
       }
 
       var searchedElementID = (elementID === childID) ? null : elementID;
-      element.expandBoundingBox(boundingBox, searchedElementID, transform, childFrame, elapsedFrames, substitutes, currentBounds);
+      element._expandBoundingBox(boundingBox, searchedElementID, transform, currentBounds, childFrame, elapsedFrames, substitutes);
     }
   }
 
@@ -358,4 +287,5 @@ class Instance {
 
 }
 
-AnimationData.Instance = Instance;
+var emptyTimeline = [[]];
+AnimationData.EMPTY_SYMBOL = new Symbol(emptyTimeline);

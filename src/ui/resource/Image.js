@@ -28,7 +28,6 @@ import {
   GLOBAL,
   bind,
   CONFIG,
-  NATIVE,
   logger
 } from 'base';
 
@@ -37,63 +36,27 @@ import PubSub from 'lib/PubSub';
 import Callback from 'event/Callback';
 import resourceLoader from 'ui/resource/loader';
 import filterRenderer from 'ui/backend/canvas/filterRenderer';
-
-var ImageCache = {};
+import Canvas from 'platforms/browser/Canvas';
 
 var GET_IMAGE_DATA_NOT_SUPPORTED = !GLOBAL.document || !document.createElement;
 
 /**
- * Callback when images are loaded. This has a failsafe that runs up to a certain
- * threshold asynchronously, attempting to read the image size, before dying.
- */
-// `imageOnLoad` is called when a DOM image object fires a `load` or `error`
-// event.  Fire the internal `cb` with the error status.
-function imageOnLoad (success, evt, failCount) {
-  if (success && !this.width) {
-    // Some browsers fire the load event before the image width is
-    // available.  Wait up to 3 frames for the width.  Note that an image
-    // with zero-width will be considered an error.
-    if (failCount <= 3) {
-      setTimeout(bind(this, imageOnLoad, success, evt, (failCount || 0) + 1), 0);
-    } else {
-      this.__cb.fire(false);
-    }
-  } else {
-    this.__cb.fire(!success);
-  }
-}
-
-// Listen for preloaded images and add them to cache
-resourceLoader.on(resourceLoader.IMAGE_LOADED, function (image, src) {
-  ImageCache[src.resource] = image;
-  image.__cb = new Callback();
-  imageOnLoad.call(image, true);
-});
-
-/**
  * This class models the region of a larger image that this "Image" references.
  */
-var ImageMap = !CONFIG.disableNativeViews && NATIVE.timestep && NATIVE.timestep
-  .ImageMap;
-if (!ImageMap) {
-  ImageMap = class {
-    constructor (parentImage, x, y, width, height, marginTop, marginRight,
-      marginBottom, marginLeft, url) {
-      this.url = url;
-      this.x = x;
-      this.y = y;
-      this.width = width;
-      this.height = height;
-      this.marginTop = marginTop;
-      this.marginRight = marginRight;
-      this.marginBottom = marginBottom;
-      this.marginLeft = marginLeft;
-    }
-  };
-}
-
-var isNative = GLOBAL.NATIVE && !device.isNativeSimulator;
-var Canvas = device.get('Canvas');
+class ImageMap {
+  constructor (parentImage, x, y, width, height, marginTop, marginRight,
+    marginBottom, marginLeft, url) {
+    this.url = url;
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.marginTop = marginTop;
+    this.marginRight = marginRight;
+    this.marginBottom = marginBottom;
+    this.marginLeft = marginLeft;
+  }
+};
 
 // helper canvases for image data, initialized when/if needed
 var _imgDataCanvas = null;
@@ -107,97 +70,61 @@ export default class ImageWrapper extends PubSub {
       opts = {};
     }
 
-    this._crossOrigin = opts.crossOrigin !== undefined ? opts.crossOrigin : 'use-credentials';
-
     this._cb = new Callback();
     this._map = new ImageMap(this, 0, 0, -1, -1, 0, 0, 0, 0, opts.url || '');
     this._originalURL = opts.url || '';
     this._scale = opts.scale || 1;
     this._isError = false;
+    this._loadRequestID = 0;
+    this._crossOrigin = opts.crossOrigin;
 
     resourceLoader._updateImageMap(this._map, opts.url, opts.sourceX, opts.sourceY,
       opts.sourceW, opts.sourceH);
 
     // srcImage can be null, then setSrcImg will create one
     // (use the map's URL in case it was updated to a spritesheet)
-    this._setSrcImg(opts.srcImage, this._map.url, opts.forceReload);
+    this._setSrcImg(opts.srcImage, this._map.url);
   }
 
-  _setSrcImg (img, url, forceReload) {
+  _setSrcImg (img, url) {
     this._cb.reset();
     this._isError = false;
 
-    // if we haven't found an image, look in the image cache
-    if (!img && url && !forceReload && ImageCache[url]) {
-      img = ImageCache[url];
-    }
-
-    // look up the base64 cache -- if it's been preloaded, we'll get back an image that's already loaded
-    // if it has not been preloaded, we'll get back raw base64 in the b64 variable
-    if (!img && !forceReload && Image.get) {
-      var b64 = Image.get(url);
-      if (typeof b64 === 'object') {
-        img = b64;
-      } else if (b64) {
-        url = b64;
-      }
-    }
-
-    if (forceReload) {
-      // clear native texture in an image object
-      if (img && img.destroy) {
-        img.destroy();
-      }
-
-      // clear native textures by URL
-      if (url && NATIVE.gl && NATIVE.gl.deleteTexture) {
-        NATIVE.gl.deleteTexture(url);
-      }
-    }
-
-    // create an image if we don't have one
-    if (!img) {
-      img = new Image();
-      img.crossOrigin = this._crossOrigin;
-    }
-
     this._srcImg = img;
-
+    var loadRequestID = ++this._loadRequestID;
     if (img instanceof HTMLCanvasElement || img instanceof Canvas) {
-      this._onLoad(false, img);
-    } else
-    // no error
-    {
-      // if it's already loaded, we call _onLoad immediately. Note that
-      // we don't use `.complete` here intentionally since web browsers
-      // set `.complete = true` before firing on the load/error
-      // callbacks, so we can't actually detect whether there's an error
-      // in some cases.
-      if (!img.__cb) {
-        img.__cb = new Callback();
-        img.addEventListener('load', bind(img, imageOnLoad, true), false);
-        img.addEventListener('error', bind(img, imageOnLoad, false), false);
-
-        if (url) {
-          ImageCache[url] = img;
-        }
-
-        if (!img.src && url) {
-          img.src = this._map.url = url;
-        }
+      this._onLoad(img, loadRequestID);
+    } else {
+      if (this._crossOrigin) {
+        resourceLoader.setAssetCrossOrigin(url, this._crossOrigin);
       }
 
-      img.__cb.run(this, function (err) {
-        this._onLoad(err, img);
-      });
+      resourceLoader._loadImage(url, img => this._onLoad(img, loadRequestID));
     }
   }
+
+  _forceLoad (cb) {
+    resourceLoader.loadImage(this._originalURL, img => {
+      this._onLoad(img, ++this._loadRequestID);
+      return cb && cb();
+    });
+  }
+
+  _addAssetsToList (assetURLs) {
+    var url = this._originalURL;
+    if (assetURLs.indexOf(url) === -1) {
+      assetURLs.push(url);
+    }
+  }
+
   getSrcImg () {
     return this._srcImg;
   }
+
   setSrcImg (srcImg) {
     this._setSrcImg(srcImg);
   }
+
   reload (cb) {
     var srcImg = this._srcImg;
     if (srcImg) {
@@ -206,24 +133,7 @@ export default class ImageWrapper extends PubSub {
         cb = cb.chain();
       }
 
-      var hasFired = this._cb.fired();
-
-      // GC native has a reload method to force reload
-      if (srcImg.reload) {
-        var onReload = bind(this, function () {
-          srcImg.removeEventListener('reload', onReload, false);
-          if (hasFired) {
-            this._cb.fire(null, this);
-          }
-          cb && cb();
-        });
-        srcImg.addEventListener('reload', onReload, false);
-        srcImg.reload();
-
-        if (hasFired) {
-          this._cb.reset();
-        }
-      } else if (cb) {
+      if (cb) {
         if (this._cb.fired()) {
           // always wait a frame before calling the callback
           setTimeout(cb, 0);
@@ -233,6 +143,7 @@ export default class ImageWrapper extends PubSub {
       }
     }
   }
+
   getURL () {
     return this._map.url;
   }
@@ -281,9 +192,9 @@ export default class ImageWrapper extends PubSub {
   setMarginLeft (n) {
     this._map.marginLeft = n;
   }
-  setURL (url, forceReload) {
+  setURL (url) {
     resourceLoader._updateImageMap(this._map, url);
-    this._setSrcImg(null, this._map.url, forceReload);
+    this._setSrcImg(null, this._map.url);
   }
   getWidth () {
     var map = this._map;
@@ -314,54 +225,49 @@ export default class ImageWrapper extends PubSub {
     this._cb.forward(arguments);
     return this;
   }
-  _onLoad (err, img) {
-    var map = this._map;
-    var srcImg = this._srcImg;
+  _onLoad (image, loadRequestID) {
     // if our source image has changed we should ignore this onload callback
     // this can happen if _setSrcImg is called multiple times with different urls/images
-    if (img && img !== srcImg) {
+    if (loadRequestID !== this._loadRequestID) {
       return;
     }
 
-    if (err) {
+    if (!image) {
       // TODO: something better?
-      logger.error('Image failed to load:', map.url);
       this._isError = true;
       this._cb.fire({ NoImage: true });
       return;
     }
 
+    this._srcImg = image;
     this._isError = false;
 
-    if (srcImg.width === 0) {
-      logger.warn('Image has no width', this._url);
-    }
-
+    var map = this._map;
     if (this._scale !== 1 && (map.width !== -1 || map.height !== -1)) {
       // requested scale & provided a width or height
       if (map.width === -1) {
         // by the above check, this._sourceH should not be -1
-        map.width = srcImg.width * map.height / srcImg.height;
+        map.width = image.width * map.height / image.height;
       }
 
       if (map.height === -1) {
         // this._sourceW was initialized above
-        map.height = srcImg.height * map.width / srcImg.width;
+        map.height = image.height * map.width / image.width;
       }
 
       // TODO: sourceImage might be shared so we can't actually modify width/height. This is a bug.
-      srcImg.width = map.width;
-      srcImg.height = map.height;
+      image.width = map.width;
+      image.height = map.height;
     } else {
       if (map.width === -1) {
-        map.width = srcImg.width;
+        map.width = image.width;
       }
       if (map.height === -1) {
-        map.height = srcImg.height;
+        map.height = image.height;
       }
     }
 
-    map.url = srcImg.src;
+    map.url = image.src;
     this._cb.fire(null, this);
   }
   isError () {
@@ -400,7 +306,7 @@ export default class ImageWrapper extends PubSub {
 
     var srcImg = this._srcImg;
 
-    if (!isNative && ctx.filter) {
+    if (ctx.filter) {
       var filterImg = filterRenderer.renderFilter(ctx, this, srcX, srcY, srcW, srcH);
       if (filterImg) {
         srcImg = filterImg;
@@ -441,14 +347,6 @@ export default class ImageWrapper extends PubSub {
 
   setImageData (data) {}
 
-  destroy () {
-    this._srcImg.destroy && this._srcImg.destroy();
-  }
-
-};
-
-ImageWrapper.__clearCache__ = function () {
-  ImageCache = {};
 };
 
 ImageWrapper.prototype.getSource = ImageWrapper.prototype.getSrcImg;
