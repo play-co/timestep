@@ -71,7 +71,6 @@ export default class BoxLayout {
     }
   }
   _onSubviewAdded (view, subview) {
-    subview.style.addResizeListeners();
     view.connectEvent(subview, 'resize', bind(view, 'needsReflow'));
   }
   _onSubviewRemoved (view, subview) {
