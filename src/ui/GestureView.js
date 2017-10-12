@@ -20,13 +20,12 @@ import { logger } from 'base';
 import View from 'ui/View';
 import Vec2D from 'math/geom/Vec2D';
 
-// @deprecated
+const sqrt = Math.sqrt;
+
 exports = class extends View {
   constructor (opts) {
-    logger.warn('Warning: GestureView has been deprecated and is ' +
-      'no longer supported. Features may not work as you expect.');
-
     super(opts);
+
     this._swipeMagnitude = opts.swipeMagnitude || 150;
     this._swipeTime = opts.swipeTime || 250;
     this._fingerOne = null;
@@ -34,32 +33,57 @@ exports = class extends View {
     this._initialDistance = null;
     this._initialAngle = null;
     this._dragPoints = {};
+    this._trackedFingers = {};
     this._activeFingers = 0;
     this._swipeCount = 0;
   }
+
   onInputStart (evt) {
+    var id = 'p' + evt.id;
     this._activeFingers += 1;
     this._swipeCount = this._activeFingers;
+    this._trackedFingers[id] = true;
+
     this.startDrag({ inputStartEvt: evt });
     this.emit('FingerDown', this._activeFingers);
   }
+
   onDragStart (dragEvent) {
+    var id = 'p' + dragEvent.id;
+
+    // Sometimes `onDragStart` is triggered a little late (after `onInputSelect`)
+    // making the event irrelevant for gesture tracking
+    if (!this._trackedFingers[id]) {
+      return;
+    }
+
     var point = {
       x: dragEvent.srcPoint.x,
       y: dragEvent.srcPoint.y
     };
-    var id = 'p' + dragEvent.id;
     this._dragPoints[id] = point;
+
     if (this._fingerOne == null) {
       this._fingerOne = id;
     } else if (this._fingerTwo == null && this._fingerOne != id) {
       this._fingerTwo = id;
     }
   }
+
   onInputSelect (evt) {
     var id = 'p' + evt.id;
+
+    // Some events may not trigger `onInputStart` if they e.g. started
+    // on a different input and haven't bubbled up to this one.
+    // Don't care about those
+    if (!this._trackedFingers[id]) {
+      return;
+    }
+
+    delete this._trackedFingers[id];
     delete this._dragPoints[id];
     this._activeFingers -= 1;
+
     var initialFingerTwo = this._fingerTwo;
     if (this._fingerOne == id) {
       this._fingerOne = this._fingerTwo;
@@ -67,6 +91,7 @@ exports = class extends View {
     } else if (this._fingerTwo == id) {
       this._fingerTwo = null;
     }
+
     if (initialFingerTwo && !this._fingerTwo) {
       this._initialDistance = null;
       this._initialAngle = null;
@@ -78,25 +103,30 @@ exports = class extends View {
         }
       }
     }
+
     this.emit('FingerUp', this._activeFingers);
   }
+
   onDrag (dragEvent, moveEvent, delta) {
     var id = 'p' + dragEvent.id;
+
     this._dragPoints[id] = {
       x: moveEvent.srcPoint.x,
       y: moveEvent.srcPoint.y
     };
+
     if (this._fingerTwo && (this._fingerOne == id || this._fingerTwo == id)) {
       var p1 = this._dragPoints[this._fingerOne];
       var p2 = this._dragPoints[this._fingerTwo];
       var dx = p2.x - p1.x;
       var dy = p2.y - p1.y;
-      var d = Math.sqrt(dx * dx + dy * dy);
+      var d = sqrt(dx * dx + dy * dy);
       var dragVec = new Vec2D({
         x: dx,
         y: dy
       });
       var angle = dragVec.getAngle();
+
       if (this._initialDistance == null) {
         this._initialDistance = d;
         this._initialAngle = angle;
@@ -105,10 +135,12 @@ exports = class extends View {
         this.emit('Rotate', angle - this._initialAngle);
       }
     }
+
     if (this._fingerOne == id) {
       this.emit('DragSingle', delta.x, delta.y);
     }
   }
+
   onDragStop (dragEvent, selectEvent) {
     var dy = dragEvent.srcPoint.y - selectEvent.srcPoint.y;
     var dx = dragEvent.srcPoint.x - selectEvent.srcPoint.x;
@@ -118,12 +150,14 @@ exports = class extends View {
     });
     var mag = swipeVec.getMagnitude();
     var dt = selectEvent.when - dragEvent.when;
+
     if (mag > this._swipeMagnitude && dt < this._swipeTime) {
       var degrees = swipeVec.getAngle() * (180 / Math.PI);
       this.emit('Swipe', degrees, degrees > 60 && degrees < 120 ? 'up' :
         degrees < -60 && degrees > -120 ? 'down' : degrees > 120 ||
         degrees < -120 ? 'right' : 'left', this._swipeCount);
     }
+
     this.clearInput(selectEvent);
   }
 };
