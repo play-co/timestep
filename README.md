@@ -22,7 +22,7 @@ SublimeLinter-contrib-eslint packages.
 ## Tests
 
 Uses Node.js for testing. Install the
-[Mocha](http://visionmedia.github.com/mocha/) test framework
+[Mocha](http://mochajs.org/) test framework
 and the jsdom module:
 
 ~~~
