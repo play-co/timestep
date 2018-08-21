@@ -1,0 +1,76 @@
+.squill-btn {
+    position: relative;
+    cursor: pointer;
+    font: 16px Tahoma;
+    color: #9a9a9a;
+    text-decoration: none;
+}
+
+.squill-btnLeft {
+    float: left;
+    width: 10px;
+    height: 41px;
+    background: url('images/button.png') 0px 0px no-repeat;
+}
+
+.squill-btnCenter {
+    float: left;
+    line-height: 41px;
+    padding: 0px 20px;
+    background: url('images/button.png') 0px -41px repeat-x;
+}
+
+.squill-btnRight {
+    float: left;
+    width: 10px;
+    height: 41px;
+    background: url('images/button.png') 0px -82px no-repeat;
+}
+
+.squill-btn-hover { color: #888; }
+.squill-btn-hover .squill-btnLeft { background-position: 0px -123px; }
+.squill-btn-hover .squill-btnCenter { background-position: 0px -164px; }
+.squill-btn-hover .squill-btnRight { background-position: 0px -205px; }
+.squill-btn-down .squill-btnLeft { background-position: 0px -246px; }
+.squill-btn-down .squill-btnCenter { background-position: 0px -287px; }
+.squill-btn-down .squill-btnRight { background-position: 0px -328px; }
+
+.squill-textInput {
+    position: relative;
+    background: url('images/inputbg.png') repeat-x;
+    height: 31px;
+    border: 2px solid #c7c7c9;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    cursor: text;
+    font: 16px Tahoma;
+}
+
+.squill-textInput div {
+    position: relative;
+    top: 4px;
+    left: 10px;
+    color: #c2c2c2;
+}
+
+.squill-textInput input {
+    font: 16px Tahoma;
+    border: 0px;
+    background: none;
+    position: absolute;
+    top: 4px;
+    left: 8px;
+    color: #000;
+    outline: none;
+    padding: 0px;
+}
+
+.squill-textInput-hover { border-color: #a7a8ac; }
+.squill-textInput-focused { border-color: #8c8cde; }
+
+.squill-cnvs {
+    position: relative;
+    cursor: pointer;
+	background-color: #000000;
+}

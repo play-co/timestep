@@ -1,0 +1,14 @@
+{
+	"name": "squill",
+	"author": "Game Closure",
+	"version": "0.0.3-beta-4",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/gameclosure/squill"
+	},
+	"devkit": {
+		"clientPaths": {
+			"squill": "."
+		}
+	}
+}

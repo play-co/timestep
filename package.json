@@ -1,15 +1,18 @@
 {
-	"name": "timestep",
-	"author": "Game Closure",
-	"version": "0.0.1",
-	"private": true,
-	"repository": {
-		"type": "git",
-		"url": "http://github.com/gameclosure/timestep/timestep.git"
-	},
-	"devkit": {
-		"clientPaths": {
-			"*": "src/"
-		}
-	}
+  "name": "timestep",
+  "version": "3.0.0",
+  "description": "A JavaScript game engine for the Game Closure SDK, built on Canvas and DOM rendering backends. Runtime implementations are optimized at a low level to develop high-performance games.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gameclosure/timestep.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gameclosure/timestep/issues"
+  },
+  "homepage": "https://github.com/gameclosure/timestep#readme"
 }

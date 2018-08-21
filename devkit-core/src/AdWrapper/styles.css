@@ -1,0 +1,84 @@
+.adWrapper-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #FFF;
+  z-index: 999999;
+  cursor: default;
+  overflow: hidden;
+  color: #888d97;
+  text-align: center;
+  font-family: Helvetica, Tahoma;
+  display: flex;
+  flex-direction: column;
+}
+
+.adWrapper-overlay img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.adWrapper-overlay h2 {
+  font-size: 1em;
+  font-weight: bold;
+  width: 70%;
+  margin: auto;
+}
+
+.adWrapper-overlay h3 {
+  font-size: 0.9em;
+  font-weight: normal;
+  width: 70%;
+  margin: auto;
+  text-align: left;
+}
+
+.adWrapper-button {
+  background-color: #5284ff;
+  border-radius: 0.5em;
+  padding: 1em;
+  font-size: 0.8em;
+  border: 0;
+  color: #fff;
+  width: 80%;
+  margin: auto;
+}
+
+.adWrapper-icon {
+  width: 5em;
+  height: 5em;
+  display: inline-block;
+  background-repeat: no-repeat;
+  background-size: contain;
+  border-radius: 0.5em;
+  margin: auto;
+}
+
+.adWrapper-closeButton {
+  display: block;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  background-color: rgba(255,255,255,0.8);
+  width: 20px;
+  height: 20px;
+  border-radius: 20px;
+  font-size: 14px;
+  line-height: 19px;
+  color: #666;
+  overflow: hidden;
+}
+
+.adWrapper-closeButton canvas {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  box-shadow: rgba(0,0,0,0.5) 0 0 8px;
+}

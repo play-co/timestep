@@ -1,0 +1,32 @@
+#!/usr/bin/python
+import sys
+from PIL import Image
+# '../images/src/button.png'
+img = Image.open(sys.argv[1]);
+width, height = img.size
+
+out = Image.new("RGBA", [10, height * 3])
+
+h = height / 3
+
+crop = [
+ [(0, 0, 10, h), (0, 0)],
+ [(10, 0, 20, h), (0, h)],
+ [(width-10, 0, width, h), (0, h*2)],
+
+ [(0, h, 10, h*2), (0, h*3)],
+ [(10, h, 20, h*2), (0, h*4)],
+ [(width-10, h, width, h*2), (0, h*5)],
+
+ [(0, h*2, 10, h*3), (0, h*6)],
+ [(10, h*2, 20, h*3), (0, h*7)],
+ [(width-10, h*2, width, h*3), (0, h*8)]
+]
+
+for a, b in crop:
+	print a, b
+	out.paste(img.crop(a), b)
+# '../images/src/button.png'
+#"../images/button.png"
+out.save(sys.argv[2])
+

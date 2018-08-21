@@ -1,0 +1,12 @@
+[submodule "modules/native-android"]
+	path = modules/native-android
+	url = https://github.com/gameclosure/native-android
+[submodule "modules/native-ios"]
+	path = modules/native-ios
+	url = https://github.com/gameclosure/native-ios
+[submodule "modules/timestep"]
+	path = modules/timestep
+	url = https://github.com/gameclosure/timestep
+[submodule "modules/squill"]
+	path = modules/squill
+	url = https://github.com/gameclosure/squill
