@@ -22,7 +22,7 @@
  * ------------------------------------------------------------------------------
  */
 
-import _ from 'lodash';
+import merge from 'lodash/merge';
 
 import {
   default as BitmapFontTextViewBacking,
@@ -33,7 +33,7 @@ import {
 class BitmapFontTextView {
 
   constructor(opts) {
-    opts = _.merge({}, DEFAULT_TEXT_FORMAT, opts);
+    opts = merge({}, DEFAULT_TEXT_FORMAT, opts);
     this._opts = opts;
 
     this.colorFilter = null;

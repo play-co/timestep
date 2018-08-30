@@ -22,7 +22,7 @@
  * ------------------------------------------------------------------------------
  */
 
-import _ from 'lodash';
+import merge from 'lodash/merge';
 
 import View from '../View';
 import ImageView from '../ImageView';
@@ -44,7 +44,7 @@ const CHARACTER_VIEW_POOL = new ViewPool({ ctor: ImageView });
 
 class BitmapFontTextView extends View {
   constructor(opts) {
-    opts = _.merge({}, DEFAULT_TEXT_FORMAT, opts);
+    opts = merge({}, DEFAULT_TEXT_FORMAT, opts);
     super(opts);
 
     this.colorFilter = new filter.MultiplyFilter(opts.color);
